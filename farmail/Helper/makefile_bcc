@@ -1,0 +1,58 @@
+!IF "$(OS)" == "Windows_NT"
+NULL=
+!ELSE
+NULL=nul
+!ENDIF
+
+OBJDIR = ..\..\obj\bcc\fmp\helper
+DLLDIR = ..\..\bin\FMP\Helper
+DLLNAME = $(DLLDIR)\helper.bcc.fmp
+
+CC = bcc32
+CFLAGS = -tWD -d -a2 -M- -K -v- -RT- -u- -x- -k- -O1
+LFLAGS = /x /Gn /Tpd /aa
+CP = copy /y
+M4 = m4 -P -DCMD=..\FARMail\gen_date.exe
+DOCS = $(DLLDIR)\helper.fml $(DLLDIR)\helpere.hlf $(DLLDIR)\helperr.hlf
+
+all: $(OBJDIR) $(DLLDIR) $(DLLNAME) $(DOCS)
+
+OBJS = $(OBJDIR)\open_file_dialog.obj \
+       $(OBJDIR)\helper_utils.obj \
+       $(OBJDIR)\helper.obj \
+       $(OBJDIR)\registry.obj \
+       $(OBJDIR)\bcc_entry_point.obj
+
+$(OBJDIR)\open_file_dialog.obj: open_file_dialog.cpp memory.h plugin.hpp farcolor.hpp farkeys.hpp helper.hpp registry.hpp ..\FARMail\fmp.hpp
+$(OBJDIR)\helper_utils.obj: helper_utils.cpp helper.hpp plugin.hpp registry.hpp
+$(OBJDIR)\helper.obj: helper.cpp helper.hpp registry.hpp memory.h plugin.hpp ..\FARMail\fmp.hpp
+$(OBJDIR)\registry.obj: registry.cpp registry.hpp plugin.hpp helper.hpp
+$(OBJDIR)\bcc_entry_point.obj: bcc_entry_point.asm
+
+.cpp.obj:
+	@echo compiling $<
+	@$(CC) $(CFLAGS) -n$(OBJDIR) -c $&.cpp
+
+.asm.obj:
+	@echo compiling $<
+	@$(CC) -n$(OBJDIR) -c $&.asm
+
+$(DLLNAME): $(OBJS)
+	@echo linking
+	@ilink32.exe $(LFLAGS) $**,$(DLLNAME),,Import32.lib,
+	@del $(DLLDIR)\*.tds
+
+$(DLLDIR)\helper.fml: helper.fml
+	@$(CP) helper.fml $@
+$(DLLDIR)\helpere.hlf: helpere.hlf.m4 ..\FARMail\fm_version.m4
+	@$(M4) helpere.hlf.m4 > $@
+$(DLLDIR)\helperr.hlf: helperr.hlf.m4 ..\FARMail\fm_version.m4
+	@$(M4) helperr.hlf.m4 > $@
+
+$(OBJDIR):
+	@if not exist "$@\$(NULL)" mkdir "$@"
+$(DLLDIR):
+	@if not exist "$@\$(NULL)" mkdir "$@"
+
+clean:
+	@del $(OBJS)

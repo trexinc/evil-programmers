@@ -1,0 +1,9 @@
+scripts.ini Templates for message creation
+forward.fms Process message for forwarding
+new.fms Create new message
+notification.fms Generate a reading confirmation notification message
+qp.fms Decode quoted-printable text (works with selection)
+quote.fms Quote text (works with selection)
+reply.fms A very powerful reply script
+replyall.fms Same as reply.fms but processes "cc" filed to reply all
+resend.fms Resend a message, recreates original farmail message from RFC message
