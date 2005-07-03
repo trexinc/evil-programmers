@@ -1,0 +1,128 @@
+rem Reply-To:
+reply_to_field = ""
+
+rem From:
+from_field = ""
+
+rem To:
+to_field = ""
+
+rem The date and time on which the message was sent (Date:)
+date_sent = ""
+
+rem Message-ID:
+msg_id = ""
+
+rem Subject of the message
+subject_field = ""
+
+rem Creates string of this form: --=_NextPart_5E71_70AF_D6B8.ED25
+bound = boundary()
+
+msg_header = ""
+
+rem
+rem ------------------------ Script start -------------------------------
+rem
+
+x = -1
+while (++x < nlines())
+  setpos(x,0)
+  current_line=line(-1)
+  if (current_line=="")
+    break
+  endif
+  msg_header=msg_header+current_line+"\n"
+wend
+while (--x >= 0)
+  setpos(x,0)
+  delline(-1)
+wend
+
+to_field=header(msg_header,"to:")
+reply_to_field=header(msg_header,"reply-to:")
+from_field=header(msg_header,"from:")
+subject_field=header(msg_header,"subject:")
+date_sent=header(msg_header,"date:")
+msg_id=header(msg_header,"message-id:")
+
+rem Decide what to put in "to" field ("reply-to" or "from")
+if (strlen(reply_to_field))
+  from_field = reply_to_field
+endif
+
+rem Clear file
+x = nlines()
+while (x--)
+  delline(0)
+wend
+
+rem Write the %start% %end% block
+i = 0
+insline(i,0)
+setline( "%start%", i++ )
+insline(i,0)
+setline( " set %to% = " + from_field, i++ )
+insline(i,0)
+setline( " set %subj% = Read: " + subject_field, i++ )
+insline(i,0)
+setline( " set %how% = 6", i++ )
+insline(i,0)
+new_msg_id = date() + time()
+new_msg_id = substr(new_msg_id,6,4) + substr(new_msg_id,3,2) + substr(new_msg_id,0,2) + substr(new_msg_id,10,2) + substr(new_msg_id,13,2) + substr(new_msg_id,16,2)
+new_msg_id = sprintf("%s.%10.10d.%10.10d@farmail",new_msg_id,random(100000000),random(100000000))
+setline( " header Message-ID = <" + new_msg_id + ">", i++ )
+insline(i,0)
+setline( " header In-Reply-To = " + msg_id, i++ )
+insline(i,0)
+setline( " header References = " + msg_id, i++ )
+insline(i,0)
+setline( "%end%", i++ )
+insline(i,0)
+setline("Content-Type: multipart/report;", i++ )
+insline(i,0)
+setline("        report-type=disposition-notification;", i++ )
+insline(i,0)
+setline("        boundary=\"" + bound + "\"", i++ )
+insline(i++,0)
+insline(i,0)
+setline("This is a multi-part message in MIME format.", i++ )
+insline(i++,0)
+insline(i,0)
+setline("--" + bound, i++ )
+insline(i,0)
+setline("Content-Type: text/plain;", i++ )
+insline(i,0)
+setline("        charset=\"us-ascii\"", i++ )
+insline(i,0)
+setline("Content-Transfer-Encoding: 8bit", i++ )
+insline(i++,0)
+insline(i,0)
+setline("This is a receipt for the mail you sent", i++ )
+insline(i,0)
+setline("to " + to_field, i++)
+insline(i,0)
+setline("on " + date_sent, i++)
+insline(i++,0)
+insline(i,0)
+setline("This receipt verifies that the message has been displayed", i++ )
+insline(i,0)
+setline("on the recipient's computer at " + date() + " " + time(), i++ )
+insline(i,0)
+setline("--" + bound, i++ )
+insline(i,0)
+setline("Content-Type: message/disposition-notification", i++ )
+insline(i,0)
+setline("Content-Transfer-Encoding: 8bit", i++ )
+insline(i,0)
+setline("Content-Disposition: inline", i++ )
+insline(i++,0)
+insline(i,0)
+setline("Final-Recipient: rfc822;" + to_field, i++ )
+insline(i,0)
+setline("Original-Message-ID: " + msg_id, i++ )
+insline(i,0)
+setline("Disposition: manual-action/MDN-sent-manually; displayed", i++ )
+insline(i++,0)
+insline(i,0)
+setline("--" + bound + "--", i )

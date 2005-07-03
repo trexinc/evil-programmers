@@ -1,0 +1,380 @@
+.Language=English,English
+"FARMail"
+"SMTP/POP3/IMAP4"
+
+//Common buttons
+"&Ok"
+"Ca&ncel"
+"&Yes"
+"&No"
+
+//Common error messages
+"Error"
+"Out of memory"
+
+//Command line processing errors
+"Bad command line syntax"
+
+//Mailbox options dialog
+"Mailbox options"
+"&Mailbox       :"
+"&User Name     :"
+"&E-Mail        :"
+"Organi&zation  :"
+"&Default mailbox"
+"Needs aut&hentication"
+"SSL"
+"SMTP"
+"Ã &Server   :"
+"À Lo&gin    :"
+"&Password:"
+"Po&rt:"
+"Por&t:"
+"POP&3 /"
+"IMAP&4"
+"Ã Ser&ver   :"
+"Ã &Login    :"
+"Ã Pass&word :"
+"Ã &Activity maintenance :"
+"min."
+"Ã"
+"&Keep"
+"messages' state (UIDL)"
+"À"
+"M&inimal TOP value:"
+"lines"
+
+//Mailbox options dialog error messages
+"Required fields are missing!"
+"A mailbox with the same name already exists"
+"Invalid characters in string fields"
+
+//Delete mailbox dialog
+"Delete mailbox(es)"
+"Are you sure you want to delete selected mailbox(es)?"
+
+//Empty mailbox dialog
+"Empty mailbox(es)"
+"Are you sure you want to empty selected mailbox(es)?"
+
+//Get login info dialog
+"Login:"
+"User"
+"Password"
+
+//Common connection errors
+"Data transmission error"
+"Connection aborted"
+
+//POP3 errors
+"Error in received data"
+"Can't connect to POP3 server"
+"Wrong username"
+"Wrong password"
+"Error disconnecting from server"
+"Can't delete message"
+"Error while doing reset"
+"Error retrieving statistics"
+"Error getting message list"
+"Error retrieving message"
+
+//Delete message
+"Delete"
+"Do you wish to delete %d message(s)?"
+"&Delete"
+"Ca&ncel"
+
+//Keybar titles
+"Undel"
+"Recon"
+"QView"
+"QEdit"
+"Filter"
+"Ver"
+"AddrBk"
+"New"
+"FstCpy"
+"FstMov"
+"FstXpg"
+"Status"
+
+//FastStatus messages
+"Total of %d messages in %d bytes."
+"Total of %d messages, %d recent, %d unseen."
+
+//Panel column titles
+"Mailbox name"
+"POP3(IMAP4) Server"
+"Msg"
+"Size"
+"From"
+"Date"
+"Subject"
+
+//Copy dialog
+"Copy"
+"Copy message(s) t&o:"
+"&Copy"
+
+//Move dialog
+"Move"
+"Move message(s) t&o:"
+"&Move"
+
+//Common to move and copy dialog
+"&Assign unique names"
+"No Inbox file defined"
+
+//Overwrite dialog
+"Warning"
+"File already exists: %s"
+"Overwrite?"
+"&Yes"
+"&All"
+"&Skip"
+"S&kip all"
+"&Resume"
+
+//SMTP errors
+"Service not available, closing transmission channel (421)"
+"Mailbox unavailable (450)"
+"Local error in processing (451)"
+"Insuffisient system storage (452)"
+"Syntax error (500)"
+"Syntax error in parameters (501)"
+"Command not implemented (502)"
+"Bad sequence of commands (503)"
+"Command parameter not implemented (504)"
+"Mailbox unavailable (550)"
+"User not local (551)"
+"Exceeded storage allocation (552)"
+"Mailbox name not allowed (553)"
+"Transaction failed (554)"
+"SMTP error"
+"Can't connect to SMTP server"
+"Recipient address error"
+"Error opening file"
+"SMTP authorization failed"
+
+//Send as message dialog
+"Sending as message: %s"
+"Sending all files in message"
+"Sen&der    :"
+"&Recipient :"
+"&CC        :"
+"&BCC       :"
+"&Subject   :"
+"Send      :"
+"&Text as is (%d bit)"
+"Te&xt in Base64"
+"&Attached file"
+"&HTML as is"
+"HT&ML in Base64"
+"Extended &format"
+"Original text charset:"
+"Encode to:"
+"OEM/Undefined"
+"US-ASCII"
+"Do not encode"
+//"Selected charset not installed"
+"Attach&ed files: %d"
+"&User headers: %d"
+"A&ll"
+"Analy&ze all"
+
+"Select mailbox to send:"
+
+//Transfer progress
+//Sending title
+"Transferring: %s"
+//Recieving title
+"Message #%d"
+"%s: Message %d/%d"
+"Current transfer: %7ld/%-7ld bytes, %7ld CPS"
+
+//Root panel title
+"Mail"
+
+//Connecting to SMTP
+"Connecting to SMTP server..."
+"Sending user name..."
+"Sending recipient..."
+"Sending message header..."
+"Disconnecting..."
+
+//Connecting to POP3
+"Connecting to POP3 server..."
+"Retrieving message list..."
+"Deleting message..."
+"Disconnecting..."
+"Undeleting..."
+
+//Config Main Title
+"FARMail options"
+
+//Config menu items
+"Interface"
+"Files and directories"
+"Connection"
+"Encodings"
+"States"
+"Other"
+
+//Config Interface
+"&Add to Disks menu"
+"Disk menu &hotkey ('1'-'9')"
+"Add to &Plug-ins menu"
+"Select panel to edit panel modes for:"
+"Mailboxes"
+"IMAP4 Folders"
+"POP3 Mailbox"
+"IMAP4 Mailbox"
+"Mode %d"
+"Column &types"
+"Column &widths"
+"Status line column t&ypes"
+"Status line column w&idths"
+"&Fullscreen"
+
+//Config files and directories
+"Fixed &length of message name        :"
+"Message files &extension             :"
+"Incoming"
+"&Assign new names to downloaded messages"
+"&Format:"
+"Save incoming messages to &Inbox"
+"Filena&me:"
+"&Take file date and time from message"
+"Outgoing"
+"&Save outgoing messages"
+"&Directory:"
+"O&utbox:"
+"Sa&ve Message-Id of outgoing messages"
+"Tem&plate:"
+
+//Config connection
+"&Connection timeout:"
+"sec."
+"&Write session log"
+"IMAP4"
+"&Quick view:      "
+"bytes"
+"&Try to resume broken message download"
+"&IMAP4 mail folders:"
+"POP3"
+"Quick &view:      "
+"lines"
+"&Display zero size messages"
+"Disable TO&P and LIST"
+
+//Config encodings
+"Charsets:"
+"OEM/Undefined | Do not encode"
+"Frequently used:"
+"FAR Tables:"
+"Additional:"
+"Default charset for Outgoing messages"
+"Default charset for Incoming messages"
+
+//Config states
+"&Use attribute highlighting"
+"New message"
+"Read message"
+"Marked message"
+"Deleted message"
+"&Read only"
+"&Archive"
+"&Hidden"
+"&System"
+"&Compressed"
+"&Encrypted"
+
+//Config other
+"&Use CC/BCC fields"
+"Search for &header information in message"
+"Confirm &binary"
+
+//Confirm binary
+"Message contains non-text symbols"
+"C&ontinue"
+
+"Can't start: You have an old version of FAR"
+
+//Plugin menu in editor
+"Send message"
+
+//IMAP4 error messages
+"Can't connect to IMAP4 server"
+": error executing command"
+"Authentication error"
+"IMAP4 not supported by server"
+"Can't resume download."
+
+//Connecting to IMAP4
+"Connecting to IMAP4 server..."
+"Retrieving mailbox structure..."
+
+//IMAP4 Panel columns titles
+"Folder name"
+"Fl"
+"Ttl"
+"Rcn"
+"Uns"
+
+//Multi send query dialog
+"Do you want to send all files in one message?"
+"&Yes"
+"&No"
+
+//Cache messages
+"Loading cached headers..."
+
+//Downloading errors
+"Error opening output file"
+"Error writing to output file"
+
+//Connection messages
+"Retrieving message headers"
+
+"Make folder"
+"Folder name:"
+"Delete folders"
+"Are you sure you want to delete selected folders?"
+"Rename folder"
+"New folder name:"
+"Copy messages to another folder"
+"Folder name:"
+"Move messages to another folder"
+"Folder name:"
+
+"About plug-in..."
+
+//sub plug-ins
+"Plug-in commands"
+"Plug-ins configuration"
+"F4 - set hot key"
+"Assign plug-in hot key"
+"Enter hot key (letter or digit)"
+
+//default frequent charsets and tables
+"koi8-r"
+"KOI-8"
+"Windows-1251"
+"CP-1251"
+
+//common hotkeys
+"&A"
+"&B"
+"&C"
+"&D"
+"&E"
+"&F"
+"&1"
+"&2"
+"&3"
+"&4"
+"&5"
+"&6"
+"&7"
+"&8"
+"&9"
