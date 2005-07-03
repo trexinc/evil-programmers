@@ -1,0 +1,452 @@
+rem
+rem Forward script for FARMail.
+rem
+
+rem Path to the scripts.ini file
+ini_file = "scripts.ini"
+
+//if you like a menu of options instead of addressbook set to 1
+select = getini("global_settings","show_menu",0,ini_file)
+
+templ_count = getini("templates","count",0,ini_file)
+templ="global_template"
+
+file_with_song = getini("global_settings","file_with_song","",ini_file)
+file_with_song_pos = getini("global_settings","file_with_song_pos",0,ini_file)
+origins_file = getini("global_settings","origins_file","",ini_file)
+
+rem add X-Comment-To field (1 = on , 0 = off)
+use_x_comment = getini("global_settings","use_x_comment",0,ini_file)
+
+rem add Organization field (1 = on , 0 = off)
+use_organization = getini("global_settings","use_organization",0,ini_file)
+
+rem Signature start marker, every thing that comes after this is thrown away
+rem (Should not be an empty string)
+sig_marker = getini("global_settings","signature_marker","-- ",ini_file)
+
+rem Show Notice-Requested-Upon-Delivery-To headers
+show_dilivery_notice_headers = getini("global_settings","show_dilivery_notice_headers",0,ini_file)
+
+forwarder = getini("global_settings","forward_by","This message is beeing forwarded.",ini_file)
+start_splitter = getini("global_settings","forward_split1","-------",ini_file)
+end_splitter = getini("global_settings","forward_split2","-------",ini_file)
+
+rem Message-ID
+new_msg_id = date() + time()
+new_msg_id = substr(new_msg_id,6,4) + substr(new_msg_id,3,2) + substr(new_msg_id,0,2) + substr(new_msg_id,10,2) + substr(new_msg_id,13,2) + substr(new_msg_id,16,2)
+new_msg_id = sprintf("%s.%10.10d.%10.10d@farmail",new_msg_id,random(100000000),random(100000000))
+
+rem ---------------------------- script start -------------------------------------
+
+rem parse string strored in variable sig_line
+rem %name% var is taken from the name variable
+rem %fullname% var is taken from the fullname variable
+rem return sig_line
+sub expand_vars
+  while(strstr(sig_line,"%name%")!=-1)
+     spec=strstr(sig_line,"%name%")
+     sig_line=substr(sig_line,0,spec)+name+substr(sig_line,spec+6)
+  wend
+  while(strstr(sig_line,"%fullname%")!=-1)
+     spec=strstr(sig_line,"%fullname%")
+     sig_line=substr(sig_line,0,spec)+fullname+substr(sig_line,spec+10)
+  wend
+  while(strstr(sig_line,"%date%")!=-1)
+     spec=strstr(sig_line,"%date%")
+     sig_line=substr(sig_line,0,spec)+date()+substr(sig_line,spec+6)
+  wend
+  while(strstr(sig_line,"%date_sent%")!=-1)
+     spec=strstr(sig_line,"%date_sent%")
+     sig_line=substr(sig_line,0,spec)+date_sent+substr(sig_line,spec+11)
+  wend
+  while(strstr(sig_line,"%time%")!=-1)
+     spec=strstr(sig_line,"%time%")
+     sig_line=substr(sig_line,0,spec)+time()+substr(sig_line,spec+6)
+  wend
+  while(strstr(sig_line,"%farmail%")!=-1)
+     spec=strstr(sig_line,"%farmail%")
+     sig_line=substr(sig_line,0,spec)+version(0)+substr(sig_line,spec+9)
+  wend
+  while(strstr(sig_line,"%far%")!=-1)
+     spec=strstr(sig_line,"%far%")
+     sig_line=substr(sig_line,0,spec)+version(1)+substr(sig_line,spec+5)
+  wend
+  while(strstr(sig_line,"%windows%")!=-1)
+     spec=strstr(sig_line,"%windows%")
+     sig_line=substr(sig_line,0,spec)+version(2)+substr(sig_line,spec+9)
+  wend
+  while(strstr(sig_line,"%song%")!=-1)
+     spec=strstr(sig_line,"%song%")
+     sig_line=substr(sig_line,0,spec)+winampsong()+substr(sig_line,spec+6)
+  wend
+  while(strstr(sig_line,"%song_from_file%")!=-1)
+     spec=strstr(sig_line,"%song_from_file%")
+     sig_line=substr(sig_line,0,spec)+fileline(file_with_song,file_with_song_pos)+substr(sig_line,spec+16)
+  wend
+  while(strstr(sig_line,"%origin%")!=-1)
+     spec=strstr(sig_line,"%origin%")
+     max_origins = filecount(origins_file)
+     sig_line=substr(sig_line,0,spec)+fileline(origins_file,random(max_origins))+substr(sig_line,spec+8)
+  wend
+  while(strstr(sig_line,"%stat%")!=-1)
+     spec=strstr(sig_line,"%stat%")
+     i_stat=winampstate()
+     if (i_stat==3) s_stat="paused:"
+     else
+        if (i_stat==1) s_stat="playing:"
+        else
+           if (i_stat==0) s_stat="stopped:"
+           else s_stat="not active now"
+           endif
+        endif
+     endif
+     sig_line=substr(sig_line,0,spec)+s_stat+substr(sig_line,spec+6)
+  wend
+endsub
+
+rem parse email stored in variable email
+rem return extracted_email, extracted_name, extracted_fullname
+rem used variables email_count
+sub parse_email
+  extracted_email=""
+  extracted_name=""
+  extracted_fullname=""
+  if(strstr(email,"<")>0)
+    extracted_fullname=substr(email,0,strstr(email,"<")-1)
+    if(extracted_fullname[0]=='"')
+      email_count=1
+    else
+      email_count=0
+    endif
+    while(extracted_fullname[email_count]==' '||extracted_fullname[email_count]==9)
+      email_count++
+    wend
+    extracted_fullname=substr(extracted_fullname,email_count,strlen(extracted_fullname))
+    email_count=0
+    while(extracted_fullname[email_count]&&extracted_fullname[email_count]!='"'&&extracted_fullname[email_count]!=' '&&extracted_fullname[email_count]!=9)
+      email_count++
+    wend
+    extracted_name=substr(extracted_fullname,0,email_count)
+    while(extracted_fullname[email_count]&&extracted_fullname[email_count]!='"')
+      email_count++
+    wend
+    extracted_fullname=substr(extracted_fullname,0,email_count)
+    extracted_email=substr(email,strstr(email,"<")+1,strlen(email))
+  else
+    extracted_email=email
+  endif
+  if(strstr(extracted_email,"<")>=0)
+    extracted_email=substr(extracted_email,strstr(extracted_email,"<")+1,strlen(extracted_email))
+  endif
+  if(strstr(extracted_email,">")>=0)
+    extracted_email=substr(extracted_email,0,strstr(extracted_email,">"))
+  endif
+  while(extracted_email[0]==' '||extracted_email[0]==9)
+    extracted_email=substr(extracted_email,1,strlen(extracted_email))
+  wend
+  if(extracted_name=="")
+    extracted_name=substr(extracted_email,0,strstr(extracted_email,"@"))
+  endif
+endsub
+
+rem text to encode stored in variable text
+rem encoding in encoding
+rem return encoded text in text
+rem used variables j, x
+sub encode_if_needed
+  if (encoding!="")
+    j=strlen(text)
+    if (j>0)
+      x=0
+      while (x<j)
+        if (text[x]>127 || text[x]<32)
+          j=-1
+          break
+        endif
+        x++
+      wend
+      if (j==-1)
+        text = encodeheader(text,encoding)
+      endif
+    endif
+  endif
+endsub
+
+msg_header = ""
+x = nlines()
+while (x--)
+  setpos(0,0)
+  current_line=line(-1)
+  delline(0)
+  if (current_line=="")
+    break
+  endif
+  msg_header=msg_header+current_line+"\n"
+wend
+
+fwd_to_field=header(msg_header,"to:")
+from_field=header(msg_header,"from:")
+subject_field=header(msg_header,"subject:")
+fwd_subject_field=subject_field
+date_sent=header(msg_header,"date:")
+msg_id=header(msg_header,"message-id:")
+msg_header=""
+
+to_field = ""
+to_name = ""
+to_fullname = ""
+
+if (select)
+  select=0
+  if (templ_count==9)
+    select=usrmenu(getini("global_template","title","",ini_file),getini(getini("templates","templ1","",ini_file),"title","",ini_file),getini(getini("templates","templ2","",ini_file),"title","",ini_file),getini(getini("templates","templ3","",ini_file),"title","",ini_file),getini(getini("templates","templ4","",ini_file),"title","",ini_file),getini(getini("templates","templ5","",ini_file),"title","",ini_file),getini(getini("templates","templ6","",ini_file),"title","",ini_file),getini(getini("templates","templ7","",ini_file),"title","",ini_file),getini(getini("templates","templ8","",ini_file),"title","",ini_file),getini(getini("templates","templ9","",ini_file),"title","",ini_file))
+  endif
+  if (templ_count==8)
+    select=usrmenu(getini("global_template","title","",ini_file),getini(getini("templates","templ1","",ini_file),"title","",ini_file),getini(getini("templates","templ2","",ini_file),"title","",ini_file),getini(getini("templates","templ3","",ini_file),"title","",ini_file),getini(getini("templates","templ4","",ini_file),"title","",ini_file),getini(getini("templates","templ5","",ini_file),"title","",ini_file),getini(getini("templates","templ6","",ini_file),"title","",ini_file),getini(getini("templates","templ7","",ini_file),"title","",ini_file),getini(getini("templates","templ8","",ini_file),"title","",ini_file))
+  endif
+  if (templ_count==7)
+    select=usrmenu(getini("global_template","title","",ini_file),getini(getini("templates","templ1","",ini_file),"title","",ini_file),getini(getini("templates","templ2","",ini_file),"title","",ini_file),getini(getini("templates","templ3","",ini_file),"title","",ini_file),getini(getini("templates","templ4","",ini_file),"title","",ini_file),getini(getini("templates","templ5","",ini_file),"title","",ini_file),getini(getini("templates","templ6","",ini_file),"title","",ini_file),getini(getini("templates","templ7","",ini_file),"title","",ini_file))
+  endif
+  if (templ_count==6)
+    select=usrmenu(getini("global_template","title","",ini_file),getini(getini("templates","templ1","",ini_file),"title","",ini_file),getini(getini("templates","templ2","",ini_file),"title","",ini_file),getini(getini("templates","templ3","",ini_file),"title","",ini_file),getini(getini("templates","templ4","",ini_file),"title","",ini_file),getini(getini("templates","templ5","",ini_file),"title","",ini_file),getini(getini("templates","templ6","",ini_file),"title","",ini_file))
+  endif
+  if (templ_count==5)
+    select=usrmenu(getini("global_template","title","",ini_file),getini(getini("templates","templ1","",ini_file),"title","",ini_file),getini(getini("templates","templ2","",ini_file),"title","",ini_file),getini(getini("templates","templ3","",ini_file),"title","",ini_file),getini(getini("templates","templ4","",ini_file),"title","",ini_file),getini(getini("templates","templ5","",ini_file),"title","",ini_file))
+  endif
+  if (templ_count==4)
+    select=usrmenu(getini("global_template","title","",ini_file),getini(getini("templates","templ1","",ini_file),"title","",ini_file),getini(getini("templates","templ2","",ini_file),"title","",ini_file),getini(getini("templates","templ3","",ini_file),"title","",ini_file),getini(getini("templates","templ4","",ini_file),"title","",ini_file))
+  endif
+  if (templ_count==3)
+    select=usrmenu(getini("global_template","title","",ini_file),getini(getini("templates","templ1","",ini_file),"title","",ini_file),getini(getini("templates","templ2","",ini_file),"title","",ini_file),getini(getini("templates","templ3","",ini_file),"title","",ini_file))
+  endif
+  if (templ_count==2)
+    select=usrmenu(getini("global_template","title","",ini_file),getini(getini("templates","templ1","",ini_file),"title","",ini_file),getini(getini("templates","templ2","",ini_file),"title","",ini_file))
+  endif
+  if (templ_count==1)
+    select=usrmenu(getini("global_template","title","",ini_file),getini(getini("templates","templ1","",ini_file),"title","",ini_file))
+  endif
+  if(select==-1)
+    exit()
+  endif
+  if(select==0)
+    select = usrmenu("&Get recipient from AddressBook","&Enter recipient")
+    if(select == 0)
+      to_field = addressbook()
+    endif
+    if(select == 1)
+      to_field = usrinput("Enter recipient","Enter recipient's address")
+    endif
+    if(strlen(to_field))
+      email=to_field
+      gosub parse_email
+    else
+      to_field=""
+      extracted_name=""
+    endif
+  else
+    templ=getini("templates","templ"+string(select),"",ini_file)
+    to_field=getini(templ,"to_out","",ini_file)
+    if(to_field=="")
+      to_field=getini(templ,"to","",ini_file)
+    endif
+    extracted_name=""
+  endif
+  to_name=extracted_name
+  to_fullname=extracted_fullname
+else
+  select = usrmenu("&Get recipient from AddressBook","&Enter recipient")
+
+  if(select == 0)
+    to_field = addressbook()
+  endif
+  if(select == 1)
+    to_field = usrinput("Enter recipient","Enter recipient's address")
+  endif
+
+  email = to_field
+  gosub parse_email
+  to_name=extracted_name
+  to_fullname=extracted_fullname
+  to_email=extracted_email
+
+  if(to_email!="")
+    i=1
+    while(i<=templ_count)
+      templ=getini("templates","templ"+string(i),"",ini_file)
+      email=getini(templ,"to","",ini_file)
+      gosub parse_email
+      if(extracted_email==to_email)
+        email2=getini(templ,"to_out","",ini_file)
+        if(email2!="")
+          to_field=email2
+        endif
+        to_name=""
+        to_fullname=""
+        break
+      endif
+      i++
+      templ="global_template"
+    wend
+  endif
+endif
+
+rem Remove the empty lines before the message start
+i = -1
+while (++i < nlines())
+  setpos(i,0)
+  if (line(-1)!="")
+    break
+  endif
+wend
+while (--i >= 0)
+  setpos(i,0)
+  delline(-1)
+wend
+
+i = -1
+while (++i < nlines())
+  setpos(i,0)
+  if (line(-1) == sig_marker)
+    rem Signature marker reached
+    break
+  endif
+wend
+
+rem Deleting remaining lines after sig_marker
+while (nlines()-1 > i)
+  delline(nlines()-2)
+wend
+rem Deleting empty lines at the end
+while (--i >= 0)
+  setpos(i,0)
+  if (strlen(line(-1)))
+    break
+  endif
+  delline(-1)
+wend
+
+encoding=getini(templ,"encoding","",ini_file)
+
+email=to_field
+gosub parse_email
+to_name=extracted_name
+to_fullname=extracted_fullname
+text=extracted_fullname
+if (text!="")
+  gosub encode_if_needed
+  to_field = "\"" + text + "\" " + "<"+extracted_email+">"
+  unencoded_to_filed = "\"" + extracted_fullname + "\" " + "<"+extracted_email+">"
+else
+  to_field = "<"+extracted_email+">"
+  unencoded_to_filed = to_field
+endif
+
+text=subject_field
+gosub encode_if_needed
+subject_field=text
+
+setpos(0,0)
+i = 0
+rem Write the %start% %end% block
+insline(i,0)
+setline( "%start%", i++ )
+insline(i,0)
+setline( " set %to% = " + to_field, i++ )
+reply_to=getini(templ,"reply_to","",ini_file)
+insline(i,0)
+if (reply_to!="")
+  setline( " set %reply% = " + reply_to, i++ )
+else
+  setline( " ;set %reply% = ", i++ )
+endif
+insline(i,0)
+setline( " set %subj% = fwd: " + subject_field, i++ )
+insline(i,0)
+setline( " ;set %cc% = ", i++ )
+insline(i,0)
+setline( " ;set %bcc% = ", i++ )
+insline(i,0)
+if(use_organization)
+  text=getini(templ,"organization","",ini_file)
+  gosub encode_if_needed
+  setline( " set %org% = " + text, i++ )
+  insline(i,0)
+endif
+setline( " header Message-ID = <" + new_msg_id + ">", i++ )
+insline(i,0)
+if (show_dilivery_notice_headers)
+  setline( " ;header Notice-Requested-Upon-Delivery-To = %from%", i++ )
+  insline(i,0)
+  setline( " ;header Disposition-Notification-To = %from%", i++ )
+  insline(i,0)
+  setline( " ;header Return-Receipt-To = %from%", i++ )
+  insline(i,0)
+  setline( " ;header X-Confirm-Reading-To = %from%", i++ )
+  insline(i,0)
+  setline( " ;header Read-Receipt-To = %from%", i++ )
+  insline(i,0)
+endif
+setline( " ;attach ", i++ )
+insline(i,0)
+setline( "%end%", i++ )
+insline(i,0)
+
+x = i
+greet_new_count=getini(templ,"greet_new_count",0,ini_file)
+j=1
+name=to_name
+fullname=to_fullname
+while(j<=greet_new_count)
+  sig_line=getini(templ,"greet_new"+string(j),"",ini_file)
+  gosub expand_vars
+  setline(sig_line,i++)
+  insline(i,0)
+  j++
+wend
+if (greet_new_count>0)
+  insline(i++,0)
+endif
+
+setline(start_splitter, i++)
+insline(i,0)
+setline(forwarder, i++)
+insline(i,0)
+setline("* Message-ID: " + msg_id, i++)
+insline(i,0)
+setline("* From: " + from_field, i++)
+insline(i,0)
+setline("* Date: " + date_sent, i++)
+insline(i,0)
+setline("* To: " + fwd_to_field, i++)
+insline(i,0)
+setline("* Subj: " + fwd_subject_field, i++)
+insline(i,0)
+setline(start_splitter, i++)
+insline(i,0)
+
+i = nlines() - 1
+insline(i, 0)
+insline(i++,0)
+setline(end_splitter, i++)
+insline(i, 0)
+insline(i++,0)
+setline(sig_marker, i)
+
+pos=i
+sign_count=getini(templ,"sign_count",0,ini_file)
+i=1
+while(i<=sign_count)
+  sig_line=getini(templ,"sign"+string(i),"",ini_file)
+  gosub expand_vars
+  insline(++pos,1)
+  setline(sig_line,pos)
+  i++
+wend
+
+rem Set cursor after the greeting message
+if((strlen(to_name) > 0) || (strlen(to_fullname) > 0) || (templ!="global_template"))
+  setpos(x+2, 0)
+else
+  setpos(x, 0)
+endif

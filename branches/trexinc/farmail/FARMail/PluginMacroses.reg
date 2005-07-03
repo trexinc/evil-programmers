@@ -1,0 +1,26 @@
+REGEDIT4
+
+[HKEY_CURRENT_USER\Software\Far\KeyMacros\Editor\CtrlShiftA]
+"Sequence"="F11 M 0 A"
+"Description"="* FM: Address Book"
+"DisableOutput"=dword:00000001
+
+[HKEY_CURRENT_USER\Software\Far\KeyMacros\Editor\CtrlShiftH]
+"Sequence"="F11 M 0 H"
+"Description"="* FM: Helper"
+"DisableOutput"=dword:00000001
+
+[HKEY_CURRENT_USER\Software\Far\KeyMacros\Editor\CtrlShiftM]
+"Sequence"="F11 M 1"
+"Description"="* FM: Send Mail"
+"DisableOutput"=dword:00000001
+
+[HKEY_CURRENT_USER\Software\Far\KeyMacros\Editor\CtrlShiftO]
+"Sequence"="F11 M 0 O"
+"Description"="* FM: Open Attach"
+"DisableOutput"=dword:00000001
+
+[HKEY_CURRENT_USER\Software\Far\KeyMacros\Editor\CtrlShiftS]
+"Sequence"="F11 M 0 S"
+"Description"="* FM: Scripts"
+"DisableOutput"=dword:00000001

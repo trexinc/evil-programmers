@@ -1,0 +1,55 @@
+[English]
+Address Book
+Address Book: [%s]
+Configure Address Book
+Fields o&rder:
+Fields &delimiter:
+Sort by:
+Na&me
+&E-Mail
+&Comment
+&Address book file directory:
+F4:Edit  F7:New  F8:(Un)Delete  Ins:Select  Text:Filter
+F4,ENTER:Edit  F7:New  F8:(Un)delete  Text:Filter
+Edit address
+New address record
+N&ame       :
+&E-Mail     :
+&Comment    :
+Current record will be deleted! Continue?
+Undelete current record?
+&OK
+Ca&ncel
+Error
+Out of memory
+(-) %s <%s>
+%s <%s>
+%-43.43s │ %-25.25s
+
+[Russian]
+Адресная книга
+Адресная книга: [%s]
+Параметры Адресной книги
+&Порядок полей:
+&Разделитель полей:
+Сортировать по:
+&имени
+&E-Mail
+&комментарию
+Папка &файла-адресная книга:
+F4:Ред.  F7:Ввод  F8:Удалить(Восстановить)  Ins:Выбор Текст:Фильтр
+F4,ENTER:Ред.  F7:Ввод  F8:Удалить(Восстановить)  Текст:Фильтр
+Редактирование адреса
+Ввод новой записи
+&Имя        :
+&E-Mail     :
+&Комментарий:
+Текущая запись будет удалена! Продолжить?
+Восстановить текущую запись?
+&ОК
+Отме&на
+Ошибка
+Не хватает памяти
+(-) %s <%s>
+%s <%s>
+%-43.43s │ %-25.25s

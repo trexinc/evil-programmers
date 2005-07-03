@@ -1,0 +1,32 @@
+while (1)
+  qm = usrinput("Quoting parameters", "Quotation string:", "> ")
+  if (!qm[0])
+    break
+  endif
+  j = nlines()
+  i = 0
+  use_selection = 0
+  if (blktype())
+    i = blkstart()
+    use_selection = 1
+    if (selstart(i) == selend(i))
+      i = 0
+      use_selection = 0
+    endif
+  endif
+  if (use_selection == 0)
+    while (i < j)
+      tmp = qm + line(i)
+      setline(tmp, i++)
+    wend
+  else
+    while (i < j)
+      if (selstart(i) < 0 || selstart(i) == selend(i))
+        break
+      endif
+      tmp = qm + line(i)
+      setline(tmp, i++)
+    wend
+  endif
+  break
+wend
