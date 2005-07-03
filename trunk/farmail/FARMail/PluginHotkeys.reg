@@ -1,0 +1,9 @@
+REGEDIT4
+;Predefined FARMail sub plug-ins hotkeys
+
+[HKEY_CURRENT_USER\Software\Far\Plugins\FARMail\PluginHotkeys]
+"generic_helper"=dword:00000048
+"generic_addressbook"=dword:00000041
+"generic_filter"=dword:00000046
+"generic_scripts"=dword:00000053
+"generic_open_attach"=dword:0000004f

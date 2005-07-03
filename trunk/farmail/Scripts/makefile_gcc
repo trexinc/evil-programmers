@@ -1,0 +1,113 @@
+OBJDIR = ../../obj/gcc/fmp/scripts
+REOBJDIR = \.\.\/\.\.\/obj\/gcc\/fmp\/scripts\/
+DLLDIR = ../../bin/FMP/Scripts
+DLLNAME = scripts.gcc.fmp
+DLLFULLNAME = $(DLLDIR)/$(DLLNAME)
+SCRIPTSDIR = $(DLLDIR)/SCRIPTS
+EXAMPLESCRIPTSDIR = $(SCRIPTSDIR)/EXAMPLES
+PARSER = custom_memory.cpp custom_string.cpp parser.cpp parser_grammar.cpp parser_lex.cpp parser_symbols.cpp variant.cpp function.cpp bltins.cpp stack.cpp
+SRCS = crt.cpp scripts.cpp registry.cpp scripts_info.cpp scripts_run.cpp scripts_misc.cpp memory.cpp $(PARSER)
+DEF = scripts.gcc.def
+
+CXX = g++
+DLLTOOL = dlltool
+RM = rm -f
+CP = cp -f
+M4 = m4 -P -DCMD=../FARMail/gen_date.exe
+MV = mv -f
+MKDIR = mkdir -p
+ATTRIB = attrib
+CXXFLAGS = -Os -funsigned-char -fomit-frame-pointer -fstrict-aliasing -fno-rtti -fno-exceptions
+LNKFLAGS = -mdll -s -nostartfiles
+DOCS = $(DLLDIR)/scripts.fml $(DLLDIR)/scriptse.hlf $(DLLDIR)/scriptsr.hlf
+SCRIPTS = $(EXAMPLESCRIPTSDIR)/forward.fms \
+          $(EXAMPLESCRIPTSDIR)/new.fms \
+          $(EXAMPLESCRIPTSDIR)/notification.fms \
+          $(EXAMPLESCRIPTSDIR)/qp.fms \
+          $(EXAMPLESCRIPTSDIR)/quote.fms \
+          $(EXAMPLESCRIPTSDIR)/reply.fms \
+          $(EXAMPLESCRIPTSDIR)/replyall.fms \
+          $(EXAMPLESCRIPTSDIR)/resend.fms \
+          $(EXAMPLESCRIPTSDIR)/scripts.ini \
+          $(EXAMPLESCRIPTSDIR)/Descript.ion
+
+all: $(DLLFULLNAME) $(DOCS) $(SCRIPTS)
+
+OBJS = $(patsubst %.cpp,$(OBJDIR)/%.o,$(filter %.cpp,$(SRCS)))
+DEPS = $(patsubst %.cpp,$(OBJDIR)/%.d,$(filter %.cpp,$(SRCS)))
+
+$(OBJS) $(DEPS): $(OBJDIR)
+$(DLLFULLNAME): $(DLLDIR)
+$(DOCS): $(DLLDIR)
+$(SCRIPTS): $(SCRIPTSDIR) $(EXAMPLESCRIPTSDIR)
+
+$(OBJDIR)/%.d: %.cpp
+	@echo making depends for $<
+	@$(SHELL) -ec '$(CXX) -c -MM $(CXXFLAGS) $< \
+                | sed '\''s/\($*\)\.o[ :]*/$(REOBJDIR)\1.o $(REOBJDIR)\1.d: /g'\'' > $@; [ -s $@ ] || $(RM) $@'
+
+$(OBJDIR)/%.o: %.cpp
+	@echo compiling $<
+	@$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+$(DLLFULLNAME): $(OBJS) $(DEF)
+	@echo linking $@
+	@$(CXX) -mdll -o $(DLLNAME) -Xlinker --base-file -Xlinker $(DLLNAME).base $(OBJS) $(LNKFLAGS)
+	@$(DLLTOOL) --dllname $(DLLNAME) --base-file $(DLLNAME).base --output-exp $(DLLNAME).exp --def $(DEF)
+	@$(CXX) -mdll  -o $(DLLNAME) $(OBJS) $(DLLNAME).exp $(LNKFLAGS)
+#	-Xlinker -Map -Xlinker $@.map
+	@$(MV) $(DLLNAME) $(DLLDIR)
+	@$(RM) $(DLLNAME).base
+	@$(RM) $(DLLNAME).exp
+
+parser_grammar.hpp parser_grammar.cpp: parser_grammar.y bison.scripts
+	@echo generating parser
+	@bison parser_grammar.y -o parser_grammar.cpp -S bison.scripts -d
+
+parser_lex.cpp: parser_lex.re
+	@echo generating lexer
+	@re2c -b $< > $@
+
+-include $(DEPS)
+
+$(DLLDIR)/scripts.fml: scripts.fml
+	@$(CP) $< $@
+$(DLLDIR)/scriptse.hlf: scriptse.hlf.m4 ../FARMail/fm_version.m4
+	@$(M4) $< > $@
+$(DLLDIR)/scriptsr.hlf: scriptsr.hlf.m4 ../FARMail/fm_version.m4
+	@$(M4) $< > $@
+$(EXAMPLESCRIPTSDIR)/forward.fms: forward.fms
+	@$(CP) $< $@
+$(EXAMPLESCRIPTSDIR)/new.fms: new.fms
+	@$(CP) $< $@
+$(EXAMPLESCRIPTSDIR)/notification.fms: notification.fms
+	@$(CP) $< $@
+$(EXAMPLESCRIPTSDIR)/qp.fms: qp.fms
+	@$(CP) $< $@
+$(EXAMPLESCRIPTSDIR)/quote.fms: quote.fms
+	@$(CP) $< $@
+$(EXAMPLESCRIPTSDIR)/reply.fms: reply.fms
+	@$(CP) $< $@
+$(EXAMPLESCRIPTSDIR)/replyall.fms: replyall.fms
+	@$(CP) $< $@
+$(EXAMPLESCRIPTSDIR)/resend.fms: resend.fms
+	@$(CP) $< $@
+$(EXAMPLESCRIPTSDIR)/scripts.ini: scripts.ini
+	@$(CP) $< $@
+$(EXAMPLESCRIPTSDIR)/Descript.ion: Descript.ion
+#	@if (test -r $@) then $(ATTRIB) -h $@; fi
+	@$(CP) $< $@
+#	@$(ATTRIB) +h $@
+
+$(OBJDIR):
+	@if !(test -d $@) then $(MKDIR) $@; fi
+$(DLLDIR):
+	@if !(test -d $@) then $(MKDIR) $@; fi
+$(SCRIPTSDIR):
+	@if !(test -d $@) then $(MKDIR) $@; fi
+$(EXAMPLESCRIPTSDIR):
+	@if !(test -d $@) then $(MKDIR) $@; fi
+
+clean:
+	@echo cleaning up
+	@$(RM) $(DEPS) $(OBJS)

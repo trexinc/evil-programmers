@@ -1,0 +1,21 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FarMail", "FarMail.vcproj", "{3230CEE8-EB71-482C-A202-DE83604310D7}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		Debug = Debug
+		Release = Release
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{3230CEE8-EB71-482C-A202-DE83604310D7}.Debug.ActiveCfg = Debug|Win32
+		{3230CEE8-EB71-482C-A202-DE83604310D7}.Debug.Build.0 = Debug|Win32
+		{3230CEE8-EB71-482C-A202-DE83604310D7}.Release.ActiveCfg = Release|Win32
+		{3230CEE8-EB71-482C-A202-DE83604310D7}.Release.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal

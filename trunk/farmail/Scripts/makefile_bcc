@@ -1,0 +1,131 @@
+!IF "$(OS)" == "Windows_NT"
+NULL=
+!ELSE
+NULL=nul
+!ENDIF
+
+OBJDIR = ..\..\obj\bcc\fmp\scripts
+DLLDIR = ..\..\bin\FMP\Scripts
+SCRIPTSDIR = $(DLLDIR)\SCRIPTS
+EXAMPLESCRIPTSDIR = $(SCRIPTSDIR)\EXAMPLES
+DLLNAME = $(DLLDIR)\scripts.bcc.fmp
+
+CC = bcc32
+CFLAGS = -tWD -x- -d -a2 -M- -K -v- -RT- -u- -O1
+LFLAGS = /x /Gn /Tpd /aa
+ATTRIB = attrib
+CP = copy /y
+M4 = m4 -P -DCMD=..\FARMail\gen_date.exe
+DOCS = $(DLLDIR)\scripts.fml $(DLLDIR)\scriptse.hlf $(DLLDIR)\scriptsr.hlf
+SCRIPTS = $(EXAMPLESCRIPTSDIR)\forward.fms \
+          $(EXAMPLESCRIPTSDIR)\new.fms \
+          $(EXAMPLESCRIPTSDIR)\notification.fms \
+          $(EXAMPLESCRIPTSDIR)\qp.fms \
+          $(EXAMPLESCRIPTSDIR)\quote.fms \
+          $(EXAMPLESCRIPTSDIR)\reply.fms \
+          $(EXAMPLESCRIPTSDIR)\replyall.fms \
+          $(EXAMPLESCRIPTSDIR)\resend.fms \
+          $(EXAMPLESCRIPTSDIR)\scripts.ini \
+          $(EXAMPLESCRIPTSDIR)\Descript.ion
+
+all: $(OBJDIR) $(DLLDIR) $(SCRIPTSDIR) $(EXAMPLESCRIPTSDIR) $(DLLNAME) $(DOCS) $(SCRIPTS)
+
+OBJS = 	$(OBJDIR)\bltins.obj \
+        $(OBJDIR)\crt.obj \
+        $(OBJDIR)\custom_memory.obj \
+        $(OBJDIR)\custom_string.obj \
+        $(OBJDIR)\function.obj \
+        $(OBJDIR)\memory.obj \
+        $(OBJDIR)\parser.obj \
+        $(OBJDIR)\parser_grammar.obj \
+        $(OBJDIR)\parser_lex.obj \
+        $(OBJDIR)\parser_symbols.obj \
+        $(OBJDIR)\registry.obj \
+        $(OBJDIR)\scripts.obj \
+        $(OBJDIR)\scripts_info.obj \
+        $(OBJDIR)\scripts_misc.obj \
+        $(OBJDIR)\scripts_run.obj \
+        $(OBJDIR)\stack.obj \
+        $(OBJDIR)\variant.obj \
+        $(OBJDIR)\bcc_entry_point.obj
+
+$(OBJDIR)\bltins.obj: bltins.cpp variant.hpp type.hpp scripts.hpp farkeys.hpp language.hpp custom_string.hpp ..\FARMail\fmp.hpp plugin.hpp
+$(OBJDIR)\crt.obj: crt.cpp
+$(OBJDIR)\custom_memory.obj: custom_memory.cpp custom_memory.hpp
+$(OBJDIR)\custom_string.obj: custom_string.cpp custom_string.hpp
+$(OBJDIR)\function.obj: function.cpp function.hpp variant.hpp type.hpp custom_string.hpp
+$(OBJDIR)\memory.obj: memory.cpp
+$(OBJDIR)\parser.obj: parser.cpp parser.hpp parser_grammar.hpp bltins.hpp variant.hpp type.hpp scripts.hpp language.hpp custom_string.hpp ..\FARMail\fmp.hpp plugin.hpp custom_memory.hpp stack.hpp function.hpp
+$(OBJDIR)\parser_grammar.obj: parser_grammar.cpp parser_grammar.hpp parser.hpp variant.hpp type.hpp language.hpp custom_string.hpp custom_memory.hpp stack.hpp function.hpp
+$(OBJDIR)\parser_lex.obj: parser_lex.cpp scripts.hpp ..\FARMail\fmp.hpp plugin.hpp parser.hpp variant.hpp type.hpp custom_string.hpp custom_memory.hpp parser_grammar.hpp stack.hpp function.hpp
+$(OBJDIR)\parser_symbols.obj: parser_symbols.cpp parser.hpp variant.hpp type.hpp custom_string.hpp custom_memory.hpp parser_grammar.hpp stack.hpp function.hpp
+$(OBJDIR)\registry.obj: registry.cpp scripts.hpp ..\FARMail\fmp.hpp plugin.hpp
+$(OBJDIR)\scripts.obj: scripts.cpp scripts.hpp ..\FARMail\fmp.hpp plugin.hpp language.hpp
+$(OBJDIR)\scripts_info.obj: scripts_info.cpp scripts.hpp ..\FARMail\fmp.hpp plugin.hpp
+$(OBJDIR)\scripts_misc.obj: scripts_misc.cpp scripts.hpp ..\FARMail\fmp.hpp plugin.hpp language.hpp
+$(OBJDIR)\scripts_run.obj: scripts_run.cpp scripts.hpp ..\FARMail\fmp.hpp plugin.hpp language.hpp parser.hpp variant.hpp type.hpp custom_string.hpp custom_memory.hpp parser_grammar.hpp stack.hpp function.hpp
+$(OBJDIR)\stack.obj: stack.cpp stack.hpp variant.hpp type.hpp custom_string.hpp
+$(OBJDIR)\variant.obj: variant.cpp scripts.hpp ..\FARMail\fmp.hpp plugin.hpp variant.hpp type.hpp custom_string.hpp
+$(OBJDIR)\bcc_entry_point.obj: bcc_entry_point.asm
+
+.cpp.obj:
+	@echo compiling $<
+	@$(CC) $(CFLAGS) -n$(OBJDIR) -c $&.cpp
+
+.asm.obj:
+	@echo compiling $<
+	@$(CC) -n$(OBJDIR) -c $&.asm
+
+$(DLLNAME): $(OBJS)
+	@echo linking
+	@ilink32.exe $(LFLAGS) $**,$(DLLNAME),,Import32.lib,
+	@del $(DLLDIR)\*.tds
+
+parser_grammar.hpp parser_grammar.cpp: parser_grammar.y bison.scripts
+	@echo generating parser
+	@bison parser_grammar.y -o parser_grammar.cpp -S bison.scripts -d
+
+parser_lex.cpp: parser_lex.re
+	@echo generating lexer
+	@re2c -b $** >$@
+
+$(DLLDIR)\scripts.fml: scripts.fml
+	@$(CP) scripts.fml $@
+$(DLLDIR)\scriptse.hlf: scriptse.hlf.m4 ..\FARMail\fm_version.m4
+	@$(M4) scriptse.hlf.m4 > $@
+$(DLLDIR)\scriptsr.hlf: scriptsr.hlf.m4 ..\FARMail\fm_version.m4
+	@$(M4) scriptsr.hlf.m4 > $@
+$(EXAMPLESCRIPTSDIR)\forward.fms: forward.fms
+	@$(CP) forward.fms $@
+$(EXAMPLESCRIPTSDIR)\new.fms: new.fms
+	@$(CP) new.fms $@
+$(EXAMPLESCRIPTSDIR)\notification.fms: notification.fms
+	@$(CP) notification.fms $@
+$(EXAMPLESCRIPTSDIR)\qp.fms: qp.fms
+	@$(CP) qp.fms $@
+$(EXAMPLESCRIPTSDIR)\quote.fms: quote.fms
+	@$(CP) quote.fms $@
+$(EXAMPLESCRIPTSDIR)\reply.fms: reply.fms
+	@$(CP) reply.fms $@
+$(EXAMPLESCRIPTSDIR)\replyall.fms: replyall.fms
+	@$(CP) replyall.fms $@
+$(EXAMPLESCRIPTSDIR)\resend.fms: resend.fms
+	@$(CP) resend.fms $@
+$(EXAMPLESCRIPTSDIR)\scripts.ini: scripts.ini
+	@$(CP) scripts.ini $@
+$(EXAMPLESCRIPTSDIR)\Descript.ion: Descript.ion
+#        @if exist "$@" $(ATTRIB) -h $@
+	@$(CP) Descript.ion $@
+#        @$(ATTRIB) +h $@
+
+$(OBJDIR):
+	@if not exist "$@\$(NULL)" mkdir "$@"
+$(DLLDIR):
+	@if not exist "$@\$(NULL)" mkdir "$@"
+$(SCRIPTSDIR):
+	@if not exist "$@\$(NULL)" mkdir "$@"
+$(EXAMPLESCRIPTSDIR):
+	@if not exist "$@\$(NULL)" mkdir "$@"
+
+clean:
+	@del $(OBJS)
