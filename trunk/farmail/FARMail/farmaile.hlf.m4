@@ -607,51 +607,97 @@ $^#Program settings#
 @Interface
 $^#Interface settings#
 
- ÉÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ FARMail options: interface ÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ»
- º Plug-in properties:                                         º
- º  [x] Add to Disks menu       1 Disk menu hotkey ('1'-'9')   º
- º  [x] Add to Plug-ins menu                                   º
- ÇÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¶
- º Messages Panel properties:                                  º
- º  Column types:                         N,S,C0,C1,C2         º
- º  Column widths:                        7,6,8,7,0            º
- º  Status line column types:                                  º
- º  Status line column widths:                                 º
- º  [ ] Show messages panel in full size                       º
- ÇÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¶
- º                     [ Ok ]  [ Cancel ]                      º
- ÈÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼
+ ÉÍÍÍÍÍÍÍÍÍ FARMail options: interface ÍÍÍÍÍÍÍÍÍ»
+ º [x] Add to Disks menu                        º
+ º   1 Disk menu hotkey ('1'-'9')               º
+ º [x] Add to Plug-ins menu                     º
+ ÇÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¶
+ º Select panel to edit panel modes for:        º
+ º Mailboxes                                   º
+ ÇÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¶
+ º  Mode 0   ³ Column types                     º
+ º  Mode 1   ³ N,C0                             º
+ º  Mode 2   ³ Column widths                    º
+ º  Mode 3   ³ 20,0                             º
+ º  Mode 4   ³ Status line column types         º
+ º  Mode 5   ³                                  º
+ º  Mode 6   ³ Status line column widths        º
+ º  Mode 7   ³                                  º
+ º  Mode 8   ³                                  º
+ º  Mode 9   ³ [ ] Fullscreen                   º
+ ÇÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¶
+ º              { Ok }  [ Cancel ]              º
+ ÈÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼
 
 #Add to Disks menu# - Check this option if You want to see
 FARMail in Disks menu;
 
-#Add to Plug-ins menu# - Check this option if You want to see
-FARMail in plug-ins menu in panels;
-
 #Disk menu hotkey# - It's a "disks" menu hotkey :) Enter
 '0' to autoassign;
 
-#Column types# - Here You can choose what columns You want to see in messages
-panel. Enter up to 5 codes separated by ',':
-    N: message name column;
-    S: message size;
-    C0: "From" field;
-    C1: "Date" field (a string from message header);
-    C2: "Subject" field;
- Also now You can use standard FAR column types, for example date and time
+#Add to Plug-ins menu# - Check this option if You want to see
+FARMail in plug-ins menu in panels;
+
+#Edit panel modes# - Here You can choose what columns You want to see in all
+available FarMail panels. In this list You should select the panel type for 
+which You want to configure the column types. There exist the following four
+panel types:
+
+	#Mailboxes#
+	FarMail mailboxes panel
+
+	#IMAP4 folders#
+	IMAP4 folders panel
+
+	#POP3 Mailbox#
+	POP3 messages panel
+
+	#IMAP4 Mailbox#
+	IMAP4 messages panel
+
+  For each panel mode you can set the following:        
+
+  #Column types#
+
+  In this field the type of shown columns is set. In accordance with the
+type of the panel the following column name are available:
+
+	#"Mailbox" panel#
+
+	#N#  - mailbox name.
+	#C0# - name of the POP3/IMAP4 server.
+
+	#"IMAP4 folders" panel#
+
+	#N#  - IMAP4 folder name.
+	#C0# - IMAP4 folder flags.
+	#C1# - total number of messages in the folder.
+	#C2# - number of new messages in the folder.
+	#C3# - number of unread messages in the folder.
+
+	#"POP3 Mailbox" and "IMAP4 Mailbox" panels#
+
+	#N#  - message file name.
+	#S#  - message file size.
+	#C0# - sender.
+	#C1# - date sent.
+	#C2# - subject.
+
+	Also now You can use standard FAR column types, for example date and time
 types (D,T,DM,DC,DA). Message date and time are stored as file creation,
 modification and last access dates.
 
-#Column widths# - Widths of all columns, separated by ','. Enter 0 to autoassign.
+  #Column widths# - Widths of all columns, separated by ','.
+Enter 0 to autoassign.
 
-#Status line column types# - Here You can choose what columns You want to see
-in messages panel status line. Enter up to 5 codes separated by ',', the codes
+  #Status line column types# - Here You can choose what columns You want to see
+in message panel status line. Enter column names separated by ',', the names
 are the same as for "column types".
 
-#Status line column widths# - Widths of all columns in status line, separated
+  #Status line column widths# - Widths of all columns in status line, separated
 by ','. Enter 0 to autoassign.
 
-#Show panel in full size# - Check this option if You want to see messages
+  #Show panel in full size# - Check this option if You want to see messages
 panel in full screen mode;
 
 
