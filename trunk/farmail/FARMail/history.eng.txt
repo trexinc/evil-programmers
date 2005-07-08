@@ -1,8 +1,8 @@
 History
-ÄÄÄÄÄÄÄ
+-------
 
 v3.0 beta 10 (11.04.05)
-ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+-----------------------
 New:
   - Updated colorer 4 and 5 color schemes for FARMail Script;
 
@@ -20,7 +20,7 @@ Fixed:
 
 
 v3.0 beta 9 (10.04.05)
-ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+----------------------
 New:
   - "From  date" is now prepended to all sent messages;
   - PluginMacroses.reg by Tim Sobolev;
@@ -50,7 +50,7 @@ Fixed:
 
 
 v3.0 beta 8 (19.03.05)
-ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+----------------------
 New:
   Scripts plug-in:
   - New function: getini;
@@ -80,7 +80,7 @@ Fixed:
 
 
 v3.0 beta 7 (12.12.04)
-ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+----------------------
 New:
   - Experimental support for SSL;
   - The plugin is released under the GNU GPL license;
@@ -94,7 +94,7 @@ Fixed:
 
 
 v3.0 beta 6 (27.12.03)
-ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+----------------------
 New:
   - New plug-in: OppenAttach;
   - If some message header field is empty it will not be send;
@@ -129,7 +129,7 @@ Fixed:
 
 
 v3.0 beta 5 (12.04.03)
-ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+----------------------
 New:
   - You will need Far v1.70 beta 5 or higher to run this plug-in;
   - Support for UIDL on POP3 servers which allows you to keep the state of
@@ -187,7 +187,7 @@ Fixed:
 
 
 v3.0 beta 4 (20.07.02)
-ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+----------------------
 Fixed:
   - Downloading from IMAP4 didn't work on Windows 95/98;
   - The message file extension sometimes wasn't added to files downloaded from
@@ -197,7 +197,7 @@ Fixed:
 
 
 v3.0 beta 3 (12.07.02)
-ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+----------------------
 New:
   - Header keywords for presetting the way the message will be sent;
   - When sending a binary file or a file containing non-text symbols from the
@@ -218,7 +218,7 @@ Fixed:
 
 
 v3.0 beta 2 (05.07.02)
-ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+----------------------
 Fixed:
   - FARMail was causing exceptions on Windows 95/98 when run with sub plug-ins;
   - FastDownload & FastExpunge didn't work correctly when run from the command
@@ -229,7 +229,7 @@ Fixed:
 
 
 v3.0 beta (02.07.02)
-ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+--------------------
 New:
   - Outgoing messages can be saved to a mailbox file;
   - A FastExpunge command to quickly delete messages from a mailbox. Can be
@@ -290,7 +290,7 @@ Fixed:
 
 
 v2.4 (19.04.02)
-ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+---------------
 New:
   - From this version the plug-in is developed by FARMail Group;
   - Added hotkeys to all places where they were missing. Some old hotkeys where
@@ -325,7 +325,7 @@ Fixed:
 
 
 v2.3 (29.10.00)
-ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+---------------
 
 New:
  - ESMTP authorization (LOGIN, PLAIN SASL mechanisms);
@@ -342,7 +342,7 @@ Fixed:
  - and some others fixes;
 
 v2.2 (22.06.00)
-ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+---------------
 
 New:
  - Creating, renaming and deleting folders on IMAP4 servers;
@@ -361,7 +361,7 @@ Fixed:
 
 
 v2.1 (02.05.00)
-ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+---------------
 
 New:
  - "Analize all" option when sending multiple files;
@@ -386,7 +386,7 @@ Fixed:
 
 
 v2.0 (27.02.00)
-ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+---------------
 
 New:
  - Script processing: You can write Your own script files to
@@ -408,7 +408,7 @@ Fixed:
 
 
 v1.51 (23.01.00)
-ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+----------------
 
 Fixed:
  - Problem with SMTP session failure on Windows 95 - after a short period
@@ -417,7 +417,7 @@ Fixed:
 
 
 v1.5 (10.01.00)
-ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+---------------
 
 New:
  - Sending more than one file attached to one message;
@@ -440,7 +440,7 @@ Note:
 
 
 v1.4a (13.11.99)
-ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+----------------
 
 New:
  - Altered work with windows sockets. Now connection can be broken at
@@ -454,7 +454,7 @@ Fixed:
 
 
 v1.3 (release) (29.10.99)
-ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+-------------------------
 
 New:
  - Sending mail from FAR editor;
@@ -464,7 +464,7 @@ Fixed:
 
 
 v1.3b (24.10.99)
-ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+----------------
 
 New:
  - Default charset for incoming mail;
@@ -481,7 +481,7 @@ Fixed:
 
 
 v1.3a (03.10.99)
-ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+----------------
 
 New:
  - Multiple recipients;
@@ -498,7 +498,7 @@ Fixed:
 
 
 v1.2 (29.08.99)
-ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+---------------
 
 New:
  - Fully configurable messages panel: column types and widths are taken
@@ -515,14 +515,14 @@ Fixed:
 
 
 v1.11 (21.08.99)
-ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+----------------
 
 Fixed: memory corruption in previous versions; message list retrieving error
  in an empty mailbox;
 
 
 v1.1 (20.08.99)
-ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+---------------
 
 Fixed: work with mailboxes under Windows NT, correct <CRLF> sequence
  in messages;
@@ -532,13 +532,13 @@ New: password encryption, connection status messages, sending HTML files,
 
 
 v1.0 (16.08.99)
-ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+---------------
 
 That's something like a real plug-in :-) New interface, new settings,
 SMTP,...
 
 
 v0.5 (27.07.99)
-ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+---------------
 
 First working version.
