@@ -2,7 +2,7 @@ m4_include(`fm_version.m4')m4_dnl
 FARMail `v'MAJOR.MINOR beta BETA build BLD
 SMTP/POP3/IMAP4
 FAR `v'FAR_MAJOR.FAR_MINOR beta FAR_BETA`+' plugin
-컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+----------------------------------
 (c) COPYRIGHT by FARMail Group
 
 Alex Yaroslavsky

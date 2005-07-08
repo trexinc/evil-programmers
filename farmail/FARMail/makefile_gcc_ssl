@@ -40,16 +40,17 @@ EXTRAS = $(patsubst %.xml,$(EXTRADIR)/%.xml,$(EXML)) \
          $(patsubst %.reg,$(EXTRADIR)/%.reg,$(EREG))
 
 
-all: gen_date $(DLLFULLNAME) $(DOCS) $(DOCS_M4) $(EXTRAS)
-new: inc_build $(DLLFULLNAME) $(DOCS) $(DOCS_M4) $(EXTRAS)
+all: gen_date version.hpp $(DLLFULLNAME) $(DOCS) $(DOCS_M4) $(EXTRAS)
+new: inc_build version.hpp $(DLLFULLNAME) $(DOCS) $(DOCS_M4) $(EXTRAS)
 
 $(OBJS) $(DEPS): $(OBJDIR)
 $(DLLFULLNAME): $(DLLDIR)
-$(DOCS_M4): $(DLLDIR) fm_version.m4
+$(DOCS_M4): $(DLLDIR) fm_version.m4 gen_date.exe
 $(DOCS): $(DLLDIR)
 $(EXTRAS): $(EXTRADIR)
 
-version.hpp: version.hpp.m4 fm_version.m4
+version.hpp: version.hpp.m4 fm_version.m4 gen_date.exe
+	@echo generating version.hpp
 	@$(M4) $< > $@
 
 $(OBJDIR)/%.d: %.cpp
@@ -65,8 +66,7 @@ $(DLLFULLNAME): $(OBJS) $(DEF)
 	@echo linking $@
 	@$(CXX) -mdll -o $(DLLNAME) -Xlinker --base-file -Xlinker $(DLLNAME).base $(OBJS) $(LNKFLAGS)
 	@$(DLLTOOL) --dllname $(DLLNAME) --base-file $(DLLNAME).base --output-exp $(DLLNAME).exp --def $(DEF)
-	@$(CXX) -mdll  -o $(DLLNAME) $(OBJS) $(DLLNAME).exp $(LNKFLAGS)
-#	 -Xlinker -Map -Xlinker $(MAP)
+	@$(CXX) -mdll  -o $(DLLNAME) $(OBJS) $(DLLNAME).exp $(LNKFLAGS) -Xlinker -Map -Xlinker $(MAP)
 	@$(MV) $(DLLNAME) $(DLLDIR)
 	@$(RM) $(DLLNAME).base
 	@$(RM) $(DLLNAME).exp
@@ -98,7 +98,7 @@ $(EXTRADIR):
 	@if !(test -d $@) then $(MKDIR) $@; fi
 
 inc_build: gen_date.exe
-	@echo setting build info
+	@echo setting build info (increase build number)
 	@d.bat fm_version.m4 silent
 	@gen_date.exe fm_version.m4 x
 
