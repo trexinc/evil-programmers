@@ -1985,8 +1985,11 @@ try {
         _Info.Control(this,FCTL_REDRAWPANEL,NULL);
       }
     }
+    return TRUE;
   }
-  return(FALSE);
+
+  return FALSE ;
+
 #ifdef TDEBUG
 }
 #ifdef __BORLANDC__
@@ -2707,7 +2710,7 @@ int FARMail::ProcessEvent( int Event, void *Param )
 
  if ( Event == FE_CLOSE )
    SaveLastViewMode ();
- 
+
  if ( Event == FE_CHANGEVIEWMODE )
  {
    _Info.Control (
