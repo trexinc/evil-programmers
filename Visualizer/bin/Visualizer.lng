@@ -1,0 +1,44 @@
+.Language=English,English
+
+"Visualizer"
+
+"&Right border off"
+"R&ight border on"
+"Ri&ght border on only if autowrap"
+
+"&End of line off"
+"E&nd of line on"
+"En&d of line on - also mark \\r, \\n, undefined and EOF"
+"End o&f line on - also mark EOF"
+
+"&Tabs off"
+"T&abs on"
+"Ta&bs on - mark whole tabs"
+
+"C&ross off"
+"Cro&ss on"
+"Cross on - only &vertical"
+"Cross on - only &horizontal"
+
+"Other coloring &plugins are loaded"
+
+"Right &border"
+"&End of line"
+"\\&r"
+"\\&n"
+"Undefined en&d of line"
+"End of &file"
+"&Tab"
+"&Vertical Cross"
+"&Horizontal Cross"
+
+"Color"
+"&Foreground"
+"&Background"
+"Text Text Text Text Text Text"
+"Text Text Text Text Text Text"
+"Text Text Text Text Text Text"
+
+"&Ok"
+"&Cancel"
+"Set co&lor"
