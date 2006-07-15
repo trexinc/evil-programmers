@@ -1,0 +1,241 @@
+.Language=English,English (English)
+.PluginContents=Character Map
+
+@Contents
+$ #Character Map - Contents#
+
+ - ~About the plug-in~@AboutPlugin@
+ - ~About the author~@AboutAuthor@
+ - ~License~@License@
+ - ~Navigation~@Navigation@
+ - ~Operating with tables~@View@
+ - ~Creating/editing tables~@Edit@
+ - ~Configuration~@Configure@
+
+@AboutPlugin
+$ #About the plug-in#
+
+  #Version: 3.21 , July 15 2006 , Sources included#
+  Character Map (a.k.a ASCII Table) is a FAR 1.70 beta 5+ plug-in that shows
+you a character map in which you can ~navigate~@Navigation@ to any character
+and see its ASCII number and position. You can also perform any of the
+available ~commands~@View@ that let you change the encoding of the
+character table, insert the character to the current cursor position (in the
+Editor or the Command line only) and/or copy it to the clipboard, but you can
+do #more# than that, you can append characters to the input line at the
+bottom of the plug-in's dialog so you can later insert and/or copy the whole
+bunch instead of doing so one character at a time. This plug-in also supports
+insertion of the #NULL# character to the editor, have you ever saw it before?
+You can ~configure~@Configure@ the plug-in to select or not the character under
+cursor in the Editor and/or the command line, to automatically copy the text
+to the clipboard and to determine how it will encode the inserted/copied text.
+And other little conveniences.
+  And starting with version 3.0 this plug-in allows you to ~create~@Edit@ your
+own or ~edit~@Edit@ existing character tables and save them in REG format so
+you will be able to install and/or distribute them.
+
+~Back to Contents~@Contents@
+
+@AboutAuthor
+$ #About the author#
+
+ Name:      Alex Yaroslavsky
+ E-mail:    at yandex.ru / trexinc
+ Home Page: ~http://trexinc.sf.net/~@http://trexinc.sf.net/@
+
+ Bug reports and/or suggestions are welcomed. Enjoy!
+
+~Back to Contents~@Contents@
+
+@License
+$ #License#
+
+ CharacterMap plugin for FAR Manager
+ Copyright (C) 2001-2006 Alex Yaroslavsky
+
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+~Back to Contents~@Contents@
+
+@Navigation
+$ #Navigation:#
+
+  #   #
+  Use the arrow keys to move around.
+  Pressing Left/Right when the cursor is at the most left/right position will
+move the cursor to the end/beginning of the line above/below.
+
+  #Left Click on any character#
+  Left clicking on any character will move the cursor to it.
+
+  #Any character with ASCII code above 31#
+  Pressing any character with ASCII code above 31 will move the cursor to the
+position corresponding to that character's OEM ASCII code and that is not
+necessarily the position of that character in the current table.
+  #Note:# This can also be achieved by pressing Alt-XXX where XXX is any
+number between 32-255, the numbers should be pressed on the Numpad.
+
+  #PgUp#
+  Go to the top of the column.
+
+  #PgDn#
+  Go to the bottom of the column.
+
+  #Home#
+  Go to the start of the line.
+
+  #End#
+  Go to the end of the line.
+
+  #Ctrl-Home#
+  Go to the first position (0).
+
+  #Ctrl-End#
+  Go to the last position (255).
+
+@View
+$ #Operating with tables#
+
+  While viewing a table you can use the following commands:
+
+  #Alt-Shift-F9#
+  Opens the ~Configuration~@Configure@ dialog.
+
+  #Shift-F8# or #Left Click on the code page name#
+  Shows you the encoding table selection menu.
+
+  #F8# or #Right Click on the code page name#
+  Switches between Windows (ANSI) and DOS (OEM) encodings.
+
+  #F9#/#Shift-F9#
+  Cycle forward/backward through the encoding tables.
+
+  #Note:# Changing tables is available only when the edit control is empty.
+
+  #Ctrl-I#
+  Opens a dialog with some info on the current table.
+
+  #Enter# or #Double Left Click on any character#
+  Along with what is described below the text/char will be processed according
+to the options set in plug-in's configuration menu. (See ~Configuration.~@Configure@)
+  When the Edit Control is #empty#:
+    #In Viewer#: Close.
+    #In Panels#: Insert the character under cursor to the current position in
+the command line and close.
+If the character is NULL (0) then nothing will happen.
+    #In Editor#: Insert the character under cursor to the current position in
+the editor.
+Can fully handle any character including NULL (0).
+  When the Edit Control is #not empty#:
+    #In Viewer#: Close.
+    #In Panels#: Insert the string inside the edit control to the current
+position in the command line and close.
+    #In Editor#: Insert the string inside the edit control to the current
+position in the editor and close.
+
+  #Shift-Enter# or #Insert# or #Right Click on any character#
+  Appends the character under cursor to the text in the input line at the
+bottom of the dialog.
+  #Note 1:# NULL (0) can only be added to the text if the plug-in was opened
+from the Editor or Viewer.
+  #Note 2:# The maximum number of characters you can append is 511.
+
+  #Add (Numpad Plus)#
+  Will perform the same action as Shift-Enter with addition of moving the
+cursor one position to the right in the character map, that means that it can
+move over lines too, more extensively about the moving process
+~here~@Navigation@.
+
+  #Subtract (Numpad Minus)#
+  Will perform the same action as Shift-Enter with addition of moving the
+cursor one position to the left in the character map, that means that it can
+move over lines too, more extensively about the moving process
+~here~@Navigation@.
+
+  #Del# or #Right Click on the edit control#
+  Clear (erase) the whole text in the edit control.
+
+  #Backspace# or #Left Click on the edit control#
+  Erase one character from the end of the text in the edit control.
+
+  #Ctrl-C# or #Ctrl-Insert#
+  Copy the the character under cursor (if the edit control is empty) or the
+text in the edit control (if it's not empty) to the windows clipboard.
+
+~Back to Contents~@Contents@
+
+@Edit
+$ #Creating/editing tables#
+
+  You can start the editing mode in two ways:
+  1. #Ctrl-N# - Creates a new encoding table (based on DOS (OEM)).
+You will be asked to fill the needed information such as table name and so on.
+  2. #Ctrl-E# - Lets you edit the table currently selected.
+
+  After you have entered the editing mode you might have noticed that the
+appearance of the plug-in has changed.
+  In the middle (below the main character map) you should see a small input
+line with a text on the right of it explaining its contents. In this input
+line will be shown your input for the currently selected character. The type
+of the allowed input is what the text on the right of input line says. To
+change the type of the input just press #Ctrl-E# until you reach the wanted
+type. The available types are hex, decimal and character. Where hex is any hex
+number between 00 and FF, decimal is any number between 000 and 255, and
+character is any character (above space 0x20) which you can enter on the
+keyboard.
+  On the right you should see a look-up table for characters in the DOS (OEM)
+encoding put there to assist you in your character table editing task.
+  In the bottom you should see a list-box where you can load some file, by
+pressing #Ctrl-L#. The loaded file will be decoded using the current table and
+any change to the table will be immediately reflected upon the loaded file so
+you can see how your table works in real-time. To unload a file from the
+list-box press #Ctrl-U#.
+
+  To edit the name of the table and some additional information press #Ctrl-I#
+and you will be shown a dialog allowing you to set the wanted field.
+
+  To save the current table to a REG file press #Ctrl-S# and enter the wanted
+filename when asked.
+
+  To quit editing mode press #Ctrl-X#.
+
+  Pressing #Alt-Shift-F9# will open the ~Configuration~@Configure@ dialog.
+
+~Back to Contents~@Contents@
+
+@Configure
+$ #Configuration#
+
+  #Select char under cursor in Editor#
+  Position the cursor inside the character map to the current character under
+cursor in the editor, if any. (When plug-in is opened from the editor)
+
+  #Select char under cursor in Command Line#
+  Position the cursor inside the character map to the current character under
+cursor in the command line, if any. (When plug-in is opened from the panels)
+
+  #Copy text to clipboard on close#
+  After closing plug-in's dialog with Enter or similar the character under
+cursor (if the edit control is empty) or the text in the edit control (if it's
+not empty) will be copied to the windows clipboard along with any other action
+the Enter is supposed to do.
+
+  #Encode text to current FAR table#
+  If this option is on, the text will be inserted/copied to wherever it needs
+to be inserted/copied exactly as you see it on the screen. But if this option
+is off then the text will be inserted in the currently selected encoding
+within the plug-in.
+
+~Back to Contents~@Contents@

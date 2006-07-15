@@ -1,0 +1,42 @@
+.Language=English,English
+
+"Character Map"
+
+"DOS (OEM)"
+"Windows (ANSI)"
+
+"Tables"
+
+//Max 50 before sprintf and max 32 after (always 3 chars and 2 ints)
+"Ch:%c Dec:%03d Hex:%02X PD:%03d PH:%02X"
+
+//Configuration menu
+"&Select char under cursor in Editor"
+"Se&lect char under cursor in Command Line"
+"&Copy text to clipboard on close"
+"&Encode text to current FAR table"
+
+"Enter path to sample file:"
+
+"Enter table info:"
+"Table name"
+"Short table name (for editor/viewer status line)"
+"RFC charset name of the table"
+"-- Unavailable --"
+
+//Must all be of the same length
+" -> Hex       "
+" -> Decimal   "
+" -> Character "
+
+"Save table to file:"
+
+"Are you sure you want to quit editing mode?"
+
+"Error: Can not allocate memory!"
+"Error: Can not write to file!"
+
+"&Ok"
+"C&ancel"
+
+"픔컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴캘"
