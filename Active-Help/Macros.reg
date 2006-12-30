@@ -1,0 +1,23 @@
+REGEDIT4
+
+;Set the plugin's HotKey to "?"
+
+[HKEY_CURRENT_USER\Software\Far\KeyMacros\Editor\CtrlF1]
+"Sequence"="F11 ? ?"
+"Description"="AH - Current Topic"
+"DisableOutput"=dword:00000001
+
+[HKEY_CURRENT_USER\Software\Far\KeyMacros\Editor\CtrlF2]
+"Sequence"="F11 ? *"
+"Description"="AH - Current Topic (menu)"
+"DisableOutput"=dword:00000001
+
+[HKEY_CURRENT_USER\Software\Far\KeyMacros\Editor\AltF1]
+"Sequence"="F11 ? !"
+"Description"="AH - Previous topic"
+"DisableOutput"=dword:00000001
+
+[HKEY_CURRENT_USER\Software\Far\KeyMacros\Editor\ShiftF1]
+"Sequence"="F11 ?"
+"Description"="AH - Main menu"
+"DisableOutput"=dword:00000001
