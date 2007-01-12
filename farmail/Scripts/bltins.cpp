@@ -1,6 +1,6 @@
 /*
     Scripts sub-plugin for FARMail
-    Copyright (C) 2002-2005 FARMail Group
+    Copyright (C) 2002-2006 FARMail Group
     Copyright (C) 1999,2000 Serge Alexandrov
 
     This program is free software; you can redistribute it and/or modify
@@ -163,11 +163,23 @@ Variant WINAPI blt_setline(long count,Variant *values,int *stop,void *ptr)
   return 0;
 }
 
+Variant WINAPI blt_print(long count,Variant *values,int *stop,void *ptr)
+{
+  (void)ptr;
+  (void)stop;
+  if (!count) return 0;
+  if(count>1)
+    SetPos((__INT64)values[1],0);
+  FInfo.EditorControl(ECTL_INSERTTEXT,values[0].get());
+  return 0;
+}
+
 Variant WINAPI blt_delline(long count,Variant *values,int *stop,void *ptr)
 {
   (void)ptr;
   (void)stop;
-  SetPos(count?(__INT64)values[0]:-1,0);
+  if (count)
+    SetPos((__INT64)values[0],0);
   FInfo.EditorControl(ECTL_DELETESTRING,NULL);
   return 0;
 }
@@ -980,6 +992,71 @@ Variant WINAPI blt_setini(long count,Variant *values,int *stop,void *ptr)
     lstrcpy(filename,values[0]);
     ExpandFilename(filename);
     result=WritePrivateProfileString(values[1],(count>2?(const char *)values[2]:NULL),(count>3?(const char *)values[3]:NULL),filename);
+  }
+  return result;
+}
+
+Variant WINAPI blt_rtrim(long count,Variant *values,int *stop,void *ptr)
+{
+  (void)ptr;
+  (void)stop;
+  Variant result="";
+  if(count)
+  {
+    int n;
+    for (n=values[0].length()-1;n>=0;n--)
+    {
+      if ((values[0][n]!=9)&&(values[0][n]!=32))
+      {
+        result=(const char *)values[0];
+        result.set(n+1,0);
+        break;
+      }
+    }
+  }
+  return result;
+}
+
+Variant WINAPI blt_ltrim(long count,Variant *values,int *stop,void *ptr)
+{
+  (void)ptr;
+  (void)stop;
+  Variant result="";
+  if(count)
+  {
+    int n;
+    for (n=0;n<values[0].length();n++)
+    {
+      if ((values[0][n]!=9)&&(values[0][n]!=32))
+      {
+        result=(const char *)values[0]+n;
+        break;
+      }
+    }
+  }
+  return result;
+}
+
+Variant WINAPI blt_trim(long count,Variant *values,int *stop,void *ptr)
+{
+  (void)ptr;
+  (void)stop;
+  Variant result="";
+  if(count)
+  {
+    int n,e;
+    for (n=0;n<values[0].length();n++)
+    {
+      if ((values[0][n]!=9)&&(values[0][n]!=32))
+        break;
+    }
+    for (e=values[0].length()-1;e>=0;e--)
+    {
+      if ((values[0][e]!=9)&&(values[0][e]!=32))
+        break;
+    }
+    result=(const char *)values[0]+n;
+    result.set(e-n+1,0);
   }
   return result;
 }

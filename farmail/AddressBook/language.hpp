@@ -25,6 +25,7 @@ enum
   MesConfig_Title,
   MesConfig_FieldsOrder,
   MesConfig_FieldsDelimiter,
+  MesConfig_FieldsDevide,
   MesConfig_Sort,
   MesConfig_SortByName,
   MesConfig_SortByEMail,
@@ -49,5 +50,4 @@ enum
 
   MesMenu_DeleteFormat,
   MesMenu_NormalFormat,
-  MesMenu_FullFormat,
 };

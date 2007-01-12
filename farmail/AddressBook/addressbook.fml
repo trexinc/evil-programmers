@@ -4,6 +4,7 @@ Address Book: [%s]
 Configure Address Book
 Fields o&rder:
 Fields &delimiter:
+&Proportional size of left field:
 Sort by:
 Na&me
 &E-Mail
@@ -24,7 +25,6 @@ Error
 Out of memory
 (-) %s <%s>
 %s <%s>
-%-43.43s │ %-25.25s
 
 [Russian]
 Адресная книга
@@ -32,6 +32,7 @@ Out of memory
 Параметры Адресной книги
 &Порядок полей:
 &Разделитель полей:
+Пропор&циональный размер левого поля:
 Сортировать по:
 &имени
 &E-Mail
@@ -52,4 +53,3 @@ F4,ENTER:Ред.  F7:Ввод  F8:Удалить(Восстановить)  Текст:Фильтр
 Не хватает памяти
 (-) %s <%s>
 %s <%s>
-%-43.43s │ %-25.25s

@@ -1,6 +1,6 @@
 /*
     Scripts sub-plugin for FARMail
-    Copyright (C) 2002-2005 FARMail Group
+    Copyright (C) 2002-2006 FARMail Group
     Copyright (C) 1999,2000 Serge Alexandrov
 
     This program is free software; you can redistribute it and/or modify
@@ -60,5 +60,9 @@ Variant WINAPI blt_encodeheader(long count,Variant *values,int *stop,void *ptr);
 Variant WINAPI blt_getini(long count,Variant *values,int *stop,void *ptr);
 Variant WINAPI blt_setini(long count,Variant *values,int *stop,void *ptr);
 Variant WINAPI blt_editorstate(long count,Variant *values,int *stop,void *ptr);
+Variant WINAPI blt_rtrim(long count,Variant *values,int *stop,void *ptr);
+Variant WINAPI blt_ltrim(long count,Variant *values,int *stop,void *ptr);
+Variant WINAPI blt_trim(long count,Variant *values,int *stop,void *ptr);
+Variant WINAPI blt_print(long count,Variant *values,int *stop,void *ptr);
 
 #endif

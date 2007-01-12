@@ -1,6 +1,6 @@
 /*
     Scripts sub-plugin for FARMail
-    Copyright (C) 2002-2005 FARMail Group
+    Copyright (C) 2002-2006 FARMail Group
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -71,6 +71,10 @@ Parser::Parser(char *script)
   functions.Add("getini",blt_getini);
   functions.Add("setini",blt_setini);
   functions.Add("editorstate",blt_editorstate);
+  functions.Add("ltrim",blt_ltrim);
+  functions.Add("rtrim",blt_rtrim);
+  functions.Add("trim",blt_trim);
+  functions.Add("print",blt_print);
 }
 
 Parser::~Parser()

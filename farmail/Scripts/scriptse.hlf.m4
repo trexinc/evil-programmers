@@ -327,17 +327,35 @@ of str, returns -1.
    Parameters: str - a string value.
    Returns a string with lowercase letters converted to uppercase.
 
- string #sprintf# ( string format, ...)
+ string #sprintf# ( string format, ...).
 
    Parameters: format - a format string
                ... - any number of variables of any type
    Writes formatted output to a string. sprintf accepts a series of arguments,
-   applies to each a format specifier contained in the format string pointed
-   to by format, and outputs the formatted data to a string. sprintf applies
-   the first format specifier to the first argument, the second to the second,
-   and so on. There must be the same number of format specifiers as arguments.
-   The format string is the same as in C/C++.
+applies to each a format specifier contained in the format string pointed to
+by format, and outputs the formatted data to a string. sprintf applies the
+first format specifier to the first argument, the second to the second, and so
+on. There must be the same number of format specifiers as arguments.
+   The format string is the same as in C/C++ (actually wvsprintf).
    Returns the formated string.
+
+ string #ltrim#( string str ).
+
+   Parameters: str - a string value.
+   Returns a string containing a copy of a specified string with no leading
+spaces and tabs.
+
+ string #rtrim#( string str ).
+
+   Parameters: str - a string value.
+   Returns a string containing a copy of a specified string with no trailing
+spaces and tabs.
+
+ string #trim#( string str ).
+
+   Parameters: str - a string value.
+   Returns a string containing a copy of a specified string with no leading or
+trailing spaces and tabs.
 
 #3. Conversion#
 
@@ -532,7 +550,7 @@ then the section is removed.
  string #winampsong#()
 
    Parametrs: none.
-   Returns the name of the current composition beeing played by winamp.
+   Returns the name of the current composition being played by winamp.
 
   Example of usage:
 

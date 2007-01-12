@@ -140,7 +140,6 @@ $(EXTRADIR):
 
 inc_build:
 	@echo setting build information (increase build number)
-	@d.bat fm_version.m4 silent
 	@gen_date.exe fm_version.m4 x
 
 gen_date:

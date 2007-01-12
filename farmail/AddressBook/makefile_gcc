@@ -10,7 +10,7 @@ CXX = g++
 DLLTOOL = dlltool
 RM = rm -f
 CP = cp -f
-M4 = m4 -P -DCMD=../FARMail/gen_date.exe
+M4 = m4 -P -DCMD=..\\\\FARMail\\\\gen_date.exe
 MV = mv -f
 MKDIR = mkdir -p
 CXXFLAGS = -Os -funsigned-char -fomit-frame-pointer -fstrict-aliasing -fno-rtti -fno-exceptions
@@ -37,28 +37,28 @@ $(OBJDIR)/%.o: %.cpp
 
 $(DLLFULLNAME): $(OBJS) $(DEF)
 	@echo linking $@
-	@$(CXX) -mdll -o $(DLLNAME) -Xlinker --base-file -Xlinker $(DLLNAME).base $(OBJS) $(LNKFLAGS)
-	@$(DLLTOOL) --dllname $(DLLNAME) --base-file $(DLLNAME).base --output-exp $(DLLNAME).exp --def $(DEF)
-	@$(CXX) -mdll  -o $(DLLNAME) $(OBJS) $(DLLNAME).exp $(LNKFLAGS)
-	@$(MV) $(DLLNAME) $(DLLDIR)
-	@$(RM) $(DLLNAME).base
-	@$(RM) $(DLLNAME).exp
+	$(CXX) -mdll -o $(DLLNAME) -Xlinker --base-file -Xlinker $(DLLNAME).base $(OBJS) $(LNKFLAGS)
+	$(DLLTOOL) --dllname $(DLLNAME) --base-file $(DLLNAME).base --output-exp $(DLLNAME).exp --def $(DEF)
+	$(CXX) -mdll  -o $(DLLNAME) $(OBJS) $(DLLNAME).exp $(LNKFLAGS)
+	$(MV) $(DLLNAME) $(DLLDIR)
+	$(RM) $(DLLNAME).base
+	$(RM) $(DLLNAME).exp
 
 -include $(DEPS)
 
 $(DLLDIR)/addressbook.fml: addressbook.fml
-	@$(CP) $< $@
+	$(CP) $< $@
 $(DLLDIR)/addressbooke.hlf: addressbooke.hlf.m4 ../FARMail/fm_version.m4
-	@$(M4) $< > $@
+	$(M4) addressbooke.hlf.m4 > $@
 $(DLLDIR)/addressbookr.hlf: addressbookr.hlf.m4 ../FARMail/fm_version.m4
-	@$(M4) $< > $@
+	$(M4) addressbookr.hlf.m4 > $@
 $(DLLDIR)/example.adr: example.adr
-	@$(CP) $< $@
+	$(CP) $< $@
 
 $(OBJDIR):
-	@if !(test -d $@) then $(MKDIR) $@; fi
+	if !(test -d $@) then $(MKDIR) $@; fi
 $(DLLDIR):
-	@if !(test -d $@) then $(MKDIR) $@; fi
+	if !(test -d $@) then $(MKDIR) $@; fi
 
 clean:
 	@echo cleaning up
