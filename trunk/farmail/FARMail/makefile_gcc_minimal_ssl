@@ -98,8 +98,7 @@ $(EXTRADIR):
 	@if !(test -d $@) then $(MKDIR) $@; fi
 
 inc_build: gen_date.exe
-	@echo setting build info (increase build number)
-	@d.bat fm_version.m4 silent
+	@echo increase build number
 	@gen_date.exe fm_version.m4 x
 
 gen_date: gen_date.exe

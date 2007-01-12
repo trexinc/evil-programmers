@@ -74,6 +74,7 @@ struct OPTIONS
   char ADRBOOK[MAX_PATH];
   char AdrBookFld[4];
   char AdrBookDelim[2];
+  char AdrBookDevide[3];
   char AdrBookSort[2];
   char AdrBookDir[MAX_PATH];
 } Opt;
@@ -82,6 +83,7 @@ char PluginRootKey[80];
 static const char ABFLD[] = "AdrBookFld";
 static const char ABDLM[] = "AdrBookDelim";
 static const char ABSRT[] = "AdrBookSort";
+static const char ABDEV[] = "AdrBookDevide";
 static const char ABDIR[] = "AdrBookDir";
 static const char ADRBOOK[] = "AdrBook";
 const char NULLSTR[] = "";
@@ -101,6 +103,7 @@ typedef struct _ADRREC {
    char EMail[80];
    char Comment[80];
    int  InUse;
+   int  selected;
    int  num;
 } ADRREC;
 
@@ -194,6 +197,7 @@ int WINAPI _export Message(unsigned long Msg,void *InData,void *OutData)
     case FMMSG_MENU:
       {
         char buf[512];
+        memset(buf,0,sizeof(buf));
         EditAddressBook(buf);
         FInfo.EditorControl(ECTL_INSERTTEXT,buf);
       }
@@ -208,6 +212,10 @@ static void ReadRegistry(void)
   GetRegKey2( hRoot, PluginRootKey, NULLSTR, ABFLD, Opt.AdrBookFld, "NEC", 4 );
   GetRegKey2( hRoot, PluginRootKey, NULLSTR, ABDLM, Opt.AdrBookDelim, "|", 2 );
   GetRegKey2( hRoot, PluginRootKey, NULLSTR, ABSRT, Opt.AdrBookSort, "N", 2 );
+  GetRegKey2( hRoot, PluginRootKey, NULLSTR, ABDEV, Opt.AdrBookDevide, "50", 3 );
+  int dev = FSF.atoi(Opt.AdrBookDevide);
+  if (dev<1 || dev>99)
+    lstrcpy(Opt.AdrBookDevide,"50");
   char path[MAX_PATH];
   lstrcpy(path,MInfo.ModuleName);
   *(FSF.PointToName(path)) = 0;
@@ -228,31 +236,39 @@ static void Config(void)
   static struct InitDialogItem InitItems[]=
   {
     // type, x1, y1, x2, y2, focus, selected, flags, default, data
-    { DI_DOUBLEBOX,3,1,50,12,0,0,0,0,(char*)MesConfig_Title }, // -9
+    { DI_DOUBLEBOX,3,1,50,13,0,0,0,0,(char*)MesConfig_Title }, // -9
 
     { DI_TEXT,     5, 2, 0,0, 0,0,0,0, (char*)MesConfig_FieldsOrder },
-    { DI_FIXEDIT,  46,2,48,0,1,0,0,0, NULLSTR },
+    { DI_FIXEDIT,  46,2,48,0, 1,0,0,0, NULLSTR },
+
     { DI_TEXT,     5, 3, 0,0, 0,0,0,0, (char*)MesConfig_FieldsDelimiter },
-    { DI_FIXEDIT,  48,3,48,0,0,0,0,0, NULLSTR },
-    { DI_TEXT,     5, 4, 0,0, 0,0,0,0, (char*)MesConfig_Sort },
+    { DI_FIXEDIT,  48,3,48,0, 0,0,0,0, NULLSTR },
 
-    { DI_RADIOBUTTON, 6, 5, 0, 0, 0, 0, DIF_GROUP, 0, (char*)MesConfig_SortByName },
-    { DI_RADIOBUTTON, 6, 6, 0, 0, 0, 0, 0, 0,         (char*)MesConfig_SortByEMail },
-    { DI_RADIOBUTTON, 6, 7, 0, 0, 0, 0, 0, 0,         (char*)MesConfig_SortByComment },
+    { DI_TEXT,     5, 4, 0,0, 0,0,0,0, (char*)MesConfig_FieldsDevide },
+    { DI_TEXT,     48,4,48,0, 0,0,0,0, "%" },
+    { DI_FIXEDIT,  46,4,47,0, 0,0,0,0, NULLSTR },
 
-    { DI_TEXT,     5, 8, 0,0, 0,0,0,0, (char*)MesConfig_AdrBookDir },
-    { DI_EDIT,     5, 9,48,0, 1,0,0,0, NULLSTR },
+    { DI_TEXT,     5, 5, 0,0, 0,0,0,0, (char*)MesConfig_Sort },
+    { DI_RADIOBUTTON, 6, 6, 0, 0, 0, 0, DIF_GROUP, 0, (char*)MesConfig_SortByName },
+    { DI_RADIOBUTTON, 6, 7, 0, 0, 0, 0, 0, 0,         (char*)MesConfig_SortByEMail },
+    { DI_RADIOBUTTON, 6, 8, 0, 0, 0, 0, 0, 0,         (char*)MesConfig_SortByComment },
 
-    { DI_TEXT, 3,10,0,0,0,0,DIF_SEPARATOR,0,NULLSTR},
+    { DI_TEXT,     5, 9, 0,0, 0,0,0,0, (char*)MesConfig_AdrBookDir },
+    { DI_EDIT,     5, 10,48,0, 1,0,0,0, NULLSTR },
 
-    { DI_BUTTON, 0, 11,0,0,0,0,DIF_CENTERGROUP,1,(char *)MesOk },
-    { DI_BUTTON, 0, 11,0,0,0,0,DIF_CENTERGROUP,0,(char *)MesCancel }
+    { DI_TEXT, 3,11,0,0,0,0,DIF_SEPARATOR,0,NULLSTR},
+
+    { DI_BUTTON, 0, 12,0,0,0,0,DIF_CENTERGROUP,1,(char *)MesOk },
+    { DI_BUTTON, 0, 12,0,0,0,0,DIF_CENTERGROUP,0,(char *)MesCancel }
   };
 
   enum {
          C_ORDER = 2,
          C_TXT1,
          C_DELIM,
+         C_TXTDEVIDE,
+         C_TXTDEVIDE2,
+         C_DEVIDE,
          C_TXT2,
          C_O_NAME,
          C_O_MAIL,
@@ -269,9 +285,10 @@ static void Config(void)
 
   ReadRegistry();
 
-  lstrcpy( DialogItems[C_ORDER].Data , Opt.AdrBookFld );
-  lstrcpy( DialogItems[C_DELIM].Data , Opt.AdrBookDelim );
-  lstrcpy( DialogItems[C_ABDIR].Data , Opt.AdrBookDir );
+  lstrcpy(DialogItems[C_ORDER].Data, Opt.AdrBookFld);
+  lstrcpy(DialogItems[C_DELIM].Data, Opt.AdrBookDelim);
+  lstrcpy(DialogItems[C_ABDIR].Data, Opt.AdrBookDir);
+  lstrcpy(DialogItems[C_DEVIDE].Data, Opt.AdrBookDevide);
 
   switch( Opt.AdrBookSort[0] )
   {
@@ -292,16 +309,20 @@ static void Config(void)
       break;
   }
 
-  if ( FInfo.DialogEx(FInfo.ModuleNumber,-1,-1,54,14,"AddrBookSet",DialogItems,sizeofa(DialogItems),0,0,MInfo.ShowHelpDlgProc,(long)MInfo.ModuleName) == C_OK )
+  if (C_OK == FInfo.DialogEx(FInfo.ModuleNumber,-1,-1,54,15,"AddrBookSet",DialogItems,sizeofa(DialogItems),0,0,MInfo.ShowHelpDlgProc,(long)MInfo.ModuleName))
   {
-    if ( DialogItems[C_O_MAIL].Selected ) Opt.AdrBookSort[0] = 'E';
-    else if ( DialogItems[C_O_COMMENT].Selected ) Opt.AdrBookSort[0] = 'C';
+    if (DialogItems[C_O_MAIL].Selected) Opt.AdrBookSort[0] = 'E';
+    else if (DialogItems[C_O_COMMENT].Selected) Opt.AdrBookSort[0] = 'C';
     else Opt.AdrBookSort[0] = 'N';
     Opt.AdrBookSort[1] = 0;
 
-    lstrcpyn( Opt.AdrBookFld,   DialogItems[C_ORDER].Data , 4 );
-    lstrcpyn( Opt.AdrBookDelim, DialogItems[C_DELIM].Data , 2 );
-    lstrcpyn( Opt.AdrBookDir, DialogItems[C_ABDIR].Data, MAX_PATH);
+    lstrcpyn(Opt.AdrBookFld, DialogItems[C_ORDER].Data ,4);
+    lstrcpyn(Opt.AdrBookDelim, DialogItems[C_DELIM].Data ,2);
+    lstrcpyn(Opt.AdrBookDir, DialogItems[C_ABDIR].Data, MAX_PATH);
+    lstrcpyn(Opt.AdrBookDevide, DialogItems[C_DEVIDE].Data ,3);
+    int dev = FSF.atoi(Opt.AdrBookDevide);
+    if (dev<1 || dev>99)
+      lstrcpy(Opt.AdrBookDevide,"50");
     if (!*Opt.AdrBookDir)
     {
       char path[MAX_PATH];
@@ -317,10 +338,11 @@ static void Config(void)
     FSF.sprintf(Opt.ADRBOOK,"%saddressbook.adr",Opt.AdrBookDir);
 
     HKEY hRoot = HKEY_CURRENT_USER;
-    SetRegKey2( hRoot, PluginRootKey, NULLSTR, ABFLD, Opt.AdrBookFld );
-    SetRegKey2( hRoot, PluginRootKey, NULLSTR, ABDLM, Opt.AdrBookDelim );
-    SetRegKey2( hRoot, PluginRootKey, NULLSTR, ABSRT, Opt.AdrBookSort );
-    SetRegKey2( hRoot, PluginRootKey, NULLSTR, ABDIR, Opt.AdrBookDir );
+    SetRegKey2(hRoot, PluginRootKey, NULLSTR, ABFLD, Opt.AdrBookFld);
+    SetRegKey2(hRoot, PluginRootKey, NULLSTR, ABDLM, Opt.AdrBookDelim);
+    SetRegKey2(hRoot, PluginRootKey, NULLSTR, ABSRT, Opt.AdrBookSort);
+    SetRegKey2(hRoot, PluginRootKey, NULLSTR, ABDIR, Opt.AdrBookDir);
+    SetRegKey2(hRoot, PluginRootKey, NULLSTR, ABDEV, Opt.AdrBookDevide);
   }
 }
 
@@ -468,7 +490,7 @@ static int LoadAdrBook(ADRREC **ptr,int *num)
         FSF.RTrim(buffer);
         (*ptr)[n].string=z_strdup(buffer);
         FSF.Trim(buffer);
-        if(*buffer!=';')
+        if(*buffer && *buffer!=';')
         {
           (*ptr)[n].InUse=1;
           MakeAdrRec(&(*ptr)[n],buffer);
@@ -488,35 +510,39 @@ static int LoadAdrBook(ADRREC **ptr,int *num)
 
 static int LoadMenu( ADRREC *aptr , int num, ADRREC **mptr, int *mnum )
 {
- int i;
+  for (int i=0 ; i<num; i++ )
+    if ( aptr[i].InUse )
+      (*mnum)++;
 
- for ( i=0 ; i<num; i++ )
-    if ( aptr[i].InUse ) (*mnum)++;
-
- if ( *mnum )
-    *mptr = (ADRREC*)z_calloc( *mnum, sizeof( ADRREC ) ) ;
- else {
+  if ( *mnum )
+  {
+    *mptr = (ADRREC*)z_calloc( *mnum, sizeof( ADRREC ) );
+  }
+  else
+  {
     *mptr = NULL;
     return 0;
- }
+  }
 
- if ( *mptr ) {
-
-    int j = 0;
-    for (i=0 ; i<num; i++ ) if ( aptr[i].InUse ) {
-
-       (*mptr)[j] = aptr[i];
-       (*mptr)[j].num = i;
-       (*mptr)[j].string = NULL;
-       j++;
-
+  if ( *mptr )
+  {
+    for (int i=0, j=0 ; i<num; i++ )
+    {
+      if ( aptr[i].InUse )
+      {
+        memcpy((*mptr)+j,aptr+i,sizeof(ADRREC));
+        (*mptr)[j].num = i;
+        (*mptr)[j].string = NULL;
+        j++;
+      }
     }
-
- } else {
+  }
+  else
+  {
     *mnum = 0;
     return 1;
- }
- return 0;
+  }
+  return 0;
 }
 
 void *memset(void *s,int c,size_t n)
@@ -556,16 +582,16 @@ char *strstr(const char * str1, const char * str2 )
 }
 
 
-static int SaveMenu( ADRREC **aptr , int *num, ADRREC *mptr, int mnum )
+static int SaveMenu( ADRREC **aptr , int *num, ADRREC **mptr, int mnum )
 {
  int i;
 
  for ( i=0; i<mnum; i++ )
  {
 
-    int j = mptr[i].num;
+    int j = (*mptr)[i].num;
 
-    if ( mptr[i].InUse == -1 )
+    if ( (*mptr)[i].InUse == -1 )
     {
        if ( j>=0 )
        {
@@ -582,28 +608,33 @@ static int SaveMenu( ADRREC **aptr , int *num, ADRREC *mptr, int mnum )
 
           memset(  &(*aptr)[(*num)-1] , 0, sizeof( ADRREC) );
 
-          (*aptr)[(*num)-1] = mptr[i];
+          (*aptr)[(*num)-1] = (*mptr)[i];
           (*aptr)[(*num)-1].InUse = 1;
 
        } else return 1;
 
     } else {
 
-       lstrcpy( (*aptr)[j].Name,    mptr[i].Name );
-       lstrcpy( (*aptr)[j].EMail,   mptr[i].EMail );
-       lstrcpy( (*aptr)[j].Comment, mptr[i].Comment );
+       lstrcpy( (*aptr)[j].Name,    (*mptr)[i].Name );
+       lstrcpy( (*aptr)[j].EMail,   (*mptr)[i].EMail );
+       lstrcpy( (*aptr)[j].Comment, (*mptr)[i].Comment );
 
     }
 
+ }
+ if (*mptr)
+ {
+   z_free(*mptr);
+   *mptr=NULL;
  }
  return 0;
 }
 
 
 
-static int SaveAdrBook( ADRREC *ptr , int num )
+static int SaveAdrBook( ADRREC **ptr , int num )
 {
-  if (!ptr)
+  if (!*ptr)
     return 0;
 
   char tail[2]={'\r','\n'}; DWORD transferred;
@@ -612,35 +643,36 @@ static int SaveAdrBook( ADRREC *ptr , int num )
   {
     for(int i=0;i<num;i++)
     {
-      switch(ptr[i].InUse)
+      switch((*ptr)[i].InUse)
       {
 
         case 0: // comment
-          if(ptr[i].string)
+          if((*ptr)[i].string)
           {
-            WriteFile(fp,ptr[i].string,lstrlen(ptr[i].string),&transferred,NULL);
+            WriteFile(fp,(*ptr)[i].string,lstrlen((*ptr)[i].string),&transferred,NULL);
             WriteFile(fp,tail,sizeof(tail),&transferred,NULL);
-            z_free(ptr[i].string);
+            z_free((*ptr)[i].string);
           }
           break;
         case -1: // skip!
           break;
         case 1: // record
-          if(ptr[i].string) z_free(ptr[i].string);
-          ptr[i].string=NULL;
+          if((*ptr)[i].string) z_free((*ptr)[i].string);
+          (*ptr)[i].string=NULL;
           // make new string
-          MakeString(&ptr[i]);
-          if(ptr[i].string)
+          MakeString(&(*ptr)[i]);
+          if((*ptr)[i].string)
           {
-            WriteFile(fp,ptr[i].string,lstrlen(ptr[i].string),&transferred,NULL);
+            WriteFile(fp,(*ptr)[i].string,lstrlen((*ptr)[i].string),&transferred,NULL);
             WriteFile(fp,tail,sizeof(tail),&transferred,NULL);
-            z_free(ptr[i].string);
+            z_free((*ptr)[i].string);
           }
           break;
       }
     }
     CloseHandle(fp);
-    z_free(ptr);
+    z_free(*ptr);
+    ptr=NULL;
   }
   return 0;
 }
@@ -688,7 +720,37 @@ static void Sort( ADRREC *aptr, int n )
   }
 }
 
-static int MakeMenu(ADRREC *aptr, struct FarListItem **menu, int n, int selected, const char *filter, int **ri)
+static bool InFilter(const char *str1, const char *str2, const char *filter)
+{
+  char localfilter[128];
+  lstrcpy(localfilter,filter);
+  int len=lstrlen(localfilter);
+  for (int i=0; i<len; i++)
+    if (localfilter[i] == ' ')
+      localfilter[i] = 0;
+
+  char *lf=localfilter;
+  int i=0;
+  do
+  {
+    while (i<len && !(*lf))
+    {
+      lf++;
+      i++;
+    }
+    if (!(strstr(str1,lf) || strstr(str2,lf)))
+      return false;
+    while (*lf)
+    {
+      lf++;
+      i++;
+    }
+  } while (i<len);
+
+  return true;
+}
+
+static int MakeMenu(ADRREC *aptr, struct FarListItem **menu, int n, int selected, const char *filter, int **ri, int x)
 {
   int i,j;
   if ( *menu ) z_free(*menu);
@@ -703,27 +765,32 @@ static int MakeMenu(ADRREC *aptr, struct FarListItem **menu, int n, int selected
   *ri = (int*)z_calloc(n, sizeof(int));
   if (!(*menu)||!(*ri)) return 0;
 
-  char deletedformat[50], normalformat[50], fullformat[50];
+  char deletedformat[50], normalformat[50];
   GetMsg(MesMenu_DeleteFormat,deletedformat);
   GetMsg(MesMenu_NormalFormat,normalformat);
-  GetMsg(MesMenu_FullFormat,fullformat);
 
+  int left = x*FSF.atoi(Opt.AdrBookDevide)/100;
+  int right = x - left;
   for ( i=0, j=0; i<n ; i++ )
   {
     char full[180];
     char fulllwr[180];
     char commentlwr[80];
-    if ( aptr[i].InUse == -1 )
+    if (aptr[i].InUse == -1)
       FSF.sprintf( full, deletedformat, aptr[i].Name, aptr[i].EMail );
     else
-      FSF.sprintf( full, normalformat, aptr[i].Name, aptr[i].EMail );
+      FSF.sprintf( full, normalformat,aptr[i].Name,aptr[i].EMail );
     lstrcpy(commentlwr,aptr[i].Comment);
     lstrcpy(fulllwr,full);
     FSF.LStrlwr(commentlwr);
     FSF.LStrlwr(fulllwr);
-    if (strstr(fulllwr,filter) || strstr(commentlwr,filter))
+    if (InFilter(fulllwr,commentlwr,filter))
     {
-      FSF.sprintf( (*menu)[j].Text, fullformat, full, aptr[i].Comment );
+      char Text[1000];
+      FSF.sprintf(Text, "%-*.*s ³ %-*.*s", left,left,full, right,right,aptr[i].Comment);
+      lstrcpyn((*menu)[j].Text,Text,128);
+      if (aptr[i].selected)
+        (*menu)[j].Flags |= LIF_CHECKED;
       (*ri)[j++]=i;
     }
   }
@@ -833,7 +900,7 @@ static int InsertAddress( ADRREC **aptr, int *num_recs )
 
 
 
-static int DeleteAddress( ADRREC **aptr, /*int *num_recs ,*/ int n )
+static int DeleteAddress( ADRREC **aptr, int n )
 {
  if ( Confirm( MesAdrBook_Delete ) ) return 1;
 
@@ -842,7 +909,7 @@ static int DeleteAddress( ADRREC **aptr, /*int *num_recs ,*/ int n )
  return 0;
 }
 
-static int RestoreAddress( ADRREC **aptr, /*int *num_recs ,*/ int n )
+static int RestoreAddress( ADRREC **aptr, int n )
 {
  if ( Confirm( MesAdrBook_Undelete ) ) return 1;
 
@@ -856,19 +923,18 @@ enum
   DMU_UPDATE = DM_USER+1,
 };
 
-#define MAXITEMS 16
-
 long WINAPI EABDProc(HANDLE hDlg,int Msg,int Param1,long Param2)
 {
-  static int num_recs, menu_recs, i;
+  static int num_recs, menu_recs, old_menu_recs, i;
   static ADRREC *aptr, *mptr;
   static char *buf;
-  static BOOL changed;
+  static bool changed, sizechanged;
   static char filter[128];
   static int filterlen, sel, shown_menus;
   static FarListItem *menu;
   static int *ri;
   static char status[128];
+  static int scrx, scry;
 
   switch(Msg)
   {
@@ -876,18 +942,27 @@ long WINAPI EABDProc(HANDLE hDlg,int Msg,int Param1,long Param2)
       buf = (char *)Param2;
       if(buf) *buf=0;
       aptr = mptr = NULL;
-      num_recs = menu_recs = 0;
+      old_menu_recs = num_recs = menu_recs = 0;
       *filter = 0;
       filterlen = sel = shown_menus = 0;
       menu = NULL;
       ri = NULL;
+      {
+        CONSOLE_SCREEN_BUFFER_INFO csbiInfo;
+        GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbiInfo);
+        scrx=csbiInfo.dwSize.X;
+        if (scrx>128+15)
+          scrx=128+15;
+        scry=csbiInfo.dwSize.Y;
+        sizechanged = true;
+      }
       if (LoadAdrBook(&aptr, &num_recs)||LoadMenu(aptr, num_recs, &mptr, &menu_recs))
       {
         SayError(MesNoMem);
         FInfo.SendDlgMessage(hDlg,DM_CLOSE,0,0);
         return FALSE;
       }
-      changed = TRUE;
+      changed = true;
       if (buf)
         GetMsg(MesAdrBook_StatusLine,status);
       else
@@ -895,11 +970,51 @@ long WINAPI EABDProc(HANDLE hDlg,int Msg,int Param1,long Param2)
       FInfo.SendDlgMessage(hDlg,DMU_UPDATE,0,0);
       return TRUE;
 
+    case DN_RESIZECONSOLE:
+      {
+        scrx = ((COORD*)Param2)->X;
+        if (scrx>128+15)
+          scrx=128+15;
+        scry = ((COORD*)Param2)->Y;
+        sizechanged = true;
+        changed = true;
+        FInfo.SendDlgMessage(hDlg,DMU_UPDATE,0,0);
+      }
+      return TRUE;
+
+    case DN_DRAWDIALOG:
+      if (old_menu_recs != menu_recs || sizechanged)
+      {
+        old_menu_recs = menu_recs;
+        sizechanged = false;
+        FInfo.SendDlgMessage(hDlg,DM_ENABLEREDRAW,FALSE,0);
+        int s = scry-7;
+        s = menu_recs<s ? menu_recs+1 : s;
+        COORD coord;
+        coord.X = scrx - 3;
+        coord.Y = s + 3;
+        FInfo.SendDlgMessage(hDlg,DM_RESIZEDIALOG,0,(long)&coord);
+        coord.X = -1;
+        coord.Y = -1;
+        FInfo.SendDlgMessage(hDlg,DM_MOVEDIALOG,TRUE,(long)&coord);
+        SMALL_RECT rect;
+        FInfo.SendDlgMessage(hDlg,DM_GETITEMPOSITION,0,(long)&rect);
+        rect.Bottom = s + 1;
+        rect.Right = scrx - 6;
+        FInfo.SendDlgMessage(hDlg,DM_SETITEMPOSITION,0,(long)&rect);
+        struct FarListPos flp;
+        flp.SelectPos = FInfo.SendDlgMessage(hDlg,DM_LISTGETCURPOS,0,0);
+        flp.TopPos = -1;
+        FInfo.SendDlgMessage(hDlg,DM_LISTSETCURPOS,0,(long)&flp);
+        FInfo.SendDlgMessage(hDlg,DM_ENABLEREDRAW,TRUE,0);
+      }
+      return TRUE;
+
     case DMU_UPDATE:
       if (changed)
       {
         Sort(mptr, menu_recs);
-        shown_menus = MakeMenu(mptr, &menu, menu_recs, sel, filter, &ri);
+        shown_menus = MakeMenu(mptr, &menu, menu_recs, sel, filter, &ri, scrx-15);
         if (!menu)
         {
           if (InsertAddress(&mptr, &menu_recs))
@@ -908,8 +1023,9 @@ long WINAPI EABDProc(HANDLE hDlg,int Msg,int Param1,long Param2)
             return FALSE;
           }
           Sort(mptr, menu_recs);
-          shown_menus = MakeMenu(mptr, &menu, menu_recs, sel, filter, &ri);
+          shown_menus = MakeMenu(mptr, &menu, menu_recs, sel, filter, &ri, scrx-15);
         }
+        FInfo.SendDlgMessage(hDlg,DM_ENABLEREDRAW,FALSE,0);
         {
           FarList list={shown_menus,menu};
           FInfo.SendDlgMessage(hDlg,DM_LISTSET,0,(long)&list);
@@ -932,8 +1048,8 @@ long WINAPI EABDProc(HANDLE hDlg,int Msg,int Param1,long Param2)
           titles.BottomLen=lstrlen(titles.Bottom);
           FInfo.SendDlgMessage(hDlg,DM_LISTSETTITLES,0,(long)&titles);
         }
-        changed = FALSE;
-        FInfo.SendDlgMessage(hDlg,DM_REDRAW,0,0);
+        changed = false;
+        FInfo.SendDlgMessage(hDlg,DM_ENABLEREDRAW,TRUE,0);
       }
       if (!menu||!ri)
       {
@@ -952,69 +1068,90 @@ long WINAPI EABDProc(HANDLE hDlg,int Msg,int Param1,long Param2)
           if (buf)
           {
             if (menu[sel].Flags&LIF_CHECKED)
+            {
               menu[sel].Flags -= LIF_CHECKED;
+              mptr[ri[sel]].selected = 0;
+            }
             else
+            {
               menu[sel].Flags |= LIF_CHECKED;
-          }
-          if (shown_menus)
-          {
-            FarListUpdate listupdate;
-            listupdate.Index = sel;
-            listupdate.Item = menu[sel];
-            FInfo.SendDlgMessage(hDlg,DM_LISTUPDATE,0,(long)&listupdate);
-          }
-          if ( sel<shown_menus-1 && buf )
-          {
-            FarListInfo listinfo;
-            FInfo.SendDlgMessage(hDlg,DM_LISTINFO,0,(long)&listinfo);
-            FarListPos listpos = {++sel,(listinfo.SelectPos-listinfo.TopPos+1)>listinfo.MaxHeight?listinfo.TopPos+1:listinfo.TopPos};
-            FInfo.SendDlgMessage(hDlg,DM_LISTSETCURPOS,0,(long)&listpos);
+              mptr[ri[sel]].selected = 1;
+            }
+            if (shown_menus)
+            {
+              FarListUpdate listupdate;
+              listupdate.Index = sel;
+              listupdate.Item = menu[sel];
+              FInfo.SendDlgMessage(hDlg,DM_LISTUPDATE,0,(long)&listupdate);
+            }
+            if (sel<shown_menus)
+            {
+              FarListInfo listinfo;
+              FInfo.SendDlgMessage(hDlg,DM_LISTINFO,0,(long)&listinfo);
+              FarListPos listpos = {++sel,(listinfo.SelectPos-listinfo.TopPos+1)>listinfo.MaxHeight?listinfo.TopPos+1:listinfo.TopPos};
+              FInfo.SendDlgMessage(hDlg,DM_LISTSETCURPOS,0,(long)&listpos);
+            }
           }
           return TRUE;
 
         case KEY_F4:
           EditAddress(&mptr, ri[sel]);
-          changed = TRUE;
+          changed = true;
           break;
 
         case KEY_F7:
           InsertAddress(&mptr, &menu_recs);
-          changed = TRUE;
+          changed = true;
           break;
 
         case KEY_F8:
           if (mptr[ri[sel]].InUse != -1)
           {
-            DeleteAddress( &mptr, /*&menu_recs,*/ ri[sel] );
+            if (buf)
+            {
+              if (menu[sel].Flags&LIF_CHECKED)
+              {
+                mptr[ri[sel]].selected = 0;
+                menu[sel].Flags -= LIF_CHECKED;
+                if (shown_menus)
+                {
+                  FarListUpdate listupdate;
+                  listupdate.Index = sel;
+                  listupdate.Item = menu[sel];
+                  FInfo.SendDlgMessage(hDlg,DM_LISTUPDATE,0,(long)&listupdate);
+                }
+              }
+            }
+            DeleteAddress( &mptr, ri[sel] );
           }
           else
           {
-            RestoreAddress( &mptr, /*&menu_recs,*/ ri[sel] );
+            RestoreAddress( &mptr, ri[sel] );
           }
-          changed = TRUE;
+          changed = true;
           break;
 
         case KEY_ENTER:
           if (!buf && sel >= 0)
           {
             EditAddress( &mptr, ri[sel] );
-            changed = TRUE;
+            changed = true;
           }
           else if (shown_menus)
           {
             if (buf && sel>=0)
             {
-              for (i=0; i<shown_menus; i++)
+              for (i=0; i<menu_recs; i++)
               {
-                if (menu[i].Flags&LIF_CHECKED)
+                if (mptr[i].selected)
                 {
-                  if (lstrlen(buf) + 4 + lstrlen(mptr[ri[i]].Name) + lstrlen(mptr[ri[i]].EMail) < 510)
+                  if (lstrlen(buf) + 4 + lstrlen(mptr[i].Name) + lstrlen(mptr[i].EMail) < 510)
                   {
                     if (lstrlen(buf))
                       lstrcat(buf, ",");
-                    lstrcat(buf, mptr[ri[i]].Name);
+                    lstrcat(buf, mptr[i].Name);
                     lstrcat(buf," <");
-                    lstrcat(buf, mptr[ri[i]].EMail);
+                    lstrcat(buf, mptr[i].EMail);
                     lstrcat(buf,">");
                   }
                 }
@@ -1040,7 +1177,7 @@ long WINAPI EABDProc(HANDLE hDlg,int Msg,int Param1,long Param2)
           {
             filter[--filterlen] = '\0';
             sel = 0;
-            changed = TRUE;
+            changed = true;
           }
           break;
 
@@ -1050,23 +1187,23 @@ long WINAPI EABDProc(HANDLE hDlg,int Msg,int Param1,long Param2)
             *filter = '\0';
             filterlen = 0;
             sel = 0;
-            changed = TRUE;
+            changed = true;
           }
           break;
 
         default:
           if (Param2 >= 32 && Param2 <= 255)
           {
-            if (filterlen < 127 && shown_menus)
+            if (filterlen < 127 && shown_menus && !(Param2==32 && filterlen && filter[filterlen-1]==32))
             {
               filter[filterlen] = FSF.LLower(Param2);
               filter[++filterlen] = '\0';
               sel = 0;
-              changed = TRUE;
+              changed = true;
             }
           }
           else
-            return FALSE;
+            return FInfo.DefDlgProc(hDlg,Msg,Param1,Param2);
       }
       FInfo.SendDlgMessage(hDlg,DMU_UPDATE,0,0);
       return TRUE;
@@ -1086,20 +1223,6 @@ long WINAPI EABDProc(HANDLE hDlg,int Msg,int Param1,long Param2)
       }
       break;
 
-    case DN_DRAWDIALOG:
-      {
-        int s = ((shown_menus>0)&&(shown_menus<MAXITEMS)?shown_menus+1:(shown_menus>0?MAXITEMS:1));
-        FarDialogItem Item;
-        FInfo.SendDlgMessage(hDlg,DM_GETDLGITEM,0,(long)&Item);
-        Item.Y2 = 1 + s;
-        FInfo.SendDlgMessage(hDlg,DM_SETDLGITEM,0,(long)&Item);
-        COORD coord;
-        coord.X = 80;
-        coord.Y = 3 + s;
-        FInfo.SendDlgMessage(hDlg,DM_RESIZEDIALOG,0,(long)&coord);
-      }
-      return TRUE;
-
     case DN_HELP:
       FInfo.ShowHelp(MInfo.ModuleName,ADRBOOK,FHELP_SELFHELP);
       return (long)NULL;
@@ -1107,9 +1230,11 @@ long WINAPI EABDProc(HANDLE hDlg,int Msg,int Param1,long Param2)
     case DN_CLOSE:
       if (menu)
         z_free(menu);
+      menu = NULL;
       if (ri)
         z_free(ri);
-      if (SaveMenu(&aptr, &num_recs, mptr, menu_recs)||SaveAdrBook(aptr, num_recs))
+      ri = NULL;
+      if (SaveMenu(&aptr, &num_recs, &mptr, menu_recs)||SaveAdrBook(&aptr, num_recs))
         SayError(MesNoMem);
       return TRUE;
   }
@@ -1121,7 +1246,7 @@ static int EditAddressBook( char *buf )
   struct FarDialogItem DialogItems[1];
   memset(DialogItems,0,sizeof(DialogItems));
   DialogItems[0].Type=DI_LISTBOX; DialogItems[0].Flags=DIF_LISTWRAPMODE;
-  DialogItems[0].X1=2; DialogItems[0].Y1=1; DialogItems[0].X2=77; DialogItems[0].Y2=MAXITEMS+1;
-  FInfo.DialogEx(FInfo.ModuleNumber,-1,-1,80,MAXITEMS+3,NULL,DialogItems,sizeofa(DialogItems),0,0,EABDProc,(DWORD)buf);
+  DialogItems[0].X1=2; DialogItems[0].Y1=1; DialogItems[0].X2=77; DialogItems[0].Y2=2;
+  FInfo.DialogEx(FInfo.ModuleNumber,-1,-1,80,4,NULL,DialogItems,sizeofa(DialogItems),0,0,EABDProc,(DWORD)buf);
   return 0;
 }

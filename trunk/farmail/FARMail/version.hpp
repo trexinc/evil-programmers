@@ -1,9 +1,9 @@
 #define VER_HI "3"
 #define VER_LO "0"
-#define BUILD "90"
+#define BUILD "91"
 #define BUILD_YEAR "2005"
-#define BUILD_MONTH "07"
-#define BUILD_DAY "08"
+#define BUILD_MONTH "12"
+#define BUILD_DAY "09"
 #ifdef FARMAIL_SSL
 #define COPYRIGHT1 "FARMail v%s.%s (build %s) with SSL support, compiled on %s.%s.%s."
 #else
