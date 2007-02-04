@@ -1,0 +1,49 @@
+.Language=English,English
+.PluginContents=Open File Dialog - Dialog Manager sub plug-in
+
+@Contents
+$^#Open File Dialog - Dialog Manager sub plug-in#
+
+ - ~Open file dialog~@FileDialog@
+ - ~Authors~@Authors@
+
+
+@FileDialog
+$^#Open file dialog#
+
+ Here You see a list of files and directories. You can browse all your drives
+to find the file you need. Directories are marked by "+".
+
+ #Keys#
+
+ #Enter# - Change directory / select file.
+
+ #Ctrl-Enter# - Select file or directory.
+
+ #Shift-Enter# - Execute in a separate window.
+
+ #Ctrl-\# - Shows You the list of all available drives.
+
+ #Alt-Letter# - Changes to current directory in drive "Letter".
+
+ #RCtrl0-RCtrl9# - As in FAR, go to a defined folder shortcut.
+
+
+
+ ~Contents~@Contents@
+
+
+@Authors
+$^#Authors#
+
+  #Vadim Yegorov#
+  E-mail   : at bmg.lv / zg
+  Homepage : ~http://zg.times.lv/~@http://zg.times.lv/@
+
+  #Alex Yaroslavsky#
+  E-mail   : at yandex.ru / trexinc
+  Homepage : ~http://trexinc.sf.ru/~@http://trexinc.sf.ru/@
+
+
+
+ ~Contents~@Contents@

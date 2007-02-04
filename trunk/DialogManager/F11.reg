@@ -1,0 +1,7 @@
+REGEDIT4
+
+[HKEY_CURRENT_USER\Software\Far\KeyMacros\Dialog\F11]
+"Sequence"="CtrlF11"
+"Description"="Emulate plugins"
+"DisableOutput"=dword:00000001
+
