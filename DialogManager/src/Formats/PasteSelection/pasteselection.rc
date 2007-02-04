@@ -1,0 +1,27 @@
+#include "../../bootstrap/dmversion.h"
+#include "winver.h"
+1 VERSIONINFO
+ FILEVERSION VER_MAJOR,VER_MINOR,VER_BUILD,0
+ PRODUCTVERSION VER_MAJOR,VER_MINOR,0,0
+ FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
+ FILEFLAGS VS_FF_PRERELEASE
+ FILEOS VOS_NT_WINDOWS32
+ FILETYPE VFT_DLL
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "000004E4"
+        BEGIN
+            VALUE "FileDescription", "Paste Selection module"
+            VALUE "FileVersion", VER_ALLSTR
+            VALUE "InternalName", "pasteselection.fmt"
+            VALUE "LegalCopyright", COPYRIGHT
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0, 0x4e4
+    END
+END
+
