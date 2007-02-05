@@ -34,6 +34,9 @@ rem Signature start marker, every thing that comes after this is thrown away
 rem (Should not be an empty string)
 sig_marker = getini("global_settings","signature_marker","-- ",ini_file)
 
+rem Substring, which is added as suffix to addressee name in %name%
+name_prefix = getini("global_settings","name_prefix",", ",ini_file)
+
 rem This is the rightmost index that will be checked for '>' to
 rem determine if a line is a quote
 q_max = getini("global_settings","quote_search_max",5,ini_file)
@@ -144,6 +147,7 @@ rem parse one email stored in variable email and delete it from variable email
 rem force_name - 1 to extract name from email, 0 extract name only if supplied
 rem return extracted_email, extracted_name, extracted_fullname
 rem used variables email_i1,email_i2
+rem used constants name_prefix
 sub parse_email
   extracted_email=""
   extracted_name=""
@@ -164,7 +168,7 @@ sub parse_email
     endif
     extracted_fullname=temp_str
     temp_str=substr(email,email_i1+1,email_i2-email_i1-1)
-    email=substr(email,email_i2+1,strlen(email))
+    email=trim(substr(email,email_i2+1,strlen(email)))
   else
     email_i1=strstr(email,",")
     if (email_i1==0)
@@ -191,6 +195,14 @@ sub parse_email
       email_i1++
     wend
     extracted_name=substr(extracted_fullname,0,email_i1)
+  endif
+  extracted_name = trim(extracted_name)
+  if (extracted_name!="")
+     if(email=="")
+        extracted_name = name_prefix + extracted_name
+     else
+        extracted_name = ""
+     endif
   endif
 endsub
 
