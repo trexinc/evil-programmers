@@ -529,7 +529,7 @@ then the section is removed.
    Returns a string containing the name and version of the wanted program.
 
   The following two functions work with:
-  1. Winamp 1.x, 2.x.
+  1. Winamp 1.x, 2.x, 5.x.
   2. Winamp 3.x if it has the "Winamp 2.x Plugin Manager"
      component installed.
   3. STP, if "Emulate Winamp" option is checked.

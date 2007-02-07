@@ -521,7 +521,7 @@ integer #setini#(string ini, string section, string key, string/integer value).
    Возвращает строку с именем и версии просимой программы.
 
   Следующие две функции работают в следующих плеерах:
-  1. Winamp 1.x, 2.x.
+  1. Winamp 1.x, 2.x, 5.x.
   2. Winamp 3.x, если в нем установлен компонент
      "Winamp 2.x Plugin Manager".
   3. STP, если в нем включена опция "Emulate Winamp".

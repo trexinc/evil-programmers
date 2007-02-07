@@ -792,6 +792,10 @@ Variant WINAPI blt_winampstate(long count,Variant *values,int *stop,void *ptr)
 #define WM_APOLLO_COMMAND WM_USER+3
 #define APOLLO_GETCURRENTLYPLAYEDTITLE 25
 
+//Winamp consts
+#define IPC_GETLISTPOS 125
+#define IPC_GETPLAYLISTTITLE 212
+
 Variant WINAPI blt_winampsong(long count,Variant *values,int *stop,void *ptr)
 {
   (void)count;
@@ -804,7 +808,7 @@ Variant WINAPI blt_winampsong(long count,Variant *values,int *stop,void *ptr)
   if(pWnd)
   {
     unsigned int version=SendMessage(pWnd,WM_USER,0,0);
-    if(version>=0x3000)
+    if(version>0x2050) //Winamp 2.05+ or others
     {
       if(version>=0xa000) //Apollo
       {
@@ -819,10 +823,10 @@ Variant WINAPI blt_winampsong(long count,Variant *values,int *stop,void *ptr)
       }
       else
       {
-        pWnd=FindWindow("STUDIO",NULL);
-        if(pWnd)
+        HWND sWnd=FindWindow("STUDIO",NULL);
+        if(sWnd) //STP?
         {
-          if(GetWindowText(pWnd,buffer,sizeof(buffer)))
+          if(GetWindowText(sWnd,buffer,sizeof(buffer)))
           {
             char *p = buffer + lstrlen(buffer);
             while (*p != ' ' && p > buffer)
@@ -831,10 +835,27 @@ Variant WINAPI blt_winampsong(long count,Variant *values,int *stop,void *ptr)
             CharToOem(buffer,buffer);
             result=buffer;
           }
+          pWnd = sWnd;
+        }
+        else //Winamp 2.05+
+        {
+          DWORD dProcessID;
+          if(GetWindowThreadProcessId(pWnd,&dProcessID))
+          {
+            HANDLE hProcess=OpenProcess(PROCESS_VM_READ,0,dProcessID);
+            if(hProcess)
+            {
+              char* pcTitle=(char*)SendMessage(pWnd,WM_USER,SendMessage(pWnd,WM_USER,0,IPC_GETLISTPOS),IPC_GETPLAYLISTTITLE);
+              ReadProcessMemory(hProcess,pcTitle,buffer,sizeof(buffer),0);
+              CharToOem(buffer,buffer);
+              result=buffer;
+            }
+          }
         }
       }
     }
-    else
+
+    if(result=="") //from window title
     {
       if(pWnd)
       {
