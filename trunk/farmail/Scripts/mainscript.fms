@@ -567,7 +567,7 @@ if (action != actionNewMessage)
           email=email2
           gosub parse_email
           if (extracted_name=="" && to_fullname!="")
-            to_field="\"" + to_fullname + "\"" + "<" + extracted_email + ">"
+            to_field="\"" + to_fullname + "\" " + "<" + extracted_email + ">"
           else
             to_field=email2
           endif
