@@ -1,0 +1,15 @@
+WFX2FAR: History:
+-----------------
+
+Legend:  + added
+         - removed
+         * changed
+         ! fixed
+
+alpha 8 (10.05.2005)
+--------------------
+! Memory leak in wfx plugins menu. Fixed by 4ekucT.
+
+alpha 1 through 7:
+------------------
++ No history maintained.
