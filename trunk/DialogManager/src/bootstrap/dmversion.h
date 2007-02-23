@@ -1,7 +1,7 @@
 /*
     DialogManager plugin for FAR Manager
     Copyright (C) 2003 Vadim Yegorov
-    Copyright (C) 2004-2005 Vadim Yegorov and Alex Yaroslavsky
+    Copyright (C) 2004-2007 Vadim Yegorov and Alex Yaroslavsky
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,8 +19,8 @@
 */
 #define VER_MAJOR 0
 #define VER_MINOR 6
-#define VER_BUILD 7
-#define VER_ALLSTR "0.6 build 7 beta"
+#define VER_BUILD 8
+#define VER_ALLSTR "0.6 build 8 beta"
 #define VER_ALL 60007
 #define COPYRIGHT "Copyright (c) 2003 ZG, 2004-2005 ZG and AY"
 
