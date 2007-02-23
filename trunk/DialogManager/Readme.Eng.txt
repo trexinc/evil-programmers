@@ -4,7 +4,7 @@ Dialog Manager - a plugin for FAR Manager.
 
 DialogManager plugin for FAR Manager
 Copyright (C) 2003 Vadim Yegorov
-Copyright (C) 2004-2005 Vadim Yegorov and Alex Yaroslavsky
+Copyright (C) 2004-2007 Vadim Yegorov and Alex Yaroslavsky
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -245,6 +245,9 @@ REGEDIT4
 "DebugKey"="CtrlF12"
 
 6. History.
+
+v0.6 build 8 ??-??-2007
+- grabber: update DI_VTEXT flags.
 
 v0.6 build 7 11-04-2005
 - openfiledialog: incorporated bug fixes and optimizations by Andrey Budko.

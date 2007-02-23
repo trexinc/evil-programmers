@@ -1,6 +1,6 @@
 /*
     GrabDialog plugin for DialogManager
-    Copyright (C) 2003-2004 Vadim Yegorov and Alex Yaroslavsky
+    Copyright (C) 2003-2007 Vadim Yegorov and Alex Yaroslavsky
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -93,6 +93,9 @@ DlgGrb DlgVTextFlags[] =
   {DIF_SETCOLOR,szDIF_SETCOLOR},
   {DIF_HIDDEN,szDIF_HIDDEN},
   {DIF_DISABLE,szDIF_DISABLE},
+  {DIF_SHOWAMPERSAND,szDIF_SHOWAMPERSAND},
+  {DIF_SEPARATOR,szDIF_SEPARATOR},
+  {DIF_SEPARATOR2,szDIF_SEPARATOR2},
 };
 
 DlgGrb DlgDoubleBoxFlags[] =
