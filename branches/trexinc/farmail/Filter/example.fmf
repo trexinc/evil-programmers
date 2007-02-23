@@ -1,8 +1,0 @@
-;
-; An example of spam filter
-;
-name = &SPAM
-
-; Spam servers
-select=received:*from *suckingspammer.org *by*
-select=received:*from *damnspamsender.com *by*
