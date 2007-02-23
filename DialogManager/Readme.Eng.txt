@@ -246,7 +246,13 @@ REGEDIT4
 
 6. History.
 
-v0.6 build 8 ??-??-2007
+v0.6 build 9 23-02-2007
+- Add subplugin: Replace
+- Add subplugin: Search
+- Add subplugin: Search and Replace
+- charmap: now also works in DI_FIXEDIT.
+
+v0.6 build 8 23-02-2007
 - grabber: update DI_VTEXT flags.
 
 v0.6 build 7 11-04-2005

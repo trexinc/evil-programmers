@@ -132,10 +132,10 @@ int WINAPI _export Message(unsigned long Msg,void *InData,void *OutData)
           {
             static const struct InitDialogItem PreDialogItems[] =
             {
-              DI_DOUBLEBOX   ,3  ,1  ,43 ,5  ,0                  ,mName,
-              DI_TEXT        ,5  ,2  ,0  ,0  ,0                  ,mPwd,
-              DI_EDIT        ,5  ,3  ,41 ,0  ,DIF_READONLY       ,-1,
-              DI_BUTTON      ,0  ,4  ,0  ,0  ,DIF_CENTERGROUP    ,mOk,
+              { DI_DOUBLEBOX   ,3  ,1  ,43 ,5  ,0                  ,mName,  },
+              { DI_TEXT        ,5  ,2  ,0  ,0  ,0                  ,mPwd,   },
+              { DI_EDIT        ,5  ,3  ,41 ,0  ,DIF_READONLY       ,-1,     },
+              { DI_BUTTON      ,0  ,4  ,0  ,0  ,DIF_CENTERGROUP    ,mOk,    },
             };
             struct FarDialogItem DialogItems[sizeof(PreDialogItems)/sizeof(PreDialogItems[0])];
 

@@ -20,9 +20,9 @@
 #define VER_MAJOR 0
 #define VER_MINOR 6
 #define VER_BUILD 8
-#define VER_ALLSTR "0.6 build 8 beta"
+#define VER_ALLSTR "0.6 build 9 beta"
 #define VER_ALL 60007
-#define COPYRIGHT "Copyright (c) 2003 ZG, 2004-2005 ZG and AY"
+#define COPYRIGHT "Copyright (c) 2003 ZG, 2004-2007 ZG, AY and 4ekucT"
 
 #define PLUG_DISPLAYNAME "Dialog Manager Plugin for FAR Manager 1.7+."
 #define PLUG_INTERNALNAME "dialogM.dll"

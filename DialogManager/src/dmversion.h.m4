@@ -23,7 +23,7 @@ include(`dm_ver.m4')dnl
 `#define VER_BUILD' BUILD
 `#define VER_ALLSTR' "MAJOR.MINOR build BUILD TYPE"
 `#define VER_ALL' eval(MAJOR*1000000+MINOR*10000+BUILD)
-`#define COPYRIGHT "Copyright (c) 2003 ZG, 2004-2005 ZG and AY"'
+`#define COPYRIGHT "Copyright (c) 2003 ZG, 2004-2005 ZG, AY and 4ekucT"'
 
 `#define PLUG_DISPLAYNAME "Dialog Manager Plugin for FAR Manager 1.7+."'
 `#define PLUG_INTERNALNAME "dialogM.dll"'

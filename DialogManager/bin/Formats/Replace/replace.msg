@@ -1,17 +1,19 @@
 [English]
-Search
+Replace
 OK
 Cancel
-Substring searching
+Substring search and replace
 Substring for searching:
+Substring for replacing:
 Case sensitive
 Search from current position
 
 [Russian]
-Поиск
+Замена
 ОК
 Отмена
-Поиск подстроки
+Поиск и замена подстроки
 Подстрока для поиска:
+Подстрока для замены:
 Поиск с учетом регистра
 Поиск с текущей позиции
