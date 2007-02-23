@@ -4,7 +4,7 @@
 
 DialogManager plugin for FAR Manager
 Copyright (C) 2003 Vadim Yegorov
-Copyright (C) 2004-2005 Vadim Yegorov and Alex Yaroslavsky
+Copyright (C) 2004-2007 Vadim Yegorov and Alex Yaroslavsky
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -241,6 +241,9 @@ REGEDIT4
 "DebugKey"="CtrlF12"
 
 6. История.
+
+v0.6 build 8 ??-??-2007
+- grabber: обновление флагов DI_VTEXT.
 
 v0.6 build 7 11-04-2005
 - openfiledialog: исправления и оптимизации от Andrey Budko. Включает
