@@ -1,0 +1,15 @@
+EXPORTS
+Mailbox_GetName=Mailbox_GetName@8
+Mailbox_GetShortName=Mailbox_GetShortName@8
+Mailbox_GetFilesMasks=Mailbox_GetFilesMasks@8
+Mailbox_GetMsgType=Mailbox_GetMsgType@0
+Mailbox_OpenFile=Mailbox_OpenFile@4
+Mailbox_OpenMem=Mailbox_OpenMem@8
+Mailbox_Close=Mailbox_Close@4
+Mailbox_GetNextMsg=Mailbox_GetNextMsg@8
+Mailbox_GetMsgInfo=Mailbox_GetMsgInfo@12
+Mailbox_SetMsgInfo=Mailbox_SetMsgInfo@12
+Mailbox_GetMsgHead=Mailbox_GetMsgHead@16
+Mailbox_GetMsg=Mailbox_GetMsg@16
+Mailbox_DelMsg=Mailbox_DelMsg@8
+Mailbox_Purge=Mailbox_Purge@4

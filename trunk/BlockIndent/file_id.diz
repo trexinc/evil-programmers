@@ -1,0 +1,21 @@
+         Block Indent v2.0
+             FAR plugin
+         Sources  included
+-----------------------------------
+Author: Alex Yaroslavsky
+E-Mail: at yandex.ru / trexinc
+WWW:    http://trexinc.narod.ru/
+-----------------------------------
+English:
+Indents the selected block (or  the
+current line) to  the  nearest  tab
+position or by space in the  chosen
+direction (left or right).
+-----------------------------------
+Русский:
+Смещает выбранный блок (или текущую
+строку)   к    ближайшей    позиции
+табуляции или  на  одну  позицию  в
+выбранном  направление  (влево  или
+вправо).
+-----------------------------------

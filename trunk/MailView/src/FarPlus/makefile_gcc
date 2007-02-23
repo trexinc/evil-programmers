@@ -1,0 +1,40 @@
+OBJDIR = ../../o/FarPlus
+REOBJDIR = \.\.\/\.\.\/o\/FarPlus\/
+DLLDIR = ../../o/FarPlus
+DLLNAME = libFarPlus.a
+DLLFULLNAME = $(DLLDIR)/$(DLLNAME)
+SRCS = FAR_SF.cpp FARArray.cpp FARDbg.cpp FARDialog.cpp FarDlgHlp.cpp FAREd.cpp FARFile.cpp FarHash.cpp FARLog.cpp FarMenu.cpp FARPlus.cpp FARRegistry.cpp FARString.cpp FARXml.cpp qsortex.cpp
+
+CXX = g++
+RM = rm -f
+CP = cp -f
+M4 = m4 -P
+MV = mv -f
+MKDIR = mkdir -p
+AR = ar
+RANLIB = ranlib
+#CXXFLAGS = -DWIN32 -DNDEBUG -D_LIB -DUSE_FAR_170 -I ../CRT -Os -funsigned-char -fomit-frame-pointer -fstrict-aliasing -fno-rtti -fno-exceptions
+CXXFLAGS = -Wall -DWIN32 -DNDEBUG -D_LIB -DUSE_FAR_170 -Os -funsigned-char -fomit-frame-pointer -fstrict-aliasing -fno-rtti -fno-exceptions
+
+
+all: $(DLLFULLNAME)
+
+OBJS = $(patsubst %.cpp,$(OBJDIR)/%.o,$(filter %.cpp,$(SRCS)))
+DEPS = $(patsubst %.cpp,$(OBJDIR)/%.d,$(filter %.cpp,$(SRCS)))
+
+$(OBJDIR)/%.d: %.cpp
+	@echo making depends for $<
+	@$(SHELL) -ec '$(CXX) -c -MM $(CXXFLAGS) $< \
+                | sed '\''s/\($*\)\.o[ :]*/$(REOBJDIR)\1.o $(REOBJDIR)\1.d: /g'\'' > $@; [ -s $@ ] || $(RM) $@'
+
+$(OBJDIR)/%.o: %.cpp
+	@echo compiling $<
+	@$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+$(DLLFULLNAME): $(OBJS)
+	@echo linking $@
+	@$(AR) rc $(DLLNAME) $(OBJS)
+	@$(RANLIB) $(DLLNAME)
+	@$(MV) $(DLLNAME) $(DLLDIR)
+
+-include $(DEPS)

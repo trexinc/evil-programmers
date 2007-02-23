@@ -1,0 +1,174 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="ru">
+<meta name="GENERATOR" content="Microsoft FrontPage 5.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1251">
+<title>Класс FarMessage</title>
+<style>
+<!--
+pre.example     { background-color: #E0E0E0 }
+-->
+</style>
+</head>
+
+<body>
+
+<h1 align="center">Класс FarMessage</h1>
+<p>Класс <code>FarMessage</code> представляет собой обертку вокруг сервисной функции FAR 
+Message.</p>
+
+<h2>Использование</h2>
+
+<p>Класс поддерживает несколько вариантов использования, в зависимости от 
+требуемой функциональности. Простейший способ использования - показ 
+однострочного сообщения об ошибке с заголовком <i>Error</i> и одной кнопкой <i>Ok</i>:</p>
+<blockquote>
+  <font COLOR="#00005e">
+  <pre class="example">FarMessage</font>().<font COLOR="#880000">ErrMsg</font> (<font COLOR="#a000a0">MCannotCreateListFile</font>);</pre>
+</blockquote>
+<p>В качестве параметра метода ErrMsg может передаваться как строка (<code>const char *</code>),
+так и номер строки в LNG.</p>
+
+<p>Использование этого варианта вызова требует, чтобы LNG-файл плагина
+соответствовал требованиям FARPlus (первый элемент LNG должен содержать
+строку <i>Error</i> или <i>Ошибка</i>, а второй элемент - <i>Ok</i>
+или <i>Продолжить</i>).</p>
+
+<p>Если требуется показать сообщение из нескольких строк с кнопкой
+<span lang="en-us"><i>Ok</i>, </span>либо сообщение вообще без кнопок, наиболее 
+удобен второй вариант использования: метод <span lang="en-us">SimpleMsg().</span></p>
+<font COLOR="#00005e">
+<blockquote>
+  <pre class="example">FarMessage</font>().<font COLOR="#880000">SimpleMsg</font> (<font COLOR="#000080">FMSG_WARNING</font> | <font COLOR="#000080">FMSG_MB_OK</font>, <font COLOR="#a000a0">MError</font>, <font COLOR="#00008b">ArcName</font>, <font COLOR="#00008b">ErrMsg</font>, -<font COLOR="#008000">1</font>);</pre>
+</blockquote>
+<p>Первым параметром в эту функцию передаются флаги сообщения. В этом параметре 
+также указываются кнопки, которые должны быть показаны в сообщении. Если плагин 
+предназначен для работы с <span lang="en-us">FAR </span>1.70, можно использовать 
+любые стандартные константы <span lang="en-us">FMSG_MB_*. </span>Если же плагин 
+должен быть совместимым с <span lang="en-us">FAR 1.65 (</span>макрос<span lang="en-us"> 
+USE_FAR_170 </span>не определен), можно использовать лишь флаг
+<span lang="en-us">FMSG_MB_OK, </span>который будет преобразован в стандартную 
+кнопку <span lang="en-us">Ok.</span></p>
+<p>После этого в списке параметров указываются заголовок сообщения и 
+произвольное количество строк текста. Заголовок и строки текста сообщения могут 
+указываться как в виде строк (<code>const char *</code>), так и в 
+виде номеров строк в LNG. Если требуется вывести 
+сообщение без заголовка, вторым параметром должна быть передана пустая строка (&quot;&quot;).</p>
+<p>Последним параметром функции <i><b>обязательно</b></i> должен быть -1. Это 
+является маркером, указывающим на то, что список параметров закончен.</p>
+<p>Наконец, наиболее полные возможности становятся доступны при явном 
+конструировании сообщения.</p>
+<blockquote>
+<pre class="example"><font COLOR="#00005e">FarMessage</font> <font COLOR="#00008b">msg</font>;
+<font COLOR="#00008b">msg</font>.<font COLOR="#880000">AddLine</font> (<font COLOR="#a000a0">MDelete</font>);
+<font COLOR="#00008b">msg</font>.<font COLOR="#880000">AddLine</font> (<font COLOR="#a000a0">MConfirmDelete</font>);
+<font COLOR="#00008b">msg</font>.<font COLOR="#880000">AddLine</font> (<font COLOR="#00008b">pEntries</font> [<font COLOR="#00008b">Selected</font>]-&gt;<font COLOR="#00008b">DisplayName</font>);
+<font COLOR="#00008b">msg</font>.<font COLOR="#880000">AddButton</font> (<font COLOR="#a000a0">MDelete</font>);
+<font COLOR="#00008b">msg</font>.<font COLOR="#880000">AddButton</font> (<font COLOR="#a000a0">MCancel</font>);
+<font COLOR="#0000ff">if</font> (<font COLOR="#00008b">msg</font>.<font COLOR="#880000">Show</font>() == <font COLOR="#008000">0</font>) 
+<font COLOR="#a000a0">    </font><font color="#880000">RegDeleteKey</font> (<font COLOR="#a000a0">HKEY_LOCAL_MACHINE</font>, <font COLOR="#00008b">pEntries</font> [<font COLOR="#00008b">Selected</font>]-&gt;<font COLOR="#00008b">SubkeyName</font>);</pre>
+
+</blockquote>
+<p>При этом вначале создается экземпляр класса <code>FarMessage</code> (в 
+качестве параметров конструктора можно передать флаги сообщения и название темы 
+помощи, ассоциированной с сообщением). Далее в него последовательно добавляются 
+строки (при помощи метода <code>AddLine()</code>) и кнопки (при 
+помощи метода <code>AddButton()</code>). Первая добавленная строка 
+становится заголовком сообщения.</p>
+<p>После того, как конструирование сообщения завершено, сообщение выводится на 
+экран при помощи метода <code>Show()</code>.<span lang="en-us"> </span>Этот 
+метод возвращает номер кнопки, нажатой пользователем, либо -1, если пользователь 
+закрыл сообщение нажатием <span lang="en-us">Esc.</span></p>
+
+<p>Использование класса <span lang="en-us">FarMessage</span> имеет те же 
+особенности, что и использование стандартной функции <span lang="en-us">
+Message() </span>из <span lang="en-us">FAR API:</span></p>
+<ol>
+  <li>В версиях <span lang="en-us">FAR </span>до 1.70 <span lang="en-us">beta 3
+  </span>включительно максимально допустимое количество элементов в сообщении 
+  (суммарное количество строк и кнопок) не может быть больше 13.</li>
+  <li>Если сообщение содержит хотя бы одну кнопку, то оно показывается в 
+  модальном режиме, и после того, как пользователь нажал на кнопку, сообщение 
+  исчезает с экрана и старое содержимое экрана восстанавливается. Если сообщение 
+  не содержит кнопок, то функция <span lang="en-us">Message() </span>возвращает 
+  управление сразу, и разработчик плагина должен самостоятельно позаботиться о 
+  восстановлении старого содержимого экрана под сообщением.</li>
+  <li>Для того, чтобы сообщение было показано на экране, оно должно содержать по 
+  крайней мере два элемента: заголовок (возможно, пустой) и одну строку текста.</li>
+</ol>
+<h2>Методы</h2>
+<font COLOR="#00005e">
+<pre>FarMessage</font> (<font COLOR="#0000ff">unsigned</font> <font COLOR="#0000ff">int</font> <font COLOR="#00008b">Flags</font>=<font COLOR="#008000">0</font>, <font COLOR="#0000ff">const</font> <font COLOR="#0000ff">char</font> *<font COLOR="#00008b">HelpTopic</font>=<font COLOR="#a000a0">NULL</font>)</pre>
+<blockquote>
+  <p>Конструктор. Позволяет задать флаги сообщения (любые из констант
+  <span lang="en-us">FMSG_*</span>, используемых функцией <span lang="en-us">
+  Message), </span>а также тему помощи, которая будет ассоциирована с 
+  сообщением.</p>
+</blockquote>
+<font COLOR="#0000ff">
+<pre>void</font> <font COLOR="#880000">AddLine</font> (<font COLOR="#0000ff">const</font> <font COLOR="#0000ff">char</font> *<font COLOR="#00008b">Text</font>)
+<font COLOR="#0000ff">void</font> <font COLOR="#880000">AddLine</font> (<font COLOR="#0000ff">int</font> <font COLOR="#00008b">LngIndex</font>)</pre>
+<blockquote>
+  <p>Добавляет в сообщение строку текста, заданную либо в виде
+  <code>const char *</code>, либо в виде номера строки в
+  <span lang="en-us">LNG. </span>Первая добавленная строка становится заголовком 
+  сообщения.</p>
+</blockquote>
+
+<pre><font COLOR="#0000ff">void</font> <font COLOR="#880000">AddFmt</font> (<font COLOR="#0000ff">const</font> <font COLOR="#0000ff">char</font> *<font COLOR="#00008b">FmtText</font>, ...)
+<font COLOR="#0000ff">void</font> <font COLOR="#880000">AddFmt</font> (<font COLOR="#0000ff">int</font> <font COLOR="#00008b">FmtLngIndex</font>, ...)</pre>
+<blockquote>
+  <p>Добавляет в сообщение строку текста, сформированную на основании указанной 
+  форматной строки и параметров. Первый параметр задает форматную строку либо ее 
+  индекс в <span lang="en-us">LNG; </span>последующие параметры соответствуют 
+  спецификаторам формата, содержащимся в форматной строке. Формат форматной 
+  строки тот же, что и для функции <code>sprintf.</code></p>
+</blockquote>
+
+<font COLOR="#0000ff">
+<pre>void</font> <font COLOR="#880000">AddSeparator</font>()</pre>
+<blockquote>
+  <p>Добавляет к сообщению горизонтальную разделительную линию.</p>
+</blockquote>
+<font COLOR="#0000ff">
+<pre>int</font> <font COLOR="#880000">AddButton</font> (<font COLOR="#0000ff">const</font> <font COLOR="#0000ff">char</font> *<font COLOR="#00008b">Text</font>)
+<font COLOR="#0000ff">int</font> <font COLOR="#880000">AddButton</font> (<font COLOR="#0000ff">int</font> <font COLOR="#00008b">LngIndex</font>)</pre>
+<blockquote>
+  <p>Добавляет к сообщению кнопку. Текст кнопки задается либо в виде
+  <code>const char *</code>, либо в виде номера строки в
+  <span lang="en-us">LNG</span>.</p>
+</blockquote>
+<font COLOR="#0000ff">
+<pre>int</font> <font COLOR="#880000">Show</font>()</pre>
+<blockquote>
+  <p>Выводит сформированное сообщение на экран. Если сообщение содержит кнопки, 
+  возвращает номер кнопки, выбранной пользователем, или -1, если пользователь 
+  закрыл сообщение по <span lang="en-us">Esc</span>. <span lang="en-us">E</span>сли 
+  сообщение не содержит кнопок, возвращает 0.</p>
+</blockquote>
+<font COLOR="#0000ff">
+<pre>int</font> <font COLOR="#880000">SimpleMsg</font> (<font COLOR="#0000ff">unsigned</font> <font COLOR="#0000ff">int</font> <font COLOR="#00008b">Flags</font>, ...)</pre>
+<blockquote>
+  <p>Функция для упрощенного показа сообщения. Конструирует сообщение, выводит 
+  его на экран и возвращает номер выбранной кнопки, -1, если сообщение закрыто 
+  по <span lang="en-us">Esc,</span> или 0, если сообщение не содержит кнопок. 
+  Более подробное описание дано в разделе &quot;Использование&quot;.</p>
+</blockquote>
+<font COLOR="#0000ff">
+<pre>int</font> <font COLOR="#880000">ErrMsg</font> (<font COLOR="#0000ff">const</font> <font COLOR="#0000ff">char</font> *<font COLOR="#00008b">Text</font>, <font COLOR="#0000ff">int</font> <font COLOR="#00008b">ExtraFlags</font> = <font COLOR="#008000">0</font>)<font COLOR="#0000ff">
+int</font> <font COLOR="#880000">ErrMsg</font> (<font COLOR="#0000ff">int</font> <font COLOR="#00008b">LngIndex</font>, <font COLOR="#0000ff">int</font> <font COLOR="#00008b">ExtraFlags</font> = <font COLOR="#008000">0</font>)</pre>
+<blockquote>
+  <p>Функция для упрощенного показа сообщения об<span lang="en-us"> </span>
+  ошибке. Конструирует сообщение, выводит его на экран и возвращает номер 
+  выбранной кнопки или -1, если сообщение закрыто по <span lang="en-us">Esc</span>. 
+  Параметр <span lang="en-us">ExtraFlags </span>содержит дополнительные флаги, 
+  передаваемые в функцию <span lang="en-us">Message() </span>(флаг
+  <span lang="en-us">FMSG_WARNING </span>установлен всегда). Более подробное 
+  описание дано в разделе &quot;Использование&quot;.</p>
+</blockquote>
+
+</body>
+
+</html>

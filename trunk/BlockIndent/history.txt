@@ -1,0 +1,49 @@
+Block Indent: History
+---------------------
+
+Legend:  + added
+         - removed
+         * changed
+         ! fixed
+
+v2.0 (02/10/04)
+---------------
+
+ + The plugin can now indent  both  by  tab  and  single  space  as
+   suggested and implemented by  Eugene  Sementsov  at  inbox.ru  /
+   rels.
+ * Note that menu hotkeys were changed, you might  need  to  update
+   your macros.
+ + Russian readme file thanks to Eugene  Sementsov  at  inbox.ru  /
+   rels.
+ * Rearranged folder structure.
+ * Compiled using MingW with GCC 3.4.2.
+ * Plugin size dropped from 4096 bytes to 3584 bytes.
+ + Now the plugin is released under the GNU GPL license.
+
+v1.11 (19/10/01)
+----------------
+
+ + If the current line is  outside  the  selected  block  then  the
+   current line is indented and not the  selected  block.  I  think
+   it's more convenient this way.
+ * Plugin now checks for tab and space only as 0x09 0x20  (I  don't
+   know of any code page where it's different) so it means a slight
+   speed increase.
+ * Some corrections to text files.
+ * Now compiling with BCC 5.5.1 so plugin size  dropped  from  5632
+   bytes to 4096 bytes.
+
+v1.1 (04/09/01)
+---------------
+
+ + First public release.
+ ! Some corrections to the code that might of caused some  problems
+   as suggested by Ivan Sintyurin at mail.ru / spinoza.
+ * Some cosmetic  changes  also  suggested  by  Ivan  Sintyurin  at
+   mail.ru / spinoza.
+
+v1.0
+----
+
+ + Non public release.

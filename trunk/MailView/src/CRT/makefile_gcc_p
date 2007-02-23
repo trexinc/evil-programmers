@@ -1,0 +1,65 @@
+OBJDIR = ../../o/CRT
+REOBJDIR = \.\.\/\.\.\/o\/CRT\/
+DLLDIR = ../../o/CRT
+DLLNAME = libCRTP.a
+DLLFULLNAME = $(DLLDIR)/$(DLLNAME)
+SRCS = delete.cpp \
+new.cpp \
+new_array.cpp \
+delete_array.cpp \
+free.cpp \
+malloc.cpp \
+realloc.cpp \
+pure_virtual.cpp \
+memchr.cpp \
+memcmp.cpp \
+memcpy.cpp \
+memset.cpp \
+memmove.cpp \
+_splitpath.cpp \
+wcslen.cpp \
+strpbrk.cpp \
+strstr.cpp \
+strchr.cpp \
+strrchr.cpp \
+strtok.cpp \
+strcat.cpp \
+strcpy.cpp \
+strlen.cpp \
+strcmp.cpp \
+strncpy.cpp \
+strncmp.cpp \
+ctype.cpp
+
+CXX = g++
+DLLTOOL = dlltool
+RM = rm -f
+CP = cp -f
+M4 = m4 -P
+MV = mv -f
+MKDIR = mkdir -p
+AR = ar
+RANLIB = ranlib
+CXXFLAGS = -Os -funsigned-char -fomit-frame-pointer -fstrict-aliasing -fno-rtti -fno-exceptions
+
+OBJS = $(patsubst %.cpp,$(OBJDIR)/%.o,$(filter %.cpp,$(SRCS)))
+DEPS = $(patsubst %.cpp,$(OBJDIR)/%.d,$(filter %.cpp,$(SRCS)))
+
+all: $(DLLFULLNAME)
+
+$(OBJDIR)/%.d: %.cpp
+	@echo making depends for $<
+	@$(SHELL) -ec '$(CXX) -c -MM $(CXXFLAGS) $< \
+                | sed '\''s/\($*\)\.o[ :]*/$(REOBJDIR)\1.o $(REOBJDIR)\1.d: /g'\'' > $@; [ -s $@ ] || $(RM) $@'
+
+$(OBJDIR)/%.o: %.cpp
+	@echo compiling $<
+	@$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+$(DLLFULLNAME): $(OBJS)
+	@echo linking $@
+	@$(AR) rc $(DLLNAME) $(OBJS)
+	@$(RANLIB) $(DLLNAME)
+	@$(MV) $(DLLNAME) $(DLLDIR)
+
+-include $(DEPS)

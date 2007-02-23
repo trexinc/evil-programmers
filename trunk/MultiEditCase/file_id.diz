@@ -1,0 +1,28 @@
+Multilingual Editor Case  Converter
+               v2.132
+            With Sources
+          March 25 2005
+         FAR 1.70 b3+ plugin
+Cyrillic   and   Latin   II    case
+conversion     tables      supplied
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Author: Alex Yaroslavsky
+E-Mail: at yandex.ru / trexinx
+Home page: http://trexinc.sf.net/
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+English:
+This is an extended EditCase plugin
+(from   FAR   destribution)    that
+supports   case    conversion    of
+different languages  (configurable)
+while keeping the same look &  feel
+of the standart EditCase plugin.
+-----------------------------------
+Русский:
+Это  расширенный  вариант   плагина
+EditCase  из   дистрибутива   ФАРа,
+который   поддерживает    изменение
+регистра       разных        языков
+(настраивается), не изменяя  старый
+и  добрый  look&feel   стандартного
+плагина EditCase.

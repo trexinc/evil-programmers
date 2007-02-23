@@ -1,0 +1,125 @@
+     MailView plugin for Far Manager
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[!] Important
+[+] New
+[-] Fixed error
+[*] Changes
+
+  1.0 beta 8 ??.04.2005
+ ~~~~~~~~~~~~~~~~~~~~~~~
+   + expansion of environment variables in prefixes
+   + Folder sub-plugin can now load only new messages in a folder (NewOnly key
+     in *.fld)
+
+  1.0 beta 7 12.04.2005
+ ~~~~~~~~~~~~~~~~~~~~~~~
+   - copying files from within a mailbox was broken
+   - make files were missing from the source distribution
+
+  1.0 beta 6 11.04.2005
+ ~~~~~~~~~~~~~~~~~~~~~~~
+   - junk was shown in "Output format" when copying a file from MailView panel
+   - screen not properly updated when changing panel sorting mode
+   - screen not properly updated when loading a mailbox
+   - forgot to include an example configuration file for Folder sub-plugin
+   - crash when trying to view a file after the Find Files operation (Alt-F7).
+     You still cannot view the file but at least the plugin doesn't crash
+   * help file updated by Tim Sobolev
+
+  1.0 beta 5 04.04.2005
+ ~~~~~~~~~~~~~~~~~~~~~~~
+   - could crash unexpectedly, especially on Win2k
+
+  1.0 beta 4 30.03.2005
+ ~~~~~~~~~~~~~~~~~~~~~~~
+   - crash when viewing a bodiless message
+   + plugin is now released under the GNU GPL License
+   + current maintainer of the plugin is Alex Yaroslavsky
+     at yandex.ru / trexinc
+
+  1.0 beta 3 xx.xx.2003
+ ~~~~~~~~~~~~~~~~~~~~~~~
+   + sort mailbox's messages
+   + StyleCodePunct and StyleCodeStops mailview config parameters
+   + CtrlShiftF9 very simple current mailbox configuration
+   + CtrlA edits attributes of selected messages
+   - wrong encoding due view with templates
+   - small errors on uue decoding
+   * old mailbox plugins not supported
+   + partial fido style messages and mailboxes support
+   + mailbox parameters CacheExtension and SettingsExtension
+   * "RFC Charset" is obsolete section, now you must use "RFCCharset"
+     registry key name for this action (sample in RFCCharset.reg)
+   + new prefixes mve and mvv for view message in internal editor and viewer
+   + mailbox cache can be saved to NTFS streams
+     (search parameter UseNTFSStreams of mailbox configuration)
+   + view threads tree by "subject", "from" and "to" field.
+   - correct references tree (again)
+   + mailbox panel view messages flags (has attachments,flagged,replyed,forwarded)
+   + autoinsert origin and tagline if present X-FTN-Origin or X-FTN-Tagline kludge
+   + visualisation and confirmation of copy progress
+   + LockView and UseLastSignature mailview config parameter
+   ! new colrors for Origin, Tearline, Tagline and Hyperlinks can
+     shift your colors settings :(
+   + WarnBeforeExecuting config parameter adds additional files mask to
+     prevent directly open files when browsing message content
+   + all file masks can contain exclude file fisks separated by '|'
+   + now you can define up to 10 exclude masks
+   + support for all installed system encodings
+   + new template parameters Kludge() and Headers
+   + template %text% parameter can have wordwrap
+   + wordwrap now have quotation
+   + more localization
+   - traps while trying configure any mailbox
+   * old (readed) messages marked with Archive attribute instead of *.o.eml
+     extension and new messages does not have Archive attribute instead
+     of *.n.eml extension
+
+   + many many more other little, medium and big features...
+
+  1.0 beta 2 19.06.2002
+ ~~~~~~~~~~~~~~~~~~~~~~~
+   + utf-7 and utf-8 support
+   ! now mailbox plugin must have "mvp" extension
+   + some skin for configuration and files operations :)
+   + view in editor and quickview with templates
+   + uueencoded attachments support
+   + speed search by subject emulator :)
+   + mime names of attachments
+   + mailbox parameter MarkMsgAsReadTime
+   + view by threads (extended mode)
+   + support of IE web-archives (*.mht,*.mhtml) as messages
+   + multipart/related support
+   + speed up while opening messages
+   * all messages in mailbox have an *.n.eml or *.o.eml extension for unreaded
+     and readed messages corresponditly (so you can colorize they)
+   - traps on mouse click outside of view dialog
+   - correct references tree
+   - traps on viewing multipart messages in mailbox
+
+  1.0 beta 1 (May Day) 01.05.2002
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   + simple far help
+   + mailbox parameters: MinCacheSize, ProcessSubject, TreeViewMode
+     and TheradsViewMode
+   + view by threads
+   + own parameters for any mailbox
+   + word-wrap via F2 key
+   + change encoding via F8 key
+   - traps on messages that contains html
+   - traps while switching to/from other windows with Far higher than beta 4
+   ! now 'Palette' parameter used for save and load colors
+
+  1.0 (a2) 02.04.2002
+ ~~~~~~~~~~~~~~~~~~~~~
+   * panel contain 'rfc922 message' text while browsing message
+   + color for header value
+   + color for header selected value
+   - detecting of message text part
+   - correct base64 decoding
+   - traps on message viewing
+
+  1.0 (pa) 29.03.2002
+ ~~~~~~~~~~~~~~~~~~~~~
+   + first public alpha with base functionality

@@ -1,0 +1,30 @@
+.386p
+
+_TEXT SEGMENT DWORD USE32 PUBLIC 'CODE'
+_TEXT ENDS
+
+_DATA SEGMENT DWORD USE32 PUBLIC 'DATA'
+_DATA ENDS
+
+_BSS SEGMENT DWORD USE32 PUBLIC 'BSS'
+_BSS ENDS
+
+DGROUP GROUP _DATA, _BSS
+
+ASSUME CS:_TEXT, DS:DGROUP
+
+_TEXT SEGMENT PUBLIC DWORD USE32 'CODE'
+
+PUBLIC EntryPoint
+PUBLIC __acrtused
+
+__acrtused label byte
+
+EntryPoint proc near
+    mov eax, 1
+    ret 12
+EntryPoint endp
+
+_TEXT ENDS
+
+END EntryPoint

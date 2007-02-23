@@ -25,25 +25,43 @@ enum
 {
   MTitle,
 
-  MRightBorderOff,
+  MOnOffSwitch,
+  MOtherColoringPlugins,
+
+  MRightBorder,
   MRightBorderOn,
   MRightBorderOnOnlyIfAutoWrap,
 
-  MEOLOff,
+  MEOL,
   MEOLOn,
   MEOLMarkAll,
-  MEOLMarkEOF,
+  MEOLMarkAllWithSymbols,
 
-  MTabsOff,
+  MEOF,
+
+  MTabs,
   MTabsOn,
   MTabsWhole,
+  MTabsTwoColor,
+  MTabsShowSymbol,
 
-  MCrossOff,
+  MCross,
   MCrossOn,
   MCrossVertical,
   MCrossHorizontal,
+  MCrossOnTop,
 
-  MOtherColoringPlugins,
+  MCursor,
+
+  MLineNumbers,
+
+  MScrollbar,
+  MScrollbarOn,
+  MScrollbarVariable,
+  MScrollbarFillbar,
+  MScrollbarNoBack,
+  MScrollbarVariableNoBack,
+  MScrollbarFillbarNoBack,
 
   MRightBorderColor,
   MEOLNormalColor,
@@ -52,8 +70,12 @@ enum
   MEOLNULLColor,
   MEOLEOFColor,
   MTabsColor,
+  MTabs2Color,
   MCrossVerticalColor,
   MCrossHorizontalColor,
+  MCursorColor,
+  MScrollbarColor,
+  MScrollbarPositionMarkerColor,
 
   MColorTitle,
   MColorForeground,

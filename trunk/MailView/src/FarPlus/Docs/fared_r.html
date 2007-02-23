@@ -1,0 +1,283 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="ru" />
+<meta name="GENERATOR" content="Microsoft FrontPage 5.0" />
+<meta name="ProgId" content="FrontPage.Editor.Document" />
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1251" />
+<title>Класс FarEd</title>
+</head>
+
+<body>
+
+<h1 align="center"><span lang="ru">Класс </span>FarEd</h1>
+<p><span lang="ru">Класс </span>FarEd <span lang="ru">представляет собой обертку 
+вокруг функции </span>FAR EditorControl() <span lang="ru">и предназначен для выполнения 
+различных операций с редактором </span>FAR.<span lang="ru"> Все методы этого класса 
+реализованы как статические, и создание экземпляров этого класса невозможно.</span></p>
+<p>Функции, возвращающие значение типа <span lang="en-us">int, </span>если не 
+указано иного, возвращают <span lang="en-us">TRUE </span>при успешном завершении 
+операции и <span lang="en-us">FALSE </span>в случае ошибки.<span lang="en-us">
+</span>Все методы, модифицирующие текст, возвращают <span lang="en-us">FALSE,
+</span>если текущий экземпляр редактора находится в режиме &quot;только для чтения&quot; 
+(переключается нажатием <span lang="en-us">Ctrl-L).</span></p>
+<h2><span lang="ru">Методы</span></h2>
+<h3><span lang="en-us">1. </span>Получение информации о тексте</h3>
+<pre><font SIZE="2">static</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> GetString </font><font SIZE="2">(int</font><font SIZE="2" COLOR="#000080"> StringNumber</font><font SIZE="2">,</font><font SIZE="2" COLOR="#000080"> EditorGetString </font><font SIZE="2">*</font><font SIZE="2" COLOR="#000080">egs</font><font SIZE="2">)</font></pre>
+<font SIZE="2"></font>
+<blockquote>
+  <p><span lang="ru">Возвращает полную информацию о строке редактируемого текста 
+  с указанным номером. Возвращаемая информация записывается в стандартную структуру
+  </span>FAR API EditorGetString, <span lang="ru">адрес которой передается в качестве 
+  параметра функции. В случае, если передано значение </span>StringNumber=-1,
+  <span lang="ru">возвращается информация о текущей строке. </span>Функция 
+  возвращает <span lang="en-us">TRUE </span>при успешном завершении операции или
+  <span lang="en-us">FALSE </span>в случае, если передан неверный индекс строки.</p>
+</blockquote>
+<pre><font SIZE="2">static</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> GetStringText </font><font SIZE="2">(int</font><font SIZE="2" COLOR="#000080"> StringNumber</font><font SIZE="2">,</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">char</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">*</font><font SIZE="2" COLOR="#000080">StringText</font><font SIZE="2">,</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> MaxLength</font><font SIZE="2">)
+static<font SIZE="2" COLOR="#000080"> FarString GetStringText </font>(int<font SIZE="2" COLOR="#000080"> StringNumber</font>)</font></pre>
+<blockquote>
+  <font SIZE="2"></font>
+  <p>Возвращают текст строки с указанным номером. Первый вариант функции 
+  копирует символы строки в буфер фиксированной длины, второй вариант возвращает 
+  текст строки в виде экземпляра класса <span lang="en-us">FarString.</span></p>
+</blockquote>
+<font SIZE="2" COLOR="#000080">
+<pre></font><font SIZE="2">static</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> GetCurStringText </font><font SIZE="2">(char</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">*</font><font SIZE="2" COLOR="#000080">StringText</font><font SIZE="2">,</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> MaxLength</font><font SIZE="2">)
+static</font><font SIZE="2" COLOR="#000080"> FarString GetCurStringText</font><font SIZE="2">()</font></pre>
+<blockquote>
+  <p>Возвращают текст текущей строки. В остальном аналогичны функциям
+  <span lang="en-us">GetStringText().</span></p>
+</blockquote>
+<font SIZE="2" COLOR="#000080">
+<pre></font><font SIZE="2">static</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> GetStringLength </font><font SIZE="2">(int</font><font SIZE="2" COLOR="#000080"> StringNumber</font><font SIZE="2">);
+static</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> GetCurStringLength</font><font SIZE="2">();</pre>
+</font>
+<blockquote>
+  <p>Возвращают информацию о длине строки, либо для строки с указанным номером, 
+  либо для текущей строки.</p>
+</blockquote>
+<font SIZE="2">
+<pre>static</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> GetStringSel </font><font SIZE="2">(int</font><font SIZE="2" COLOR="#000080"> StringNumber</font><font SIZE="2">,</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">*</font><font SIZE="2" COLOR="#000080">SelStart</font><font SIZE="2">,</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">*</font><font SIZE="2" COLOR="#000080">SelEnd</font><font SIZE="2">)</pre>
+</font>
+<blockquote>
+  <p>Возвращает информацию о пересечении выделенного блока со строкой с 
+  указанным номером. В <span lang="en-us">SelStart </span>записывается начальная 
+  позиция выделения в строке, либо -1<span lang="en-us">, </span>если указанная 
+  строка не входит в выделенный блок. В <span lang="en-us">SelEnd </span>
+  записывается конечная позиция выделения, либо -1, если выделенный блок 
+  продолжается дальше конца строки. Для <span lang="en-us">StringNumber=-1
+  </span>возвращается информация о текущей строке.</p>
+</blockquote>
+<font SIZE="2">
+<h3>2. Управление текущей позицией в тексте</h3>
+<pre>static</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> SetPos </font><font SIZE="2">(int</font><font SIZE="2" COLOR="#000080"> CurLine</font><font SIZE="2">,</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> CurPos</font><font SIZE="2">)</pre>
+</font>
+<blockquote>
+  <p>Устанавливает курсор в редакторе в указанную позицию. <span lang="en-us">
+  CurLine </span>содержит номер строки, куда устанавливается курсор,
+  <span lang="en-us">CurPos - </span>индекс символа в строке, на который 
+  устанавливается курсор (то есть, каждый символ табуляции считается как один 
+  символ).</p>
+</blockquote>
+<font SIZE="2">
+<pre>static</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> SetTabPos </font><font SIZE="2">(int</font><font SIZE="2" COLOR="#000080"> CurLine</font><font SIZE="2">,</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> CurTabPos</font><font SIZE="2">)</pre>
+</font>
+<blockquote>
+  <p>Устанавливает курсор в редакторе в указанную позицию. <span lang="en-us">
+  CurLine </span>содержит номер строки, куда устанавливается курсор,
+  <span lang="en-us">CurPos - </span>номер колонки (то есть, каждый символ 
+  табуляции считается как один или несколько символов, в зависимости от размера 
+  табуляции).</p>
+</blockquote>
+<font SIZE="2">
+<pre>static</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> SetViewPos </font><font SIZE="2">(int</font><font SIZE="2" COLOR="#000080"> TopScreenLine</font><font SIZE="2">,</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> LeftPos</font><font SIZE="2">)</pre>
+</font>
+<blockquote>
+  <p>Устанавливает координаты видимой области в редакторе. <span lang="en-us">
+  TopScreenLine </span>содержит номер первой строки, видимой на экране,
+  <span lang="en-us">LeftPos - </span>номер самой левой видимой колонки.</p>
+</blockquote>
+<font SIZE="2">
+<pre>static</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> SetOvertype </font><font SIZE="2">(</font><font SIZE="2" COLOR="#000080">BOOL Overtype</font><font SIZE="2">)</pre>
+</font>
+<blockquote>
+  <p>Переключает между режимами вставки и замены. <span lang="en-us">
+  Overtype=FALSE </span>включает режим вставки, <span lang="en-us">Overtype=TRUE 
+  - </span>замены.</p>
+</blockquote>
+<font SIZE="2">
+<pre>int</font><font SIZE="2" COLOR="#000080"> SelectBlock </font><font SIZE="2">(int</font><font SIZE="2" COLOR="#000080"> BlockType</font><font SIZE="2">,</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> BlockStartLine</font><font SIZE="2">,</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> BlockStartPos</font><font SIZE="2">, int</font><font SIZE="2" COLOR="#000080"> BlockWidth</font><font SIZE="2">,</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> BlockHeight</font><font SIZE="2">)</pre>
+</font>
+<blockquote>
+  <p>Выделяет блок в редакторе. <span lang="en-us">BlockType </span>указывает<span lang="en-us">
+  </span>тип блока <span lang="en-us">(BTYPE_STREAM </span>для поточного блока 
+  или <span lang="en-us">BTYPE_COLUMN </span>для вертикального),
+  <span lang="en-us">BlockStartLine </span>и <span lang="en-us">BlockStartPos -
+  </span>начальные координаты блока, <span lang="en-us">BlockWidth </span>и
+  <span lang="en-us">BlockHeight -</span> ширина и высота блока.
+  <span lang="en-us">BlockHeight </span>всегда должна быть больше или равна 
+  единице, <span lang="en-us">BlockHeight </span>может быть отрицательной только 
+  для поточных блоков.</p>
+</blockquote>
+<font SIZE="2">
+<pre>static</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> UnselectBlock</font><font SIZE="2">()</pre>
+</font>
+<blockquote>
+  <p>Снимает выделение в редакторе.</p>
+</blockquote>
+<font SIZE="2">
+<h3>3. Модификация текста</h3>
+<pre>static</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> InsertString </font><font SIZE="2">(bool</font><font SIZE="2" COLOR="#000080"> Indent</font><font SIZE="2">=false)</pre>
+</font>
+<blockquote>
+  <p>Разбивает строку в текущей позиции курсора и ставит курсор в начало новой 
+  строки. Если параметр <span lang="en-us">Indent </span>равен
+  <span lang="en-us">true, </span>для новой строки используется автоматический 
+  отступ; в противном случае, курсор всегда ставится в первую позицию строки.</p>
+</blockquote>
+<font SIZE="2">
+<pre>static</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> InsertText </font><font SIZE="2">(const</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">char</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">*</font><font SIZE="2" COLOR="#000080">Text</font><font SIZE="2">)</pre>
+</font>
+<blockquote>
+  <p>Вставляет указанную последовательность символов начиная с текущей позиции 
+  курсора в редакторе, как если бы она была введена с клавиатуры. 
+  Последовательность должна быть в кодировке <span lang="en-us">OEM </span>и 
+  может содержать символы перевода строки.</p>
+</blockquote>
+<font SIZE="2">
+<pre>static</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> DeleteString</font><font SIZE="2">()</pre>
+</font>
+<blockquote>
+  <p>Удаляет текущую строку в редакторе<span lang="en-us">.</span></p>
+</blockquote>
+<font SIZE="2">
+<pre>static</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> DeleteChar</font><font SIZE="2">()</pre>
+</font>
+<blockquote>
+  <p>Удаляет символ под курсором в редакторе.</p>
+</blockquote>
+<pre><font SIZE="2">static</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> ExpandTabs </font><font SIZE="2">(int</font><font SIZE="2" COLOR="#000080"> StringNumber</font><font SIZE="2">)</pre>
+</font>
+<blockquote>
+  <p>Заменяет все символы табуляции в строке с указанным номером на пробелы, в 
+  соответствии с размером табуляции, указанным в настройках редактора. Если
+  <span lang="en-us">StringNumber </span>равен -1, замена осуществляется для 
+  текущей строки. </p>
+</blockquote>
+<font SIZE="2">
+<h3>4. Сервисные функции</h3>
+<pre>static</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> Redraw</font><font SIZE="2">()</pre>
+</font>
+<blockquote>
+  <p>Полностью перерисовывает окно редактора.</p>
+</blockquote>
+<font SIZE="2">
+<pre>int</font><font SIZE="2" COLOR="#000080"> EditorToOem </font><font SIZE="2">(char</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">*</font><font SIZE="2" COLOR="#000080">Text</font><font SIZE="2">,</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> TextLength</font><font SIZE="2">)
+int<font SIZE="2" COLOR="#000080"> EditorToOem </font>(<font SIZE="2" COLOR="#000080">FarString </font>&amp;<font SIZE="2" COLOR="#000080">Text</font>)</pre>
+</font>
+<blockquote>
+  <p>Преобразует указанную текстовую строку из текущей кодировки редактора в 
+  кодировку <span lang="en-us">OEM.</span></p>
+</blockquote>
+<font SIZE="2">
+<pre>static</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> OemToEditor </font><font SIZE="2">(char</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">*</font><font SIZE="2" COLOR="#000080">Text</font><font SIZE="2">,</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> TextLength</font><font SIZE="2">)<span lang="en-us">
+</span>static<font SIZE="2" COLOR="#000080"> </font>int<font SIZE="2" COLOR="#000080"> OemToEditor </font>(<font SIZE="2" COLOR="#000080">FarString </font>&amp;<font SIZE="2" COLOR="#000080">Text</font>)</pre>
+</font>
+<blockquote>
+  <p>Преобразует указанную текстовую строку из кодировки <span lang="en-us">OEM
+  </span>в текущую кодировку редактора.</p>
+</blockquote>
+<font SIZE="2">
+<pre>static</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> TabToReal </font><font SIZE="2">(int</font><font SIZE="2" COLOR="#000080"> StringNumber</font><font SIZE="2">,</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> SrcPos</font><font SIZE="2">)</pre>
+</font>
+<blockquote>
+  <p>Преобразует экранную координату для указанной строки в индекс символа. 
+  Возвращает результат преобразования или -1 в случае ошибки. <span lang="en-us">
+  StringNumber </span>указывает номер строки, для которой осуществляется 
+  преобразование, или -1 для текущей строки. Для строки, не содержащей символов 
+  табуляции, результат преобразования равен значению, переданному на входе.</p>
+</blockquote>
+<font SIZE="2">
+<pre>static</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> RealToTab </font><font SIZE="2">(int</font><font SIZE="2" COLOR="#000080"> StringNumber</font><font SIZE="2">,</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> SrcPos</font><font SIZE="2">)</pre>
+</font>
+<blockquote>
+  <p>Преобразует индекс символа в указанной строке в экранную координату. В 
+  остальном аналогична <span lang="en-us">TabToReal().</span></p>
+</blockquote>
+<font SIZE="2">
+<pre>static</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> SetTitle </font><font SIZE="2">(const</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">char</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">*</font><font SIZE="2" COLOR="#000080">Title</font><font SIZE="2">)</pre>
+</font>
+<blockquote>
+  <p>Устанавливает заголовок окна редактора.</p>
+</blockquote>
+<font SIZE="2">
+<pre>static</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> ReadInput </font><font SIZE="2">(</font><font SIZE="2" COLOR="#000080">INPUT_RECORD </font><font SIZE="2">*</font><font SIZE="2" COLOR="#000080">pRec</font><font SIZE="2">)</pre>
+</font>
+<blockquote>
+  <p>Читает следующее событие из входного потока и записывает его в структуру
+  <span lang="en-us">INPUT_RECORD, </span>адрес которой передается в качестве 
+  параметра.</p>
+</blockquote>
+<font SIZE="2">
+<pre>static</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> ProcessInput </font><font SIZE="2">(const</font><font SIZE="2" COLOR="#000080"> INPUT_RECORD </font><font SIZE="2">*</font><font SIZE="2" COLOR="#000080">pRec</font><font SIZE="2">)</pre>
+</font>
+<blockquote>
+  <p>Передает указанную структуру <span lang="en-us">INPUT_RECORD </span>на 
+  обработку в редактор <span lang="en-us">FAR.</span></p>
+</blockquote>
+<font SIZE="2">
+<pre>static</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> AddColor </font><font SIZE="2">(int</font><font SIZE="2" COLOR="#000080"> StringNumber</font><font SIZE="2">,</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> StartPos</font><font SIZE="2">,</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> EndPos</font><font SIZE="2">,</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> Color</font><font SIZE="2">)</pre>
+</font>
+<blockquote>
+  <p>Добавляет область раскраски для строки. Параметр <span lang="en-us">
+  StringNumber </span>указывает номер строки, для которой добавляется область 
+  (-1 для текущей строки), <span lang="en-us">StartPos </span>и
+  <span lang="en-us">EndPos - </span>начальная и конечная позиция фрагмента 
+  строки, раскрашиваемого указанным цветом, <span lang="en-us">Color - </span>
+  цвет для этого фрагмента.</p>
+</blockquote>
+<font SIZE="2">
+<pre>static</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> DeleteColor </font><font SIZE="2">(int</font><font SIZE="2" COLOR="#000080"> StringNumber</font><font SIZE="2">,</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> StartPos</font><font SIZE="2">=-</font><font SIZE="2" COLOR="#008000">1</font><font SIZE="2">)</pre>
+</font>
+<blockquote>
+  <p>Удаляет области раскраски для указанной строки. Если параметр
+  <span lang="en-us">StartPos </span>равен -1, удаляются все области раскраски, 
+  в противном случае - области начиная с указанного номера.</p>
+</blockquote>
+<font SIZE="2">
+<pre>static</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> GetColor </font><font SIZE="2">(int</font><font SIZE="2" COLOR="#000080"> StringNumber</font><font SIZE="2">,</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> ColorItem</font><font SIZE="2">, int</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">*</font><font SIZE="2" COLOR="#000080">StartPos</font><font SIZE="2">,</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">*</font><font SIZE="2" COLOR="#000080">EndPos</font><font SIZE="2">,</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">*</font><font SIZE="2" COLOR="#000080">Color</font><font SIZE="2">)</pre>
+</font>
+<blockquote>
+  <p>Возвращает информацию о цветовой области в строке. Параметр
+  <span lang="en-us">StringNumber </span>указывает номер строки, для которой 
+  получается информация, <span lang="en-us">ColorItem - </span>номер области, 
+  информация о которой получается. Функция записывает в параметры
+  <span lang="en-us">StartPos </span>и <span lang="en-us">EndPos </span>
+  начальную и конечную координаты области с указанным номером, а в параметр
+  <span lang="en-us">Color - </span>цвет этой области.</p>
+</blockquote>
+<font SIZE="2">
+<pre>static</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> SaveFile </font><font SIZE="2">(const</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">char</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">*</font><font SIZE="2" COLOR="#000080">FileName </font><font SIZE="2">=</font><font SIZE="2" COLOR="#000080"> NULL</font><font SIZE="2">,</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">const</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">char</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">*</font><font SIZE="2" COLOR="#000080">StringEOL </font><font SIZE="2">=</font><font SIZE="2" COLOR="#000080"> NULL</font><font SIZE="2">)</pre>
+</font>
+<blockquote>
+  <p>Сохраняет файл, открытый в редакторе. Параметр <span lang="en-us">FileName
+  </span>указывает имя, под которым должен быть сохранен файл (включая полный 
+  путь), или <span lang="en-us">NULL, </span>если должно быть использовано 
+  текущее имя. Параметр <span lang="en-us">StringEOL </span>указывает 
+  последовательность символов, которая будет использоваться для переводов строки<span lang="en-us"> 
+  ('\n' </span>либо <span lang="en-us">'\r\n'), </span>или <span lang="en-us">
+  NULL, </span>если должна быть использована текущая последовательность.</p>
+</blockquote>
+
+<font SIZE="2">
+<pre>static</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">void</font><font SIZE="2" COLOR="#000080"> Quit</font><font SIZE="2">()</pre>
+</font>
+<blockquote>
+  <p>Закрывает редактор без вывода подтверждений и без сохранения редактируемого 
+  файла.</p>
+</blockquote>
+
+</body>
+
+</html>
