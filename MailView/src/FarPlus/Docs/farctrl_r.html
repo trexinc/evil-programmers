@@ -1,0 +1,205 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="ru">
+<meta name="GENERATOR" content="Microsoft FrontPage 5.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1251">
+<title>Класс FarCtrl</title>
+<style>
+<!--
+pre.example     { background-color: #E0E0E0 }
+-->
+</style>
+</head>
+
+<body>
+
+<h1 align="center">Класс FarCtrl</h1>
+<p>Класс FarCtrl предназначен для выполнения различных операций с файловыми 
+панелями и представляет собой обертку вокруг сервисной функции  Control<span lang="en-us">
+</span>из <span lang="en-us">FAR API</span>.
+Поскольку эта функция требует передачи в качестве параметра хэндла плагина, этот 
+хэндл хранится в поле экземпляра данного класса.</p>
+<h2>Использование</h2>
+<p>В плагинах, не создающих своей панели, следует использовать конструктор без 
+параметров этого класса (инициализирующий хэндл значением INVALID_HANDLE_VALUE).
+Поскольку затраты на конструирование класса минимальны, его можно создавать 
+одновременно с вызовом функции:</p>
+<blockquote>
+  <pre class=example>FarCtrl().RedrawPanel();</pre>
+</blockquote>
+<p>Если вызывается несколько функций, можно создать экземпляр класса на стеке:</p>
+<blockquote>
+  <pre class=example>FarCtrl ctrl;
+ctrl.UpdatePanel();
+ctrl.RedrawPanel();</pre>
+</blockquote>
+<p>В плагинах, создающих свою панель, необходимо передать в класс хэндл плагина. 
+Если класс используется в пределах одной функции, можно воспользоваться конструктором 
+с параметром:</p>
+<blockquote>
+  <pre class=example>FarCtrl ctrl (this);
+ctrl.UpdatePanel();
+ctrl.RedrawPanel();</pre>
+</blockquote>
+<p>Если же класс используется часто, рекомендуется сделать экземпляр этого класса 
+полем класса панели вашего плагина и инициализировать его в конструкторе. Однако, 
+поскольку использование this в списках инициализации недопустимо, такой вариант 
+работать не будет:</p>
+<blockquote>
+  <pre class=example>MyPanel::MyPanel()
+  : m_ctrl (this)    // ЭТО НЕ РАБОТАЕТ
+{
+  ...</pre>
+</blockquote>
+<p>Вместо этого следует воспользоваться методом SetHandle:</p>
+<blockquote>
+  <pre class=example>MyPanel::MyPanel()
+{
+  m_ctrl.SetHandle (this);
+  ...</pre>
+</blockquote>
+<h2>Методы</h2>
+<p>Класс имеет следующие методы, реализующие подфункции Control:</p>
+<font COLOR="#0000ff">
+<pre>int</font> <font COLOR="#880000">ClosePlugin</font> (<font COLOR="#0000ff">const</font> <font COLOR="#0000ff">char</font> *<font COLOR="#00008b">DestPath</font>);</pre>
+<blockquote>
+  <p>Эквивалент <b>FCTL_CLOSEPLUGIN</b>. Закрывает панельный плагин и 
+  устанавливает на файловой панели путь, переданный в параметре
+  <span lang="en-us">DestPath.</span></p>
+</blockquote>
+<font COLOR="#0000ff">
+<pre>int</font> <font COLOR="#880000">GetPanelInfo</font> (<font COLOR="#000080">PanelInfo</font> *<font COLOR="#00008b">pi</font>);
+<font COLOR="#000080">PanelInfo</font> <font COLOR="#880000">GetPanelInfo</font>();</pre>
+<blockquote>
+  <p>Эквивалент <b>FCTL_GETPANELINFO</b>.<span lang="en-us"> </span>Заполняет 
+  структуру <span lang="en-us">PanelInfo </span>информацией о текущей панели.</p>
+</blockquote>
+<font COLOR="#0000ff">
+<pre>int</font> <font COLOR="#880000">GetAnotherPanelInfo</font> (<font COLOR="#000080">PanelInfo</font> *<font COLOR="#00008b">pi</font>);
+<font COLOR="#000080">PanelInfo</font> <font COLOR="#880000">GetAnotherPanelInfo</font>();</pre>
+<blockquote>
+  <p>Эквивалент <b>FCTL_GETANOTHERPANELINFO</b>. Заполняет структуру
+  <span lang="en-us">PanelInfo </span>информацией о пассивной панели.</p>
+</blockquote>
+<font COLOR="#0000ff">
+<pre>int</font> <font COLOR="#880000">UpdatePanel</font> (<font COLOR="#0000ff">bool</font> <font COLOR="#00008b">clearSelection</font> = <font COLOR="#0000ff">false</font>);</pre>
+<blockquote>
+  <p>Эквивалент <b>FCTL_UPDATEPANEL</b>. Обновляет содержимое текущей панели и 
+  опционально сбрасывает выделение.</p>
+</blockquote>
+<font COLOR="#0000ff">
+<pre>int</font> <font COLOR="#880000">UpdateAnotherPanel</font> (<font COLOR="#0000ff">bool</font> <font COLOR="#00008b">clearSelection</font> = <font COLOR="#0000ff">false</font>);</pre>
+<blockquote>
+  <p>Эквивалент <b>FCTL_UPDATEANOTHERPANEL</b>. Обновляет содержимое пассивной 
+  панели и опционально сбрасывает выделение.</p>
+</blockquote>
+<font COLOR="#0000ff">
+<pre>int</font> <font COLOR="#880000">RedrawPanel</font>();</pre>
+<blockquote>
+  <p>Эквивалент <b>FCTL_REDRAWPANEL</b>. Перерисовывает активную панель.</p>
+</blockquote>
+<font COLOR="#0000ff">
+<pre>int</font> <font COLOR="#880000">RedrawAnotherPanel</font>();</pre>
+<blockquote>
+  <p>Эквивалент <b>FCTL_REDRAWANOTHERPANEL</b>. Перерисовывает пассивную панель.</p>
+</blockquote>
+<font COLOR="#0000ff">
+<font SIZE="2">
+<pre>int</font><font SIZE="2" COLOR="#000080"> </font></font><span lang="en-us"><font SIZE="2" color="#880000">SetPanelDir</font></span><font COLOR="#0000ff"><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">(const</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">char</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">*</font><font SIZE="2" COLOR="#000080">dir</font><font SIZE="2">)</font></pre>
+</font>
+<blockquote>
+  <p>Эквивалент <span lang="en-us"><b>FCTL_SETPANELDIR</b>. </span>Устанавливает 
+  текущий каталог в активной панели.&nbsp; Если плагин поддерживает свою 
+  собственную панель, он будет закрыт после выполнения этой команды</p>
+</blockquote>
+<font COLOR="#0000ff">
+<font SIZE="2">
+<pre>int</font><font SIZE="2" COLOR="#000080"> </font><span lang="en-us"><font SIZE="2" color="#880000">SetAnotherPanelDir</font></span><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">(const</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">char</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">*</font><font SIZE="2" COLOR="#000080">dir</font><font SIZE="2">)</font></pre>
+</font>
+<blockquote>
+  <p>Эквивалент <span lang="en-us"><b>FCTL_SETANOTHERPANELDIR</b>. </span>
+  Устанавливает текущий каталог в пассивной панели.</p>
+</blockquote>
+<font COLOR="#0000ff">
+<font SIZE="2" COLOR="#000080">
+<pre></font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> </font></font><font SIZE="2"><span lang="en-us"><font color="#880000">GetCmdLine</font></span></font><font COLOR="#0000ff"><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">(char</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">*</font><font SIZE="2" COLOR="#000080">buf</font><font SIZE="2">)</font><font SIZE="2" COLOR="#000080">
+FarString </font></font><font SIZE="2"><span lang="en-us"><font color="#880000">GetCmdLine</font></span></font><font COLOR="#0000ff"><font SIZE="2">()</pre>
+</font></font>
+<blockquote>
+<p>Эквивалент <span lang="en-us"><b>FCTL_GETCMDLINE</b>. </span>Позволяет 
+получить текст командной строки <span lang="en-us">FAR (</span>либо копирует его 
+в указанный буфер, либо возвращает его в виде объекта <span lang="en-us">
+FarString).</span></p>
+</blockquote>
+<font COLOR="#0000ff"><font SIZE="2" COLOR="#000080">
+<pre></font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2"><span lang="en-us"><font color="#880000">SetCmdLine</font></span></font><font COLOR="#0000ff"><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">(<span lang="en-us">const </span>char</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">*</font><font SIZE="2" COLOR="#000080">buf</font><font SIZE="2">)</font></font></pre>
+</font>
+<blockquote>
+<p>Эквивалент <span lang="en-us"><b>FCTL_SETCMDLINE</b>. </span>Копирует 
+указанный текст в командную строку <span lang="en-us">FAR.</span></p>
+</blockquote>
+<font COLOR="#0000ff"><font SIZE="2" COLOR="#000080"><font COLOR="#0000ff">
+<font SIZE="2" COLOR="#000080">
+<pre></font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> </font><font color="#880000" SIZE="2"><span lang="en-us">InsertCmdLine</span></font><font COLOR="#0000ff"><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">(<span lang="en-us">const </span>char</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">*</font><font SIZE="2" COLOR="#000080">buf</font><font SIZE="2">)</font></font></pre>
+</font></font></font>
+<blockquote>
+<p>Эквивалент <span lang="en-us"><b>FCTL_INSERTCMDLINE</b>. </span>Вставляет 
+указанный текст в командную строку <span lang="en-us">FAR</span>, начиная с 
+текущей позиции курсора<span lang="en-us">.</span></p>
+</blockquote>
+<font COLOR="#0000ff">
+<pre><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2"><span lang="en-us"><font color="#880000">GetCmdLinePos</font></span></font><font COLOR="#0000ff"><font SIZE="2">()</font></font></pre>
+</font>
+<blockquote>
+<p>Эквивалент <span lang="en-us"><b>FCTL_GETCMDLINEPOS</b>. </span>Возвращает 
+текущую позицию курсора в командной строке.</p>
+</blockquote>
+<font COLOR="#0000ff"><font SIZE="2" COLOR="#000080">
+<pre></font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2"><font color="#880000"><span lang="en-us">SetCmdLinePos</span></font></font><font COLOR="#0000ff"><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">(<span lang="en-us">int</span></font><font SIZE="2" COLOR="#000080"> <span lang="en-us">newPos</span></font><font SIZE="2">)</font></font></pre>
+</font>
+<blockquote>
+<p>Эквивалент <span lang="en-us"><b>FCTL_SETCMDLINEPOS</b>. </span>Устанавливает 
+курсор в указанную позицию командной строки.</p>
+</blockquote>
+<font COLOR="#0000ff">
+<pre>int</font> <font COLOR="#880000">SetSelection</font> (<font COLOR="#000080">PanelInfo</font> *<font COLOR="#00008b">pi</font>);</pre>
+<blockquote>
+  <p>Эквивалент <b>FCTL_SETSELECTION</b>. Устанавливает выделение в активной 
+  панели на основании информации, переданной в указанной структуре
+  <span lang="en-us">PanelInfo.</span></p>
+</blockquote>
+<font COLOR="#0000ff">
+<pre>int <font COLOR="#880000">Set<span lang="en-us">Another</span>Selection</font> (<font COLOR="#000080">PanelInfo</font> *<font COLOR="#00008b">pi</font>);</pre>
+</font>
+<blockquote>
+  <p>Эквивалент <b>FCTL_SET<span lang="en-us">ANOTHER</span>SELECTION</b>. 
+  Устанавливает выделение в пассивной панели на основании информации, переданной 
+  в указанной структуре <span lang="en-us">PanelInfo.</span></p>
+</blockquote>
+<font COLOR="#0000ff">
+<pre>int</font> <font COLOR="#880000">SetUserScreen</font>();</pre>
+<blockquote>
+  <p>Эквивалент <b>FCTL_SETUSERSCREEN</b>.<span lang="en-us"> </span>Копиpует 
+  текущее содеpжимое экpана в буфеp пользовательского экрана FAR<span lang="en-us">.</span></p>
+</blockquote>
+
+<font COLOR="#0000ff"><font SIZE="2" COLOR="#000080">
+<pre></font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> </font><font color="#880000" SIZE="2"><span lang="en-us">SetViewMode</span></font><font COLOR="#0000ff"><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">(<span lang="en-us">int</span></font><font SIZE="2" COLOR="#000080"> </font></font></font><font SIZE="2"><font color="#000080"><span lang="en-us">viewMode</span></font><font COLOR="#0000ff">)</font></font><font COLOR="#0000ff"></pre>
+</font>
+<blockquote>
+<p>Эквивалент <span lang="en-us"><b>FCTL_SETVIEWMODE</b>. </span>Устанавливает 
+указанный режим просмотра для активной панели (число от 0 до 9).</p>
+</blockquote>
+<font COLOR="#0000ff"><font SIZE="2" COLOR="#000080">
+<pre></font><font SIZE="2">int</font><font SIZE="2" COLOR="#000080"> </font><font color="#880000" SIZE="2"><span lang="en-us">SetAnotherViewMode</span></font><font COLOR="#0000ff"><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">(<span lang="en-us">int</span></font><font SIZE="2" COLOR="#000080"> </font></font></font><font SIZE="2"><font color="#000080"><span lang="en-us">viewMode</span></font><font COLOR="#0000ff">)</font></font><font COLOR="#0000ff"></pre>
+</font>
+<blockquote>
+<p>Эквивалент <span lang="en-us"><b>FCTL_SETANOTHERVIEWMODE</b>. </span>
+Устанавливает указанный режим просмотра для пассивной панели (число от 0 до 9).</p>
+</blockquote>
+
+</body>
+
+</html>

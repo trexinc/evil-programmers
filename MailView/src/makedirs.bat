@@ -1,0 +1,13 @@
+makedir ..\bin
+makedir ..\bin\Plugins
+makedir ..\o\CRT
+makedir ..\o\FarPlus
+makedir ..\o\MailView
+makedir ..\o\MailView\MsgLib
+makedir ..\o\MailView\Plugins
+makedir ..\o\MailView\Plugins\Folder
+makedir ..\o\MailView\Plugins\oe_dbx
+makedir ..\o\MailView\Plugins\PKT
+makedir ..\o\MailView\Plugins\Squish
+makedir ..\o\MailView\Plugins\TheBat
+makedir ..\o\MailView\Plugins\Unix

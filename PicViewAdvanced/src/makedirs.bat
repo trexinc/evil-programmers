@@ -1,0 +1,16 @@
+@echo off
+mkdir ..\o
+mkdir ..\o\chmview
+mkdir ..\o\farhelp
+mkdir ..\o\htmlhelp
+mkdir ..\o\mshelp2
+mkdir ..\o\mueller
+mkdir ..\o\winhelp
+mkdir ..\bin
+mkdir ..\bin\ahp
+mkdir ..\bin\ahp\chmview
+mkdir ..\bin\ahp\farhelp
+mkdir ..\bin\ahp\htmlhelp
+mkdir ..\bin\ahp\mshelp2
+mkdir ..\bin\ahp\mueller
+mkdir ..\bin\ahp\winhelp

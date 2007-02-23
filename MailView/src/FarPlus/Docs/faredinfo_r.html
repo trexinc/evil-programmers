@@ -1,0 +1,44 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="ru">
+<meta name="GENERATOR" content="Microsoft FrontPage 5.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1251">
+<title>Класс FarEdInfo</title>
+<style>
+<!--
+pre.example     { background-color: #E0E0E0 }
+-->
+</style>
+</head>
+
+<body>
+
+<h1 align="center">Класс <span lang="en-us">FarEdInfo</span></h1>
+<p>Класс <span lang="en-us">FarEdInfo </span>предназначен для получения 
+информации о текущем состоянии редактора <span lang="en-us">FAR </span>и 
+представляет собой обертку вокруг функции <span lang="en-us">EditorControl (ECTL_GETINFO).</span> 
+Поля этого класса соответствуют полям структуры <span lang="en-us">EditorInfo</span> 
+из <span lang="en-us">FAR API. </span>Вызов <span lang="en-us">ECTL_GETINFO
+</span>производится из конструктора класса<span lang="en-us">.</span></p>
+<p>Если плагину требуется получить значения только одного или нескольких полей 
+состояния редактора, наиболее удобным является создание экземпляра
+<span lang="en-us">FarEdInfo </span>одновременно с вызовом функции:</p>
+<blockquote>
+  <pre class=example>int LineCount=FarEdInfo().TotalLines;</pre>
+</blockquote>
+
+<p>Если же требуется обращение к большому количеству полей, более эффективным 
+является создание именованного экземпляра класса и последующее его 
+использование:</p>
+<blockquote>
+  <pre class=example>FarEdInfo edInfo;
+if (edInfo.BlockType != BTYPE_NONE)
+  startLine = edInfo.BlockStartLine;
+// и так далее</pre>
+</blockquote>
+
+</body>
+
+</html>

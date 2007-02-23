@@ -2,35 +2,57 @@
 
 "Visualizer"
 
-"&Right border off"
-"R&ight border on"
-"Ri&ght border on only if autowrap"
-
-"&End of line off"
-"E&nd of line on"
-"En&d of line on - also mark \\r, \\n, undefined and EOF"
-"End o&f line on - also mark EOF"
-
-"&Tabs off"
-"T&abs on"
-"Ta&bs on - mark whole tabs"
-
-"C&ross off"
-"Cro&ss on"
-"Cross on - only &vertical"
-"Cross on - only &horizontal"
-
+"&Main On/Off switch"
 "Other coloring &plugins are loaded"
+
+"&Right border:"
+"Show always"
+"Show only if autowrap"
+
+"End of &line:"
+"Normal"
+"Differentiate CR, LF and undefined"
+"Differentiate CR, LF and undefined (show symbols)"
+
+"End of &file"
+
+"&Tabs:"
+"As single character"
+"Mark whole tab size"
+"Mark with two colors"
+"Show Tab s&ymbol"
+
+"Cro&ss:"
+"Full"
+"Only vertical"
+"Only horizontal"
+"O&n top"
+
+"C&ursor"
+
+"L&ine numbers"
+
+"Scroll&bar:"
+"Normal"
+"Variable size position marker"
+"Fillbar"
+"Show only position marker"
+"Show only variable size position marker"
+"Show only the filler in the fillbar"
 
 "Right &border"
 "&End of line"
-"\\&r"
-"\\&n"
+"CR - \\&r"
+"LF - \\&n"
 "Undefined en&d of line"
 "End of &file"
-"&Tab"
+"F&irst tab color"
+"Second tab co&lor"
 "&Vertical Cross"
 "&Horizontal Cross"
+"C&ursor"
+"&Scrollbar"
+"Scrollbar position &marker"
 
 "Color"
 "&Foreground"
@@ -41,4 +63,4 @@
 
 "&Ok"
 "&Cancel"
-"Set co&lor"
+"S&et color"

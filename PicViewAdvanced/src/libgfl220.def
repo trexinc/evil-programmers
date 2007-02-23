@@ -1,0 +1,16 @@
+LIBRARY LIBGFL220.DLL
+
+EXPORTS
+ gflGetDefaultLoadParams@4
+ gflLoadBitmap@16
+ gflChangeColorDepth@16
+ gflResize@24
+ gflFreeBitmap@4
+ gflFreeBitmap@4
+ gflFreeFileInformation@4
+ gflLibraryInit@0
+ gflEnableLZW@4
+ gflGetNumberOfFormat@0
+ gflGetFormatInformationByIndex@8
+ gflLibraryExit@0
+ gflSetPluginsPathname@4

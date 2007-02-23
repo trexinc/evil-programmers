@@ -1,0 +1,5 @@
+EXPORTS 
+   Configure=Configure@4
+   GetPluginInfo=GetPluginInfo@4
+   OpenPlugin=OpenPlugin@8
+   SetStartupInfo=SetStartupInfo@4

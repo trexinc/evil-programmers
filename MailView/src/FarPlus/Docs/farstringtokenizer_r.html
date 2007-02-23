@@ -1,0 +1,107 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="ar-dz">
+<meta name="GENERATOR" content="Microsoft FrontPage 5.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1251">
+<title>Класс FarStringTokenizer</title>
+<style>
+<!--
+pre.example     { background-color: #E0E0E0 }
+-->
+</style>
+</head>
+
+<body>
+
+<h1 align="center">Класс FarStringTokenizer</h1>
+
+<p><span lang="ru">Класс </span><span lang="en-us">FarStringTokenizer </span>
+<span lang="ru">представляет собой вспомогательный класс, предназначенный для 
+разбиения строки на токены (фрагменты, отделенные друг от друга определенным 
+символом - например, пробелом или запятой). </span><span lang="en-us">
+FarStringTokenizer </span><span lang="ru">никак не модифицирует строку, 
+разбиение которой он осуществляет.</span></p>
+<p><span lang="ru">Строка, которую нужно разбить на токены, и разделительный 
+символ (по умолчанию - запятая), указываются либо в конструкторе класса </span>
+<span lang="en-us">FarStringTokenizer, </span><span lang="ru">либо, если 
+используется конструктор по умолчанию, в методе </span><span lang="en-us">
+Attach()</span><span lang="ru">. Затем, пока метод </span><span lang="en-us">HasNext() </span><span lang="ru">возвращает
+</span><span lang="en-us">true, </span><span lang="ru">вызов метода </span>
+<span lang="en-us">NextToken() </span><span lang="ru">позволяет получить 
+следующий токен.</span></p>
+<font COLOR="#00005e">
+<blockquote>
+  <pre class="example">FarStringTokenizer</font> <font COLOR="#880000">tokenizer</font> (<font COLOR="#00008b">Opt</font>.<font COLOR="#00008b">DescFName</font>);
+<font COLOR="#0000ff">while</font> (<font COLOR="#00008b">tokenizer</font>.<font COLOR="#880000">HasNext</font>()) 
+<font COLOR="#00008b"><span lang="ru">    </span>menu</font>.<font COLOR="#880000">AddItem</font> (<font COLOR="#00008b">tokenizer</font>.<font COLOR="#880000">NextToken</font>());</pre>
+</blockquote>
+<h2><span lang="ru">Методы</span></h2>
+<font COLOR="#00005e">
+<pre>FarStringTokenizer()</pre>
+</font>
+<blockquote>
+  <p><span lang="ru">Конструктор</span><span lang="en-us"> </span>
+  <span lang="ru">по умолчанию. Прежде чем использовать экземпляр класса, 
+  инициализированный таким конструктором, необходимо связать его со строкой для 
+  разбиения, вызвав метод </span><span lang="en-us">Attach().</span></p>
+</blockquote>
+<font COLOR="#00005e">
+<pre>FarStringTokenizer</font> (<font COLOR="#0000ff">const</font> <font COLOR="#0000ff">char</font> *<font COLOR="#00008b">text</font>, <font COLOR="#0000ff">char</font> <font COLOR="#00008b">separator</font> = <font COLOR="#800080">','</font><font SIZE="2">,</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">bool</font><font SIZE="2" COLOR="#000080"> ignoreWhitespace </font><font SIZE="2">=</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">true</font>)</pre>
+<blockquote>
+  <p><span lang="ru">Конструктор. Задает строку, разбиение которой будет 
+  осуществляться, и символ, разделяющий токены. Если флаг </span>
+  <span lang="en-us">ignoreWhitespace </span><span lang="ru">установлен в </span>
+  <span lang="en-us">true, </span><span lang="ru">пробельные символы (пробелы 
+  или табуляции), непосредственно предшествующие или следующие за 
+  разделительными символами, пропускаются и не включаются в состав токенов.</span></p>
+</blockquote>
+<font COLOR="#0000ff">
+<font SIZE="2">
+<pre>void</font><font SIZE="2" COLOR="#000080"> Attach </font><font SIZE="2">(const</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">char</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">*</font><font SIZE="2" COLOR="#000080">text</font><font SIZE="2">,</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">char</font><font SIZE="2" COLOR="#000080"> separator</font> = <font COLOR="#800080">','</font><font SIZE="2">,</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">bool</font><font SIZE="2" COLOR="#000080"> ignoreWhitespace </font><font SIZE="2">=</font><font SIZE="2" COLOR="#000080"> </font><font SIZE="2">true)</font></pre>
+</font>
+<blockquote>
+  <p><span lang="ru">Задает строку, разбиение которой будет осуществляться, и 
+  символ, разделяющий токены. Значение параметров идентично значению параметров 
+  конструктора класса.</span></p>
+</blockquote>
+<font COLOR="#0000ff">
+<pre>bool</font> <font COLOR="#880000">HasNext</font>() <font COLOR="#0000ff">const</pre>
+</font>
+<blockquote>
+  <p><span lang="ru">Возвращает </span><span lang="en-us">true, </span>
+  <span lang="ru">если разбиение строки еще не закончилось (то есть, следующий 
+  вызов </span><span lang="en-us">NextToken() </span><span lang="ru">вернет 
+  непустую строку).</span></p>
+</blockquote>
+<font COLOR="#00005e">
+<pre>FarString</font> <font COLOR="#880000">NextToken</font>()</pre>
+<blockquote>
+  <p><span lang="ru">Возвращает следующий токен из строки. Если первый символ 
+  токена - кавычка, возвращается фрагмент до следующей кавычки, или до конца 
+  строки. В противном случае, возвращается фрагмент до следующего 
+  разделительного символа. Если разбиение уже дошло до конца строки, возвращает 
+  пустую строку.</span></p>
+</blockquote>
+<font COLOR="#00005e">
+<pre>FarString</font> <font COLOR="#880000">GetToken</font> (<font COLOR="#0000ff">int</font> <font COLOR="#00008b">index</font>) <font COLOR="#0000ff">const</pre>
+</font>
+<blockquote>
+  <p><span lang="ru">Позволяет получить токен с указанным индексом (нумерация 
+  токенов начинается с 0). Вызов </span><span lang="en-us">GetToken() </span>
+  <span lang="ru">никак не зависит от текущей позиции разбиения, установленной 
+  вызовами </span><span lang="en-us">NextToken(), </span><span lang="ru">и не 
+  влияет на нее.</span></p>
+</blockquote>
+<font COLOR="#0000ff">
+<pre>int</font> <font COLOR="#880000">GetCurIndex</font>() <font COLOR="#0000ff">const</pre>
+</font>
+<blockquote>
+  <p><span lang="ru">Возвращает номер текущего токена в строке (токена, который 
+  вернет следующий вызов </span><span lang="en-us">NextToken()).</span></p>
+</blockquote>
+
+</body>
+
+</html>

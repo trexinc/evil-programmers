@@ -1,0 +1,10 @@
+This is FARPlus version ??????, a C++ class library for
+developing FAR Manager plugins. For more information on
+FARPlus, refer to http://www.yole.ru/projects/farplus/ .
+
+FARPlus is (C) 1998-2002 Dmitry Jemerov <yole@yole.ru>,
+Portions (C) 2002 Dennis Trachuk
+        <dennis.trachuk@nm.ru>||<dennis.trachuk@bk.ru>,
+Portions (C) 2005 Alex Yaroslavsky
+and distributed under the GNU Library General Public License.
+The full text of the license can be found in the file COPYING.
