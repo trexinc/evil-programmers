@@ -92,7 +92,7 @@ int WINAPI _export Message(unsigned long Msg,void *InData,void *OutData)
           MenuInData *dlg=(MenuInData *)InData;
           FarDialogItem DialogItem;
           FarInfo.SendDlgMessage(dlg->hDlg,DM_GETDLGITEM,dlg->ItemID,(long)&DialogItem);
-          if(DialogItem.Type==DI_EDIT||DialogItem.Type==DI_PSWEDIT)
+          if(DialogItem.Type==DI_EDIT||DialogItem.Type==DI_PSWEDIT||DialogItem.Type==DI_FIXEDIT)
           {
             long length=FarInfo.SendDlgMessage(dlg->hDlg,DM_GETTEXTLENGTH,dlg->ItemID,0)+1;
             unsigned char *buffer=(unsigned char *)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,length);

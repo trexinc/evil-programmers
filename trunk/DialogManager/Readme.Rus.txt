@@ -242,7 +242,13 @@ REGEDIT4
 
 6. История.
 
-v0.6 build 8 ??-??-2007
+v0.6 build 9 23-02-2007
+- Добавлен субплагин: Replace
+- Добавлен субплагин: Search
+- Добавлен субплагин: Search and Replace
+- charmap: добавлена работа в DI_FIXEDIT.
+
+v0.6 build 8 23-02-2007
 - grabber: обновление флагов DI_VTEXT.
 
 v0.6 build 7 11-04-2005

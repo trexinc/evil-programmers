@@ -1,5 +1,7 @@
 @echo off
 mkdir ..\o
+
+mkdir ..\o\appendall
 mkdir ..\o\bcopy
 mkdir ..\o\case
 mkdir ..\o\charmap
@@ -11,9 +13,13 @@ mkdir ..\o\macro
 mkdir ..\o\openfile
 mkdir ..\o\pasteselection
 mkdir ..\o\pwd
+mkdir ..\o\replace
+mkdir ..\o\search
+mkdir ..\o\sr
 mkdir ..\o\undo
 mkdir ..\bin
 mkdir ..\bin\Formats
+mkdir ..\bin\Formats\AppendAll
 mkdir ..\bin\Formats\BCopy
 mkdir ..\bin\Formats\Case
 mkdir ..\bin\Formats\CharMap
@@ -25,4 +31,7 @@ mkdir ..\bin\Formats\Macro
 mkdir ..\bin\Formats\OpenFile
 mkdir ..\bin\Formats\PasteSelection
 mkdir ..\bin\Formats\Pwd
+mkdir ..\bin\Formats\Replace
+mkdir ..\bin\Formats\Search
+mkdir ..\bin\Formats\SR
 mkdir ..\bin\Formats\Undo
