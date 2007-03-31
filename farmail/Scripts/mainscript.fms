@@ -16,6 +16,7 @@ endif
 
 rem Path to the scripts.ini file
 ini_file = "scripts.ini"
+var_file = "variables.ini"
 
 //if you like a menu of options instead of addressbook set to 1
 select = getini("global_settings","show_menu",0,ini_file)
@@ -86,9 +87,9 @@ sub get_var_value
   var_value = ""
 
   while (iax<var_array_cnt)
-    s = getini("variables","var_name_"+string(iax),"",ini_file)
+    s = getini("var_names",string(iax),"",var_file)
     if (var_name == s)
-       var_value = getini("variables","var_value_"+string(iax),"",ini_file)
+       var_value = getini("var_values",string(iax),"",var_file)
        break
     endif
     iax++
@@ -96,8 +97,8 @@ sub get_var_value
 
   if (iax==var_array_cnt)
      var_value = usrinput("Enter "+var_name,var_name)
-     setini(ini_file,"variables","var_name_"+string(var_array_cnt),var_name)
-     setini(ini_file,"variables","var_value_"+string(var_array_cnt),var_value)
+     setini(var_file,"var_names",string(var_array_cnt),var_name)
+     setini(var_file,"var_values",string(var_array_cnt),var_value)
      var_array_cnt++
   endif
 endsub
