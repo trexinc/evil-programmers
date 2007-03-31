@@ -1,3 +1,6 @@
+rem Global user variables counter
+var_array_cnt = 0
+
 rem
 rem User configurable parameters: (You can set them to your fitting)
 rem
@@ -73,6 +76,32 @@ rem
 rem ------------------------ Script start -------------------------------
 rem
 
+rem get variable value stored in variable "var_name"
+rem if variable wasn't set -- prompt user for it
+rem use global counter var_array_cnt to manage ini file
+rem used variables: iax, var_array_cnt
+rem return var_value
+sub get_var_value
+  iax = 0
+  var_value = ""
+
+  while (iax<var_array_cnt)
+    s = getini("variables","var_name_"+string(iax),"",ini_file)
+    if (var_name == s)
+       var_value = getini("variables","var_value_"+string(iax),"",ini_file)
+       break
+    endif
+    iax++
+  wend
+
+  if (iax==var_array_cnt)
+     var_value = usrinput("Enter "+var_name,var_name)
+     setini(ini_file,"variables","var_name_"+string(var_array_cnt),var_name)
+     setini(ini_file,"variables","var_value_"+string(var_array_cnt),var_value)
+     var_array_cnt++
+  endif
+endsub
+
 rem parse string strored in variable sig_line
 rem %name% var is taken from the name variable
 rem %fullname% var is taken from the fullname variable
@@ -141,6 +170,15 @@ sub expand_vars
     endif
     sig_line=substr(sig_line,0,spec)+s_stat+substr(sig_line,spec+6)
   wend
+  while(strstr(sig_line,"%var:")!=-1)
+    spec=strstr(sig_line,"%var:")
+    temp_line=substr(sig_line,spec+5)
+    temp=strstr(temp_line,"%")
+    var_name=substr(temp_line,0,temp)
+    gosub get_var_value
+    sig_line=substr(sig_line,0,spec)+var_value+substr(temp_line,temp+1)
+  wend
+
 endsub
 
 rem parse one email stored in variable email and delete it from variable email
@@ -325,6 +363,9 @@ if (action == actionNewMessage || action == actionForward)
       endif
     else
       templ=getini("templates","templ"+string(select),"",ini_file)
+      sig_line = getini(templ,"subject","",ini_file)
+      gosub expand_vars
+      subject = sig_line
       to_field=getini(templ,"to_out","",ini_file)
       if(to_field=="")
         to_field=getini(templ,"to","",ini_file)
@@ -372,7 +413,11 @@ if (action == actionNewMessage || action == actionForward)
   endif
 
   if (action == actionNewMessage)
-    subject_field = usrinput("Enter subject","Enter message subject")
+    if (subject == "")
+      subject_field = usrinput("Enter subject","Enter message subject")
+    else
+      subject_field = subject
+    endif
   endif
 endif
 
@@ -767,6 +812,9 @@ wend
 
 if (action == actionNewMessage || action == actionForward)
   rem Set cursor after the greeting message
+  if (greet_count>0)
+    body_start_pos = body_start_pos + greet_count-1
+  endif
   if((strlen(to_name) > 0) || (strlen(to_fullname) > 0) || (templ!="global_template"))
     setpos(body_start_pos+2, 0)
   else
