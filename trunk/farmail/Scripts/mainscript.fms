@@ -1,6 +1,3 @@
-rem Global user variables counter
-var_array_cnt = 0
-
 rem
 rem User configurable parameters: (You can set them to your fitting)
 rem
@@ -76,6 +73,9 @@ new_msg_id = sprintf("%s.%10.10d.%10.10d@farmail",new_msg_id,random(100000000),r
 rem
 rem ------------------------ Script start -------------------------------
 rem
+
+rem Global user variables counter
+var_array_cnt = 0
 
 rem get variable value stored in variable "var_name"
 rem if variable wasn't set -- prompt user for it
