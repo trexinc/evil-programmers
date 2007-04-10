@@ -1,0 +1,59 @@
+v0.3 build 9 10-04-2007
+- shown content of global groups.
+- global/local switch works when running on domain controller.
+
+v0.2 build 8 08-06-2004
+- Apply to child objects now support owner update.
+- Apply to child objects work properly only if Access Permissions and Audit are
+  selected.
+
+v0.2 build 7 Alfa 2 20-05-2003
+- changes in help and language files. special thanks to Alex Yaroslavsky.
+- Take ownership.
+- Printer shares.
+- Printers.
+- F4 crash fixed.
+- you can enter into shares on network browser.
+
+v0.1 build 6 Alfa 1 21-04-2003
+- help file. special thanks to Alex Yaroslavsky.
+- apply for childs: now registry keys open in backup semantics.
+- F3 changes ACE type.
+- you can sort rights by AltUp and AltDown.
+- (Allowed+Denied)->Rights. (Success+Failure)->Audit.
+- registry keys opened using backup semantic.
+- dialog history.
+- SID in users and groups panels.
+- new well-known sids.
+
+v0.0 build 5 26-06-2002
+- REG_SZ bug.
+- you can edit rights on files \\.\c:, \\.\nul.
+- remote rights managment.
+
+v0.0 build 4 13-03-2002
+- correct sorting.
+- user rights.
+- search fixed.
+
+v0.0 build 3 21-01-2002
+- support for shares on remote machine.
+- apply to childs.
+- delete group.
+- delete user.
+- user/group properties.
+- select computer dialog.
+- domain and network support (not for shares yet).
+- take ownership.
+- show owner.
+- create group.
+- remove user from group.
+- add user to group.
+- local users in group list.
+- full unicode support.
+
+v0.0 build 2 21-09-2001
+- fixed: some problems with oem chars.
+
+v0.0 build 1 18-09-2001
+- initial version.
