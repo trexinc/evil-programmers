@@ -2004,13 +2004,16 @@ catch(...)
 #endif
 }
 
-int FARMail::ProcessCommandLine(const char *Cmd)
+int FARMail::ProcessCommandLine(const char *RawCmd)
 {
 #ifdef TDEBUG
 try {
 #endif
   char Prefix[50];
-  if (!strstr(Cmd, ":")) return FALSE;
+  char Cmd[MAX_PATH];
+
+  if (!strstr(RawCmd, ":")) return FALSE;
+  FSF.ExpandEnvironmentStr(RawCmd,Cmd,MAX_PATH);
   const char *Command = strstr(Cmd, ":") + 1;
   lstrcpyn(Prefix,Cmd,Command-Cmd);
   if (!FSF.LStricmp(Prefix, FASTDOWNLOADCOPY_PREFIX) || !FSF.LStricmp(Prefix, FASTDOWNLOADMOVE_PREFIX))

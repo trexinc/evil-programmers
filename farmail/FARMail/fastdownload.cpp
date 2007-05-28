@@ -246,7 +246,9 @@ try {
             HANDLE fp;
             if(UseInbox)
             {
-              fp = CreateFile(Opt.PathToInbox,GENERIC_WRITE,FILE_SHARE_READ,NULL,OPEN_ALWAYS,FILE_ATTRIBUTE_ARCHIVE|FILE_FLAG_SEQUENTIAL_SCAN,NULL);
+              char PathToInboxParsed[MAX_PATH];
+              FSF.ExpandEnvironmentStr(Opt.PathToInbox,PathToInboxParsed,MAX_PATH);
+              fp = CreateFile(PathToInboxParsed,GENERIC_WRITE,FILE_SHARE_READ,NULL,OPEN_ALWAYS,FILE_ATTRIBUTE_ARCHIVE|FILE_FLAG_SEQUENTIAL_SCAN,NULL);
               if (fp != INVALID_HANDLE_VALUE)
               {
                 if (SetFilePointer(fp,0,NULL,FILE_END) == INVALID_SET_FILE_POINTER)
@@ -461,7 +463,9 @@ try {
             HANDLE fp;
             if (UseInbox)
             {
-              fp = CreateFile(Opt.PathToInbox,GENERIC_WRITE,FILE_SHARE_READ,NULL,OPEN_ALWAYS,FILE_ATTRIBUTE_ARCHIVE|FILE_FLAG_SEQUENTIAL_SCAN,NULL);
+              char PathToInboxParsed[MAX_PATH];
+              FSF.ExpandEnvironmentStr(Opt.PathToInbox,PathToInboxParsed,MAX_PATH);
+              fp = CreateFile(PathToInboxParsed,GENERIC_WRITE,FILE_SHARE_READ,NULL,OPEN_ALWAYS,FILE_ATTRIBUTE_ARCHIVE|FILE_FLAG_SEQUENTIAL_SCAN,NULL);
               if (fp != INVALID_HANDLE_VALUE)
               {
                 if (SetFilePointer(fp,0,NULL,FILE_END) == INVALID_SET_FILE_POINTER)

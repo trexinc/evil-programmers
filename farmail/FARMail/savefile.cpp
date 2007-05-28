@@ -60,22 +60,27 @@ int FARMail::SaveOutgoingMessage( int how, const char *str )
   {
     case SAVE_OPEN:
     {
-      int num=GetFreeNumber(Opt.SaveDir);
+      char SaveDirParsed[MAX_PATH];
+      FSF.ExpandEnvironmentStr(Opt.SaveDir,SaveDirParsed,MAX_PATH);
+
+      int num=GetFreeNumber(SaveDirParsed);
       savefp=INVALID_HANDLE_VALUE;
       tempfp=INVALID_HANDLE_VALUE;
       if ( num > 0 )
       {
-        if ( *Opt.SaveDir && Opt.SaveDir[lstrlen(Opt.SaveDir)-1] != '\\' )
-          FSF.sprintf( savefp_name, "%s\\%08d.%s", Opt.SaveDir, num, Opt.EXT );
+        if ( *SaveDirParsed && SaveDirParsed[lstrlen(SaveDirParsed)-1] != '\\' )
+          FSF.sprintf( savefp_name, "%s\\%08d.%s", SaveDirParsed, num, Opt.EXT );
         else
-          FSF.sprintf( savefp_name, "%s%08d.%s", Opt.SaveDir, num, Opt.EXT );
+          FSF.sprintf( savefp_name, "%s%08d.%s", SaveDirParsed, num, Opt.EXT );
         if (Opt.SaveMessageID && FSF.MkTemp(tempfp_name,"FARMail"))
         {
           tempfp=CreateFile(tempfp_name,GENERIC_READ|GENERIC_WRITE,FILE_SHARE_READ,NULL,CREATE_ALWAYS,FILE_ATTRIBUTE_ARCHIVE|FILE_FLAG_SEQUENTIAL_SCAN,NULL);
         }
         if (Opt.UseOutbox && *(Opt.PathToOutbox))
         {
-          savefp=CreateFile(Opt.PathToOutbox,GENERIC_WRITE,FILE_SHARE_READ,NULL,OPEN_ALWAYS,FILE_ATTRIBUTE_ARCHIVE|FILE_FLAG_SEQUENTIAL_SCAN,NULL);
+          char PathToOutboxParsed[MAX_PATH];
+          FSF.ExpandEnvironmentStr(Opt.PathToOutbox,PathToOutboxParsed,MAX_PATH);
+          savefp=CreateFile(PathToOutboxParsed,GENERIC_WRITE,FILE_SHARE_READ,NULL,OPEN_ALWAYS,FILE_ATTRIBUTE_ARCHIVE|FILE_FLAG_SEQUENTIAL_SCAN,NULL);
           if(savefp!=INVALID_HANDLE_VALUE)
             if(SetFilePointer(savefp,0,NULL,FILE_END)==INVALID_SET_FILE_POINTER)
             {
