@@ -107,9 +107,10 @@ FLD *fld_open( const char *szFileName )
 {
   FLD *fld = NULL;
   char mask[FLD_FILENAME];
-  char path[FLD_PATH];
+  char path[FLD_PATH],rawpath[FLD_PATH];
   int NewOnly=GetPrivateProfileInt(PlugName,"NewOnly",0,szFileName);
-  GetPrivateProfileString(PlugName,"Path",NULLSTR,path,sizeof(path)-1,szFileName);
+  GetPrivateProfileString(PlugName,"Path",NULLSTR,rawpath,sizeof(path)-1,szFileName);
+  ExpandEnvironmentStrings(rawpath, path, FLD_PATH);
   GetPrivateProfileString(PlugName,"Mask",NULLSTR,mask,sizeof(mask),szFileName);
   if (*mask&&*path)
   {
