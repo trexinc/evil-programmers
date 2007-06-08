@@ -472,7 +472,9 @@ static bool ReadLine(HANDLE file,char *buffer,size_t len)
 static int LoadAdrBook(ADRREC **ptr,int *num)
 {
   char buffer[1024];
-  HANDLE fp=CreateFile(Opt.ADRBOOK,GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,0,NULL);
+  char addrBook[MAX_PATH];
+  FSF.ExpandEnvironmentStr(Opt.ADRBOOK,addrBook,MAX_PATH);
+  HANDLE fp=CreateFile(addrBook,GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,0,NULL);
   if(fp!=INVALID_HANDLE_VALUE)
   {
     int n=0;
@@ -638,7 +640,9 @@ static int SaveAdrBook( ADRREC **ptr , int num )
     return 0;
 
   char tail[2]={'\r','\n'}; DWORD transferred;
-  HANDLE fp=CreateFile(Opt.ADRBOOK,GENERIC_WRITE,FILE_SHARE_READ,NULL,CREATE_ALWAYS,0,NULL);
+  char addrBook[MAX_PATH];
+  FSF.ExpandEnvironmentStr(Opt.ADRBOOK,addrBook,MAX_PATH);
+  HANDLE fp=CreateFile(addrBook,GENERIC_WRITE,FILE_SHARE_READ,NULL,CREATE_ALWAYS,0,NULL);
   if(fp!=INVALID_HANDLE_VALUE)
   {
     for(int i=0;i<num;i++)
