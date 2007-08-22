@@ -357,10 +357,13 @@ DWORD CBase64Decoder::getSize(PBYTE iData, DWORD dwSize)
 
   do
   {
-    if ( *iData == '\r' )
-      iData ++;
-    if ( *iData == '\n' )
-      iData ++;
+    for (int i=0;i<4;i++)
+    {
+      if ( iData >= eData || (*iData != '\r' && *iData != '\n' ) )
+        break;
+      else
+        iData++;
+    }
 
     if ( iData >= eData || *iData == '\r' || *iData == '\n' )
       break;
@@ -436,10 +439,13 @@ DWORD CBase64Decoder::decode(PBYTE iData, DWORD dwSize)
 
   do
   {
-    if ( *iData == '\r' )
-      iData ++;
-    if ( *iData == '\n' )
-      iData ++;
+    for (int i=0;i<4;i++)
+    {
+      if ( iData >= eData || (*iData != '\r' && *iData != '\n' ) )
+        break;
+      else
+        iData++;
+    }
 
     if ( iData >= eData || *iData == '\r' || *iData == '\n' )
       break;

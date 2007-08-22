@@ -96,7 +96,17 @@ public:
       if ( DataValue == NULL )
         break;
 
-      *DataValue++ = '\0';
+      LPSTR StrEnd = DataValue;
+      while( isspace( (unsigned char)*--StrEnd ) ) *StrEnd = '\0';
+
+      *DataValue = '\0';
+
+      do { DataValue++;
+      } while ( isspace( (unsigned char)*DataValue ) && *DataValue != 0 );
+
+      if (*DataValue == '\0')
+        break;
+
       if ( *DataValue == '\"' )
       {
         ptr = strchr( ++DataValue, '\"' );
