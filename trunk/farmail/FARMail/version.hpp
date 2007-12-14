@@ -3,7 +3,7 @@
 #define BUILD "91"
 #define BUILD_YEAR "2007"
 #define BUILD_MONTH "12"
-#define BUILD_DAY "14"
+#define BUILD_DAY "15"
 #ifdef FARMAIL_SSL
 #define COPYRIGHT1 "FARMail v%s.%s (build %s) with SSL support, compiled on %s.%s.%s."
 #else
