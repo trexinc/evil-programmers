@@ -66,6 +66,7 @@ const long opRET      =     30;
 #define YYCURSOR yy_cursor
 #define YYLIMIT yy_limit
 #define YYMARKER yy_marker
+#define YYCTXMARKER yy_ctx_marker
 #define YYFILL(n) { if(!fill(n)) return 0; }
 
 struct XRef
@@ -141,6 +142,7 @@ class Parser
     YYCTYPE *yy_eof; //not null if all file readed.
     YYCTYPE *yy_token; //pointer to current token
     YYCTYPE *yy_marker; //YYMARKER
+    YYCTYPE *yy_ctx_marker; //YYCTXMARKER
     YYCTYPE *yy_cursor; //YYCURSOR
     YYCTYPE *yy_limit; //YYLIMIT
     YYCTYPE *yy_linestart; //start of line

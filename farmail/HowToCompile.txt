@@ -2,8 +2,8 @@ I. To compile FARMail and sub-plugins you will need the following tools:
 ------------------------------------------------------------------------
 
 1. GNU M4.
-2. GNU Bison v1.35 for Scripts sub-plugin (Bison v1.8x won't work).
-3. Re2C v0.9.x for Scripts sub-plugin (re2c 0.9.4 known to be problematic).
+2. GNU Bison v2.3 for Scripts sub-plugin.
+3. Re2C v0.13.1 for Scripts sub-plugin.
 4. OpenSSL libraries to compile with SSL support.
 
 II. To compile with MingW (GCC):
