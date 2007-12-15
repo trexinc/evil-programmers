@@ -8,6 +8,8 @@ EXAMPLESCRIPTSDIR = $(SCRIPTSDIR)/EXAMPLES
 PARSER = custom_memory.cpp custom_string.cpp parser.cpp parser_grammar.cpp parser_lex.cpp parser_symbols.cpp variant.cpp function.cpp bltins.cpp stack.cpp
 SRCS = crt.cpp scripts.cpp registry.cpp scripts_info.cpp scripts_run.cpp scripts_misc.cpp memory.cpp $(PARSER)
 DEF = scripts.gcc.def
+BISON_PKGDATADIR = ./bison
+export BISON_PKGDATADIR
 
 CXX = g++
 DLLTOOL = dlltool
@@ -60,9 +62,9 @@ $(DLLFULLNAME): $(OBJS) $(DEF)
 	@$(RM) $(DLLNAME).base
 	@$(RM) $(DLLNAME).exp
 
-parser_grammar.hpp parser_grammar.cpp: parser_grammar.y bison.scripts
+parser_grammar.hpp parser_grammar.cpp: parser_grammar.y ./bison/scripts.c
 	@echo generating parser
-	@bison parser_grammar.y -o parser_grammar.cpp -S bison.scripts -d
+	@bison parser_grammar.y -o parser_grammar.cpp -S scripts.c -d
 
 parser_lex.cpp: parser_lex.re
 	@echo generating lexer
