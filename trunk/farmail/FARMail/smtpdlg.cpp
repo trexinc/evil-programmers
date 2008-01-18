@@ -772,7 +772,7 @@ void FARMail::SendRecipientsHeader(const char *emptr, const char *headername, co
 
 void FARMail::SendHeaderLine(const char *headername, const char *content, const char *encode)
 {
-  char buf[BUFFER_SIZE];
+  char buf[BUFFER_SIZE*2]; //BUFFER_SIZE - headername, BUFFER_SIZE - content
 
   FSF.sprintf( buf, "%s %s\r\n", headername, content );
   EncodeStr8( buf, encode );
