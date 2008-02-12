@@ -72,19 +72,31 @@ public:
       return;
     }
 
-    *m_SubType++ = 0;
+    *m_SubType++ = '\0';
 
     LPSTR ptr = m_SubType;
+    bool blWasSemicolon = false;
 
     while ( ptr && *ptr != '\0' )
     {
-      LPSTR DataName = strchr( ptr, ';' );
-      if ( DataName == NULL ) return;
+      LPSTR DataName;
 
-      *DataName = 0;
+      if (blWasSemicolon)
+      {
+        DataName = ptr;
+      }
+      else
+      {
+        DataName = strchr( ptr, ';' );
+        if ( DataName == NULL ) return;
 
-      ptr = DataName;
-      while( isspace( (unsigned char)*--ptr ) ) *ptr = '\0';
+         *DataName = '\0';
+
+         ptr = DataName;
+         while( isspace( (unsigned char)*--ptr ) ) *ptr = '\0';
+      }
+
+      blWasSemicolon=false;
 
       do { DataName++;
       } while ( isspace( (unsigned char)*DataName ) && *DataName != 0 );
@@ -112,23 +124,20 @@ public:
         ptr = strchr( ++DataValue, '\"' );
 
         if ( ptr != NULL )
-          *ptr++ = 0;
+          *ptr++ = '\0';
       }
       else
       {
         ptr = DataValue;
 
-        while ( *ptr != 0 && !isspace((unsigned char)*ptr) && *ptr != ';' ) ptr++;
+        while ( *ptr != '\0' && !isspace((unsigned char)*ptr) && *ptr != ';' ) ptr++;
 
-        *ptr = 0;
+        if (*ptr == ';') blWasSemicolon = true;
+        if (*ptr != '\0')  *ptr++ = '\0';
       }
 
       if (*DataValue != '\0')
         m_Data[DataName] = (DWORD)DataValue;
-
-// TODO: может содержать больше чем один параметр
-// например: multipart/related; type="multipart/alternative"; boundary="----=_NextPart1"
-      break;
     }
   }
 
