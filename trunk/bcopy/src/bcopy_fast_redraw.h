@@ -34,7 +34,7 @@ extern HANDLE OpenConsoleIn(void);
 extern void WriteConsoleKey(HANDLE console,DWORD Key,DWORD State);
 extern void Redraw_Close(ThreadData *thdata);
 extern DWORD WINAPI TimeThread(LPVOID lpvThreadParm);
-extern long FastRedrawDefDlgProc(HANDLE hDlg,int Msg,int Param1,long Param2);
+extern LONG_PTR FastRedrawDefDlgProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2);
 extern void InitThreadData(ThreadData *Thread);
 extern void FreeThreadData(ThreadData *Thread);
 

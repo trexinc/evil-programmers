@@ -44,7 +44,7 @@ static bool add_macro(int index,const char *KeyIn,const char *Path)
     RegQueryValueEx(hKey,"Sequence",0,&Type,(LPBYTE)ValueBuffer,&DataSize);
     if(ValueBuffer[0])
     {
-      int SeqSize=strlen(ValueBuffer)+1; char *Seq;
+      int SeqSize=(int)strlen(ValueBuffer)+1; char *Seq;
       Seq=(char *)malloc(SeqSize);
       if(Seq)
       {
@@ -56,7 +56,7 @@ static bool add_macro(int index,const char *KeyIn,const char *Path)
           macros[index]=new_macros;
           macros[index][macro_count[index]].Key=UpperKey(KeyOut);
           macros[index][macro_count[index]].Seq=Seq;
-          macros[index][macro_count[index]].DisableOutput=DisableOutput;
+          macros[index][macro_count[index]].DisableOutput=DisableOutput?true:false;
           macro_count[index]++;
           res=true;
         }

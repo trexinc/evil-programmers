@@ -20,7 +20,7 @@ static unsigned long __small_printf(char *format,...)
   screen=CreateFileW(L"CONOUT$",GENERIC_WRITE,0,NULL,OPEN_EXISTING,0,NULL);
   if(screen!=INVALID_HANDLE_VALUE)
   {
-    WriteFile(screen,buff,strlen(buff),&transferred,NULL);
+    WriteFile(screen,buff,(DWORD)strlen(buff),&transferred,NULL);
     CloseHandle(screen);
   }
   return transferred;
@@ -40,7 +40,7 @@ BOOL AddEventSupport(void)
   if(RegCreateKeyW(HKEY_LOCAL_MACHINE,L"SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application\\"SVC_DISPLAYNAMEW,&hk))
     return FALSE;
   /* Add the Event ID message-file name to the subkey. */
-  if(RegSetValueExW(hk,L"EventMessageFile",0,REG_EXPAND_SZ,(LPBYTE)filename,(wcslen(filename)+1)*sizeof(wchar_t)))
+  if(RegSetValueExW(hk,L"EventMessageFile",0,REG_EXPAND_SZ,(LPBYTE)filename,(DWORD)((wcslen(filename)+1)*sizeof(wchar_t))))
     return FALSE;
   /* Set the supported types flags. */
   dwData=EVENTLOG_ERROR_TYPE|EVENTLOG_WARNING_TYPE|EVENTLOG_INFORMATION_TYPE;
@@ -194,7 +194,11 @@ void UnInstallService(void)
     __small_printf("OpenSCManager fail (%ld).\n",GetLastError());
 }
 
+#if defined(_MSC_VER)
+int __cdecl main()
+#else
 int mainCRTStartup()
+#endif
 {
   wchar_t **argv,*prog; int argc;
   SERVICE_TABLE_ENTRYW ste[] = {{SVC_NAMEW,ServiceMain},{NULL,NULL}};

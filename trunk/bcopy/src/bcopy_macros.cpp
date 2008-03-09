@@ -119,7 +119,7 @@ void load_macros(const char *registry)
       RegCloseKey(hKey);
     }
   }
-  FarBuild=Info.AdvControl(Info.ModuleNumber,ACTL_GETFARVERSION,0);
+  FarBuild=(unsigned long)Info.AdvControl(Info.ModuleNumber,ACTL_GETFARVERSION,0);
   FarBuild=HIWORD(FarBuild);
 }
 

@@ -25,7 +25,7 @@ enum
   LINK_IGNORE,
 };
 
-static long WINAPI LinkDlgProc(HANDLE hDlg,int Msg,int Param1,long Param2)
+static LONG_PTR WINAPI LinkDlgProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2)
 {
   OverwriteData *DlgParams=(OverwriteData *)Info.SendDlgMessage(hDlg,DM_GETDLGDATA,0,0);
   switch(Msg)
@@ -96,7 +96,7 @@ static bool ShowLink(InfoRec *receive,HANDLE Console,ThreadData *Thread)
     wcscpy(&(data.CommonData.FileNameW[0][0]),receive->Src);
     TruncPathStrW(&(data.CommonData.FileNameW[0][0]),68);
   }
-  int DlgCode=Info.DialogEx(Info.ModuleNumber,-1,-1,78,9,NULL,DialogItems,sizeofa(DialogItems),0,0,LinkDlgProc,(DWORD)&data);
+  int DlgCode=Info.DialogEx(Info.ModuleNumber,-1,-1,78,9,NULL,DialogItems,sizeofa(DialogItems),0,0,LinkDlgProc,(LONG_PTR)&data);
   if(DlgCode==-1) DlgCode=LINK_CLOSE;
   if(DlgCode<LINK_CLOSE)
   {
@@ -141,7 +141,7 @@ enum
   RETRY_ERROR,
 };
 
-static long WINAPI RetryDlgProc(HANDLE hDlg,int Msg,int Param1,long Param2)
+static LONG_PTR WINAPI RetryDlgProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2)
 {
   OverwriteData *DlgParams=(OverwriteData *)Info.SendDlgMessage(hDlg,DM_GETDLGDATA,0,0);
   switch(Msg)
@@ -252,12 +252,12 @@ static bool ShowRetry(InfoRec *receive,HANDLE Console,ThreadData *Thread)
     }
     //center
     for(int i=RETRY_FILE;i<(RETRY_ERROR+height);i++)
-      DialogItems[i].X1+=(width-strlen(DialogItems[i].Data))/2;
+      DialogItems[i].X1+=(width-(int)strlen(DialogItems[i].Data))/2;
   }
   if(!PlgOpt.IgnoreButton) DialogItems[RETRY_IGNORE].Flags|=DIF_HIDDEN;
   OverwriteData data={{Thread,0,{RETRY_FILE,-1},{L"",L""},Console,false,NULL,MACRO_RETRY,true,false},receive};
   if(Console!=INVALID_HANDLE_VALUE) NormalizeNameW(width,mExistCannotProcess,receive->Src,&(data.CommonData.FileNameW[0][0]));
-  int DlgCode=Info.DialogEx(Info.ModuleNumber,-1,-1,78,8+height,NULL,DialogItems,RETRY_ERROR+height,0,0,RetryDlgProc,(DWORD)&data);
+  int DlgCode=Info.DialogEx(Info.ModuleNumber,-1,-1,78,8+height,NULL,DialogItems,RETRY_ERROR+height,0,0,RetryDlgProc,(LONG_PTR)&data);
   if(DlgCode==-1) DlgCode=RETRY_CLOSE;
   if(DlgCode<RETRY_CLOSE)
   {
@@ -322,7 +322,7 @@ static void GetFileAttr(wchar_t *file,char *buffer,const char *format)
   }
 }
 
-static long WINAPI OverwriteDlgProc(HANDLE hDlg,int Msg,int Param1,long Param2)
+static LONG_PTR WINAPI OverwriteDlgProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2)
 {
   OverwriteData *DlgParams=(OverwriteData *)Info.SendDlgMessage(hDlg,DM_GETDLGDATA,0,0);
   switch(Msg)
@@ -401,7 +401,7 @@ static bool ShowOverwrite(InfoRec *receive,HANDLE Console,ThreadData *Thread)
     wcscpy(&(data.CommonData.FileNameW[0][0]),receive->Dest);
     TruncPathStrW(&(data.CommonData.FileNameW[0][0]),68);
   }
-  int DlgCode=Info.DialogEx(Info.ModuleNumber,-1,-1,78,12,NULL,DialogItems,sizeofa(DialogItems),0,0,OverwriteDlgProc,(DWORD)&data);
+  int DlgCode=Info.DialogEx(Info.ModuleNumber,-1,-1,78,12,NULL,DialogItems,sizeofa(DialogItems),0,0,OverwriteDlgProc,(LONG_PTR)&data);
   if(DlgCode==-1) DlgCode=OVERWRITE_CLOSE;
   if(DlgCode<OVERWRITE_CLOSE)
   {
@@ -457,7 +457,7 @@ struct InfoDlgParams
   DWORD Error;
 };
 
-static long WINAPI InfoDialogKeyProc(HANDLE hDlg,int Msg,int Param1,long Param2)
+static LONG_PTR WINAPI InfoDialogKeyProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2)
 {
   (void)Param1;
   InfoDlgParams *DlgParams=(InfoDlgParams *)Info.SendDlgMessage(hDlg,DM_GETDLGDATA,0,0);
@@ -474,7 +474,7 @@ static long WINAPI InfoDialogKeyProc(HANDLE hDlg,int Msg,int Param1,long Param2)
   return 0;
 }
 
-static long WINAPI InfoDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
+static LONG_PTR WINAPI InfoDialogProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2)
 {
   InfoDlgParams *DlgParams=(InfoDlgParams *)Info.SendDlgMessage(hDlg,DM_GETDLGDATA,0,0);
   switch(Msg)
@@ -499,20 +499,20 @@ static long WINAPI InfoDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
           Caption.PtrData=(char *)GetMsg(mInfoDlgContinue);
         else
           Caption.PtrData=(char *)GetMsg(mInfoDlgPause);
-        Caption.PtrLength=strlen(Caption.PtrData);
-        Info.SendDlgMessage(hDlg,DM_SETTEXT,3,(long)&Caption);
+        Caption.PtrLength=(int)strlen(Caption.PtrData);
+        Info.SendDlgMessage(hDlg,DM_SETTEXT,3,(LONG_PTR)&Caption);
         wcscpy(&(DlgParams->CommonData.FileNameW[0][0]),receive.Src); TruncPathStrW(&(DlgParams->CommonData.FileNameW[0][0]),66);
         WideCharToMultiByte(CP_OEMCP,0,receive.Src,-1,SrcA,sizeofa(SrcA),NULL,NULL);
         Caption.PtrData=FSF.TruncPathStr(SrcA,66);
-        Caption.PtrLength=strlen(Caption.PtrData);
-        Info.SendDlgMessage(hDlg,DM_SETTEXT,5,(long)&Caption);
+        Caption.PtrLength=(int)strlen(Caption.PtrData);
+        Info.SendDlgMessage(hDlg,DM_SETTEXT,5,(LONG_PTR)&Caption);
         if(receive.info.type<INFOTYPE_WIPE)
         {
           wcscpy(&(DlgParams->CommonData.FileNameW[1][0]),receive.Dest); TruncPathStrW(&(DlgParams->CommonData.FileNameW[1][0]),66);
           WideCharToMultiByte(CP_OEMCP,0,receive.Dest,-1,SrcA,sizeofa(SrcA),NULL,NULL);
           Caption.PtrData=FSF.TruncPathStr(SrcA,66);
-          Caption.PtrLength=strlen(Caption.PtrData);
-          Info.SendDlgMessage(hDlg,DM_SETTEXT,8,(long)&Caption);
+          Caption.PtrLength=(int)strlen(Caption.PtrData);
+          Info.SendDlgMessage(hDlg,DM_SETTEXT,8,(LONG_PTR)&Caption);
         }
         if((receive.info.InfoEx)&&(receive.TotalSize))
         {
@@ -528,7 +528,7 @@ static long WINAPI InfoDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
           if(llcurrent<(llstart+receive.PauseTime)) llcurrent=llstart+receive.PauseTime;
           if((receive.CurrentSize+receive.CurrentSizeAdd)!=0LL)
           {
-            double relation=receive.TotalSize;
+            double relation=(double)receive.TotalSize;
             relation/=(receive.CurrentSize+receive.CurrentSizeAdd);
             llfinish+=(unsigned long long)(relation*(llcurrent-llstart-receive.PauseTime))+receive.PauseTime;
           }
@@ -553,8 +553,8 @@ static long WINAPI InfoDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
           else
             sprintf(SrcA,GetMsg(mInfoDlgStatus1),receive.CurrentSize+receive.CurrentSizeAdd,receive.TotalSize);
           Caption.PtrData=SrcA;
-          Caption.PtrLength=strlen(Caption.PtrData);
-          Info.SendDlgMessage(hDlg,DM_SETTEXT,8+shift,(long)&Caption);
+          Caption.PtrLength=(int)strlen(Caption.PtrData);
+          Info.SendDlgMessage(hDlg,DM_SETTEXT,8+shift,(LONG_PTR)&Caption);
           { //normalize finish time
             normalize_2(FinishTime.wDay);
             normalize_2(FinishTime.wMonth);
@@ -568,8 +568,8 @@ static long WINAPI InfoDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
           else
             sprintf(SrcA,GetMsg(mInfoDlgStatus2),receive.StartTime.wDay,receive.StartTime.wMonth,receive.StartTime.wYear,receive.StartTime.wHour,receive.StartTime.wMinute,receive.StartTime.wSecond,FinishTime.wDay,FinishTime.wMonth,FinishTime.wYear,FinishTime.wHour,FinishTime.wMinute,FinishTime.wSecond);
           Caption.PtrData=SrcA;
-          Caption.PtrLength=strlen(Caption.PtrData);
-          Info.SendDlgMessage(hDlg,DM_SETTEXT,9+shift,(long)&Caption);
+          Caption.PtrLength=(int)strlen(Caption.PtrData);
+          Info.SendDlgMessage(hDlg,DM_SETTEXT,9+shift,(LONG_PTR)&Caption);
           double fCPS=((llcurrent-llstart-receive.PauseTime)/10000000.0);
           if(fCPS>0.0)
             fCPS=(receive.CurrentSize+receive.CurrentSizeAdd)/fCPS;
@@ -590,14 +590,14 @@ static long WINAPI InfoDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
           else
             sprintf(SrcA,GetMsg((receive.SizeType)?mInfoDlgStatus3b:mInfoDlgStatus3),receive.Errors,CPS);
           Caption.PtrData=SrcA;
-          Caption.PtrLength=strlen(Caption.PtrData);
-          Info.SendDlgMessage(hDlg,DM_SETTEXT,10+shift,(long)&Caption);
+          Caption.PtrLength=(int)strlen(Caption.PtrData);
+          Info.SendDlgMessage(hDlg,DM_SETTEXT,10+shift,(LONG_PTR)&Caption);
 
           char *Fill=(char *)GetMsg(mInfoDlgFill);
           char Gauge[62];
           percent=0;
           if(receive.TotalSize!=0LL)
-            percent=(receive.CurrentSize+receive.CurrentSizeAdd)*61/receive.TotalSize;
+            percent=(unsigned int)((receive.CurrentSize+receive.CurrentSizeAdd)*61/receive.TotalSize);
           for(unsigned int i=0;i<percent;i++)
             Gauge[i]=Fill[0];
           for(unsigned int i=percent;i<61;i++)
@@ -605,18 +605,18 @@ static long WINAPI InfoDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
           Gauge[61]=0;
           percent=0;
           if(receive.TotalSize!=0LL)
-            percent=(receive.CurrentSize+receive.CurrentSizeAdd)*100/receive.TotalSize;
+            percent=(unsigned int)((receive.CurrentSize+receive.CurrentSizeAdd)*100/receive.TotalSize);
           if(percent>100) percent=100;
           sprintf(SrcA,GetMsg(mInfoDlgStatus4),percent,Gauge);
           Caption.PtrData=SrcA;
-          Caption.PtrLength=strlen(Caption.PtrData);
-          Info.SendDlgMessage(hDlg,DM_SETTEXT,11+shift,(long)&Caption);
+          Caption.PtrLength=(int)strlen(Caption.PtrData);
+          Info.SendDlgMessage(hDlg,DM_SETTEXT,11+shift,(LONG_PTR)&Caption);
         }
         else if(receive.info.InfoEx)
         {
           Caption.PtrData=(char *)GetMsg(mInfoDlgWait);
-          Caption.PtrLength=strlen(Caption.PtrData);
-          Info.SendDlgMessage(hDlg,DM_SETTEXT,8+shift,(long)&Caption);
+          Caption.PtrLength=(int)strlen(Caption.PtrData);
+          Info.SendDlgMessage(hDlg,DM_SETTEXT,8+shift,(LONG_PTR)&Caption);
         }
         //refresh
         Info.SendDlgMessage(hDlg,DM_SETREDRAW,0,0);
@@ -749,7 +749,7 @@ void ShowInfoDialog(SmallInfoRec *receive)
   InitThreadData(&Thread);
   InfoDlgParams DlgParams={{&Thread,0,{5,(receive->type<INFOTYPE_WIPE)?8:-1},{L"",L""},INVALID_HANDLE_VALUE,false,InfoDialogKeyProc,MACRO_INFO,true,false},receive->ThreadId,PlgOpt.CurrentTime,PlgOpt.FormatSize,0};
   if(PlgOpt.ShowUnicode) DlgParams.CommonData.Console=CreateFileW(L"CONOUT$",GENERIC_WRITE,FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
-  int DlgCode=Info.DialogEx(Info.ModuleNumber,-1,-1,76,height,"Info",DialogItems,i,0,0,InfoDialogProc,(DWORD)&DlgParams);
+  int DlgCode=Info.DialogEx(Info.ModuleNumber,-1,-1,76,height,"Info",DialogItems,i,0,0,InfoDialogProc,(LONG_PTR)&DlgParams);
   PlgOpt.CurrentTime=DlgParams.Time; PlgOpt.FormatSize=DlgParams.Format;
   if(DlgParams.CommonData.Console!=INVALID_HANDLE_VALUE) CloseHandle(DlgParams.CommonData.Console);
   FreeThreadData(&Thread);

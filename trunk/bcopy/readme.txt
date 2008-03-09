@@ -24,10 +24,11 @@ E-mail: zg@bmg.lv
 
 History
 
-v1.3 build 56 01-03-2008
+v1.3 build 57 09-03-2008
 - token stuff removed.
 - show name buffer overflow fixed.
 - "/P" key to bcsvc.exe added.
+- x64 version
 
 v1.2 build 54 01-04-2004
 - techinfo#3 description is corrected.

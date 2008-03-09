@@ -1,7 +1,7 @@
 #include "../../plugin.hpp"
 #include "bcplugin.h"
 
-static long WINAPI ColorDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
+static LONG_PTR WINAPI ColorDialogProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2)
 {
   int color=0; FarDialogItem DialogItem;
   switch(Msg)
@@ -10,7 +10,7 @@ static long WINAPI ColorDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
     case DN_BTNCLICK:
       for(int i=1;i<17;i++)
       {
-        Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,(long)&DialogItem);
+        Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,(LONG_PTR)&DialogItem);
         if(DialogItem.Selected)
         {
           color|=(DialogItem.Flags&0xF0)>>4;
@@ -19,7 +19,7 @@ static long WINAPI ColorDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
       }
       for(int i=18;i<34;i++)
       {
-        Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,(long)&DialogItem);
+        Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,(LONG_PTR)&DialogItem);
         if(DialogItem.Selected)
         {
           color|=(DialogItem.Flags&0xF0);
@@ -28,9 +28,9 @@ static long WINAPI ColorDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
       }
       for(int i=36;i<39;i++)
       {
-        Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,(long)&DialogItem);
+        Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,(LONG_PTR)&DialogItem);
         DialogItem.Flags=(DialogItem.Flags&0xffffff00)|color;
-        Info.SendDlgMessage(hDlg,DM_SETDLGITEM,i,(long)&DialogItem);
+        Info.SendDlgMessage(hDlg,DM_SETDLGITEM,i,(LONG_PTR)&DialogItem);
       }
       break;
   }

@@ -21,7 +21,7 @@ static HANDLE QueueSemaphore=NULL;
 void InitInfo(void)
 {
   HKEY hKey; DWORD Type,DataSize;
-  if((RegOpenKeyExW(HKEY_LOCAL_MACHINE,L"SYSTEM\\CurrentControlSet\\Services\\"SVC_NAMEW"\\Parameters",0,KEY_QUERY_VALUE,&hKey))==ERROR_SUCCESS)
+  if((RegOpenKeyExW(HKEY_LOCAL_MACHINE,L"SYSTEM\\CurrentControlSet\\Services\\"TEXTW(SVC_NAME)L"\\Parameters",0,KEY_QUERY_VALUE,&hKey))==ERROR_SUCCESS)
   {
     DataSize=sizeof(MaxError);
     RegQueryValueExW(hKey,L"MaxError",0,&Type,(LPBYTE)&MaxError,&DataSize);
@@ -403,9 +403,9 @@ BOOL UpdatePosInfo(unsigned long long add,unsigned long long subadd)
         {
           if(Info[i].TotalSize>=(Info[i].CurrentSize+Info[i].CurrentSizeAdd))
           {
-            percent=(Info[i].CurrentSize+Info[i].CurrentSizeAdd);
+            percent=(double)(Info[i].CurrentSize+Info[i].CurrentSizeAdd);
             percent=percent/Info[i].TotalSize*100;
-            Info[i].info.percent=percent;
+            Info[i].info.percent=(DWORD)percent;
           }
           else
             Info[i].info.percent=100;
@@ -426,7 +426,7 @@ BOOL UpdatePosInfo(unsigned long long add,unsigned long long subadd)
           if(lldiff>2000000ULL)
           {
             double fAdd=(Info[i].CurrentSize+Info[i].CurrentSizeAdd)*1000.0/Info[i].CPS-lldiff/10000.0;
-            if(fAdd>100.0) SleepTime=floor(fAdd);
+            if(fAdd>100.0) SleepTime=(DWORD)floor(fAdd);
           }
         }
         break;

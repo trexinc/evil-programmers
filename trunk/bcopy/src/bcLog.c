@@ -44,7 +44,7 @@ void LogEx(wchar_t *Func,wchar_t *parm1,wchar_t *parm2)
       if(parm2==NULL) count--;
       if(parm1==NULL) count--;
 
-      AddToMessageLog(MSG_ERROR2-4+count,count,(LPCWSTR *)ErrStrings);
+      AddToMessageLog(MSG_ERROR2-4+count,(WORD)count,(LPCWSTR *)ErrStrings);
       LocalFree(msg);
       break;
     }

@@ -109,7 +109,7 @@ void ServiceStart(BOOL aService)
   }
   for(i=0;i<GetThreadCount();i++)
   {
-    threads[i]=CreateThread(NULL,0,ServiceStartThread,(void *)i,CREATE_SUSPENDED,&ThreadID);
+    threads[i]=CreateThread(NULL,0,ServiceStartThread,(void *)(DWORD_PTR)i,CREATE_SUSPENDED,&ThreadID);
     if(threads[i])
     {
       SetThreadPriority(threads[i],GetHearPriority());
@@ -158,7 +158,7 @@ static DWORD WINAPI ServiceStartThread(LPVOID lpvThreadParm)
   HANDLE hThread;
   DWORD ThreadID;
   BOOL connected=FALSE;
-  DWORD index=(DWORD)lpvThreadParm;
+  DWORD index=(DWORD)(DWORD_PTR)lpvThreadParm;
 
   // Service initialization
   hServerStopEvent[index]=CreateEventW(NULL,TRUE,FALSE,NULL);
@@ -298,8 +298,8 @@ static DWORD WINAPI ServiceStartThread(LPVOID lpvThreadParm)
     }
     else if((dCode==OPERATION_PWD)&&(dFlags&(PWDFLAG_CLEAR|PWDFLAG_SET)))
     {
-      LogSys(L"Obsolete",NULL,NULL);
       DWORD result_error=ERROR_SUCCESS;
+      LogSys(L"Obsolete",NULL,NULL);
       TRANSFER_DATA(WriteFile,&result_error,sizeof(result_error))
     }
     else if(dCode==OPERATION_ANSWER)

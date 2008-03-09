@@ -74,8 +74,8 @@ enum
 */
 };
 
-static long WINAPI Config2DialogProc(HANDLE hDlg,int Msg,int Param1,long Param2);
-static long WINAPI Config3DialogProc(HANDLE hDlg,int Msg,int Param1,long Param2);
+static LONG_PTR WINAPI Config2DialogProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2);
+static LONG_PTR WINAPI Config3DialogProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2);
 
 struct ComboPos
 {
@@ -367,11 +367,11 @@ static int Config()
       static struct InitDialogItem InitItems[]={
       /*00*/  {DI_DOUBLEBOX,3,1,73,10,0,0,0,0,(char *)mName},
       /*01*/  {DI_TEXT,5,2,0,0,0,0,0,0,(char *)mConfigMaxErrors},
-      /*02*/  {DI_FIXEDIT,0,2,0,0,1,(int)"#####9",DIF_MASKEDIT,0,"20"},
+      /*02*/  {DI_FIXEDIT,0,2,0,0,1,(DWORD_PTR)"#####9",DIF_MASKEDIT,0,"20"},
       /*03*/  {DI_TEXT,5,3,0,0,0,0,0,0,(char *)mConfigThreadCount},
-      /*04*/  {DI_FIXEDIT,0,3,0,0,0,(int)"#9",DIF_MASKEDIT,0," 4"},
+      /*04*/  {DI_FIXEDIT,0,3,0,0,0,(DWORD_PTR)"#9",DIF_MASKEDIT,0," 4"},
       /*05*/  {DI_TEXT,5,4,0,0,0,0,0,0,(char *)mConfigQueueSize},
-      /*06*/  {DI_FIXEDIT,0,4,0,0,0,(int)"#####9",DIF_MASKEDIT,0," 4"},
+      /*06*/  {DI_FIXEDIT,0,4,0,0,0,(DWORD_PTR)"#####9",DIF_MASKEDIT,0," 4"},
       /*07*/  {DI_TEXT,5,5,0,0,0,0,0,0,(char *)mConfigWork},
       /*08*/  {DI_COMBOBOX,0,5,71,0,0,0,DIF_DROPDOWNLIST,0,""},
       /*09*/  {DI_TEXT,5,6,0,0,0,0,0,0,(char *)mConfigHear},
@@ -390,7 +390,7 @@ static int Config()
         int labels[]={CONFIGDLG3_LMAXERROR,CONFIGDLG3_LTHREAD,CONFIGDLG3_LQUEUESIZE,CONFIGDLG3_LWORKPR,CONFIGDLG3_LHEARPR};
         for(unsigned int i=0;i<sizeofa(labels);i++)
         {
-          unsigned int cur_len=strlen(DialogItems[labels[i]].Data);
+          unsigned int cur_len=(unsigned int)strlen(DialogItems[labels[i]].Data);
           if(max<cur_len) max=cur_len;
         }
       }
@@ -441,7 +441,7 @@ static int Config()
         if(WorkPriority==PriorityValues[i]) data.WorkPos=i;
         if(HearPriority==PriorityValues[i]) data.HearPos=i;
       }
-      int DlgCode=Info.DialogEx(Info.ModuleNumber,-1,-1,77,12,"Config3",DialogItems,sizeofa(DialogItems),0,0,Config3DialogProc,(DWORD)&data);
+      int DlgCode=Info.DialogEx(Info.ModuleNumber,-1,-1,77,12,"Config3",DialogItems,sizeofa(DialogItems),0,0,Config3DialogProc,(LONG_PTR)&data);
       if(DlgCode==CONFIGDLG3_SAVE)
       {
         if((RegCreateKeyEx(HKEY_LOCAL_MACHINE,"SYSTEM\\CurrentControlSet\\Services\\"SVC_NAME"\\Parameters",0,NULL,0,KEY_WRITE,NULL,&hKey,&Disposition))==ERROR_SUCCESS)
@@ -470,7 +470,7 @@ static int Config()
   return FALSE;
 }
 
-static long WINAPI Config2DialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
+static LONG_PTR WINAPI Config2DialogProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2)
 {
   switch(Msg)
   {
@@ -495,16 +495,16 @@ static long WINAPI Config2DialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
   return Info.DefDlgProc(hDlg,Msg,Param1,Param2);
 }
 
-static long WINAPI Config3DialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
+static LONG_PTR WINAPI Config3DialogProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2)
 {
   switch(Msg)
   {
     case DN_INITDIALOG:
       {
         FarListPos pos={((ComboPos *)Param2)->WorkPos,-1};
-        Info.SendDlgMessage(hDlg,DM_LISTSETCURPOS,CONFIGDLG3_EWORKPR,(long)&pos);
+        Info.SendDlgMessage(hDlg,DM_LISTSETCURPOS,CONFIGDLG3_EWORKPR,(LONG_PTR)&pos);
         pos.SelectPos=((ComboPos *)Param2)->HearPos;
-        Info.SendDlgMessage(hDlg,DM_LISTSETCURPOS,CONFIGDLG3_EHEARPR,(long)&pos);
+        Info.SendDlgMessage(hDlg,DM_LISTSETCURPOS,CONFIGDLG3_EHEARPR,(LONG_PTR)&pos);
       }
       break;
 /*

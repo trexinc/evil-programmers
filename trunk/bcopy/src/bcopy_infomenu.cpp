@@ -77,10 +77,10 @@ static void UpdateItem(FarListItem *item,SmallInfoRec *data,int width)
 
 static int WidthToPathWidth(int width)
 {
-  return width-strlen(GetMsg(mInfoCopy))-12-(2*strlen(GetMsg(mInfoSep))-1+4);
+  return width-(int)strlen(GetMsg(mInfoCopy))-12-(int)(2*strlen(GetMsg(mInfoSep))-1+4);
 }
 
-static long WINAPI InfoMenuProc(HANDLE hDlg,int Msg,int Param1,long Param2)
+static LONG_PTR WINAPI InfoMenuProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2)
 {
   InfoMenuData *DlgParams=(InfoMenuData *)Info.SendDlgMessage(hDlg,DM_GETDLGDATA,0,0);
   switch(Msg)
@@ -97,7 +97,7 @@ static long WINAPI InfoMenuProc(HANDLE hDlg,int Msg,int Param1,long Param2)
         int Count=sizeofa(ColorIndex);
         if(Count>Colors->ColorCount) Count=Colors->ColorCount;
         for(int i=0;i<Count;i++)
-          Colors->Colors[i]=Info.AdvControl(Info.ModuleNumber,ACTL_GETCOLOR,(void *)(ColorIndex[i]));
+          Colors->Colors[i]=(BYTE)Info.AdvControl(Info.ModuleNumber,ACTL_GETCOLOR,(void *)(INT_PTR)(ColorIndex[i]));
         return TRUE;
       }
       break;
@@ -105,10 +105,10 @@ static long WINAPI InfoMenuProc(HANDLE hDlg,int Msg,int Param1,long Param2)
       {
         FarListTitles titles;
         titles.Title=(char *)GetMsg(mName);
-        titles.TitleLen=strlen(titles.Title);
+        titles.TitleLen=(int)strlen(titles.Title);
         titles.Bottom=(char *)GetMsg(mInfoBottom);
-        titles.BottomLen=strlen(titles.Bottom);
-        Info.SendDlgMessage(hDlg,DM_LISTSETTITLES,0,(long)&titles);
+        titles.BottomLen=(int)strlen(titles.Bottom);
+        Info.SendDlgMessage(hDlg,DM_LISTSETTITLES,0,(LONG_PTR)&titles);
       }
       break;
     case DN_DRAWDIALOG:
@@ -145,7 +145,7 @@ static long WINAPI InfoMenuProc(HANDLE hDlg,int Msg,int Param1,long Param2)
               DWORD old_pos=0; bool restore_pos=false;
               if(DlgParams->count)
               {
-                DWORD pos=Info.SendDlgMessage(hDlg,DM_LISTGETCURPOS,0,(long)NULL);
+                DWORD pos=(DWORD)Info.SendDlgMessage(hDlg,DM_LISTGETCURPOS,0,(LONG_PTR)NULL);
                 if(pos<DlgParams->count)
                 {
                   old_pos=DlgParams->id[pos].ThreadId;
@@ -158,14 +158,14 @@ static long WINAPI InfoMenuProc(HANDLE hDlg,int Msg,int Param1,long Param2)
               Info.SendDlgMessage(hDlg,DM_ENABLEREDRAW,FALSE,0);
               for(DWORD i=0;i<size;i++)
               {
-                length=wcslen(receive[i].Src);
+                length=(DWORD)wcslen(receive[i].Src);
                 if(length>width) width=length;
               }
-              width+=strlen(GetMsg(mInfoCopy));
-              width+=2*strlen(GetMsg(mInfoSep))-1+4; // -1 for headers, 4 for percents
-              length=strlen(GetMsg(mName));
+              width+=(DWORD)strlen(GetMsg(mInfoCopy));
+              width+=(DWORD)(2*strlen(GetMsg(mInfoSep)))-1+4; // -1 for headers, 4 for percents
+              length=(DWORD)strlen(GetMsg(mName));
               if(length>width) width=length;
-              length=strlen(GetMsg(mInfoBottom));
+              length=(DWORD)strlen(GetMsg(mInfoBottom));
               if(length>width) width=length;
               width+=12;
               height=size+4;
@@ -181,17 +181,17 @@ static long WINAPI InfoMenuProc(HANDLE hDlg,int Msg,int Param1,long Param2)
               path_width=WidthToPathWidth(width);
               { //minimize listbox
                 SMALL_RECT listbox_size={3,1,4,2};
-                Info.SendDlgMessage(hDlg,DM_SETITEMPOSITION,0,(long)&listbox_size);
+                Info.SendDlgMessage(hDlg,DM_SETITEMPOSITION,0,(LONG_PTR)&listbox_size);
               }
               { //resize and move dialog
-                COORD dialog_size={width,height};
-                Info.SendDlgMessage(hDlg,DM_RESIZEDIALOG,0,(long)&dialog_size);
+                COORD dialog_size={(SHORT)width,(SHORT)height};
+                Info.SendDlgMessage(hDlg,DM_RESIZEDIALOG,0,(LONG_PTR)&dialog_size);
                 COORD position={-1,-1};
-                Info.SendDlgMessage(hDlg,DM_MOVEDIALOG,TRUE,(long)&position);
+                Info.SendDlgMessage(hDlg,DM_MOVEDIALOG,TRUE,(LONG_PTR)&position);
               }
               { //resize listbox
-                SMALL_RECT listbox_size={3,1,width-4,height-2};
-                Info.SendDlgMessage(hDlg,DM_SETITEMPOSITION,0,(long)&listbox_size);
+                SMALL_RECT listbox_size={3,1,(SHORT)width-4,(SHORT)height-2};
+                Info.SendDlgMessage(hDlg,DM_SETITEMPOSITION,0,(LONG_PTR)&listbox_size);
               }
               { //refresh listbox
                 FarListPos new_pos={0,-1};
@@ -200,15 +200,15 @@ static long WINAPI InfoMenuProc(HANDLE hDlg,int Msg,int Param1,long Param2)
                 FarList list={size,list_items};
                 if(list_items)
                 {
-                  Info.SendDlgMessage(hDlg,DM_LISTDELETE,0,(long)&clear);
+                  Info.SendDlgMessage(hDlg,DM_LISTDELETE,0,(LONG_PTR)&clear);
                   for(DWORD i=0;i<size;i++)
                   {
                     UpdateItem(list_items+i,receive+i,path_width);
                     if(restore_pos&&receive[i].ThreadId==old_pos) new_pos.SelectPos=i;
                   }
-                  Info.SendDlgMessage(hDlg,DM_LISTADD,0,(long)&list);
+                  Info.SendDlgMessage(hDlg,DM_LISTADD,0,(LONG_PTR)&list);
                   free(list_items);
-                  if(restore_pos) Info.SendDlgMessage(hDlg,DM_LISTSETCURPOS,0,(long)&new_pos);
+                  if(restore_pos) Info.SendDlgMessage(hDlg,DM_LISTSETCURPOS,0,(LONG_PTR)&new_pos);
                 }
               }
               Info.SendDlgMessage(hDlg,DM_ENABLEREDRAW,TRUE,0);
@@ -228,7 +228,7 @@ static long WINAPI InfoMenuProc(HANDLE hDlg,int Msg,int Param1,long Param2)
             else
             {
               SMALL_RECT in;
-              Info.SendDlgMessage(hDlg,DM_GETDLGRECT,0,(long)&in);
+              Info.SendDlgMessage(hDlg,DM_GETDLGRECT,0,(LONG_PTR)&in);
               path_width=WidthToPathWidth(in.Right-in.Left+1);
               for(DWORD i=0;i<size;i++)
               {
@@ -236,9 +236,9 @@ static long WINAPI InfoMenuProc(HANDLE hDlg,int Msg,int Param1,long Param2)
                 {
                   FarListGetItem item;
                   item.ItemIndex=i;
-                  Info.SendDlgMessage(hDlg,DM_LISTGETITEM,0,(long)&item);
+                  Info.SendDlgMessage(hDlg,DM_LISTGETITEM,0,(LONG_PTR)&item);
                   UpdateItem(&(item.Item),receive+i,path_width);
-                  Info.SendDlgMessage(hDlg,DM_LISTUPDATE,0,(long)&item);
+                  Info.SendDlgMessage(hDlg,DM_LISTUPDATE,0,(LONG_PTR)&item);
                 }
               }
               free(DlgParams->id);
@@ -255,7 +255,7 @@ static long WINAPI InfoMenuProc(HANDLE hDlg,int Msg,int Param1,long Param2)
       break;
     case DN_CLOSE:
       {
-        DWORD pos=Info.SendDlgMessage(hDlg,DM_LISTGETCURPOS,0,0);
+        DWORD pos=(DWORD)Info.SendDlgMessage(hDlg,DM_LISTGETCURPOS,0,0);
         if((Param1==0)&&(DlgParams->id)&&(pos<DlgParams->count))
         {
           Info.SendDlgMessage(hDlg,DM_SHOWDIALOG,FALSE,0);
@@ -274,7 +274,7 @@ static long WINAPI InfoMenuProc(HANDLE hDlg,int Msg,int Param1,long Param2)
   return FastRedrawDefDlgProc(hDlg,Msg,Param1,Param2);
 }
 
-static long WINAPI InfoMenuDialogKeyProc(HANDLE hDlg,int Msg,int Param1,long Param2)
+static LONG_PTR WINAPI InfoMenuDialogKeyProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2)
 {
   (void)Param1;
   InfoMenuData *DlgParams=(InfoMenuData *)Info.SendDlgMessage(hDlg,DM_GETDLGDATA,0,0);
@@ -282,7 +282,7 @@ static long WINAPI InfoMenuDialogKeyProc(HANDLE hDlg,int Msg,int Param1,long Par
   {
     if(((Param2==KEY_SPACE)||(Param2==KEY_DEL))&&DlgParams->count)
     {
-      DWORD pos=Info.SendDlgMessage(hDlg,DM_LISTGETCURPOS,0,0);
+      DWORD pos=(DWORD)Info.SendDlgMessage(hDlg,DM_LISTGETCURPOS,0,0);
       if(pos<DlgParams->count)
         switch(Param2)
         {
@@ -306,7 +306,7 @@ void WINAPI _export ShowInfoMenu(void)
   ThreadData Thread={FALSE,NULL,NULL,NULL,PlgOpt.RefreshInterval};
   InitThreadData(&Thread);
   InfoMenuData params={{&Thread,0,{-1,-1},{L"",L""},INVALID_HANDLE_VALUE,false,InfoMenuDialogKeyProc,MACRO_INFO_MENU,true,false},0,NULL,true,true};
-  Info.DialogEx(Info.ModuleNumber,-1,-1,0,0,"InfoMenu",DialogItems,sizeofa(DialogItems),0,0,InfoMenuProc,(DWORD)&params);
+  Info.DialogEx(Info.ModuleNumber,-1,-1,0,0,"InfoMenu",DialogItems,sizeofa(DialogItems),0,0,InfoMenuProc,(LONG_PTR)&params);
   FreeThreadData(&Thread);
   free(params.id);
 }

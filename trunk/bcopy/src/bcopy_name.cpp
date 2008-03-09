@@ -8,7 +8,7 @@ struct Splited
   wchar_t Name[4][66];
 };
 
-static long WINAPI NameDlgProc(HANDLE hDlg,int Msg,int Param1,long Param2)
+static LONG_PTR WINAPI NameDlgProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2)
 {
   Splited *DlgParams=(Splited *)Info.SendDlgMessage(hDlg,DM_GETDLGDATA,0,0);
   switch(Msg)
@@ -18,11 +18,11 @@ static long WINAPI NameDlgProc(HANDLE hDlg,int Msg,int Param1,long Param2)
       {
         DWORD written; COORD coord;
         SMALL_RECT Rect;
-        Info.SendDlgMessage(hDlg,DM_GETDLGRECT,0,(long)&Rect);
+        Info.SendDlgMessage(hDlg,DM_GETDLGRECT,0,(LONG_PTR)&Rect);
         coord.X=Rect.Left+((FarDialogItem *)Param2)->X1;
         coord.Y=Rect.Top+((FarDialogItem *)Param2)->Y1;
         wchar_t *string=DlgParams->Name[Param1-1];
-        DWORD string_len=wcslen(string);
+        DWORD string_len=(DWORD)wcslen(string);
         WriteConsoleOutputCharacterW(DlgParams->Console,string,string_len,coord,&written);
       }
       break;
@@ -36,7 +36,7 @@ static long WINAPI NameDlgProc(HANDLE hDlg,int Msg,int Param1,long Param2)
 void ShowName(const wchar_t *Name)
 {
   Splited Names;
-  unsigned long length=wcslen(Name);
+  unsigned long length=(unsigned long)wcslen(Name);
   for(unsigned int i=0;i<sizeofa(Names.Name);i++) Names.Name[i][0]=0;
   for(unsigned int i=0;i<sizeofa(Names.Name);i++)
   {
@@ -64,7 +64,7 @@ void ShowName(const wchar_t *Name)
   Names.Console=CreateFileW(L"CONOUT$",GENERIC_WRITE,FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
   if(Names.Console!=INVALID_HANDLE_VALUE)
   {
-    Info.DialogEx(Info.ModuleNumber,-1,-1,75,8,"ShowName",DialogItems,sizeofa(DialogItems),0,0,NameDlgProc,(DWORD)&Names);
+    Info.DialogEx(Info.ModuleNumber,-1,-1,75,8,"ShowName",DialogItems,sizeofa(DialogItems),0,0,NameDlgProc,(LONG_PTR)&Names);
     CloseHandle(Names.Console);
   }
 }
