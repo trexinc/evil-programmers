@@ -1,0 +1,67 @@
+REGEDIT4
+
+[HKEY_CURRENT_USER\Software\Far\Plugins\BCopy]
+;------------------------------------------------------------------------
+; 1. TechForceEject
+;
+; This parameter affects ejection of removable media (CD-ROM, MO etc.)
+;
+; Valid values are:
+;   0 - if the drive is opened by another program, there will be error
+;       message and the media will not be ejected.
+;   1 - this value forces media ejection regardless of other programs.
+;
+;   Default value: 0
+;
+"TechForceEject"=dword:0
+
+;------------------------------------------------------------------------
+; 2. TechShowUnicode
+;
+; This parameter turns on displaying Unicode filenames in some plugin's
+; dialogs.
+;
+; Valid values are:
+;   0 - standard behavior, when symbols absent in OEM-codepage are displaying
+;       as question marks.
+;   1 - try to display all symbols (true-type font is required, such as
+;       Lucida Console).
+;
+;   Default value: 0
+;
+"TechShowUnicode"=dword:0
+
+;------------------------------------------------------------------------
+; 3. TechRefreshInterval
+;
+; This parameter sets interval of refreshing the information dialog
+; ("Z Info") in milliseconds.
+; For example, the value of 000001f4 (500) means refresh twice per second.
+; It is NOT recommended to set the interval less than 100ms because it can
+; overload your CPU and slow down background tasks.
+;
+; The value of 0 turns on standard mode. It means the refreshing only will
+; happen when FAR reports idle state (usually it does so every 1-1.5 sec).
+;
+;   Default value: 000000fa (250ms)
+;
+"TechRefreshInterval"=dword:000000fa
+
+;------------------------------------------------------------------------
+; 4. TechPreload
+;
+; This options influences the loading of the plugin.
+;
+; Valid values are:
+;   0 - plugin is loaded when needed.
+;   1 - plugin is loaded when FAR Manager starts.
+;
+;   Default value: 0
+;
+; You will be needing this option when you want the plugin to be called from
+; external apps. This plugin exports the following function for other apps to
+; call it:
+;
+; void WINAPI ShowInfoMenu(void)
+;
+"TechPreload"=dword:0
