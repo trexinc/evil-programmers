@@ -429,7 +429,7 @@ HANDLE WINAPI _export OpenPlugin(int OpenFrom,int Item)
           static struct InitDialogItem InitDlg[]={
           /* 0*/  {DI_DOUBLEBOX,3,1,72,19,0,0,0,0,(char *)mCpyDlgCopyTitle},
           /* 1*/  {DI_TEXT,5,2,0,0,0,0,DIF_SHOWAMPERSAND,0,""},
-          /* 2*/  {DI_EDIT,5,3,70,0,1,(DWORD)BCopyCopyHistoryName,DIF_HISTORY,0,""},
+          /* 2*/  {DI_EDIT,5,3,70,0,1,(DWORD_PTR)BCopyCopyHistoryName,DIF_HISTORY,0,""},
           /* 3*/  {DI_TEXT,5,4,0,0,0,0,DIF_BOXCOLOR|DIF_SEPARATOR,0,""},
           /* 4*/  {DI_RADIOBUTTON,5,5,0,0,0,0,DIF_GROUP,0,(char *)mCpyDlgOpt1},
           /* 5*/  {DI_RADIOBUTTON,5,6,0,0,0,0,0,0,(char *)mCpyDlgOpt2},
@@ -474,7 +474,7 @@ HANDLE WINAPI _export OpenPlugin(int OpenFrom,int Item)
           }
           strcpy(DialogItems[COPYDLG_LTO].Data,dialog_data.CopyMessage);
           strcpy(DialogItems[COPYDLG_ETO].Data,DestA);
-          int DlgCode=Info.DialogEx(Info.ModuleNumber,-1,-1,76,21,"Copy",DialogItems,sizeofa(InitDlg),0,0,CopyDialogProc,(DWORD)&dialog_data);
+          int DlgCode=Info.DialogEx(Info.ModuleNumber,-1,-1,76,21,"Copy",DialogItems,sizeofa(InitDlg),0,0,CopyDialogProc,(LONG_PTR)&dialog_data);
           if(DlgCode==COPYDLG_OK)
           {
             FSF.Unquote(DialogItems[COPYDLG_ETO].Data);
@@ -598,7 +598,7 @@ HANDLE WINAPI _export OpenPlugin(int OpenFrom,int Item)
             {
               if(bcopy_flags[BCOPY_REN_COPY]&&bcopy_flags[BCOPY_NOREAL_COPY]&&bcopy_flags[BCOPY_MOVE])
               { //don't create renamed dir
-                int last_char_index=strlen(DestA)-1;
+                int last_char_index=(int)strlen(DestA)-1;
                 if(DestA[last_char_index]=='\\')
                   DestA[last_char_index]=0;
               }
@@ -690,7 +690,7 @@ copyexit:
           else
             NormalizeName(InitDlg[0].X2-InitDlg[0].X1-3,mDelDlgDelete1,PInfo.SelectedItems[0].FindData.cFileName,DialogItems[1].Data);
           CommonDialogData dialog_data={TRUE};
-          int DlgCode=Info.DialogEx(Info.ModuleNumber,-1,-1,66,10,"Delete",DialogItems,sizeofa(InitDlg),0,0,DelDialogProc,(DWORD)&dialog_data);
+          int DlgCode=Info.DialogEx(Info.ModuleNumber,-1,-1,66,10,"Delete",DialogItems,sizeofa(InitDlg),0,0,DelDialogProc,(LONG_PTR)&dialog_data);
           if(DlgCode==6)
           {
             send[0]=OPERATION_COPY;
@@ -762,8 +762,8 @@ copyexit:
             sprintf(DialogItems[1].Data,GetMsg(mAttrDlgChangeN+NumberType(PInfo.SelectedItemsNumber)),PInfo.SelectedItemsNumber);
           else
             NormalizeName(InitDlg[0].X2-InitDlg[0].X1-3,mAttrDlgChange1,PInfo.SelectedItems[0].FindData.cFileName,DialogItems[1].Data);
-          DialogItems[1].X1=4+(37-strlen(DialogItems[1].Data))/2;
-          DialogItems[2].X1=4+(37-strlen(DialogItems[2].Data))/2;
+          DialogItems[1].X1=4+(37-(int)strlen(DialogItems[1].Data))/2;
+          DialogItems[2].X1=4+(37-(int)strlen(DialogItems[2].Data))/2;
           { // clear read-only attribute, when copying from CD
             char Volume[MAX_PATH],VolumeName[MAX_PATH],VolumeFS[MAX_PATH];
             DWORD VolumeSerialNumber,MaximumComponentLength,FileSystemFlags;
@@ -773,7 +773,7 @@ copyexit:
                 DialogItems[8].Flags&=~DIF_DISABLE;
           }
           CommonDialogData dialog_data={TRUE};
-          int DlgCode=Info.DialogEx(Info.ModuleNumber,-1,-1,45,14,"Attributes",DialogItems,sizeofa(InitDlg),0,0,AttrDialogProc,(DWORD)&dialog_data);
+          int DlgCode=Info.DialogEx(Info.ModuleNumber,-1,-1,45,14,"Attributes",DialogItems,sizeofa(InitDlg),0,0,AttrDialogProc,(LONG_PTR)&dialog_data);
           if(DlgCode==10)
           {
             send[0]=OPERATION_COPY;
@@ -840,7 +840,7 @@ copyexit:
           else
             NormalizeName(InitDlg[0].X2-InitDlg[0].X1-3,mWpeDlgWipe1,PInfo.SelectedItems[0].FindData.cFileName,DialogItems[1].Data);
           CommonDialogData dialog_data={TRUE};
-          int DlgCode=Info.DialogEx(Info.ModuleNumber,-1,-1,66,9,"Delete",DialogItems,sizeofa(InitDlg),0,0,WipeDialogProc,(DWORD)&dialog_data);
+          int DlgCode=Info.DialogEx(Info.ModuleNumber,-1,-1,66,9,"Delete",DialogItems,sizeofa(InitDlg),0,0,WipeDialogProc,(LONG_PTR)&dialog_data);
           if(DlgCode==5)
           {
             send[0]=OPERATION_COPY;

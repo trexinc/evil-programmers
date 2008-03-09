@@ -15,7 +15,7 @@ struct BCSvcJob
 #ifdef __cplusplus
 extern "C" {
 #endif
-  int WINAPI _export Notify(unsigned long Msg,void *Data);
+  int WINAPI Notify(unsigned long Msg,void *Data);
 #ifdef __cplusplus
 }
 #endif

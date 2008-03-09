@@ -12,11 +12,11 @@ void InitDialogItems(InitDialogItem *Init,FarDialogItem *Item,int ItemsNumber)
     Item[i].X2=Init[i].X2;
     Item[i].Y2=Init[i].Y2;
     Item[i].Focus=Init[i].Focus;
-    Item[i].Selected=Init[i].Selected;
+    Item[i].Reserved=Init[i].Selected;
     Item[i].Flags=Init[i].Flags;
     Item[i].DefaultButton=Init[i].DefaultButton;
-    if ((unsigned)Init[i].Data<2000)
-      strcpy(Item[i].Data,GetMsg((unsigned int)Init[i].Data));
+    if ((unsigned)(DWORD_PTR)Init[i].Data<2000)
+      strcpy(Item[i].Data,GetMsg((unsigned int)(DWORD_PTR)Init[i].Data));
     else
       strcpy(Item[i].Data,Init[i].Data);
   }
@@ -66,7 +66,7 @@ void UNCPath(char *path)
 
 void NormalizeName(int width,int msg,char *filename,char *dest)
 {
-  int msg_len=strlen(GetMsg(msg))-2;
+  int msg_len=(int)strlen(GetMsg(msg))-2;
   char truncated[MAX_PATH];
   strcpy(truncated,filename);
   FSF.TruncPathStr(truncated,width-msg_len);
@@ -75,7 +75,7 @@ void NormalizeName(int width,int msg,char *filename,char *dest)
 
 void NormalizeNameW(int width,int msg,wchar_t *filename,wchar_t *dest)
 {
-  int msg_len=strlen(GetMsg(msg))-2;
+  int msg_len=(int)strlen(GetMsg(msg))-2;
   wchar_t truncated[MAX_PATH],mask[MAX_PATH];
   MultiByteToWideChar(CP_OEMCP,0,GetMsg(msg),-1,mask,sizeofa(mask));
   wcscpy(truncated,filename);
@@ -87,7 +87,7 @@ wchar_t *TruncPathStrW(wchar_t *Str,int MaxLength)
 {
   if(Str&&MaxLength>3)
   {
-    int init_len=wcslen(Str);
+    int init_len=(int)wcslen(Str);
     if(init_len>MaxLength)
     {
       wchar_t *ptr=wcschr(Str,'\\');
@@ -107,7 +107,7 @@ wchar_t *TruncPathStrW(wchar_t *Str,int MaxLength)
       else
         ptr=Str;
       for(int i=0;i<3;i++,ptr++) *ptr='.';
-      int copy_len=MaxLength-(ptr-Str)+1;
+      int copy_len=MaxLength-(int)(ptr-Str)+1;
       for(int i=0;i<copy_len;i++,ptr++) *ptr=*(ptr+init_len-MaxLength);
     }
   }

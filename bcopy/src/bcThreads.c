@@ -1,6 +1,9 @@
 #include <windows.h>
 #include <winioctl.h>
 #include <stdio.h>
+#if defined(_MSC_VER)
+#include <cfgmgr32.h>
+#endif
 #include "memory.h"
 #include "bcCommon.h"
 #include "bcsvc.h"

@@ -38,7 +38,7 @@ BOOL WipeFileW(wchar_t *filename)
             unsigned long long processed_size=0;
             while(size)
             {
-              unsigned long outsize=(size>=BUFF_SIZE)?BUFF_SIZE:size,transferred;
+              unsigned long outsize=(unsigned long)((size>=BUFF_SIZE)?BUFF_SIZE:size),transferred;
               WriteFile(f,buffer,outsize,&transferred,NULL);
               size-=outsize;
               processed_size+=outsize;

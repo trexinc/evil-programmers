@@ -16,7 +16,7 @@ void WriteConsoleKey(HANDLE console,DWORD Key,DWORD State)
   event.EventType=KEY_EVENT;
   event.Event.KeyEvent.bKeyDown=TRUE;
   event.Event.KeyEvent.wRepeatCount=1;
-  event.Event.KeyEvent.wVirtualKeyCode=Key;
+  event.Event.KeyEvent.wVirtualKeyCode=(WORD)Key;
   event.Event.KeyEvent.wVirtualScanCode=0;
   event.Event.KeyEvent.uChar.UnicodeChar=0;
   event.Event.KeyEvent.dwControlKeyState=State;
@@ -49,7 +49,7 @@ DWORD WINAPI TimeThread(LPVOID lpvThreadParm)
   return 0;
 }
 
-long FastRedrawDefDlgProc(HANDLE hDlg,int Msg,int Param1,long Param2)
+LONG_PTR FastRedrawDefDlgProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2)
 {
   BasicDialogData *DlgParams=(BasicDialogData *)Info.SendDlgMessage(hDlg,DM_GETDLGDATA,0,0);
   FILETIME CurrentTimeFT; unsigned long long CurrentTime;
@@ -88,11 +88,11 @@ long FastRedrawDefDlgProc(HANDLE hDlg,int Msg,int Param1,long Param2)
           {
             DWORD written; COORD coord;
             SMALL_RECT Rect; FarDialogItem DialogItem;
-            Info.SendDlgMessage(hDlg,DM_GETDLGRECT,0,(long)&Rect);
-            Info.SendDlgMessage(hDlg,DM_GETDLGITEM,DlgParams->UnicodeInicies[i],(long)&DialogItem);
+            Info.SendDlgMessage(hDlg,DM_GETDLGRECT,0,(LONG_PTR)&Rect);
+            Info.SendDlgMessage(hDlg,DM_GETDLGITEM,DlgParams->UnicodeInicies[i],(LONG_PTR)&DialogItem);
             coord.X=Rect.Left+DialogItem.X1;
             coord.Y=Rect.Top+DialogItem.Y1;
-            WriteConsoleOutputCharacterW(DlgParams->Console,&(DlgParams->FileNameW[i][0]),wcslen(&(DlgParams->FileNameW[i][0])),coord,&written);
+            WriteConsoleOutputCharacterW(DlgParams->Console,&(DlgParams->FileNameW[i][0]),(DWORD)wcslen(&(DlgParams->FileNameW[i][0])),coord,&written);
           }
         }
       }
@@ -108,7 +108,7 @@ long FastRedrawDefDlgProc(HANDLE hDlg,int Msg,int Param1,long Param2)
         DlgParams->State=!DlgParams->State;
         return TRUE;
       }
-      else if(!DlgParams->InMacro&&run_macro(DlgParams->MacroIndex,Param2))
+      else if(!DlgParams->InMacro&&run_macro(DlgParams->MacroIndex,(DWORD)Param2))
       {
         DlgParams->InMacro=true;
         return TRUE;

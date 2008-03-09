@@ -1,0 +1,93 @@
+NAME = bcopy
+NAME2 = bcsvc
+
+!IF "$(CPU)" == "AMD64"
+DIRBIT = 64
+!ELSE
+DIRBIT = 32
+!ENDIF
+OUTDIR = final.$(DIRBIT).vc
+
+OBJDIR = $(OUTDIR)\obj
+DLLNAME = $(NAME).dll
+DLLFULLNAME = $(OUTDIR)\$(DLLNAME)
+DEF = $(NAME).vc.def
+MAP = $(OUTDIR)\$(NAME).map
+
+DLLNAME2 = $(NAME2).exe
+DLLFULLNAME2 = $(OUTDIR)\$(DLLNAME2)
+MAP2 = $(OUTDIR)\$(NAME2).map
+
+!IF "$(CPU)" == "AMD64"
+LIBS = libcmt.lib kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib ole32.lib mpr.lib
+CPP_PROJ=/W3 /nologo /c /DNDEBUG /O1iy /Zp8 /J /Wp64 /GS- /Gr /GR- /EHs-c- /LD /Fo"$(OBJDIR)\\" /D "_CRT_SECURE_NO_DEPRECATE" /D "_CRT_NONSTDC_NO_DEPRECATE" /D "_CRT_NON_CONFORMING_SWPRINTFS"
+!ELSE
+LIBS = libcmt.lib kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib ole32.lib mpr.lib
+CPP_PROJ=/W3 /nologo /c /DNDEBUG /O1iy /J /Gr /GR- /GS- /EHs-c- /LD /Fo"$(OBJDIR)\\" /D "_CRT_SECURE_NO_DEPRECATE" /D "_CRT_NONSTDC_NO_DEPRECATE" /D "_CRT_NON_CONFORMING_SWPRINTFS"
+!ENDIF
+
+!IF "$(CPU)" == "AMD64"
+LIBS2 = libcmt.lib kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib ole32.lib uuid.lib mpr.lib
+CPP_PROJ2=/W3 /nologo /c /DNDEBUG /O1i /Zp8 /J /Wp64 /GS- /Gr /GR- /EHs-c- /LD /Fo"$(OBJDIR)\\" /D "_CRT_SECURE_NO_DEPRECATE" /D "_CRT_NONSTDC_NO_DEPRECATE" /D "_CRT_NON_CONFORMING_SWPRINTFS"
+!ELSE
+LIBS2 = libcmt.lib kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib ole32.lib uuid.lib mpr.lib
+CPP_PROJ2=/W3 /nologo /c /DNDEBUG /O1i /J /Gr /GR- /GS- /EHs-c- /LD /Fo"$(OBJDIR)\\" /D "_CRT_SECURE_NO_DEPRECATE" /D "_CRT_NONSTDC_NO_DEPRECATE" /D "_CRT_NON_CONFORMING_SWPRINTFS"
+!ENDIF
+
+LINK_FLAGS=/nologo /dll /release /merge:.rdata=.text /opt:nowin98 /nodefaultlib /def:"$(DEF)" /map:"$(MAP)" /out:"$(DLLFULLNAME)" $(LIBS)
+
+LINK_FLAGS2=/nologo /release /merge:.rdata=.text /opt:nowin98 /nodefaultlib /map:"$(MAP2)" /out:"$(DLLFULLNAME2)" $(LIBS2)
+
+LINK_OBJS = $(OBJDIR)\bcopy.obj \
+$(OBJDIR)\bcopy_common.obj \
+$(OBJDIR)\bcopy_fast_redraw.obj \
+$(OBJDIR)\bcopy_info.obj \
+$(OBJDIR)\bcopy_infomenu.obj \
+$(OBJDIR)\bcopy_macros.obj \
+$(OBJDIR)\bcopy_macros_2.obj \
+$(OBJDIR)\bcopy_name.obj \
+$(OBJDIR)\bcopy_selcolor.obj \
+$(OBJDIR)\$(NAME).res
+
+LINK_OBJS2 = $(OBJDIR)\bcsvc.obj \
+$(OBJDIR)\bcHandler.obj \
+$(OBJDIR)\bcInfo.obj \
+$(OBJDIR)\bcLog.obj \
+$(OBJDIR)\bcNotify.obj \
+$(OBJDIR)\bcThreads.obj \
+$(OBJDIR)\bcWipe.obj \
+$(OBJDIR)\$(NAME2).res
+
+ALL: $(OUTDIR) $(OBJDIR) $(DLLFULLNAME) $(DLLFULLNAME2)
+
+$(DLLFULLNAME) : $(LINK_OBJS)
+	link @<<
+	$(LINK_FLAGS) $(LINK_OBJS)
+<<
+
+$(DLLFULLNAME2) : $(LINK_OBJS2)
+	link @<<
+	$(LINK_FLAGS2) $(LINK_OBJS2)
+<<
+
+.cpp{$(OBJDIR)}.obj::
+	cl @<<
+	$(CPP_PROJ) $<
+<<
+
+.c{$(OBJDIR)}.obj::
+	cl @<<
+	$(CPP_PROJ2) $<
+<<
+
+$(OBJDIR)\$(NAME).res: $(NAME).rc
+	@rc /fo"$(OBJDIR)\$(NAME).res" $(NAME).rc
+
+$(OBJDIR)\$(NAME2).res: $(NAME2).rc
+	@rc /fo"$(OBJDIR)\$(NAME2).res" $(NAME2).rc
+
+$(OBJDIR): $(OUTDIR)
+	@if not exist "$(OBJDIR)\$(NULL)" mkdir "$(OBJDIR)"
+
+$(OUTDIR):
+	@if not exist "$(OUTDIR)\$(NULL)" mkdir "$(OUTDIR)"
