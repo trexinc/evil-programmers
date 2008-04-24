@@ -108,6 +108,8 @@ static void ConvertDate( char *str, FAR_FIND_DATA *fd )
  SYSTEMTIME st;
  FILETIME ft1, ft2;
 
+ memset(&st,0,sizeof(st));
+
  if ( !FSF.atoi(get_token(str,tok,0)) ) tok++;
 
  st.wDay    = (WORD)FSF.atoi( get_token(str,tok,0) );
