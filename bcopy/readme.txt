@@ -25,6 +25,7 @@ E-mail: zg@bmg.lv
 History
 
 v1.3 build 57 xx-xx-2008
+- "show info" in dialogs.
 - x64 version
 
 v1.3 build 56 01-03-2008

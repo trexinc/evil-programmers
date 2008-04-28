@@ -128,6 +128,7 @@ enum {
   mConfigConfigMenu,
   mConfigViewerMenu,
   mConfigEditorMenu,
+  mConfigDialogMenu,
   mConfigInfo,
   mConfigInfoEmpty,
   mConfigInfoOnly,
@@ -336,6 +337,7 @@ extern bool run_macro_2(int index,DWORD Key);
 #define SHOW_IN_VIEWER 1
 #define SHOW_IN_EDITOR 2
 #define SHOW_IN_CONFIG 4
+#define SHOW_IN_DIALOG 8
 
 #define INFO_MENU_ALT_0 1
 #define INFO_MENU_ALT_1 2

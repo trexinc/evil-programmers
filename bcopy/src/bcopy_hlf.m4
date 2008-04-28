@@ -187,6 +187,9 @@ $  #Background copy - configure plugin#
   #Add to Editor menu#               - add "Background copy" item to
                                      the editor plugins' menu.
 
+  #Add to Dialog menu#               - add "Background copy" item to
+                                     the dialog plugins' menu.
+
   #Show empty dialog#                - show dialog when job list is
                                      empty.
 

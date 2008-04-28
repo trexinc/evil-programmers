@@ -12,7 +12,7 @@ char PluginRootKey[80];
 BOOL IsOldFAR=TRUE;
 
 Options Opt={4,FALSE,TRUE,TRUE,0,TRUE,FALSE,1,TRUE,0,0};
-PlugOptions PlgOpt={1,SHOW_IN_VIEWER|SHOW_IN_EDITOR|SHOW_IN_CONFIG,0,1,TRUE,TRUE,TRUE,TRUE,FALSE,FALSE,FALSE,0,FALSE,FALSE,FALSE,250,FALSE};
+PlugOptions PlgOpt={1,SHOW_IN_VIEWER|SHOW_IN_EDITOR|SHOW_IN_CONFIG|SHOW_IN_DIALOG,0,1,TRUE,TRUE,TRUE,TRUE,FALSE,FALSE,FALSE,0,FALSE,FALSE,FALSE,250,FALSE};
 
 static BOOL CheckPipeEx(void);
 
@@ -137,6 +137,8 @@ void WINAPI _export GetPluginInfo(struct PluginInfo *Info)
       Info->Flags|=PF_VIEWER;
     if(PlgOpt.ShowMenu&SHOW_IN_EDITOR)
       Info->Flags|=PF_EDITOR;
+    if(PlgOpt.ShowMenu&SHOW_IN_DIALOG)
+      Info->Flags|=PF_DIALOG;
     if(PlgOpt.Preload)
       Info->Flags|=PF_PRELOAD;
     Info->DiskMenuStringsNumber=0;
@@ -240,7 +242,7 @@ static int NumberType(int num)
   return Result;
 }
 
-static const char *GetRealName(const WIN32_FIND_DATAA *src)
+static const char *GetRealName(const FAR_FIND_DATA *src)
 {
   WIN32_FIND_DATAA find,find_ok; HANDLE hFind; BOOL Res;
   hFind=FindFirstFileA(src->cFileName,&find);
@@ -281,7 +283,7 @@ static bool GetWideNameDirect(const char *Root,const char *src,wchar_t *dest)
   return true;
 }
 
-static bool GetWideName(const char *Root,const WIN32_FIND_DATAA *src,wchar_t *dest)
+static bool GetWideName(const char *Root,const FAR_FIND_DATA *src,wchar_t *dest)
 {
   const char *RealFileName=GetRealName(src);
   if(!RealFileName) return false;
@@ -319,7 +321,12 @@ HANDLE WINAPI _export OpenPlugin(int OpenFrom,int Item)
   unsigned int MenuItemsSize=mMenuInfo-mMenuCopy+1;
   memset(MenuItems,0,sizeof(MenuItems));
   int Msgs[]={mMenuCopy,mMenuMove,mMenuDelete,mMenuAttr,mMenuWipe,mMenuRun,mMenuSep1,mMenuView,mMenuEdit,mMenuName,mMenuSep2,mMenuEject,mMenuReject,mMenuRefreshSCSI,mMenuSep3,mMenuConfig,mMenuInfo};
-  if(OpenFrom!=OPEN_PLUGINSMENU)
+  if(OpenFrom==OPEN_DIALOG)
+  {
+  	ShowInfoMenu();
+  	return INVALID_HANDLE_VALUE;
+  }
+  else if(OpenFrom!=OPEN_PLUGINSMENU)
   {
     MenuItemsSize=mMenuInfo-mMenuEdit;
     memcpy(Msgs,Msgs+mMenuName-mMenuCopy,sizeof(Msgs[0])*MenuItemsSize);
