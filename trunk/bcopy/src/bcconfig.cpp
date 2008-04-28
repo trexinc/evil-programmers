@@ -32,6 +32,7 @@ enum
   CONFIGDLG2_CONFIGMENU,
   CONFIGDLG2_VIEWERMENU,
   CONFIGDLG2_EDITORMENU,
+  CONFIGDLG2_DIALOGMENU,
   CONFIGDLG2_SEP2,
   CONFIGDLG2_INFOEMPTY,
   CONFIGDLG2_INFOONLY,
@@ -241,21 +242,22 @@ static int Config()
       04   บ [ ] Add to &Plugins menu                                           บ   04
       05   บ [ ] Add to &Viewer menu                                            บ   05
       06   บ [ ] Add to &Editor menu                                            บ   06
-      07   วฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤ Info menu ฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤถ   07
-      08   บ [ ] &Display message when job list is empty                        บ   08
-      09   บ [ ] Autoselect &only job                                           บ   09
-      10   วฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤถ   10
-      11   บ [ ] Auto&show information dialog                                   บ   11
-      12   บ [ ] E&xpand variables in copy dialog                               บ   12
-      13   บ [ ] Don't &check passive panel type                                บ   13
-      14   บ [ ] &Format size                                                   บ   14
-      15   บ [ ] Show current time                                              บ   15
-      16   บ [ ] Co&nfirm abort                                                 บ   16
-      17   บ [ ] Auto&refresh                                                   บ   17
-      18   วฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤถ   18
-      19   บ                 [ Save ]              [ Cancel ]                   บ   19
-      20   ศออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ   20
-      21                                                                            21
+      07   บ [ ] Add to &Dialog menu                                            บ   06
+      08   วฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤ Info menu ฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤถ   07
+      09   บ [ ] &Display message when job list is empty                        บ   08
+      10   บ [ ] Autoselect &only job                                           บ   09
+      11   วฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤถ   10
+      12   บ [ ] Auto&show information dialog                                   บ   11
+      13   บ [ ] E&xpand variables in copy dialog                               บ   12
+      14   บ [ ] Don't &check passive panel type                                บ   13
+      15   บ [ ] &Format size                                                   บ   14
+      16   บ [ ] Show current time                                              บ   15
+      17   บ [ ] Co&nfirm abort                                                 บ   16
+      18   บ [ ] Auto&refresh                                                   บ   17
+      19   วฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤถ   18
+      20   บ                 [ Save ]              [ Cancel ]                   บ   19
+      21   ศออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ   20
+      22                                                                            21
         0000000000111111111122222222223333333333444444444455555555556666666666777777
         0123456789012345678901234567890123456789012345678901234567890123456789012345
       */
@@ -266,22 +268,23 @@ static int Config()
       /* 3*/  {DI_CHECKBOX,5,4,0,0,0,0,0,0,(char *)mConfigConfigMenu},
       /* 4*/  {DI_CHECKBOX,5,5,0,0,0,0,0,0,(char *)mConfigViewerMenu},
       /* 5*/  {DI_CHECKBOX,5,6,0,0,0,0,0,0,(char *)mConfigEditorMenu},
-      /* 6*/  {DI_TEXT,-1,7,0,0,0,0,DIF_SEPARATOR,0,""},
-      /* 7*/  {DI_CHECKBOX,5,8,0,0,0,0,0,0,(char *)mConfigInfoEmpty},
-      /* 8*/  {DI_CHECKBOX,5,9,0,0,0,0,0,0,(char *)mConfigInfoOnly},
-      /* 9*/  {DI_TEXT,-1,10,0,0,0,0,DIF_SEPARATOR,0,""},
-      /*10*/  {DI_CHECKBOX,5,11,0,0,0,0,0,0,(char *)mComfigAutoShowInfo},
-      /*11*/  {DI_CHECKBOX,5,12,0,0,0,0,0,0,(char *)mConfigExpandVars},
-      /*12*/  {DI_CHECKBOX,5,13,0,0,0,0,0,0,(char *)mConfigPassive},
-      /*13*/  {DI_CHECKBOX,5,14,0,0,0,0,0,0,(char *)mConfigFormatSize},
-      /*14*/  {DI_CHECKBOX,5,15,0,0,0,0,0,0,(char *)mConfigCurrentTime},
-      /*15*/  {DI_CHECKBOX,5,16,0,0,0,0,0,0,(char *)mConfigConfirmAbort},
-      /*16*/  {DI_CHECKBOX,5,17,0,0,0,0,0,0,(char *)mConfigAutoRefresh},
-      /*17*/  {DI_CHECKBOX,5,18,0,0,0,0,0,0,(char *)mConfigResolveDestination},
-      /*18*/  {DI_TEXT,-1,19,0,0,0,0,DIF_SEPARATOR,0,""},
-      /*19*/  {DI_BUTTON,0,20,0,0,0,0,DIF_CENTERGROUP,1,(char *)mConfigSave},
-      /*20*/  {DI_BUTTON,0,20,0,0,0,0,DIF_CENTERGROUP,0,(char *)mConfigCancel},
-      /*21*/  {DI_BUTTON,0,20,0,0,0,0,DIF_CENTERGROUP|DIF_BTNNOCLOSE,0,(char *)mColorMain}
+      /* 5*/  {DI_CHECKBOX,5,7,0,0,0,0,0,0,(char *)mConfigDialogMenu},
+      /* 6*/  {DI_TEXT,-1,8,0,0,0,0,DIF_SEPARATOR,0,""},
+      /* 7*/  {DI_CHECKBOX,5,9,0,0,0,0,0,0,(char *)mConfigInfoEmpty},
+      /* 8*/  {DI_CHECKBOX,5,10,0,0,0,0,0,0,(char *)mConfigInfoOnly},
+      /* 9*/  {DI_TEXT,-1,11,0,0,0,0,DIF_SEPARATOR,0,""},
+      /*10*/  {DI_CHECKBOX,5,12,0,0,0,0,0,0,(char *)mComfigAutoShowInfo},
+      /*11*/  {DI_CHECKBOX,5,13,0,0,0,0,0,0,(char *)mConfigExpandVars},
+      /*12*/  {DI_CHECKBOX,5,14,0,0,0,0,0,0,(char *)mConfigPassive},
+      /*13*/  {DI_CHECKBOX,5,15,0,0,0,0,0,0,(char *)mConfigFormatSize},
+      /*14*/  {DI_CHECKBOX,5,16,0,0,0,0,0,0,(char *)mConfigCurrentTime},
+      /*15*/  {DI_CHECKBOX,5,17,0,0,0,0,0,0,(char *)mConfigConfirmAbort},
+      /*16*/  {DI_CHECKBOX,5,18,0,0,0,0,0,0,(char *)mConfigAutoRefresh},
+      /*17*/  {DI_CHECKBOX,5,19,0,0,0,0,0,0,(char *)mConfigResolveDestination},
+      /*18*/  {DI_TEXT,-1,20,0,0,0,0,DIF_SEPARATOR,0,""},
+      /*19*/  {DI_BUTTON,0,21,0,0,0,0,DIF_CENTERGROUP,1,(char *)mConfigSave},
+      /*20*/  {DI_BUTTON,0,21,0,0,0,0,DIF_CENTERGROUP,0,(char *)mConfigCancel},
+      /*21*/  {DI_BUTTON,0,21,0,0,0,0,DIF_CENTERGROUP|DIF_BTNNOCLOSE,0,(char *)mColorMain}
       };
       struct FarDialogItem DialogItems[sizeofa(InitItems)];
       InitDialogItems(InitItems,DialogItems,sizeofa(InitItems));
@@ -289,6 +292,7 @@ static int Config()
       DialogItems[CONFIGDLG2_CONFIGMENU].Selected=PlgOpt.ShowMenu&SHOW_IN_CONFIG;
       DialogItems[CONFIGDLG2_VIEWERMENU].Selected=PlgOpt.ShowMenu&SHOW_IN_VIEWER;
       DialogItems[CONFIGDLG2_EDITORMENU].Selected=PlgOpt.ShowMenu&SHOW_IN_EDITOR;
+      DialogItems[CONFIGDLG2_DIALOGMENU].Selected=PlgOpt.ShowMenu&SHOW_IN_DIALOG;
       DialogItems[CONFIGDLG2_INFOEMPTY].Selected=PlgOpt.InfoMenu&INFO_MENU_ALT_0;
       DialogItems[CONFIGDLG2_INFOONLY].Selected=PlgOpt.InfoMenu&INFO_MENU_ALT_1;
       DialogItems[CONFIGDLG2_AUTOSHOWINFO].Selected=PlgOpt.AutoShowInfo;
@@ -303,7 +307,7 @@ static int Config()
       strcat(DialogItems[CONFIGDLG2_SEP2].Data,GetMsg(mConfigInfo));
       strcat(DialogItems[CONFIGDLG2_SEP2].Data," ");
 
-      int DlgCode=Info.DialogEx(Info.ModuleNumber,-1,-1,76,23,"Config2",DialogItems,sizeofa(DialogItems),0,0,Config2DialogProc,0);
+      int DlgCode=Info.DialogEx(Info.ModuleNumber,-1,-1,76,24,"Config2",DialogItems,sizeofa(DialogItems),0,0,Config2DialogProc,0);
       if(DlgCode==CONFIGDLG2_SAVE)
       {
         PlgOpt.AutoStart=DialogItems[CONFIGDLG2_AUTOSTART].Selected;
@@ -314,6 +318,8 @@ static int Config()
           PlgOpt.ShowMenu|=SHOW_IN_VIEWER;
         if(DialogItems[CONFIGDLG2_EDITORMENU].Selected)
           PlgOpt.ShowMenu|=SHOW_IN_EDITOR;
+        if(DialogItems[CONFIGDLG2_DIALOGMENU].Selected)
+          PlgOpt.ShowMenu|=SHOW_IN_DIALOG;
         PlgOpt.InfoMenu=0;
         if(DialogItems[CONFIGDLG2_INFOEMPTY].Selected)
           PlgOpt.InfoMenu|=INFO_MENU_ALT_0;
