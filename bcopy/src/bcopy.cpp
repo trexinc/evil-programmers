@@ -197,10 +197,10 @@ static BOOL CheckPipeEx(void)
       SC_HANDLE SCManagerHandle;
       SERVICE_STATUS ServiceStatus;
 
-      SCManagerHandle=OpenSCManager(NULL,NULL,SC_MANAGER_ALL_ACCESS);
+      SCManagerHandle=OpenSCManager(NULL,NULL,STANDARD_RIGHTS_READ);
       if(SCManagerHandle>0)
       {
-        ServiceControlHandle=OpenService(SCManagerHandle,SVC_NAME,SERVICE_ALL_ACCESS);
+        ServiceControlHandle=OpenService(SCManagerHandle,SVC_NAME,SERVICE_QUERY_STATUS|SERVICE_START);
         if(ServiceControlHandle>0)
         {
           if(StartService(ServiceControlHandle,0,NULL))
