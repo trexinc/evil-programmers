@@ -58,6 +58,7 @@ bool Parser::fill(int n)
         yy_buffer_size+=add_len;
         yy_token+=(yy_buffer-yy_buffer_old);
         yy_marker+=(yy_buffer-yy_buffer_old);
+        yy_ctx_marker+=(yy_buffer-yy_buffer_old);
         yy_cursor+=(yy_buffer-yy_buffer_old);
         yy_limit+=(yy_buffer-yy_buffer_old);
         yy_linestart+=(yy_buffer-yy_buffer_old);
@@ -70,6 +71,7 @@ bool Parser::fill(int n)
     }
     memcpy(yy_buffer,yy_token,tail_len);
     yy_marker-=skip_len;
+    yy_ctx_marker-=skip_len;
     yy_cursor-=skip_len;
     yy_limit-=skip_len;
     yy_linestart-=skip_len;
