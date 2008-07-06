@@ -17,6 +17,8 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+//Modified by Alex Yaroslavsky
+
 #ifdef __WINDOWS__
   #include "windows.h"
 #else
@@ -132,7 +134,7 @@ typedef struct chmfile
 } chmfile;
 
 
-  //int chm_getfile(chmfile *c, char *name, ulong *length, ubyte **outbuf);
+  //int chm_getfile(chmfile *c, const char *name, ulong *length, ubyte **outbuf);
 
   //chmfile *chm_openfile(const char *fname);
 

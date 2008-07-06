@@ -5,7 +5,7 @@
 extern char PluginRootKey[];
 void SetRegKey(const char *ValueName,DWORD ValueData);
 BOOL GetRegKey(const char *ValueName,int *ValueData,DWORD Default);
-int GetRegKey(const char *ValueName,char *ValueData,char *Default,DWORD DataSize);
+int GetRegKey(const char *ValueName,char *ValueData,const char *Default,DWORD DataSize);
 void SetRegKey(const char *ValueName,char *ValueData);
 
 #endif
