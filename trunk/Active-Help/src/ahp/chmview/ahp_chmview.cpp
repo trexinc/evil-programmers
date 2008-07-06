@@ -1,6 +1,6 @@
 /*
     ChmView sub-plugin for Active-Help plugin for FAR Manager
-    Copyright (C) 2003-2005 Alex Yaroslavsky
+    Copyright (C) 2003 Alex Yaroslavsky
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -46,7 +46,7 @@ char PluginRootKey[80];
 
 extern "C"
 {
-  int chm_getfile(chmfile *c, char *name, ulong *length, ubyte **outbuf);
+  int chm_getfile(chmfile *c, const char *name, ulong *length, ubyte **outbuf);
   chmfile *chm_openfile(const char *fname);
   void chm_close(chmfile *l);
 };

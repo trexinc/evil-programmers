@@ -1,6 +1,6 @@
 /*
     Active-Help plugin for FAR Manager
-    Copyright (C) 2002-2005 Alex Yaroslavsky
+    Copyright (C) 2002 Alex Yaroslavsky
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -66,7 +66,7 @@ static int ShowInPanels,
            ShowInDisks,
            DisksHotkey;
 
-static PSTree Tree;
+static PSTree *Tree=NULL;
 
 enum
 {
@@ -213,6 +213,8 @@ void WINAPI _export SetStartupInfo(const struct PluginStartupInfo *psi)
   FSF=*psi->FSF;
   Info.FSF=&FSF;
   FSF.sprintf(PluginRootKey,"%s\\Active-Help",Info.RootKey);
+
+  Tree = new PSTree;
 
   { //init plugins
     char plug_dir[MAX_PATH];
@@ -494,7 +496,6 @@ HANDLE WINAPI _export OpenPlugin(int OpenFrom,int Item)
     if (Keyword)
       free(Keyword);
   }
-
   return INVALID_HANDLE_VALUE;
 }
 
@@ -693,7 +694,7 @@ int DoMain(char *FileName, char *DefKeyword, int OpenFrom, EditorInfo *ei, char 
   {
     AHTrackInfo ti;
     ti.EditorID = ei->EditorID;
-    if (Tree.GetID(&ti) && TotalItems)
+    if (Tree->GetID(&ti) && TotalItems)
     {
       if (ti.SelectedItem >= FIRST_INDEX && ti.SelectedItem <= (TotalItems+FIRST_INDEX-1))
         SelectedItem = ti.SelectedItem;
@@ -925,7 +926,7 @@ int DoMain(char *FileName, char *DefKeyword, int OpenFrom, EditorInfo *ei, char 
               AHTrackInfo ti;
               ti.EditorID = ei->EditorID;
               ti.SelectedItem = SelectedItem;
-              Tree.Insert(&ti);
+              Tree->Insert(&ti);
             }
             if (i==MENU_CURRENT_HELP_BY_MASK && k)
             {
@@ -1127,7 +1128,7 @@ int WINAPI _export ProcessEditorEvent(int Event, void *Param)
   {
     AHTrackInfo ti;
     ti.EditorID = *((int *)Param);
-    Tree.Delete(&ti);
+    Tree->Delete(&ti);
   }
   return 0;
 }
@@ -1137,4 +1138,7 @@ void WINAPI _export ExitFAR()
   if (pm)
     delete pm;
   pm=NULL;
+  if (Tree)
+    delete Tree;
+  Tree=NULL;
 }

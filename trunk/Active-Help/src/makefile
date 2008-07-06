@@ -16,7 +16,6 @@ MKDIR = mkdir -p
 CXXFLAGS = -Wall -Os -funsigned-char -fomit-frame-pointer -fstrict-aliasing -fno-rtti -fno-exceptions
 LNKFLAGS = -mdll -s -nostartfiles
 
-
 all: $(DLLFULLNAME)
 
 OBJS = $(patsubst %.cpp,$(OBJDIR)/%.o,$(filter %.cpp,$(SRCS)))

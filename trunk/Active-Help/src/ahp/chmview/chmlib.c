@@ -17,6 +17,7 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+//Modified by Alex Yaroslavsky
 
 #include "chmlib.h"
 #include "fixendian.h"
@@ -295,7 +296,7 @@ static int read_chm_dir(chmfile *c)
   return 0;
 }
 
-static direntry *getdirentry(char *name, chm_dir *dir)
+static direntry *getdirentry(const char *name, chm_dir *dir)
 {
   int i;
 
@@ -305,7 +306,7 @@ static direntry *getdirentry(char *name, chm_dir *dir)
   return NULL;
 }
 
-int chm_getfile(chmfile *c, char *name, ulong *length, ubyte **outbuf)
+int chm_getfile(chmfile *c, const char *name, ulong *length, ubyte **outbuf)
 {
   int section;
   int offset = c->content_offset;
