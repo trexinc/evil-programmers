@@ -3,7 +3,7 @@ REOBJDIR = \.\.\/\.\.\/\.\.\/o\/htmlhelp\/
 DLLDIR = ../../../bin/ahp/htmlhelp
 DLLNAME = htmlhelp.ahp
 DLLFULLNAME = $(DLLDIR)/$(DLLNAME)
-SRCS = ahp_htmlhelp.cpp crt.cpp registry.cpp gcc_shseg.cpp
+SRCS = ahp_htmlhelp.cpp crt.cpp registry.cpp
 DEF = htmlhelp.gcc.def
 
 CXX = g++

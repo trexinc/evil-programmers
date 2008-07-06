@@ -46,30 +46,18 @@ static void Config(void);
 #define sizeofa(array) (sizeof(array)/sizeof(array[0]))
 #define WAHMSG_SHOWHELP (WM_USER+1)
 
-#if defined(__BORLANDC__) || defined(__GNUC__)
-extern HWND MHWND;
-extern DWORD PID;
-extern char PERROR[128];
-#else
-#if defined(_MSC_VER)
-#pragma comment(linker, "/SECTION:Shared,RWS")
-#pragma data_seg("Shared")
-HWND MHWND=0;
-DWORD PID=0;
-char PERROR[128];
-#pragma data_seg()
-#endif
-#endif
+static HWND MHWND;
+static unsigned int WCounter=0;
 
 static struct PluginStartupInfo Info;
-FARSTANDARDFUNCTIONS FSF;
+static FARSTANDARDFUNCTIONS FSF;
 static struct AHPluginStartupInfo AHInfo;
 char PluginRootKey[80];
 static int HowShowWindow;
 static char PathToViewer[512];
 static char OpenContents[512];
 static char KeywordSearch[512];
-static unsigned int WCounter=0;
+static HANDLE mutex;
 
 enum
 {
@@ -152,7 +140,7 @@ LRESULT WINAPI HHWndProc(HWND hwnd,UINT message,UINT wParam,LONG lParam)
   return ret;
 }
 
-BOOL ShowHelp(char *FileName, char *Keyword, int SW)
+BOOL ShowHelp(char *FileName, char *Keyword, int SW, char *ErrorMsg)
 {
   char szPath[512];
   BOOL ret=TRUE;
@@ -228,8 +216,8 @@ BOOL ShowHelp(char *FileName, char *Keyword, int SW)
     }
     else
     {
-      WideCharToMultiByte(CP_ACP,0,lasterror.description,-1,PERROR,128,NULL,NULL);
-      CharToOem(PERROR,PERROR);
+      WideCharToMultiByte(CP_ACP,0,lasterror.description,-1,ErrorMsg,128,NULL,NULL);
+      CharToOem(ErrorMsg,ErrorMsg);
     }
     if(OldHHWndProc==0 && WCounter<=0)
     {
@@ -257,13 +245,15 @@ LRESULT WINAPI WndProc(HWND hwnd,UINT message,UINT wParam,LONG lParam)
   {
     case WAHMSG_SHOWHELP:
     {
-      HANDLE hMap=(HANDLE)wParam;
+      HANDLE hMap=OpenFileMapping(FILE_MAP_READ|FILE_MAP_WRITE,FALSE,"htmlhelpFMap");
       int ret=FALSE;
       if (dHtmlHelp)
       {
-        char *FileName=(char*)MapViewOfFile(hMap,FILE_MAP_WRITE,0,0,0);
-        ret=ShowHelp(FileName,FileName+lstrlen(FileName)+1,
-                     FileName[lstrlen(FileName)+1+lstrlen(FileName+lstrlen(FileName)+1)+1]);
+        char *FileName=(char*)MapViewOfFile(hMap,FILE_MAP_WRITE|FILE_MAP_READ,0,0,0);
+        ret=ShowHelp(FileName+128,
+                     FileName+128+lstrlen(FileName+128)+1,
+                     FileName[128+lstrlen(FileName+128)+1+lstrlen(FileName+128+lstrlen(FileName+128)+1)+1],
+                     FileName);
         UnmapViewOfFile(FileName);
       }
       CloseHandle(hMap);
@@ -286,7 +276,6 @@ void CALLBACK _export RundllEntry(HWND hwnd, HINSTANCE hinst, LPSTR lpCmdLine, i
   (void)hwnd;
   (void)lpCmdLine;
   (void)nCmdShow;
-  //FreeConsole();
   event=OpenEvent(EVENT_ALL_ACCESS,0,"htmlhelpWEvent");
   HMODULE hLib = LoadLibrary("HHCTRL.OCX");
   dHtmlHelp = (THtmlHelp)GetProcAddress(hLib,(char*)14);
@@ -404,11 +393,13 @@ int WINAPI _export Start(const struct PluginStartupInfo *FarInfo,const struct AH
   GetRegKey("PathToViewer",PathToViewer,"KeyHH",sizeof(PathToViewer));
   GetRegKey("OpenContents",OpenContents,"-%s \"%f\"",sizeof(OpenContents));
   GetRegKey("KeywordSearch",KeywordSearch,"-%s -#klink \"%k\" \"%f\"",sizeof(KeywordSearch));
+  mutex = CreateMutex(NULL,FALSE,"htmlhelpWMutex");
   return 0;
 }
 
 void WINAPI _export Exit(void)
 {
+  CloseHandle(mutex);
 }
 
 int WINAPI _export Message(unsigned long Msg,void *InData,void *OutData)
@@ -447,25 +438,19 @@ int WINAPI _export Message(unsigned long Msg,void *InData,void *OutData)
 
       if (data->TypeNumber == 0)
       {
+        WaitForSingleObject(mutex,INFINITE);
         HANDLE event=OpenEvent(EVENT_ALL_ACCESS,0,"htmlhelpWEvent");
         if(event==NULL)
         {
           event=CreateEvent(NULL,1,0,"htmlhelpWEvent");
-          STARTUPINFO si={sizeof(STARTUPINFO)};
-          PROCESS_INFORMATION pi;
-
           char shortp[MAX_PATH];
           GetShortPathName(AHInfo.ModuleName,shortp,MAX_PATH);
           char mod[MAX_PATH];
-          FSF.sprintf(mod,"rundll32.exe %s,RundllEntry",shortp);
-          CreateProcess(0,mod,0,0,0,0,0,0,&si,&pi);
-          PID=pi.dwProcessId;
-          CloseHandle(pi.hProcess);
-          CloseHandle(pi.hThread);
+          FSF.sprintf(mod,"%s,RundllEntry",shortp);
+          ShellExecute(NULL,"open","rundll32.exe",mod,"",SW_SHOW);
         }
         WaitForSingleObject(event,INFINITE);
         CloseHandle(event);
-        HANDLE hProcess=OpenProcess(PROCESS_DUP_HANDLE,0,PID);
 
         {
           DWORD spr = GetShortPathName(data->FileName,FileName,sizeof(FileName));
@@ -475,19 +460,24 @@ int WINAPI _export Message(unsigned long Msg,void *InData,void *OutData)
         int flen=lstrlen(FileName)+1;
         int klen=lstrlen(data->Keyword)+1;
 
-        HANDLE hMap=CreateFileMapping(INVALID_HANDLE_VALUE,0,PAGE_READWRITE,0,flen+klen+1,0);
-        char *buf=(char*)MapViewOfFile(hMap,FILE_MAP_WRITE,0,0,0);
-        memcpy(buf,FileName,flen);
-        memcpy(buf+flen,data->Keyword,klen);
-        buf[flen+klen]=HowShowWindow;
-        DuplicateHandle(GetCurrentProcess(),hMap,hProcess,&hMap,0,0,DUPLICATE_SAME_ACCESS|DUPLICATE_CLOSE_SOURCE);
+        HANDLE hMap=CreateFileMapping(INVALID_HANDLE_VALUE,0,PAGE_READWRITE,0,128+flen+klen+1,"htmlhelpFMap");
+        char *buf=(char*)MapViewOfFile(hMap,FILE_MAP_WRITE|FILE_MAP_READ,0,0,0);
+        GetMsg(MErrMSDN,buf);
+        memcpy(buf+128,FileName,flen);
+        memcpy(buf+flen+128,data->Keyword,klen);
+        buf[flen+klen+128]=HowShowWindow;
         UnmapViewOfFile(buf);
-        CloseHandle(hProcess);
-        SetForegroundWindow(MHWND);
-        GetMsg(MErrMSDN,PERROR); //We can not call GetMsg from ShowHelp, different memory space.
-        ret = SendMessage(MHWND,WAHMSG_SHOWHELP,(WPARAM)hMap,0);
+        HWND hwnd = FindWindow("htmlhelpWClass",NULL);
+        SetForegroundWindow(hwnd);
+        ret = SendMessage(hwnd,WAHMSG_SHOWHELP,0,0);
         if (!ret)
-          lstrcpy(odata->Error,PERROR);
+        {
+          buf=(char*)MapViewOfFile(hMap,FILE_MAP_WRITE|FILE_MAP_READ,0,0,0);
+          lstrcpyn(odata->Error,buf,128);
+          UnmapViewOfFile(buf);
+        }
+        CloseHandle(hMap);
+        ReleaseMutex(mutex);
       }
       else
       {
