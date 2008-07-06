@@ -262,7 +262,7 @@ static int Config()
         0123456789012345678901234567890123456789012345678901234567890123456789012345
       */
       static struct InitDialogItem InitItems[]={
-      /* 0*/  {DI_DOUBLEBOX,3,1,72,21,0,0,0,0,(char *)mName},
+      /* 0*/  {DI_DOUBLEBOX,3,1,72,22,0,0,0,0,(char *)mName},
       /* 1*/  {DI_CHECKBOX,5,2,0,0,1,0,0,0,(char *)mConfigAutostart},
       /* 2*/  {DI_TEXT,-1,3,0,0,0,0,DIF_SEPARATOR,0,""},
       /* 3*/  {DI_CHECKBOX,5,4,0,0,0,0,0,0,(char *)mConfigConfigMenu},
