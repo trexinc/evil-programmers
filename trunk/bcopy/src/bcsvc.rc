@@ -25,4 +25,4 @@ BEGIN
     END
 END
 
-1 11 "./bootstrap/bcsvc.msg"
+1 MESSAGETABLE "./bootstrap/bcsvc_MSG00001.bin"

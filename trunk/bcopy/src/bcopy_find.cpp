@@ -134,8 +134,8 @@
           } while(FindNextFileW(hFind,&find));
           FindClose(hFind);
         }
-        else ON_ERROR
-        if(!new_files_count) ON_ERROR
+        else {ON_ERROR}
+        if(!new_files_count) {ON_ERROR}
         DWORD *new_send=NULL;
         DWORD new_sendsize=sizeof(DWORD)*3+sizeof(FileRec)*(new_files_count+2);
         new_send=(DWORD *)malloc(new_sendsize);

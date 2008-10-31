@@ -1,6 +1,6 @@
 #include <windows.h>
 #include <stdio.h>
-#include "./bootstrap/bcsvcmsg.h"
+#include "./bootstrap/bcsvc.h"
 #include "./bootstrap/bcversion.h"
 #include "bcCommon.h"
 #include "bcsvc.h"
