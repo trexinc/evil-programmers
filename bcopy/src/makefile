@@ -2,6 +2,7 @@ WFLAGS=-Wall -W -Wpointer-arith -Winline -Wno-strict-aliasing
 # -Wno-unused
 # -Werror -ffor-scope -Wbad-function-cast
 CFLAGS=-c -mtune=pentium4 -Os $(WFLAGS) -fomit-frame-pointer -fstrict-aliasing
+CPPFLAGS=-c -mtune=pentium4 -Os $(WFLAGS) -fomit-frame-pointer -fstrict-aliasing -fno-exceptions -fno-rtti -fno-threadsafe-statics
 LFLAGS=-s -nostartfiles
 LIBS=-lmpr -lntdll
 SVCLIBS=-lntdll
@@ -37,7 +38,7 @@ $(SVCTARGET): $(SVCOBJS)
 ../o/bcThreads.o: bcThreads.c bcThreads_wrappers.c $(SVCH)
 	$(CC) $(CFLAGS) $< -o $@
 
-../o/bcLog.o: bcLog.c ./bootstrap/bcsvcmsg.h ./bootstrap/bcversion.h ./bootstrap/bcsvc.msg
+../o/bcLog.o: bcLog.c ./bootstrap/bcsvc.h ./bootstrap/bcversion.h ./bootstrap/bcsvc_MSG00001.bin
 	$(CC) $(CFLAGS) $< -o $@
 
 ../o/bcInfo.o: bcInfo.c $(SVCH)
@@ -57,42 +58,40 @@ $(TARGET): $(OBJS)
 	$(RM) $@.exp
 
 ../o/bcopy.o: bcopy.cpp bcopy_find.cpp bcplugin.h bcplugdialogproc.cpp bcconfig.cpp bcopy_eject.cpp bcCommon.h dm_macro.hpp
-	$(CC) $(CFLAGS) $< -o $@
+	$(CC) $(CPPFLAGS) $< -o $@
 
 ../o/bcopy_common.o: bcopy_common.cpp bcplugin.h bcCommon.h
-	$(CC) $(CFLAGS) $< -o $@
+	$(CC) $(CPPFLAGS) $< -o $@
 
 ../o/bcopy_info.o: bcopy_info.cpp bcplugin.h bcCommon.h
-	$(CC) $(CFLAGS) $< -o $@
+	$(CC) $(CPPFLAGS) $< -o $@
 
 ../o/bcopy_name.o: bcopy_name.cpp bcplugin.h
-	$(CC) $(CFLAGS) $< -o $@
+	$(CC) $(CPPFLAGS) $< -o $@
 
 ../o/bcopy_infomenu.o: bcopy_infomenu.cpp bcplugin.h bcCommon.h
-	$(CC) $(CFLAGS) $< -o $@
+	$(CC) $(CPPFLAGS) $< -o $@
 
 ../o/bcopy_selcolor.o: bcopy_selcolor.cpp bcplugin.h bcCommon.h
-	$(CC) $(CFLAGS) $< -o $@
+	$(CC) $(CPPFLAGS) $< -o $@
 
 ../o/bcopy_macros.o: bcopy_macros.cpp bcplugin.h
-	$(CC) $(CFLAGS) $< -o $@
+	$(CC) $(CPPFLAGS) $< -o $@
 
 ../o/bcopy_macros_2.o: bcopy_macros_2.cpp bcplugin.h
-	$(CC) $(CFLAGS) $< -o $@
+	$(CC) $(CPPFLAGS) $< -o $@
 
 ../o/bcopy_fast_redraw.o: bcopy_fast_redraw.cpp bcplugin.h bcopy_fast_redraw.h dm_macro.hpp
-	$(CC) $(CFLAGS) $< -o $@
+	$(CC) $(CPPFLAGS) $< -o $@
 
 ../o/bcopy.res.o: bcopy.rc ./bootstrap/bcversion.h
 	windres -i $< -o $@
 
-../o/bcsvc.res.o: bcsvc.rc ./bootstrap/bcversion.h ./bootstrap/bcsvc.msg
+../o/bcsvc.res.o: bcsvc.rc ./bootstrap/bcversion.h ./bootstrap/bcsvc_MSG00001.bin
 	windres -i $< -o $@
 
-./bootstrap/bcsvc.msg ./bootstrap/bcsvcmsg.h: bcsvc.mc
-	mc $<
-	$(MV) bcsvc.msg ./bootstrap/bcsvc.msg
-	$(MV) bcsvcmsg.h ./bootstrap/bcsvcmsg.h
+./bootstrap/bcsvc_MSG00001.bin ./bootstrap/bcsvc.h: bcsvc.mc
+	windmc -b -r.\bootstrap -h.\bootstrap $<
 
 ./bootstrap/bcversion.h: bcversion.m4 bc_ver.m4
 	$(M4) $< > $@

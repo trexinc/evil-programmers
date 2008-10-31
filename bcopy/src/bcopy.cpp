@@ -431,8 +431,8 @@ HANDLE WINAPI _export OpenPlugin(int OpenFrom,int Item)
             0000000000111111111122222222223333333333444444444455555555556666666666777777
             0123456789012345678901234567890123456789012345678901234567890123456789012345
           */
-          char *CopyHistoryName="Copy";
-          static char *BCopyCopyHistoryName="BCopyCopy";
+          const char *CopyHistoryName="Copy";
+          static const char *BCopyCopyHistoryName="BCopyCopy";
           static struct InitDialogItem InitDlg[]={
           /* 0*/  {DI_DOUBLEBOX,3,1,72,19,0,0,0,0,(char *)mCpyDlgCopyTitle},
           /* 1*/  {DI_TEXT,5,2,0,0,0,0,DIF_SHOWAMPERSAND,0,""},

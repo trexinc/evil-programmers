@@ -240,7 +240,7 @@ struct InitDialogItem
   DWORD_PTR Selected;
   unsigned int Flags;
   int DefaultButton;
-  char *Data;
+  const char *Data;
 };
 
 struct Options
