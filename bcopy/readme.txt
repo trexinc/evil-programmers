@@ -25,6 +25,7 @@ E-mail: zg@bmg.lv
 History
 
 v1.3 build 57 xx-xx-2008
+- percents shown in info dialog title.
 - gcc 4.3.2.
 - service rights updated.
 - "show info" in dialogs.

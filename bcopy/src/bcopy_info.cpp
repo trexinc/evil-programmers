@@ -611,6 +611,11 @@ static LONG_PTR WINAPI InfoDialogProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Pa
           Caption.PtrData=SrcA;
           Caption.PtrLength=(int)strlen(Caption.PtrData);
           Info.SendDlgMessage(hDlg,DM_SETTEXT,11+shift,(LONG_PTR)&Caption);
+          const unsigned int titles[]={mCpyDlgCopyTitle,mCpyDlgCopyTitle,mCpyDlgMoveTitle,mWpeDlgTitle,mDelDlgTitle,mAttrDlgTitle};
+          sprintf(SrcA,GetMsg(mInfoDlgStatus4),percent,GetMsg(titles[receive.info.type]));
+          Caption.PtrData=SrcA;
+          Caption.PtrLength=(int)strlen(Caption.PtrData);
+          Info.SendDlgMessage(hDlg,DM_SETTEXT,0,(LONG_PTR)&Caption);
         }
         else if(receive.info.InfoEx)
         {
