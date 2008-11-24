@@ -1,7 +1,7 @@
 History:
 --------
 
-v0.3 (24/11/08)
+v0.3 (25/11/08)
 ---------------
 + Option to draw a small cross.
 

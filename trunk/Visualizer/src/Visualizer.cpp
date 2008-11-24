@@ -799,8 +799,13 @@ void VisualizeCross(int ShowCross, int CurLine, int Line, int Column, int LeftPo
     ec.Color = Opt.ColorOfCrossHorizontal;
     if (ShowCross==CROSS_SMALL)
     {
-      ec.StartPos = Column-4>=0 ? Column-4 : 0;
-      ec.EndPos = Column+4;
+      ecp.SrcPos = Column-4>=0 ? Column-4 : 0;
+      Info.EditorControl(ECTL_TABTOREAL,(void *)&ecp);
+      ec.StartPos = ecp.DestPos;
+
+      ecp.SrcPos = Column+4;
+      Info.EditorControl(ECTL_TABTOREAL,(void *)&ecp);
+      ec.EndPos = ecp.DestPos;
     }
     else
     {
