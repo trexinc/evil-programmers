@@ -1,6 +1,10 @@
 History:
 --------
 
+v0.3 (24/11/08)
+---------------
++ Option to draw a small cross.
+
 v0.2 (29/03/06)
 ---------------
  + Added cross drawing.

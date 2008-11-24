@@ -49,6 +49,7 @@ enum
   MCrossOn,
   MCrossVertical,
   MCrossHorizontal,
+  MCrossSmall,
   MCrossOnTop,
 
   MCursor,
@@ -89,7 +90,7 @@ enum
   MSetColor,
 };
 
-typedef struct InitDialogItem
+struct InitDialogItem
 {
   int Type;
   int X1, Y1, X2, Y2;

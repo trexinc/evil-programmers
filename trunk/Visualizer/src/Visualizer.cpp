@@ -121,6 +121,7 @@ enum ENUMCross
   CROSS_ON,
   CROSS_VERTICAL,
   CROSS_HORIZONTAL,
+  CROSS_SMALL,
   //CROSS_HOTKEY,
 
   CROSS_MAX,
@@ -782,19 +783,30 @@ void VisualizeCross(int ShowCross, int CurLine, int Line, int Column, int LeftPo
 {
   static struct EditorConvertPos ecp = {-1, 0, 0};
   static struct EditorColor ec = {-1, 0, 0, 0, 0};
-  if (ShowCross==CROSS_ON || ShowCross==CROSS_VERTICAL)
+  if (ShowCross==CROSS_ON || ShowCross==CROSS_VERTICAL || ShowCross==CROSS_SMALL)
   {
-    ecp.SrcPos = Column;
-    Info.EditorControl(ECTL_TABTOREAL,(void *)&ecp);
-    ec.StartPos = ec.EndPos = ecp.DestPos;
-    ec.Color = Opt.ColorOfCrossVertical;
-    Info.EditorControl(ECTL_ADDCOLOR,(void *)&ec);
+    if (ShowCross!=CROSS_SMALL || (Line < CurLine+4 && Line > CurLine-4))
+    {
+      ecp.SrcPos = Column;
+      Info.EditorControl(ECTL_TABTOREAL,(void *)&ecp);
+      ec.StartPos = ec.EndPos = ecp.DestPos;
+      ec.Color = Opt.ColorOfCrossVertical;
+      Info.EditorControl(ECTL_ADDCOLOR,(void *)&ec);
+    }
   }
-  if (CurLine == Line && (ShowCross==CROSS_ON || ShowCross==CROSS_HORIZONTAL))
+  if (CurLine == Line && (ShowCross==CROSS_ON || ShowCross==CROSS_HORIZONTAL || ShowCross==CROSS_SMALL))
   {
     ec.Color = Opt.ColorOfCrossHorizontal;
-    ec.StartPos = 0;
-    ec.EndPos = (LeftPos+WindowSizeX)*2;
+    if (ShowCross==CROSS_SMALL)
+    {
+      ec.StartPos = Column-4>=0 ? Column-4 : 0;
+      ec.EndPos = Column+4;
+    }
+    else
+    {
+      ec.StartPos = 0;
+      ec.EndPos = (LeftPos+WindowSizeX)*2;
+    }
     Info.EditorControl(ECTL_ADDCOLOR,(void *)&ec);
   }
 }
