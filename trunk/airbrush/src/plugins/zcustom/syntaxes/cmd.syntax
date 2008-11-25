@@ -1,0 +1,85 @@
+file cmd\sscript \*.cmd,\*.bat
+context default
+    keyword whole /[Aa]//[Ss]{2,2}//[Oo]//[Cc]/ white
+    keyword whole /[Aa]//[Tt]/ white
+    keyword whole /[Aa]//[Tt]{2,2}//[Rr]//[Ii]//[Bb]/ white
+    keyword whole /[Bb]//[Rr]//[Ee]//[Aa]//[Kk]/ white
+    keyword whole /[Cc]//[Aa]//[Cc]//[Ll]//[Ss]/ white
+    keyword whole /[Cc]//[Aa]//[Ll]{2,2}/ white
+    keyword whole /[Cc]//[Dd]/ white
+    keyword whole /[Cc]//[Hh]//[Cc]//[Pp]/ white
+    keyword whole /[Cc]//[Hh]//[Dd]//[Ii]//[Rr]/ white
+    keyword whole /[Cc]//[Hh]//[Kk]//[Dd]//[Ss]//[Kk]/ white
+    keyword whole /[Cc]//[Ll]//[Ss]/ white
+    keyword whole /[Cc]//[Mm]//[Dd]/ white
+    keyword whole /[Cc]//[Oo]//[Ll]//[Oo]//[Rr]/ white
+    keyword whole /[Cc]//[Oo]//[Mm]//[Pp]/ white
+    keyword whole /[Cc]//[Oo]//[Mm]//[Pp]//[Aa]//[Cc]//[Tt]/ white
+    keyword whole /[Cc]//[Oo]//[Nn]//[Vv]//[Ee]//[Rr]//[Tt]/ white
+    keyword whole /[Cc]//[Oo]//[Pp]//[Yy]/ white
+    keyword whole /[Dd]//[Aa]//[Tt]//[Ee]/ white
+    keyword whole /[Dd]//[Ee]//[Ll]/ white
+    keyword whole /[Dd]//[Ii]//[Rr]/ white
+    keyword whole /[Dd]//[Ii]//[Ss]//[Kk]//[Cc]//[Oo]//[Mm]//[Pp]/ white
+    keyword whole /[Dd]//[Ii]//[Ss]//[Kk]//[Cc]//[Oo]//[Pp]//[Yy]/ white
+    keyword whole /[Dd]//[Oo]//[Ss]//[Kk]//[Ee]//[Yy]/ white
+    keyword whole /[Ee]//[Cc]//[Hh]//[Oo]/ white
+    keyword whole /[Ee]//[Nn]//[Dd]//[Ll]//[Oo]//[Cc]//[Aa]//[Ll]/ white
+    keyword whole /[Ee]//[Rr]//[Aa]//[Ss]//[Ee]/ white
+    keyword whole /[Ee]//[Xx]//[Ii]//[Tt]/ white
+    keyword whole /[Ff]//[Cc]/ white
+    keyword whole /[Ff]//[Ii]//[Nn]//[Dd]/ white
+    keyword whole /[Ff]//[Ii]//[Nn]//[Dd]//[Ss]//[Tt]//[Rr]/ white
+    keyword whole /[Ff]//[Oo]//[Rr]/ white
+    keyword whole /[Ff]//[Oo]//[Rr]//[Mm]//[Aa]//[Tt]/ white
+    keyword whole /[Ff]//[Tt]//[Yy]//[Pp]//[Ee]/ white
+    keyword whole /[Gg]//[Oo]//[Tt]//[Oo]/ white
+    keyword whole /[Gg]//[Rr]//[Aa]//[Ff]//[Tt]//[Aa]//[Bb]//[Ll]/ white
+    keyword whole /[Hh]//[Ee]//[Ll]//[Pp]/ white
+    keyword whole /[Ii]//[Ff]/ white
+    keyword whole /[Kk]//[Ee]//[Yy]//[Bb]/ white
+    keyword whole /[Ll]//[Aa]//[Bb]//[Ee]//[Ll]/ white
+    keyword whole /[Mm]//[Dd]/ white
+    keyword whole /[Mm]//[Kk]//[Dd]//[Ii]//[Rr]/ white
+    keyword whole /[Mm]//[Oo]//[Dd]//[Ee]/ white
+    keyword whole /[Mm]//[Oo]//[Rr]//[Ee]/ white
+    keyword whole /[Mm]//[Oo]//[Vv]//[Ee]/ white
+    keyword whole /[Pp]//[Aa]//[Tt]//[Hh]/ white
+    keyword whole /[Pp]//[Aa]//[Uu]//[Ss]//[Ee]/ white
+    keyword whole /[Pp]//[Oo]//[Pp]//[Dd]/ white
+    keyword whole /[Pp]//[Rr]//[Ii]//[Nn]//[Tt]/ white
+    keyword whole /[Pp]//[Rr]//[Oo]//[Mm]//[Pp]//[Tt]/ white
+    keyword whole /[Pp]//[Uu]//[Ss]//[Hh]//[Dd]/ white
+    keyword whole /[Rr]//[Dd]/ white
+    keyword whole /[Rr]//[Ee]//[Cc]//[Oo]//[Vv]//[Ee]//[Rr]/ white
+#   keyword whole /[Rr]//[Ee]//[Mm]/ white
+    keyword whole /[Rr]//[Ee]//[Nn]/ white
+    keyword whole /[Rr]//[Ee]//[Nn]//[Aa]//[Mm]//[Ee]/ white
+    keyword whole /[Rr]//[Ee]//[Pp]//[Ll]//[Aa]//[Cc]//[Ee]/ white
+    keyword whole /[Rr]//[Ee]//[Ss]//[Tt]//[Oo]//[Rr]//[Ee]/ white
+    keyword whole /[Rr]//[Mm]//[Dd]//[Ii]//[Rr]/ white
+    keyword whole /[Ss]//[Ee]//[Tt]/ white
+    keyword whole /[Ss]//[Ee]//[Tt]//[Ll]//[Oo]//[Cc]//[Aa]//[Ll]/ white
+    keyword whole /[Ss]//[Hh]//[Ii]//[Ff]//[Tt]/ white
+    keyword whole /[Ss]//[Oo]//[Rr]//[Tt]/ white
+    keyword whole /[Ss]//[Tt]//[Aa]//[Rr]//[Tt]/ white
+    keyword whole /[Ss]//[Uu]//[Bb]//[Ss]//[Tt]/ white
+    keyword whole /[Tt]//[Ii]//[Mm]//[Ee]/ white
+    keyword whole /[Tt]//[Ii]//[Tt]//[Ll]//[Ee]/ white
+    keyword whole /[Tt]//[Rr]//[Ee]{2,2}/ white
+    keyword whole /[Tt]//[Yy]//[Pp]//[Ee]/ white
+    keyword whole /[Vv]//[Ee]//[Rr]/ white
+    keyword whole /[Vv]//[Ee]//[Rr]//[Ii]//[Ff]//[Yy]/ white
+    keyword whole /[Vv]//[Oo]//[Ll]/ white
+    keyword whole /[Xx]//[Cc]//[Oo]//[Pp]//[Yy]/ white
+    keyword %%/[a-zA-Z0-9]+/ brightmagenta
+    keyword %/[a-zA-Z0-9]+/ brightmagenta
+    keyword %/[a-zA-Z0-9]+/% brightmagenta
+    keyword < brightmagenta
+    keyword > brightmagenta
+    keyword | brightmagenta
+    keyword @ brightmagenta
+    keyword linestart :*\n brightgreen
+context linestart /[\s\t]*//[Rr]//[Ee]//[Mm]/ \n cyan
+context " " yellow
+    keyword %/[a-zA-Z0-9]+/% brightmagenta

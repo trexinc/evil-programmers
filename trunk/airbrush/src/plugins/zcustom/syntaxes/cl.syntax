@@ -1,0 +1,26 @@
+file ChangeLog \*ChangeLog\*
+
+context default
+    keyword wholeright +() brightmagenta
+
+context linestart \t\*\s : lightgray
+context linestart \s\s\s\s\s\s\s\s\*\s : lightgray
+
+context linestart 19+-+\s \n yellow
+    keyword <+> brightred
+context linestart 20+-+\s \n yellow
+    keyword <+> brightred
+context linestart Mon\s \n yellow
+    keyword <+> brightred
+context linestart Tue\s \n yellow
+    keyword <+> brightred
+context linestart Wed\s \n yellow
+    keyword <+> brightred
+context linestart Thu\s \n yellow
+    keyword <+> brightred
+context linestart Fri\s \n yellow
+    keyword <+> brightred
+context linestart Sat\s \n yellow
+    keyword <+> brightred
+context linestart Sun\s \n yellow
+    keyword <+> brightred

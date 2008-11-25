@@ -1,0 +1,108 @@
+file win\sresources \*.rc
+context default
+    keyword whole BEGIN white
+    keyword whole END white
+    keyword whole LOADONCALL white
+    keyword whole MOVEABLE white
+    keyword whole DISCARDABLE white
+    keyword whole PURE white
+    keyword whole OWNERDRAW white
+    keyword whole NOT white
+    keyword whole NONSHARED white
+    keyword whole PRELOAD white
+    keyword whole MENUBREAK white
+    keyword whole MENUBARBREAK white
+    keyword whole SEPARATOR white
+    keyword whole IMPURE white
+    keyword whole FIXED white
+    keyword whole GRAYED white
+    keyword whole CHECKED white
+    keyword whole BLOCK white
+    keyword whole HELP white
+    keyword whole INACTIVE white
+    keyword whole SEGALIGN white
+    keyword whole NONDISCARDABLE white
+
+    keyword whole ASCII white
+    keyword whole POPUP white
+    keyword whole MENUITEM white
+    keyword whole SHIFT white
+    keyword whole CONTROL white
+    keyword whole NOINVERT white
+    keyword whole ALT white
+    keyword whole BITMAP white
+    keyword whole MENU white
+    keyword whole ACCELERATOR white
+    keyword whole CURSOR white
+    keyword whole ICON white
+    keyword whole CAPTION white
+    keyword whole VERSIONINFO white
+    keyword whole VALUE white
+    keyword whole DIALOGEX white
+    keyword whole STYLE white
+    keyword whole DIALOG white
+    keyword whole PUSHBUTTON white
+    keyword whole FONT white
+    keyword whole EXSTYLE white
+    keyword whole EDITTEXT white
+    keyword whole VIRTKEY white
+    keyword whole VERSION white
+    keyword whole USERBUTTON white
+    keyword whole STATIC white
+    keyword whole STATE white3
+    keyword whole SHARED white
+    keyword whole SCROLLBAR white
+    keyword whole RTEXT white
+    keyword whole RCDATA white
+    keyword whole RADIOBUTTON white
+    keyword whole PUSHBOX white
+    keyword whole PRODUCTVERSION white
+    keyword whole MESAGETABLE white
+    keyword whole LTEXT white
+    keyword whole LISTBOX white
+    keyword whole LANGUAGE white
+    keyword whole IEDIT white
+    keyword whole HEDIT white
+    keyword whole GROUPBOX white
+    keyword whole FILEVERSION white
+    keyword whole FILETYPE white
+    keyword whole FILESUBTYPE white
+    keyword whole FILEOS white
+    keyword whole FILEFLAGSMASK white
+    keyword whole FILEFLAGS white
+    keyword whole EDIT white
+    keyword whole DLGINIT white
+    keyword whole DLGINCLUDE white
+    keyword whole DEFPUSHBUTTON white
+    keyword whole CTEXT white
+    keyword whole TEXTINCLUDE white
+    keyword whole COMBOBOX white
+    keyword whole CLASS white
+    keyword whole CHECKBOX white
+    keyword whole CHARACTERISTICS white
+    keyword whole BUTTON white
+    keyword whole BEDIT white
+    keyword whole AUTORADIOBUTTON white
+    keyword whole AUTOCHECKBOX white
+    keyword whole AUTO white3keyword whole STATE white
+    keyword whole HTML white
+    keyword whole ANI white
+    keyword whole ANICURSOR white
+    keyword whole VXD white
+    keyword whole PLUGPLAY white
+    keyword whole GROUP white_keyword whole ICON white
+    keyword whole GROUP white_keyword whole CURSOR white
+    keyword whole MESSAGETABLE white
+    keyword whole FONTDIR white
+    keyword whole STRING white
+    keyword whole TOOLBAR white
+    keyword whole MENUEX white
+    keyword whole ACCELERATORS white
+    keyword whole STRINGTABLE white
+    keyword whole #/[a-z]+/ green
+    keyword whole /[\0]/ white black
+context " " yellow
+    keyword \\\\
+    keyword \\"
+context \/\* \*\/ cyan
+context \/\/ \n cyan

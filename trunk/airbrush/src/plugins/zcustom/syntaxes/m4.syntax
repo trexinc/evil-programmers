@@ -1,0 +1,56 @@
+file m4 \*.m4
+context default
+    keyword whole define white
+    keyword whole defn white
+    keyword whole undefine white
+    keyword whole pushdef white
+    keyword whole popdef white
+    keyword whole indir white
+    keyword whole builtin white
+    keyword whole ifdef white
+    keyword whole ifelse white
+    keyword whole shift white
+    keyword whole dumpdef white
+    keyword whole traceon white
+    keyword whole traceoff white
+    keyword whole debugmode white
+    keyword whole m4wrap white
+    keyword whole len white
+    keyword whole index white
+    keyword whole regexp white
+    keyword whole substr white
+    keyword whole translit white
+    keyword whole patsubst white
+    keyword whole format white
+    keyword whole incr white
+    keyword whole decr white
+    keyword whole eval white
+    keyword whole syscmd white
+    keyword whole esyscmd white
+    keyword whole sysval white
+    keyword whole maketemp white
+    keyword whole errprint white
+    keyword whole m4exit white
+    keyword whole include green
+    keyword whole sinclude green
+    keyword whole divert green
+    keyword whole undivert green
+    keyword whole divnum green
+    keyword whole changequote brightred
+    keyword whole changecom brightred
+    keyword whole changeword brightred
+    keyword whole  brightred
+    keyword whole dnl brightmagenta
+    keyword dnl
+    keyword wholeleft __file__ brightmagenta
+    keyword wholeleft __line__ brightmagenta
+    keyword , white
+    keyword ( white
+    keyword ) white
+    keyword recursive `*' yellow
+    keyword whole /[a-zA-Z_0-9 -¯à-ï€-Ÿ]+/
+context " "
+context # \n cyan
+context exclusive dnl \n cyan
+context ` ' yellow
+    keyword recursive `*' yellow

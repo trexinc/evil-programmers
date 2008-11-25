@@ -1,0 +1,7 @@
+LIBRARY
+EXPORTS
+   SetColorizeInfo=SetColorizeInfo@4
+   Colorize=Colorize@8
+   GetParams=GetParams@12
+   GetSyntaxCount=GetSyntaxCount@0
+   Exit=Exit@0
