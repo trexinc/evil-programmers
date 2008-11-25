@@ -1,0 +1,10 @@
+LIBRARY
+EXPORTS
+   OpenPlugin=OpenPlugin@8
+   SetStartupInfo=SetStartupInfo@4
+   GetPluginInfo=GetPluginInfo@4
+   Configure=Configure@4
+   ProcessEditorEvent=ProcessEditorEvent@8
+   ProcessEditorInput=ProcessEditorInput@4
+   ExitFAR=ExitFAR@0
+   GetMinFarVersion=GetMinFarVersion@0

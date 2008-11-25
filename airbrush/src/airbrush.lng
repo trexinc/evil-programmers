@@ -1,0 +1,37 @@
+.Language=English,English
+
+"Air Brush"
+"unknown"
+"default"
+"Loading..."
+//config menu
+"0 main options"
+"1 file masks"
+"2 first lines"
+"3 colors"
+//config dialog
+"Turn &on plugin module"
+"Highlite &all files"
+"Don't highlite files with line &count greater then"
+"Save"
+"Cancel"
+//Select color dialog
+"Color"
+"&Foreground"
+"&Background"
+"Text Text Text Text Text Text"
+"Text Text Text Text Text Text"
+"Text Text Text Text Text Text"
+"Set"
+"Cancel"
+//Stop dialog
+"Are you want to stop highlite this file?"
+//fatal errors
+"Internal airbrush fatal error"
+"cashesize=%d,new_item_index=%d"
+//buttons
+"OK"
+"Yes"
+"No"
+//error
+"Error"

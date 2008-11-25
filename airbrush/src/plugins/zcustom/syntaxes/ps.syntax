@@ -1,0 +1,11 @@
+file PostScript \*.ps,\*.eps,\*.ai
+
+context default
+    keyword whole /[-]*//[0-9]+//[.]*//[0-9]*/ brightgreen
+    keyword whole /[{}]{1,1}/ white
+    keyword whole \//[-A-Za-z]+/ lightgray
+
+#    keyword whole /[A-Za-z]+/ white
+
+context ( ) yellow
+context % \n cyan

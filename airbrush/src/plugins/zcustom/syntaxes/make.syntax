@@ -1,0 +1,41 @@
+file makefile makefile,makefile.\*
+context default
+    keyword $(*) yellow
+    keyword ${*} brightgreen
+    keyword whole linestart include magenta
+    keyword whole linestart ifdef magenta
+    keyword whole linestart ifndef magenta
+    keyword whole linestart endif magenta
+    keyword whole linestart if magenta
+    keyword whole linestart ifeq magenta
+    keyword whole linestart ifneq magenta
+    keyword whole linestart else magenta
+    keyword linestart \t lightgray red
+    keyword whole .PHONY white
+    keyword whole .NOEXPORT white
+    keyword = white
+    keyword : yellow
+    keyword \\\n yellow
+# this handles strange cases like @something@@somethingelse@ properly
+    keyword whole @+@ brightmagenta black
+    keyword @+@ brightmagenta black
+
+context linestart # \n brown
+    keyword whole @+@ brightmagenta black
+    keyword @+@ brightmagenta black
+
+context exclusive = \n lightgray
+    keyword \\\n yellow
+    keyword $(*) yellow
+    keyword ${*} brightgreen
+    keyword linestart \t lightgray red
+    keyword whole @+@ brightmagenta black
+    keyword @+@ brightmagenta black
+
+context exclusive linestart \t \n
+    keyword \\\n yellow
+    keyword $(*) yellow
+    keyword ${*} brightgreen
+    keyword linestart \t lightgray red
+    keyword whole @+@ brightmagenta black
+    keyword @+@ brightmagenta black

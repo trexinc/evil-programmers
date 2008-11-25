@@ -1,0 +1,47 @@
+file gnu\sasm \*.s
+wholechars right abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_
+wholechars left abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_%$
+context default
+    keyword whole push/[lwb]?/ white
+    keyword whole pop/[lwb]?/ white
+    keyword whole mov/[lwb]?/ white
+# flow control
+    keyword whole call brightred
+    keyword whole jmp brightred
+    keyword whole ret brightred
+    keyword whole retn brightred
+    keyword whole iret brightred
+    keyword whole je brightred
+    keyword whole jne brightred
+    keyword whole jz brightred
+    keyword whole jnz brightred
+# registers
+    keyword whole %eax yellow
+    keyword whole %ebx yellow
+    keyword whole %ecx yellow
+    keyword whole %edx yellow
+    keyword whole %esi yellow
+    keyword whole %edi yellow
+    keyword whole %esp yellow
+    keyword whole %ebp yellow
+    keyword whole %ss yellow
+    keyword whole %cs yellow
+    keyword whole %ds yellow
+    keyword whole %es yellow
+    keyword whole %fs yellow
+    keyword whole %gs yellow
+    keyword whole %ax yellow
+    keyword whole %bx yellow
+    keyword whole %cx yellow
+    keyword whole %dx yellow
+    keyword whole %al yellow
+    keyword whole %ah yellow
+    keyword whole %bl yellow
+    keyword whole %bh yellow
+    keyword whole %cl yellow
+    keyword whole %ch yellow
+    keyword whole %dl yellow
+    keyword whole %dh yellow
+
+    keyword whole $/[0-9]+/ brightgreen
+context ; \n cyan

@@ -1,0 +1,20 @@
+SYNNAME=yacclex
+TARGET=../../../bin/Formats/$(SYNNAME).fmt
+DEF=$(SYNNAME).def
+OBJS=../../../o/$(SYNNAME).o ../../../o/$(SYNNAME).res.o
+LIBS=
+
+all: $(TARGET)
+
+$(TARGET): $(OBJS)
+	$(CC) $(LFLAGS) -o $@ -Xlinker --base-file -Xlinker $(TARGET).base $(OBJS) $(LIBS)
+	$(DLLTOOL) --dllname $(TARGET) --base-file $(TARGET).base --output-exp $(TARGET).exp --def $(DEF)
+	$(CC) $(LFLAGS) -o $@ $(OBJS) $(TARGET).exp $(LIBS)
+	$(RM) $(TARGET).base
+	$(RM) $(TARGET).exp
+
+../../../o/$(SYNNAME).o: $(SYNNAME).cpp ab$(SYNNAME).h ../../bootstrap/abplugin.h
+	$(CC) $(CFLAGS) $< -o $@
+
+../../../o/$(SYNNAME).res.o: $(SYNNAME).rc ../../bootstrap/abversion.h
+	$(WINDRES) -i $< -o $@

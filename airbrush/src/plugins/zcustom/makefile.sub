@@ -1,0 +1,35 @@
+SYNNAME=zcustom
+TARGET=../../../bin/Formats/$(SYNNAME).fmt
+DEF=$(SYNNAME).def
+OBJS=../../../o/$(SYNNAME).o ../../../o/zc_parser.o ../../../o/$(SYNNAME).res.o
+LIBS=
+
+all: $(TARGET) SYNTAX
+
+$(TARGET): $(OBJS)
+	$(CC) $(LFLAGS) -o $@ -Xlinker --base-file -Xlinker $(TARGET).base $(OBJS) $(LIBS)
+	$(DLLTOOL) --dllname $(TARGET) --base-file $(TARGET).base --output-exp $(TARGET).exp --def $(DEF)
+	$(CC) $(LFLAGS) -o $@ $(OBJS) $(TARGET).exp $(LIBS)
+	$(RM) $(TARGET).base
+	$(RM) $(TARGET).exp
+
+../../../o/$(SYNNAME).o: $(SYNNAME).cpp ab$(SYNNAME).h ../../bootstrap/abplugin.h
+	$(CC) $(CFLAGS) $< -o $@
+
+../../../o/$(SYNNAME).res.o: $(SYNNAME).rc ../../bootstrap/abversion.h
+	$(WINDRES) -i $< -o $@
+
+.PHONY: SYNTAX
+
+SYNTAX:
+	$(CP) syntax ../../../bin/Formats/syntax
+	$(CP) syntaxes/* ../../../bin/Formats/syntaxes
+
+../../bootstrap/zc_lexer.cpp: zc_lexer.re
+	re2c -b $< > $@
+
+../../bootstrap/zc_parser.cpp: zc_parser.y
+	bison $< -o $@
+
+../../../o/zc_parser.o: ../../bootstrap/zc_parser.cpp ../../bootstrap/zc_lexer.cpp ab$(SYNNAME).h
+	$(CC) $(CFLAGS) $< -o $@
