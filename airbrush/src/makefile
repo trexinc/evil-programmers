@@ -12,7 +12,7 @@ all: $(TARGET) $(SUBDIRS) $(DOCTARGET)
 WFLAGS=-ffor-scope -Wall -Wextra -Werror -Wno-empty-body -Wno-unused -Wno-parentheses -Wpointer-arith -Wcast-qual
 #WFLAGS=-ffor-scope -Wall -W -Werror -Wtraditional -Wno-unused -Wpointer-arith -Wbad-function-cast -Wconversion -Winline -Wcast-qual
 # -Wstrict-prototypes -Wconversion -Winline
-CFLAGS=-c -mtune=pentium4 -Os $(WFLAGS) -fomit-frame-pointer -fstrict-aliasing
+CFLAGS=-c -mtune=pentium4 -Os $(WFLAGS) -fomit-frame-pointer -fstrict-aliasing -fno-exceptions -fno-rtti
 LFLAGS=-mdll -s -nostartfiles
 
 RM=rm -f
