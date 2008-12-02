@@ -1,5 +1,5 @@
 Block Indent plugin for FAR Manager
-Copyright (C) 2001-2004 Alex Yaroslavsky
+Copyright (C) 2001 Alex Yaroslavsky
 
 -------------------------------------------------------------------------------
 License:

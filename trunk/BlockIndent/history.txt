@@ -6,6 +6,12 @@ Legend:  + added
          * changed
          ! fixed
 
+v2.1 (02/12/08)
+---------------
+
+ + Far 1.8 support.
+ * Changes in build system.
+
 v2.0 (02/10/04)
 ---------------
 

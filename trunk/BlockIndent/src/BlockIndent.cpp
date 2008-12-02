@@ -1,6 +1,6 @@
 /*
     Block Indent plugin for FAR Manager
-    Copyright (C) 2001-2004 Alex Yaroslavsky
+    Copyright (C) 2001 Alex Yaroslavsky
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 #include "plugin.hpp"
+#include <CRT/crt.hpp>
 
 #if defined(__GNUC__)
 #ifdef __cplusplus
@@ -38,7 +39,6 @@ BOOL WINAPI DllMainCRTStartup(HANDLE hDll,DWORD dwReason,LPVOID lpReserved)
 
 
 static struct PluginStartupInfo Info;
-//static FARSTANDARDFUNCTIONS FSF;
 
 enum
 {
@@ -49,46 +49,14 @@ enum
   MIndentSpaceRight,
 };
 
-void *memcpy(void *dst, const void *src, size_t count)
-{
-  void *ret = dst;
-
-  while (count--)
-  {
-    *(char *)dst = *(char *)src;
-    dst = (char *)dst + 1;
-    src = (char *)src + 1;
-  }
-  return (ret);
-}
-
-char *strcpy(char *dst, const char *src)
-{
-  char *cp = dst;
-
-  while(*cp++ = *src++)
-    ;
-
-  return (dst);
-}
-
-/*
-inline int IsWhite(unsigned char c)
-{
-  return ((c == 32) || (c == 9))?TRUE:FALSE;
-}
-*/
-
-void WINAPI _export SetStartupInfo(const struct PluginStartupInfo *psi)
+void WINAPI EXP_NAME(SetStartupInfo)(const struct PluginStartupInfo *psi)
 {
   Info=*psi;
-  //FSF=*psi->FSF;
-  //Info.FSF=&FSF;
 }
 
-void WINAPI _export GetPluginInfo(struct PluginInfo *pi)
+void WINAPI EXP_NAME(GetPluginInfo)(struct PluginInfo *pi)
 {
-  static char *PluginMenuStrings[1];
+  static const TCHAR *PluginMenuStrings[1];
 
   pi->StructSize=sizeof(struct PluginInfo);
   pi->Flags=PF_EDITOR|PF_DISABLEPANELS;
@@ -97,19 +65,20 @@ void WINAPI _export GetPluginInfo(struct PluginInfo *pi)
   pi->PluginMenuStringsNumber=1;
 }
 
-HANDLE WINAPI _export OpenPlugin(int OpenFrom, int Item)
+HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom, int Item)
 {
   struct FarMenuItem MenuItems[4];
   {
-    //char s[3];
-    //s[0] = '%'; s[1] = 's'; s[2] = 0;
     for (int i=0; i<4; i++)
     {
       MenuItems[i].Checked = 0;
       MenuItems[i].Separator = 0;
       MenuItems[i].Selected = 0;
-      //FSF.sprintf(MenuItems[i].Text,s,Info.GetMsg(Info.ModuleNumber,MIndentTabLeft+i));
+#ifndef UNICODE
       strcpy(MenuItems[i].Text,Info.GetMsg(Info.ModuleNumber,MIndentTabLeft+i));
+#else
+      MenuItems[i].Text = Info.GetMsg(Info.ModuleNumber,MIndentTabLeft+i);
+#endif
     }
     MenuItems[0].Selected = 1;
   }
@@ -122,22 +91,9 @@ HANDLE WINAPI _export OpenPlugin(int OpenFrom, int Item)
   struct EditorInfo ei;
   Info.EditorControl(ECTL_GETINFO,&ei);
 
-  /*
-  unsigned char Space = 32;
-  unsigned char Tab = 9;
-  if (ei.TableNum != -1)
-  {
-    struct CharTableSet cts;
-    if (Info.CharTable(ei.TableNum,(const char *)&cts,sizeof(struct CharTableSet)) != -1) {
-        Space = cts.EncodeTable[Space];
-        Tab = cts.EncodeTable[Tab];
-    }
-  }
-  */
-
-  char IndentStr[2];
-  IndentStr[0] = menu<2?9:32;
-  IndentStr[1] = '\0';
+  TCHAR IndentStr[2];
+  IndentStr[0] = menu<2?_T('\t'):_T(' ');
+  IndentStr[1] = _T('\0');
   int IndentSize = menu<2?ei.TabSize:1;
 
   int line = ei.CurLine;
@@ -191,8 +147,8 @@ HANDLE WINAPI _export OpenPlugin(int OpenFrom, int Item)
       {
         struct EditorSetString ess;
         ess.StringNumber = -1;
-        ess.StringText = &egs.StringText[j];
-        ess.StringEOL = egs.StringEOL;
+        ess.StringText = (TCHAR *)&egs.StringText[j];
+        ess.StringEOL = (TCHAR *)egs.StringEOL;
         ess.StringLength = egs.StringLength - j;
         Info.EditorControl(ECTL_SETSTRING,&ess);
       }
