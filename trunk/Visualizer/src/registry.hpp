@@ -19,9 +19,10 @@
 #ifndef __REGISTRY_HPP__
 #define __REGISTRY_HPP__
 #include <windows.h>
+#include <CRT/crt.hpp>
 
-void SetRegKey(const char *ValueName,DWORD ValueData);
-BOOL GetRegKey(const char *ValueName,int *ValueData,DWORD Default);
-extern char PluginRootKey[];
+void SetRegKey(const TCHAR *ValueName,DWORD ValueData);
+BOOL GetRegKey(const TCHAR *ValueName,int *ValueData,DWORD Default);
+extern TCHAR PluginRootKey[];
 
 #endif

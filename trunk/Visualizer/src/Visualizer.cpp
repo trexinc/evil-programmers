@@ -39,7 +39,7 @@ BOOL WINAPI DllMainCRTStartup(HANDLE hDll,DWORD dwReason,LPVOID lpReserved)
 
 struct PluginStartupInfo Info;
 FARSTANDARDFUNCTIONS FSF;
-char PluginRootKey[80];
+TCHAR PluginRootKey[80];
 HMODULE hEsc;
 int (WINAPI *GetEditorSettings)(int EditorID, const char *szName, void *Param);
 
@@ -157,32 +157,7 @@ enum ENUMScrollbar
   SCROLLBAR_MAX,
 };
 
-void *memcpy(void * dst, const void * src, size_t count)
-{
-  void * ret = dst;
-
-  while (count--)
-  {
-    *(char *)dst = *(char *)src;
-    dst = (char *)dst + 1;
-    src = (char *)src + 1;
-  }
-  return(ret);
-}
-
-void *memset(void *dst, int val, size_t count)
-{
-  void *start = dst;
-
-  while (count--)
-  {
-    *(char *)dst = (char)val;
-    dst = (char *)dst + 1;
-  }
-  return(start);
-}
-
-const char *GetMsg(int MsgId)
+const TCHAR *GetMsg(int MsgId)
 {
   return(Info.GetMsg(Info.ModuleNumber,MsgId));
 }
@@ -203,112 +178,124 @@ void InitDialogItems(const struct InitDialogItem *Init, struct FarDialogItem *It
     PItem->Flags=PInit->Flags;
     PItem->DefaultButton=0;
     if (PInit->Data>=0)
+    {
+#ifndef UNICODE
       FSF.sprintf(PItem->Data,"%s",GetMsg(PInit->Data));
+#else
+      PItem->PtrData = GetMsg(PInit->Data);
+#endif
+    }
     else
+    {
+#ifndef UNICODE
       *(PItem->Data)=0;
+#else
+      PItem->PtrData = L"";
+#endif
+    }
   }
 }
 
 void ReadRegistry()
 {
-  GetRegKey("OnOffSwitch",&Opt.OnOffSwitch,1);
-  GetRegKey("OtherColoringPlugins",&Opt.OtherColoringPlugins,1);
+  GetRegKey(_T("OnOffSwitch"),&Opt.OnOffSwitch,1);
+  GetRegKey(_T("OtherColoringPlugins"),&Opt.OtherColoringPlugins,1);
 
-  GetRegKey("ShowRightBorderOn",&Opt.ShowRightBorderOn,1);
-  GetRegKey("ShowEOLOn",&Opt.ShowEOLOn,1);
-  GetRegKey("ShowEOFOn",&Opt.ShowEOFOn,1);
-  GetRegKey("ShowTabsOn",&Opt.ShowTabsOn,1);
-  GetRegKey("ShowCrossOn",&Opt.ShowCrossOn,1);
-  GetRegKey("ShowCursorOn",&Opt.ShowCursorOn,1);
-  GetRegKey("ShowLineNumbersOn",&Opt.ShowLineNumbersOn,1);
-  GetRegKey("ShowScrollbarOn",&Opt.ShowScrollbarOn,1);
+  GetRegKey(_T("ShowRightBorderOn"),&Opt.ShowRightBorderOn,1);
+  GetRegKey(_T("ShowEOLOn"),&Opt.ShowEOLOn,1);
+  GetRegKey(_T("ShowEOFOn"),&Opt.ShowEOFOn,1);
+  GetRegKey(_T("ShowTabsOn"),&Opt.ShowTabsOn,1);
+  GetRegKey(_T("ShowCrossOn"),&Opt.ShowCrossOn,1);
+  GetRegKey(_T("ShowCursorOn"),&Opt.ShowCursorOn,1);
+  GetRegKey(_T("ShowLineNumbersOn"),&Opt.ShowLineNumbersOn,1);
+  GetRegKey(_T("ShowScrollbarOn"),&Opt.ShowScrollbarOn,1);
 
-  GetRegKey("ShowRightBorder",&Opt.ShowRightBorder,RB_ON);
+  GetRegKey(_T("ShowRightBorder"),&Opt.ShowRightBorder,RB_ON);
   Opt.ShowRightBorder%=RB_MAX;
-  GetRegKey("ShowEOL",&Opt.ShowEOL,EOL_ON);
+  GetRegKey(_T("ShowEOL"),&Opt.ShowEOL,EOL_ON);
   Opt.ShowEOL%=EOL_MAX;
-  //GetRegKey("ShowEOF",&Opt.ShowEOF,EOF_ON);
+  //GetRegKey(_T("ShowEOF"),&Opt.ShowEOF,EOF_ON);
   //Opt.ShowEOF%=EOF_MAX;
-  GetRegKey("ShowTabs",&Opt.ShowTabs,TAB_ON);
+  GetRegKey(_T("ShowTabs"),&Opt.ShowTabs,TAB_ON);
   Opt.ShowTabs%=TAB_MAX;
-  GetRegKey("ShowCross",&Opt.ShowCross,CROSS_ON);
+  GetRegKey(_T("ShowCross"),&Opt.ShowCross,CROSS_ON);
   Opt.ShowCross%=CROSS_MAX;
-  //GetRegKey("ShowCursor",&Opt.ShowCursor,CURSOR_ON);
+  //GetRegKey(_T("ShowCursor"),&Opt.ShowCursor,CURSOR_ON);
   //Opt.ShowCursor%=CURSOR_MAX;
-  //GetRegKey("ShowLineNumbers",&Opt.ShowLineNumbers,LINENUMBERS_ON);
+  //GetRegKey(_T("ShowLineNumbers"),&Opt.ShowLineNumbers,LINENUMBERS_ON);
   //Opt.ShowLineNumbers%=LINENUMBERS_MAX;
-  GetRegKey("ShowScrollbar",&Opt.ShowScrollbar,SCROLLBAR_ON);
+  GetRegKey(_T("ShowScrollbar"),&Opt.ShowScrollbar,SCROLLBAR_ON);
   Opt.ShowScrollbar%=SCROLLBAR_MAX;
 
-  GetRegKey("ShowCrossOnTop",&Opt.ShowCrossOnTop,0);
-  GetRegKey("ShowTabSymbol",&Opt.ShowTabSymbol,0);
+  GetRegKey(_T("ShowCrossOnTop"),&Opt.ShowCrossOnTop,0);
+  GetRegKey(_T("ShowTabSymbol"),&Opt.ShowTabSymbol,0);
 
-  GetRegKey("ColorOfRightBorder",&Opt.ColorOfRightBorder,0|5<<4);
-  GetRegKey("ColorOfEOLNormal",&Opt.ColorOfEOLNormal,0|8<<4);
-  GetRegKey("ColorOfEOLCR",&Opt.ColorOfEOLCR,0|8<<4);
-  GetRegKey("ColorOfEOLLF",&Opt.ColorOfEOLLF,0|7<<4);
-  GetRegKey("ColorOfEOLNULL",&Opt.ColorOfEOLNULL,0|12<<4);
-  GetRegKey("ColorOfEOF",&Opt.ColorOfEOF,0|12<<4);
-  GetRegKey("ColorOfTabs",&Opt.ColorOfTabs,0|15<<4);
-  GetRegKey("ColorOfTabs2",&Opt.ColorOfTabs2,0|7<<4);
-  GetRegKey("ColorOfCrossVertical",&Opt.ColorOfCrossVertical,0|7<<4);
-  GetRegKey("ColorOfCrossHorizontal",&Opt.ColorOfCrossHorizontal,0|7<<4);
-  GetRegKey("ColorOfCursor",&Opt.ColorOfCursor,0|12<<4);
-  GetRegKey("ColorOfScrollbar",&Opt.ColorOfScrollbar,0|11<<4);
-  GetRegKey("ColorOfScrollbarPositionMarker",&Opt.ColorOfScrollbarPositionMarker,0|9<<4);
-  //GetRegKey("HotkeyOfCross",&Opt.HotkeyOfCross,);
+  GetRegKey(_T("ColorOfRightBorder"),&Opt.ColorOfRightBorder,0|5<<4);
+  GetRegKey(_T("ColorOfEOLNormal"),&Opt.ColorOfEOLNormal,0|8<<4);
+  GetRegKey(_T("ColorOfEOLCR"),&Opt.ColorOfEOLCR,0|8<<4);
+  GetRegKey(_T("ColorOfEOLLF"),&Opt.ColorOfEOLLF,0|7<<4);
+  GetRegKey(_T("ColorOfEOLNULL"),&Opt.ColorOfEOLNULL,0|12<<4);
+  GetRegKey(_T("ColorOfEOF"),&Opt.ColorOfEOF,0|12<<4);
+  GetRegKey(_T("ColorOfTabs"),&Opt.ColorOfTabs,0|15<<4);
+  GetRegKey(_T("ColorOfTabs2"),&Opt.ColorOfTabs2,0|7<<4);
+  GetRegKey(_T("ColorOfCrossVertical"),&Opt.ColorOfCrossVertical,0|7<<4);
+  GetRegKey(_T("ColorOfCrossHorizontal"),&Opt.ColorOfCrossHorizontal,0|7<<4);
+  GetRegKey(_T("ColorOfCursor"),&Opt.ColorOfCursor,0|12<<4);
+  GetRegKey(_T("ColorOfScrollbar"),&Opt.ColorOfScrollbar,0|11<<4);
+  GetRegKey(_T("ColorOfScrollbarPositionMarker"),&Opt.ColorOfScrollbarPositionMarker,0|9<<4);
+  //GetRegKey(_T("HotkeyOfCross"),&Opt.HotkeyOfCross,);
 }
 
 void WriteRegistry()
 {
-  SetRegKey("OnOffSwitch",Opt.OnOffSwitch);
-  SetRegKey("OtherColoringPlugins",Opt.OtherColoringPlugins);
+  SetRegKey(_T("OnOffSwitch"),Opt.OnOffSwitch);
+  SetRegKey(_T("OtherColoringPlugins"),Opt.OtherColoringPlugins);
 
-  SetRegKey("ShowRightBorderOn",Opt.ShowRightBorderOn);
-  SetRegKey("ShowEOLOn",Opt.ShowEOLOn);
-  SetRegKey("ShowEOFOn",Opt.ShowEOFOn);
-  SetRegKey("ShowTabsOn",Opt.ShowTabsOn);
-  SetRegKey("ShowCrossOn",Opt.ShowCrossOn);
-  SetRegKey("ShowCursorOn",Opt.ShowCursorOn);
-  SetRegKey("ShowLineNumbersOn",Opt.ShowLineNumbersOn);
-  SetRegKey("ShowScrollbarOn",Opt.ShowScrollbarOn);
+  SetRegKey(_T("ShowRightBorderOn"),Opt.ShowRightBorderOn);
+  SetRegKey(_T("ShowEOLOn"),Opt.ShowEOLOn);
+  SetRegKey(_T("ShowEOFOn"),Opt.ShowEOFOn);
+  SetRegKey(_T("ShowTabsOn"),Opt.ShowTabsOn);
+  SetRegKey(_T("ShowCrossOn"),Opt.ShowCrossOn);
+  SetRegKey(_T("ShowCursorOn"),Opt.ShowCursorOn);
+  SetRegKey(_T("ShowLineNumbersOn"),Opt.ShowLineNumbersOn);
+  SetRegKey(_T("ShowScrollbarOn"),Opt.ShowScrollbarOn);
 
-  SetRegKey("ShowRightBorder",Opt.ShowRightBorder);
-  SetRegKey("ShowEOL",Opt.ShowEOL);
-  //SetRegKey("ShowEOF",Opt.ShowEOF);
-  SetRegKey("ShowTabs",Opt.ShowTabs);
-  SetRegKey("ShowCross",Opt.ShowCross);
-  //SetRegKey("ShowCursor",Opt.ShowCursor);
-  //SetRegKey("ShowLineNumbers",Opt.ShowLineNumbers);
-  SetRegKey("ShowScrollbar",Opt.ShowScrollbar);
+  SetRegKey(_T("ShowRightBorder"),Opt.ShowRightBorder);
+  SetRegKey(_T("ShowEOL"),Opt.ShowEOL);
+  //SetRegKey(_T("ShowEOF"),Opt.ShowEOF);
+  SetRegKey(_T("ShowTabs"),Opt.ShowTabs);
+  SetRegKey(_T("ShowCross"),Opt.ShowCross);
+  //SetRegKey(_T("ShowCursor"),Opt.ShowCursor);
+  //SetRegKey(_T("ShowLineNumbers"),Opt.ShowLineNumbers);
+  SetRegKey(_T("ShowScrollbar"),Opt.ShowScrollbar);
 
-  SetRegKey("ShowCrossOnTop",Opt.ShowCrossOnTop);
-  SetRegKey("ShowTabSymbol",Opt.ShowTabSymbol);
+  SetRegKey(_T("ShowCrossOnTop"),Opt.ShowCrossOnTop);
+  SetRegKey(_T("ShowTabSymbol"),Opt.ShowTabSymbol);
 
-  SetRegKey("ColorOfRightBorder",Opt.ColorOfRightBorder);
-  SetRegKey("ColorOfEOLNormal",Opt.ColorOfEOLNormal);
-  SetRegKey("ColorOfEOLCR",Opt.ColorOfEOLCR);
-  SetRegKey("ColorOfEOLLF",Opt.ColorOfEOLLF);
-  SetRegKey("ColorOfEOLNULL",Opt.ColorOfEOLNULL);
-  SetRegKey("ColorOfEOF",Opt.ColorOfEOF);
-  SetRegKey("ColorOfTabs",Opt.ColorOfTabs);
-  SetRegKey("ColorOfTabs2",Opt.ColorOfTabs2);
-  SetRegKey("ColorOfCrossVertical",Opt.ColorOfCrossVertical);
-  SetRegKey("ColorOfCrossHorizontal",Opt.ColorOfCrossHorizontal);
-  SetRegKey("ColorOfCursor",Opt.ColorOfCursor);
-  SetRegKey("ColorOfScrollbar",Opt.ColorOfScrollbar);
-  SetRegKey("ColorOfScrollbarPositionMarker",Opt.ColorOfScrollbarPositionMarker);
+  SetRegKey(_T("ColorOfRightBorder"),Opt.ColorOfRightBorder);
+  SetRegKey(_T("ColorOfEOLNormal"),Opt.ColorOfEOLNormal);
+  SetRegKey(_T("ColorOfEOLCR"),Opt.ColorOfEOLCR);
+  SetRegKey(_T("ColorOfEOLLF"),Opt.ColorOfEOLLF);
+  SetRegKey(_T("ColorOfEOLNULL"),Opt.ColorOfEOLNULL);
+  SetRegKey(_T("ColorOfEOF"),Opt.ColorOfEOF);
+  SetRegKey(_T("ColorOfTabs"),Opt.ColorOfTabs);
+  SetRegKey(_T("ColorOfTabs2"),Opt.ColorOfTabs2);
+  SetRegKey(_T("ColorOfCrossVertical"),Opt.ColorOfCrossVertical);
+  SetRegKey(_T("ColorOfCrossHorizontal"),Opt.ColorOfCrossHorizontal);
+  SetRegKey(_T("ColorOfCursor"),Opt.ColorOfCursor);
+  SetRegKey(_T("ColorOfScrollbar"),Opt.ColorOfScrollbar);
+  SetRegKey(_T("ColorOfScrollbarPositionMarker"),Opt.ColorOfScrollbarPositionMarker);
 }
 
-void WINAPI _export SetStartupInfo(const struct PluginStartupInfo *psi)
+void WINAPI EXP_NAME(SetStartupInfo)(const struct PluginStartupInfo *psi)
 {
   Info=*psi;
   FSF=*psi->FSF;
   Info.FSF=&FSF;
-  FSF.sprintf(PluginRootKey,"%s\\Visualizer",Info.RootKey);
+  FSF.sprintf(PluginRootKey,_T("%s\\Visualizer"),Info.RootKey);
   ReadRegistry();
   GetEditorSettings=NULL;
-  hEsc=GetModuleHandle("esc.dll");
+  hEsc=GetModuleHandle(_T("esc.dll"));
   if (hEsc)
     GetEditorSettings=(int (WINAPI*)(int, const char*, void*))GetProcAddress(hEsc,"GetEditorSettings");
 }
@@ -349,26 +336,26 @@ void ConfigColor(struct Options *Opt)
 
   static const struct InitDialogItem PreDialogItems[] =
   {
-    DI_DOUBLEBOX   ,3  ,1  ,40 ,17 ,0               ,MColorTitle,
+    {DI_DOUBLEBOX   ,3  ,1  ,40 ,17 ,0               ,MColorTitle},
 
-    DI_BUTTON      ,0  ,2  ,0  ,0  ,DIF_CENTERGROUP ,MRightBorderColor,
-    DI_BUTTON      ,0  ,3  ,0  ,0  ,DIF_CENTERGROUP ,MEOLNormalColor,
-    DI_BUTTON      ,0  ,4  ,0  ,0  ,DIF_CENTERGROUP ,MEOLCRColor,
-    DI_BUTTON      ,0  ,5  ,0  ,0  ,DIF_CENTERGROUP ,MEOLLFColor,
-    DI_BUTTON      ,0  ,6  ,0  ,0  ,DIF_CENTERGROUP ,MEOLNULLColor,
-    DI_BUTTON      ,0  ,7  ,0  ,0  ,DIF_CENTERGROUP ,MEOLEOFColor,
-    DI_BUTTON      ,0  ,8  ,0  ,0  ,DIF_CENTERGROUP ,MTabsColor,
-    DI_BUTTON      ,0  ,9  ,0  ,0  ,DIF_CENTERGROUP ,MTabs2Color,
-    DI_BUTTON      ,0  ,10 ,0  ,0  ,DIF_CENTERGROUP ,MCrossVerticalColor,
-    DI_BUTTON      ,0  ,11 ,0  ,0  ,DIF_CENTERGROUP ,MCrossHorizontalColor,
-    DI_BUTTON      ,0  ,12 ,0  ,0  ,DIF_CENTERGROUP ,MCursorColor,
-    DI_BUTTON      ,0  ,13 ,0  ,0  ,DIF_CENTERGROUP ,MScrollbarColor,
-    DI_BUTTON      ,0  ,14 ,0  ,0  ,DIF_CENTERGROUP ,MScrollbarPositionMarkerColor,
+    {DI_BUTTON      ,0  ,2  ,0  ,0  ,DIF_CENTERGROUP ,MRightBorderColor},
+    {DI_BUTTON      ,0  ,3  ,0  ,0  ,DIF_CENTERGROUP ,MEOLNormalColor},
+    {DI_BUTTON      ,0  ,4  ,0  ,0  ,DIF_CENTERGROUP ,MEOLCRColor},
+    {DI_BUTTON      ,0  ,5  ,0  ,0  ,DIF_CENTERGROUP ,MEOLLFColor},
+    {DI_BUTTON      ,0  ,6  ,0  ,0  ,DIF_CENTERGROUP ,MEOLNULLColor},
+    {DI_BUTTON      ,0  ,7  ,0  ,0  ,DIF_CENTERGROUP ,MEOLEOFColor},
+    {DI_BUTTON      ,0  ,8  ,0  ,0  ,DIF_CENTERGROUP ,MTabsColor},
+    {DI_BUTTON      ,0  ,9  ,0  ,0  ,DIF_CENTERGROUP ,MTabs2Color},
+    {DI_BUTTON      ,0  ,10 ,0  ,0  ,DIF_CENTERGROUP ,MCrossVerticalColor},
+    {DI_BUTTON      ,0  ,11 ,0  ,0  ,DIF_CENTERGROUP ,MCrossHorizontalColor},
+    {DI_BUTTON      ,0  ,12 ,0  ,0  ,DIF_CENTERGROUP ,MCursorColor},
+    {DI_BUTTON      ,0  ,13 ,0  ,0  ,DIF_CENTERGROUP ,MScrollbarColor},
+    {DI_BUTTON      ,0  ,14 ,0  ,0  ,DIF_CENTERGROUP ,MScrollbarPositionMarkerColor},
 
-    DI_TEXT        ,-1 ,15 ,0  ,0  ,DIF_SEPARATOR   ,-1,
+    {DI_TEXT        ,-1 ,15 ,0  ,0  ,DIF_SEPARATOR   ,-1},
 
-    DI_BUTTON      ,0  ,16 ,0  ,0  ,DIF_CENTERGROUP ,MOk,
-    DI_BUTTON      ,0  ,16 ,0  ,0  ,DIF_CENTERGROUP ,MCancel,
+    {DI_BUTTON      ,0  ,16 ,0  ,0  ,DIF_CENTERGROUP ,MOk},
+    {DI_BUTTON      ,0  ,16 ,0  ,0  ,DIF_CENTERGROUP ,MCancel},
   };
   struct FarDialogItem DialogItems[sizeofa(PreDialogItems)];
 
@@ -379,14 +366,27 @@ void ConfigColor(struct Options *Opt)
   struct Options TmpOpt;
   memcpy(&TmpOpt,Opt,sizeof(TmpOpt));
 
-  int ExitCode;
+  int ExitCode=-1;
 
   while (1)
   {
+#ifndef UNICODE
     ExitCode = Info.Dialog(Info.ModuleNumber,-1,-1,44,19,NULL,DialogItems,sizeofa(DialogItems));
+#else
+    HANDLE hDlg = Info.DialogInit(Info.ModuleNumber,-1,-1,44,19,NULL,DialogItems,sizeofa(DialogItems),0,0,NULL,NULL);
+    if (hDlg == INVALID_HANDLE_VALUE)
+      break;
+
+    ExitCode = Info.DialogRun(hDlg);
+#endif
 
     if (ExitCode==-1 || ExitCode==DLG_OK || ExitCode==DLG_CANCEL)
+    {
+#ifdef UNICODE
+      Info.DialogFree(hDlg);
+#endif
       break;
+    }
 
     switch (ExitCode)
     {
@@ -430,6 +430,10 @@ void ConfigColor(struct Options *Opt)
         SetColor(&TmpOpt.ColorOfScrollbarPositionMarker);
         break;
     }
+
+#ifdef UNICODE
+    Info.DialogFree(hDlg);
+#endif
   }
 
   if (ExitCode == DLG_OK)
@@ -445,11 +449,15 @@ void InitList(struct FarList *List, int Lng, int Sel)
   {
     if (Sel == i)
       List->Items[i].Flags = LIF_SELECTED;
+#ifndef UNICODE
     FSF.sprintf(List->Items[i].Text,"%s",GetMsg(Lng+i));
+#else
+    List->Items[i].Text = GetMsg(Lng+i);
+#endif
   }
 }
 
-HANDLE WINAPI _export OpenPlugin(int OpenFrom,int Item)
+HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom, INT_PTR Item)
 {
   enum ENUMDlg
   {
@@ -495,44 +503,44 @@ HANDLE WINAPI _export OpenPlugin(int OpenFrom,int Item)
 
   static const struct InitDialogItem PreDialogItems[] =
   {
-    DI_DOUBLEBOX   ,3  ,1  ,62 ,22 ,0          ,MTitle,
+    {DI_DOUBLEBOX   ,3  ,1  ,62 ,22 ,0          ,MTitle},
 
-    DI_CHECKBOX    ,5  ,2  ,0  ,0  ,0          ,MOnOffSwitch,
-    DI_CHECKBOX    ,5  ,3  ,0  ,0  ,0          ,MOtherColoringPlugins,
+    {DI_CHECKBOX    ,5  ,2  ,0  ,0  ,0          ,MOnOffSwitch},
+    {DI_CHECKBOX    ,5  ,3  ,0  ,0  ,0          ,MOtherColoringPlugins},
 
-    DI_TEXT        ,-1 ,4  ,0  ,0  ,DIF_SEPARATOR   ,-1,
+    {DI_TEXT        ,-1 ,4  ,0  ,0  ,DIF_SEPARATOR   ,-1},
 
-    DI_CHECKBOX    ,5  ,5  ,0  ,0  ,0          ,MRightBorder,
-    DI_COMBOBOX    ,8  ,6  ,60 ,0  ,DIF_DROPDOWNLIST|DIF_LISTAUTOHIGHLIGHT|DIF_LISTNOAMPERSAND, -1,
+    {DI_CHECKBOX    ,5  ,5  ,0  ,0  ,0          ,MRightBorder},
+    {DI_COMBOBOX    ,8  ,6  ,60 ,0  ,DIF_DROPDOWNLIST|DIF_LISTAUTOHIGHLIGHT|DIF_LISTNOAMPERSAND, -1},
 
-    DI_CHECKBOX    ,5  ,7  ,0  ,0  ,0          ,MEOL,
-    DI_COMBOBOX    ,8  ,8  ,60 ,0  ,DIF_DROPDOWNLIST|DIF_LISTAUTOHIGHLIGHT|DIF_LISTNOAMPERSAND, -1,
+    {DI_CHECKBOX    ,5  ,7  ,0  ,0  ,0          ,MEOL},
+    {DI_COMBOBOX    ,8  ,8  ,60 ,0  ,DIF_DROPDOWNLIST|DIF_LISTAUTOHIGHLIGHT|DIF_LISTNOAMPERSAND, -1},
 
-    DI_CHECKBOX    ,5  ,9  ,0  ,0  ,0          ,MEOF,
-    //DI_COMBOBOX    ,8  ,10 ,60 ,0  ,DIF_DROPDOWNLIST|DIF_LISTAUTOHIGHLIGHT|DIF_LISTNOAMPERSAND, -1,
+    {DI_CHECKBOX    ,5  ,9  ,0  ,0  ,0          ,MEOF},
+    //{DI_COMBOBOX    ,8  ,10 ,60 ,0  ,DIF_DROPDOWNLIST|DIF_LISTAUTOHIGHLIGHT|DIF_LISTNOAMPERSAND, -1},
 
-    DI_CHECKBOX    ,5  ,10 ,0  ,0  ,0          ,MTabs,
-    DI_COMBOBOX    ,8  ,11 ,60 ,0  ,DIF_DROPDOWNLIST|DIF_LISTAUTOHIGHLIGHT|DIF_LISTNOAMPERSAND, -1,
-    DI_CHECKBOX    ,8  ,12 ,0  ,0  ,0          ,MTabsShowSymbol,
+    {DI_CHECKBOX    ,5  ,10 ,0  ,0  ,0          ,MTabs},
+    {DI_COMBOBOX    ,8  ,11 ,60 ,0  ,DIF_DROPDOWNLIST|DIF_LISTAUTOHIGHLIGHT|DIF_LISTNOAMPERSAND, -1},
+    {DI_CHECKBOX    ,8  ,12 ,0  ,0  ,0          ,MTabsShowSymbol},
 
-    DI_CHECKBOX    ,5  ,13 ,0  ,0  ,0          ,MCross,
-    DI_COMBOBOX    ,8  ,14 ,60 ,0  ,DIF_DROPDOWNLIST|DIF_LISTAUTOHIGHLIGHT|DIF_LISTNOAMPERSAND, -1,
-    DI_CHECKBOX    ,8  ,15 ,0  ,0  ,0          ,MCrossOnTop,
+    {DI_CHECKBOX    ,5  ,13 ,0  ,0  ,0          ,MCross},
+    {DI_COMBOBOX    ,8  ,14 ,60 ,0  ,DIF_DROPDOWNLIST|DIF_LISTAUTOHIGHLIGHT|DIF_LISTNOAMPERSAND, -1},
+    {DI_CHECKBOX    ,8  ,15 ,0  ,0  ,0          ,MCrossOnTop},
 
-    DI_CHECKBOX    ,5  ,16 ,0  ,0  ,0          ,MCursor,
-    //DI_COMBOBOX    ,8  ,17 ,60 ,0  ,DIF_DROPDOWNLIST|DIF_LISTAUTOHIGHLIGHT|DIF_LISTNOAMPERSAND, -1,
+    {DI_CHECKBOX    ,5  ,16 ,0  ,0  ,0          ,MCursor},
+    //{DI_COMBOBOX    ,8  ,17 ,60 ,0  ,DIF_DROPDOWNLIST|DIF_LISTAUTOHIGHLIGHT|DIF_LISTNOAMPERSAND, -1},
 
-    DI_CHECKBOX    ,5  ,17 ,0  ,0  ,0          ,MLineNumbers,
-    //DI_COMBOBOX    ,8  ,18 ,60 ,0  ,DIF_DROPDOWNLIST|DIF_LISTAUTOHIGHLIGHT|DIF_LISTNOAMPERSAND, -1,
+    {DI_CHECKBOX    ,5  ,17 ,0  ,0  ,0          ,MLineNumbers},
+    //{DI_COMBOBOX    ,8  ,18 ,60 ,0  ,DIF_DROPDOWNLIST|DIF_LISTAUTOHIGHLIGHT|DIF_LISTNOAMPERSAND, -1},
 
-    DI_CHECKBOX    ,5  ,18 ,0  ,0  ,0          ,MScrollbar,
-    DI_COMBOBOX    ,8  ,19 ,60 ,0  ,DIF_DROPDOWNLIST|DIF_LISTAUTOHIGHLIGHT|DIF_LISTNOAMPERSAND, -1,
+    {DI_CHECKBOX    ,5  ,18 ,0  ,0  ,0          ,MScrollbar},
+    {DI_COMBOBOX    ,8  ,19 ,60 ,0  ,DIF_DROPDOWNLIST|DIF_LISTAUTOHIGHLIGHT|DIF_LISTNOAMPERSAND, -1},
 
-    DI_TEXT        ,-1 ,20 ,0  ,0  ,DIF_SEPARATOR   ,-1,
+    {DI_TEXT        ,-1 ,20 ,0  ,0  ,DIF_SEPARATOR   ,-1},
 
-    DI_BUTTON      ,0  ,21 ,0  ,0  ,DIF_CENTERGROUP ,MOk,
-    DI_BUTTON      ,0  ,21 ,0  ,0  ,DIF_CENTERGROUP ,MCancel,
-    DI_BUTTON      ,0  ,21 ,0  ,0  ,DIF_CENTERGROUP ,MSetColor,
+    {DI_BUTTON      ,0  ,21 ,0  ,0  ,DIF_CENTERGROUP ,MOk},
+    {DI_BUTTON      ,0  ,21 ,0  ,0  ,DIF_CENTERGROUP ,MCancel},
+    {DI_BUTTON      ,0  ,21 ,0  ,0  ,DIF_CENTERGROUP ,MSetColor},
   };
   struct FarDialogItem DialogItems[sizeofa(PreDialogItems)];
 
@@ -595,44 +603,61 @@ HANDLE WINAPI _export OpenPlugin(int OpenFrom,int Item)
     InitList(&ScrollbarList,MScrollbarOn,TmpOpt.ShowScrollbar);
     DialogItems[DLG_SCROLLBARCMB].ListItems=&ScrollbarList;
 
+#ifndef UNICODE
     ExitCode = Info.Dialog(Info.ModuleNumber,-1,-1,66,24,NULL,DialogItems,sizeofa(DialogItems));
+#else
+    HANDLE hDlg = Info.DialogInit(Info.ModuleNumber,-1,-1,66,24,NULL,DialogItems,sizeofa(DialogItems),0,0,NULL,NULL);
+    if (hDlg == INVALID_HANDLE_VALUE)
+      break;
+
+    ExitCode = Info.DialogRun(hDlg);
+#endif
 
     if (ExitCode==-1 || ExitCode==DLG_CANCEL)
+    {
+#ifdef UNICODE
+      Info.DialogFree(hDlg);
+#endif
       break;
+    }
 
     if (ExitCode == DLG_SETCOLOR)
       ConfigColor(&TmpOpt);
 
-    TmpOpt.ShowRightBorder=DialogItems[DLG_RBCMB].ListPos;
-    TmpOpt.ShowEOL=DialogItems[DLG_EOLCMB].ListPos;
-    TmpOpt.ShowTabs=DialogItems[DLG_TABCMB].ListPos;
-    TmpOpt.ShowCross=DialogItems[DLG_CROSSCMB].ListPos;
-    TmpOpt.ShowScrollbar=DialogItems[DLG_SCROLLBARCMB].ListPos;
+    TmpOpt.ShowRightBorder=GetListPos(DLG_RBCMB);
+    TmpOpt.ShowEOL=GetListPos(DLG_EOLCMB);
+    TmpOpt.ShowTabs=GetListPos(DLG_TABCMB);
+    TmpOpt.ShowCross=GetListPos(DLG_CROSSCMB);
+    TmpOpt.ShowScrollbar=GetListPos(DLG_SCROLLBARCMB);
 
     if (ExitCode==DLG_OK)
     {
       memcpy(&Opt,&TmpOpt,sizeof(Opt));
 
-      Opt.OnOffSwitch = DialogItems[DLG_ONOFFSWITCH].Selected;
-      Opt.OtherColoringPlugins = DialogItems[DLG_OTHERCOLORINGPLUGINS].Selected;
+      Opt.OnOffSwitch = GetCheck(DLG_ONOFFSWITCH);
+      Opt.OtherColoringPlugins = GetCheck(DLG_OTHERCOLORINGPLUGINS);
 
-      Opt.ShowRightBorderOn=DialogItems[DLG_RBCHK].Selected;
+      Opt.ShowRightBorderOn=GetCheck(DLG_RBCHK);
 
-      Opt.ShowEOLOn=DialogItems[DLG_EOLCHK].Selected;
+      Opt.ShowEOLOn=GetCheck(DLG_EOLCHK);
 
-      Opt.ShowEOFOn=DialogItems[DLG_EOFCHK].Selected;
+      Opt.ShowEOFOn=GetCheck(DLG_EOFCHK);
 
-      Opt.ShowTabsOn=DialogItems[DLG_TABCHK].Selected;
-      Opt.ShowTabSymbol=DialogItems[DLG_TABSHOWSYMBOLCHK].Selected;
+      Opt.ShowTabsOn=GetCheck(DLG_TABCHK);
+      Opt.ShowTabSymbol=GetCheck(DLG_TABSHOWSYMBOLCHK);
 
-      Opt.ShowCrossOn=DialogItems[DLG_CROSSCHK].Selected;
-      Opt.ShowCrossOnTop=DialogItems[DLG_CROSSONTOPCHK].Selected;
+      Opt.ShowCrossOn=GetCheck(DLG_CROSSCHK);
+      Opt.ShowCrossOnTop=GetCheck(DLG_CROSSONTOPCHK);
 
-      Opt.ShowCursorOn=DialogItems[DLG_CURSORCHK].Selected;
+      Opt.ShowCursorOn=GetCheck(DLG_CURSORCHK);
 
-      Opt.ShowLineNumbersOn=DialogItems[DLG_LINENUMBERSCHK].Selected;
+      Opt.ShowLineNumbersOn=GetCheck(DLG_LINENUMBERSCHK);
 
-      Opt.ShowScrollbarOn=DialogItems[DLG_SCROLLBARCHK].Selected;
+      Opt.ShowScrollbarOn=GetCheck(DLG_SCROLLBARCHK);
+
+#ifdef UNICODE
+      Info.DialogFree(hDlg);
+#endif
 
       WriteRegistry();
 
@@ -640,15 +665,19 @@ HANDLE WINAPI _export OpenPlugin(int OpenFrom,int Item)
 
       break;
     }
+
+#ifdef UNICODE
+    Info.DialogFree(hDlg);
+#endif
   }
 
   return INVALID_HANDLE_VALUE;
 }
 
 
-void WINAPI _export GetPluginInfo(struct PluginInfo *pi)
+void WINAPI EXP_NAME(GetPluginInfo)(struct PluginInfo *pi)
 {
-  static const char *MenuStrings[1];
+  static const TCHAR *MenuStrings[1];
 
   pi->StructSize=sizeof(struct PluginInfo);
   pi->Flags=PF_EDITOR|PF_DISABLEPANELS;
@@ -671,7 +700,7 @@ void VisualizeRightBorder(int ShowRightBorder, int RightBorder, int AutoWrap)
   }
 }
 
-void VisualizeEndOfLine(int ShowEOL, int StringLength,const char *StringEOL, int CurLine, int TotalLines, int Line, int LeftPos)
+void VisualizeEndOfLine(int ShowEOL, int StringLength,const TCHAR *StringEOL, int CurLine, int TotalLines, int Line, int LeftPos)
 {
   static struct EditorConvertPos ecp = {-1, 0, 0};
   static struct EditorColor ec = {-1, 0, 0, 0, 0};
@@ -695,38 +724,38 @@ void VisualizeEndOfLine(int ShowEOL, int StringLength,const char *StringEOL, int
   }
   else if (*StringEOL)
   {
-    if (*StringEOL=='\r')
+    if (*StringEOL==_T('\r'))
     {
       ec.Color = Opt.ColorOfEOLCR;
       Info.EditorControl(ECTL_ADDCOLOR,(void *)&ec);
       if (ShowEOL==EOL_MARKALLWITHSYMBOLS)
-        WriteConsoleOutputCharacter(GetStdHandle(STD_OUTPUT_HANDLE),"\r",1,c,&w);
+        WriteConsoleOutputCharacter(GetStdHandle(STD_OUTPUT_HANDLE),_T("\r"),1,c,&w);
     }
     else
     {
       ec.Color = Opt.ColorOfEOLLF;
       Info.EditorControl(ECTL_ADDCOLOR,(void *)&ec);
       if (ShowEOL==EOL_MARKALLWITHSYMBOLS)
-        WriteConsoleOutputCharacter(GetStdHandle(STD_OUTPUT_HANDLE),"\n",1,c,&w);
+        WriteConsoleOutputCharacter(GetStdHandle(STD_OUTPUT_HANDLE),_T("\n"),1,c,&w);
     }
     if (StringEOL[1])
     {
       ec.StartPos++;
       ec.EndPos++;
       c.X++;
-      if (StringEOL[1]=='\r')
+      if (StringEOL[1]==_T('\r'))
       {
         ec.Color = Opt.ColorOfEOLCR;
         Info.EditorControl(ECTL_ADDCOLOR,(void *)&ec);
         if (ShowEOL==EOL_MARKALLWITHSYMBOLS)
-          WriteConsoleOutputCharacter(GetStdHandle(STD_OUTPUT_HANDLE),"\r",1,c,&w);
+          WriteConsoleOutputCharacter(GetStdHandle(STD_OUTPUT_HANDLE),_T("\r"),1,c,&w);
       }
       else
       {
         ec.Color = Opt.ColorOfEOLLF;
         Info.EditorControl(ECTL_ADDCOLOR,(void *)&ec);
         if (ShowEOL==EOL_MARKALLWITHSYMBOLS)
-          WriteConsoleOutputCharacter(GetStdHandle(STD_OUTPUT_HANDLE),"\n",1,c,&w);
+          WriteConsoleOutputCharacter(GetStdHandle(STD_OUTPUT_HANDLE),_T("\n"),1,c,&w);
       }
     }
   }
@@ -748,7 +777,7 @@ void VisualizeEndOfFile(int StringLength, int CurLine, int TotalLines)
   }
 }
 
-void VisualizeTabs(int ShowTabs, int ShowTabSymbol, const char *StringText, int StringLength, int Line, int LeftPos)
+void VisualizeTabs(int ShowTabs, int ShowTabSymbol, const TCHAR *StringText, int StringLength, int Line, int LeftPos)
 {
   static struct EditorConvertPos ecp = {-1, 0, 0};
   static struct EditorColor ec = {-1, 0, 0, 0, 0};
@@ -761,7 +790,7 @@ void VisualizeTabs(int ShowTabs, int ShowTabSymbol, const char *StringText, int 
   ec2.Color = Opt.ColorOfTabs2|ECF_TAB1;
   for (int i=0; i<StringLength; i++)
   {
-    if (StringText[i] == 9)
+    if (StringText[i] == _T('\t'))
     {
       ec.StartPos = ec.EndPos = ec2.StartPos = ec2.EndPos = i;
       Info.EditorControl(ECTL_ADDCOLOR,(void *)&ec);
@@ -773,7 +802,7 @@ void VisualizeTabs(int ShowTabs, int ShowTabSymbol, const char *StringText, int 
         Info.EditorControl(ECTL_REALTOTAB,(void *)&ecp);
         c.X = ecp.DestPos - LeftPos;
         c.Y = Line;
-        WriteConsoleOutputCharacter(GetStdHandle(STD_OUTPUT_HANDLE),"\t",1,c,&w);
+        WriteConsoleOutputCharacter(GetStdHandle(STD_OUTPUT_HANDLE),_T("\t"),1,c,&w);
       }
     }
   }
@@ -859,7 +888,7 @@ void VisualizeScrollbar(int ShowScrollbar, int MarkerPosition, int MarkerPositio
   }
 }
 
-int WINAPI _export ProcessEditorEvent(int Event, void *Param)
+int WINAPI EXP_NAME(ProcessEditorEvent)(int Event, void *Param)
 {
   int RightBorder=0;
   int AutoWrap=0;
@@ -999,9 +1028,9 @@ int WINAPI _export ProcessEditorEvent(int Event, void *Param)
         {
           COORD c;
           DWORD w;
-          char tmp[50];
-          FSF.sprintf(tmp,"%d",ei.TotalLines);
-          FSF.sprintf(tmp,":%*.*d",lstrlen(tmp),lstrlen(tmp),i+1);
+          TCHAR tmp[50];
+          FSF.sprintf(tmp,_T("%d"),ei.TotalLines);
+          FSF.sprintf(tmp,_T(":%*.*d"),lstrlen(tmp),lstrlen(tmp),i+1);
           c.X = ei.WindowSizeX-lstrlen(tmp);
           c.Y = i-ei.TopScreenLine+1;
           WriteConsoleOutputCharacter(GetStdHandle(STD_OUTPUT_HANDLE),tmp,lstrlen(tmp),c,&w);

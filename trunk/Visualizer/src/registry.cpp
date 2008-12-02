@@ -35,14 +35,14 @@ static HKEY OpenRegKey()
   return(hKey);
 }
 
-void SetRegKey(const char *ValueName,DWORD ValueData)
+void SetRegKey(const TCHAR *ValueName,DWORD ValueData)
 {
   hKey=CreateRegKey();
   RegSetValueEx(hKey,ValueName,0,REG_DWORD,(BYTE *)&ValueData,sizeof(ValueData));
   RegCloseKey(hKey);
 }
 
-BOOL GetRegKey(const char *ValueName,int *ValueData,DWORD Default)
+BOOL GetRegKey(const TCHAR *ValueName,int *ValueData,DWORD Default)
 {
   hKey=OpenRegKey();
   DWORD Type,Size=sizeof(*ValueData);

@@ -1,9 +1,14 @@
 History:
 --------
 
+v0.4 (02/12/08)
+---------------
+ + Far 1.8 support.
+ * Changes in build system.
+
 v0.3 (25/11/08)
 ---------------
-+ Option to draw a small cross.
+ + Option to draw a small cross.
 
 v0.2 (29/03/06)
 ---------------
