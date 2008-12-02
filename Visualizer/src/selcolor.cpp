@@ -3,36 +3,87 @@
 */
 #include "Visualizer.hpp"
 
-static long WINAPI ColorDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
+#ifndef UNICODE
+#define GetFlags(i,hDlg) DialogItems[i].Flags
+#else
+static inline DWORD GetFlags(int i,HANDLE hDlg)
 {
-  int color=0; FarDialogItem DialogItem;
+  DWORD flags=0;
+  FarDialogItem* DialogItem=(FarDialogItem*)(LONG_PTR)Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,0);
+  if(DialogItem)
+  {
+    flags=DialogItem->Flags;
+    Info.SendDlgMessage(hDlg,DM_FREEDLGITEM,0,(LONG_PTR)DialogItem);
+  }
+  return flags;
+}
+#endif
+
+long WINAPI ColorDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
+{
+  int color=0;
+#ifdef UNICODE
+  FarDialogItem* DialogItem;
+#else
+  FarDialogItem DialogItem_; FarDialogItem* DialogItem=&DialogItem_;
+#endif
   switch(Msg)
   {
     case DN_INITDIALOG:
     case DN_BTNCLICK:
       for(int i=1;i<17;i++)
       {
-        Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,(long)&DialogItem);
-        if(DialogItem.Selected)
+#ifdef UNICODE
+        DialogItem=(FarDialogItem*)(LONG_PTR)Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,0);
+#else
+        Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,(LONG_PTR)DialogItem);
+#endif
+        if(DialogItem)
         {
-          color|=(DialogItem.Flags&0xF0)>>4;
-          break;
+          if(DialogItem->Selected)
+          {
+            color|=(DialogItem->Flags&0xF0)>>4;
+            break;
+          }
+#ifdef UNICODE
+          Info.SendDlgMessage(hDlg,DM_FREEDLGITEM,0,(LONG_PTR)DialogItem);
+#endif
         }
       }
       for(int i=18;i<34;i++)
       {
-        Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,(long)&DialogItem);
-        if(DialogItem.Selected)
+#ifdef UNICODE
+        DialogItem=(FarDialogItem*)(LONG_PTR)Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,0);
+#else
+        Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,(LONG_PTR)DialogItem);
+#endif
+        if(DialogItem)
         {
-          color|=(DialogItem.Flags&0xF0);
-          break;
+          if(DialogItem->Selected)
+          {
+            color|=(DialogItem->Flags&0xF0);
+            break;
+          }
+#ifdef UNICODE
+          Info.SendDlgMessage(hDlg,DM_FREEDLGITEM,0,(LONG_PTR)DialogItem);
+#endif
         }
       }
       for(int i=36;i<39;i++)
       {
-        Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,(long)&DialogItem);
-        DialogItem.Flags=(DialogItem.Flags&0xffffff00)|color;
-        Info.SendDlgMessage(hDlg,DM_SETDLGITEM,i,(long)&DialogItem);
+#ifdef UNICODE
+        DialogItem=(FarDialogItem*)(LONG_PTR)Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,0);
+#else
+        Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,(LONG_PTR)DialogItem);
+#endif
+        if(DialogItem)
+        {
+          DialogItem->Flags=(DialogItem->Flags&0xffffff00)|color;
+          Info.SendDlgMessage(hDlg,DM_SETDLGITEM,i,(LONG_PTR)DialogItem);
+#ifdef UNICODE
+          Info.SendDlgMessage(hDlg,DM_FREEDLGITEM,0,(LONG_PTR)DialogItem);
+#endif
+        }
       }
       break;
   }
@@ -112,22 +163,42 @@ bool SelectColor(int *fg,int *bg)
   DialogItems[34].DefaultButton=1;
   DialogItems[color_translate[*fg]+1].Focus=DialogItems[color_translate[*fg]+1].Selected=true;
   DialogItems[color_translate[*bg]+18].Selected=true;
+
+#ifndef UNICODE
   int DlgCode=Info.DialogEx(Info.ModuleNumber,-1,-1,39,15,NULL,DialogItems,sizeofa(DialogItems),0,0,ColorDialogProc,0);
+#else
+  HANDLE hDlg = Info.DialogInit(Info.ModuleNumber,-1,-1,39,15,NULL,DialogItems,sizeofa(DialogItems),0,0,ColorDialogProc,0);
+  if (hDlg == INVALID_HANDLE_VALUE)
+    return false;
+
+  int DlgCode = Info.DialogRun(hDlg);
+#endif
+
   if(DlgCode==34)
   {
     for(int i=1;i<17;i++)
-      if(DialogItems[i].Selected)
+      if(GetCheck(i))
       {
-        *fg=(DialogItems[i].Flags&0xF0)>>4;
+        *fg=(GetFlags(i,hDlg)&0xF0)>>4;
         break;
       }
     for(int i=18;i<34;i++)
-      if(DialogItems[i].Selected)
+      if(GetCheck(i))
       {
-        *bg=(DialogItems[i].Flags&0xF0)>>4;
+        *bg=(GetFlags(i,hDlg)&0xF0)>>4;
         break;
       }
+
+#ifdef UNICODE
+      Info.DialogFree(hDlg);
+#endif
+
     return true;
   }
+
+#ifdef UNICODE
+      Info.DialogFree(hDlg);
+#endif
+
   return false;
 }

@@ -17,6 +17,7 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 #include "plugin.hpp"
+#include <CRT/crt.hpp>
 
 extern struct PluginStartupInfo Info;
 extern FARSTANDARDFUNCTIONS FSF;
@@ -100,6 +101,14 @@ struct InitDialogItem
 
 #define sizeofa(array) (sizeof(array)/sizeof(array[0]))
 
-const char *GetMsg(int MsgId);
+const TCHAR *GetMsg(int MsgId);
 void InitDialogItems(const struct InitDialogItem *Init, struct FarDialogItem *Item, int ItemsNumber);
 bool SelectColor(int *fg,int *bg);
+
+#ifndef UNICODE
+#define GetCheck(i) DialogItems[i].Selected
+#define GetListPos(i) DialogItems[i].ListPos
+#else
+#define GetCheck(i) (int)Info.SendDlgMessage(hDlg,DM_GETCHECK,i,0)
+#define GetListPos(i) ((int)Info.SendDlgMessage(hDlg,DM_LISTGETCURPOS,i,0))
+#endif
