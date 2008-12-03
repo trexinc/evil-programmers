@@ -1,6 +1,6 @@
 /*
     ESC-TSC-Mini plugin for FAR Manager
-    Copyright (C) 2001-2004 Alex Yaroslavsky
+    Copyright (C) 2001 Alex Yaroslavsky
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 #include "plugin.hpp"
 #include "farkeys.hpp"
 #include "esc-tsc-lang.hpp"
+#include <CRT/crt.hpp>
 
 #if defined(__GNUC__)
 #ifdef __cplusplus
@@ -45,35 +46,19 @@ BOOL FirstRun = TRUE;
 int (WINAPI *SetEditorOption)(int EditorID, const char *szName, void *Param);
 int (WINAPI *GetEditorSettings)(int EditorID, const char *szName, void *Param);
 
-typedef struct InitDialogItem
+struct InitDialogItem
 {
   int Type;
   int X1, Y1, X2, Y2;
-  int Focus;
   int Selected;
   unsigned int Flags;
-  int DefaultButton;
-  char *Data;
+  int Data;
 };
 
-void *memcpy(void * dst, const void * src, size_t count)
-{
-  void * ret = dst;
-
-  while (count--)
-  {
-    *(char *)dst = *(char *)src;
-    dst = (char *)dst + 1;
-    src = (char *)src + 1;
-  }
-  return(ret);
-}
-
-const char *GetMsg(int MsgId)
+const TCHAR *GetMsg(int MsgId)
 {
   return(Info.GetMsg(Info.ModuleNumber,MsgId));
 }
-
 
 void InitDialogItems(const struct InitDialogItem *Init, struct FarDialogItem *Item, int ItemsNumber)
 {
@@ -86,25 +71,37 @@ void InitDialogItems(const struct InitDialogItem *Init, struct FarDialogItem *It
     PItem->Y1=PInit->Y1;
     PItem->X2=PInit->X2;
     PItem->Y2=PInit->Y2;
-    PItem->Focus=PInit->Focus;
+    PItem->Focus=0;
     PItem->Selected=PInit->Selected;
     PItem->Flags=PInit->Flags;
-    PItem->DefaultButton=PInit->DefaultButton;
-    if ((unsigned int)PInit->Data<2000)
-      FSF.sprintf(PItem->Data,"%s",GetMsg((unsigned int)PInit->Data));
+    PItem->DefaultButton=0;
+    if (PInit->Data>=0)
+    {
+#ifndef UNICODE
+      FSF.sprintf(PItem->Data,"%s",GetMsg(PInit->Data));
+#else
+      PItem->PtrData = GetMsg(PInit->Data);
+#endif
+    }
     else
-      FSF.sprintf(PItem->Data,"%s",PInit->Data);
+    {
+#ifndef UNICODE
+      *(PItem->Data)=0;
+#else
+      PItem->PtrData = L"";
+#endif
+    }
   }
 }
 
-void WINAPI _export SetStartupInfo(const struct PluginStartupInfo *psi)
+void WINAPI EXP_NAME(SetStartupInfo)(const struct PluginStartupInfo *psi)
 {
   Info=*psi;
   FSF=*psi->FSF;
   Info.FSF=&FSF;
 }
 
-long WINAPI MyDialog(HANDLE hDlg,int Msg,int Param1,long Param2)
+LONG_PTR WINAPI MyDialog(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2)
 {
   struct FarDialogItem DlgEdit;
   struct FarDialogItemData DlgData;
@@ -123,7 +120,7 @@ long WINAPI MyDialog(HANDLE hDlg,int Msg,int Param1,long Param2)
       if (StatusBar)
       {
         DlgData.PtrLength=28;
-        DlgData.PtrData=(char *)GetMsg(MWaiting);
+        DlgData.PtrData=(TCHAR *)GetMsg(MWaiting);
         Info.SendDlgMessage(hDlg,DM_SETTEXT,8,(long)&DlgData);
         StatusBar = FALSE;
       }
@@ -133,7 +130,7 @@ long WINAPI MyDialog(HANDLE hDlg,int Msg,int Param1,long Param2)
       if (StatusBar)
       {
         DlgData.PtrLength=28;
-        DlgData.PtrData=(char *)GetMsg(MWaiting);
+        DlgData.PtrData=(TCHAR *)GetMsg(MWaiting);
         Info.SendDlgMessage(hDlg,DM_SETTEXT,8,(long)&DlgData);
         StatusBar = FALSE;
       }
@@ -148,24 +145,24 @@ long WINAPI MyDialog(HANDLE hDlg,int Msg,int Param1,long Param2)
         {
           Info.SendDlgMessage(hDlg,DM_GETDLGITEM,2,(long)&DlgEdit);
           int i = 0; //no etry == zero
-          FSF.sscanf(DlgEdit.Data,"%d",&i);
-          FSF.sprintf(DlgEdit.Data,"%d",i);
+          FSF.sscanf(DlgEdit.Data,_T("%d"),&i);
+          FSF.sprintf(DlgEdit.Data,_T("%d"),i);
           Info.SendDlgMessage(hDlg,DM_SETDLGITEM,2,(long)&DlgEdit);
           Info.SendDlgMessage(hDlg,DM_GETDLGITEM,1,(long)&DlgEdit);
           if (SetEditorOption(ei.EditorID,DlgEdit.Data,(void *)&i))
           {
             Info.SendDlgMessage(hDlg,DM_ADDHISTORY,1,(long)DlgEdit.Data);
-            FSF.sprintf(DlgEdit.Data,"%d",i);
+            FSF.sprintf(DlgEdit.Data,_T("%d"),i);
             Info.SendDlgMessage(hDlg,DM_ADDHISTORY,2,(long)DlgEdit.Data);
             DlgData.PtrLength=28;
-            DlgData.PtrData=(char *)GetMsg(MUpdateSuccessfull);
+            DlgData.PtrData=(TCHAR *)GetMsg(MUpdateSuccessfull);
             Info.SendDlgMessage(hDlg,DM_SETTEXT,8,(long)&DlgData);
             StatusBar = TRUE;
           }
           else
           {
             DlgData.PtrLength=28;
-            DlgData.PtrData=(char *)GetMsg(MUpdateFailed);
+            DlgData.PtrData=(TCHAR *)GetMsg(MUpdateFailed);
             Info.SendDlgMessage(hDlg,DM_SETTEXT,8,(long)&DlgData);
             StatusBar = TRUE;
           }
@@ -179,18 +176,18 @@ long WINAPI MyDialog(HANDLE hDlg,int Msg,int Param1,long Param2)
           {
             Info.SendDlgMessage(hDlg,DM_ADDHISTORY,1,(long)DlgEdit.Data);
             Info.SendDlgMessage(hDlg,DM_GETDLGITEM,2,(long)&DlgEdit);
-            FSF.sprintf(DlgEdit.Data,"%d",i);
+            FSF.sprintf(DlgEdit.Data,_T("%d"),i);
             Info.SendDlgMessage(hDlg,DM_SETDLGITEM,2,(long)&DlgEdit);
             Info.SendDlgMessage(hDlg,DM_SHOWITEM,2,1);
             DlgData.PtrLength=28;
-            DlgData.PtrData=(char *)GetMsg(MCheckSuccessfull);
+            DlgData.PtrData=(TCHAR *)GetMsg(MCheckSuccessfull);
             Info.SendDlgMessage(hDlg,DM_SETTEXT,8,(long)&DlgData);
             StatusBar = TRUE;
           }
           else
           {
             DlgData.PtrLength=28;
-            DlgData.PtrData=(char *)GetMsg(MCheckFailed);
+            DlgData.PtrData=(TCHAR *)GetMsg(MCheckFailed);
             Info.SendDlgMessage(hDlg,DM_SETTEXT,8,(long)&DlgData);
             StatusBar = TRUE;
           }
@@ -220,22 +217,22 @@ long WINAPI MyDialog(HANDLE hDlg,int Msg,int Param1,long Param2)
   return Info.DefDlgProc(hDlg,Msg,Param1,Param2);
 }
 
-HANDLE WINAPI _export OpenPlugin(int OpenFrom,int Item)
+HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom, INT_PTR Item)
 {
 
-  static const char ParamsHistory[] = "ESC-TSC-Params";
-  static const char SettingsHistory[] = "ESC-TSC-Values";
+  static const TCHAR ParamsHistory[] = _T("ESC-TSC-Params");
+  static const TCHAR SettingsHistory[] = _T("ESC-TSC-Values");
   static const struct InitDialogItem PreDialogItems[] =
   {
-    DI_DOUBLEBOX  ,3  ,1  ,32 ,9  ,0    ,0                      ,0                                                   ,0 ,(char *)MTitle,
-    DI_EDIT       ,15 ,2  ,30 ,0  ,TRUE ,(DWORD)ParamsHistory   ,DIF_HISTORY|DIF_USELASTHISTORY|DIF_MANUALADDHISTORY ,0 ,"",
-    DI_EDIT       ,15 ,4  ,30 ,0  ,0    ,(DWORD)SettingsHistory ,DIF_HISTORY|DIF_USELASTHISTORY|DIF_MANUALADDHISTORY ,0 ,"",
-    DI_BUTTON     ,8  ,6  ,0  ,0  ,0    ,0                      ,DIF_BTNNOCLOSE|DIF_CENTERGROUP                      ,1 ,(char *)MUpdate,
-    DI_BUTTON     ,8  ,6  ,0  ,0  ,0    ,0                      ,DIF_BTNNOCLOSE|DIF_CENTERGROUP                      ,0 ,(char *)MCheck,
-    DI_TEXT       ,4  ,2  ,0  ,0  ,0    ,0                      ,0                                                   ,0 ,(char *)MParam,
-    DI_TEXT       ,4  ,4  ,0  ,0  ,0    ,0                      ,0                                                   ,0 ,(char *)MValue,
-    DI_TEXT       ,4  ,7  ,0  ,0  ,0    ,0                      ,0                                                   ,0 ,(char *)MStatus,
-    DI_TEXT       ,4  ,8  ,0  ,0  ,0    ,0                      ,0                                                   ,0 ,(char *)MWaiting,
+    {DI_DOUBLEBOX  ,3  ,1  ,32 ,9  ,0                      ,0                                                   , MTitle},
+    {DI_EDIT       ,15 ,2  ,30 ,0  ,(DWORD)ParamsHistory   ,DIF_HISTORY|DIF_USELASTHISTORY|DIF_MANUALADDHISTORY , -1},
+    {DI_EDIT       ,15 ,4  ,30 ,0  ,(DWORD)SettingsHistory ,DIF_HISTORY|DIF_USELASTHISTORY|DIF_MANUALADDHISTORY , -1},
+    {DI_BUTTON     ,8  ,6  ,0  ,0  ,0                      ,DIF_BTNNOCLOSE|DIF_CENTERGROUP                      , MUpdate},
+    {DI_BUTTON     ,8  ,6  ,0  ,0  ,0                      ,DIF_BTNNOCLOSE|DIF_CENTERGROUP                      , MCheck},
+    {DI_TEXT       ,4  ,2  ,0  ,0  ,0                      ,0                                                   , MParam},
+    {DI_TEXT       ,4  ,4  ,0  ,0  ,0                      ,0                                                   , MValue},
+    {DI_TEXT       ,4  ,7  ,0  ,0  ,0                      ,0                                                   , MStatus},
+    {DI_TEXT       ,4  ,8  ,0  ,0  ,0                      ,0                                                   , MWaiting},
   };
   struct FarDialogItem DialogItems[sizeof(PreDialogItems)/sizeof(PreDialogItems[0])];
 
@@ -243,7 +240,7 @@ HANDLE WINAPI _export OpenPlugin(int OpenFrom,int Item)
   {
     if (!hEsc)
     {
-      hEsc=GetModuleHandle("esc.dll");
+      hEsc=GetModuleHandle(_T("esc.dll"));
     }
     if (!GetEditorSettings && hEsc)
     {
@@ -255,7 +252,7 @@ HANDLE WINAPI _export OpenPlugin(int OpenFrom,int Item)
     }
     if (!SetEditorOption || !GetEditorSettings)
     {
-      const char *WMsg[2];
+      const TCHAR *WMsg[2];
       WMsg[0] = GetMsg(MTitle);
       WMsg[1] = GetMsg(MNoESC);
       Info.Message(Info.ModuleNumber,FMSG_WARNING|FMSG_MB_OK,NULL,WMsg,2,0);
@@ -265,14 +262,26 @@ HANDLE WINAPI _export OpenPlugin(int OpenFrom,int Item)
   }
 
   InitDialogItems(PreDialogItems,DialogItems,sizeof(PreDialogItems)/sizeof(PreDialogItems[0]));
+  DialogItems[1].Focus = TRUE;
+  DialogItems[3].DefaultButton = 1;
+
+#ifndef UNICODE
   Info.DialogEx(Info.ModuleNumber,-1,-1,36,11,NULL,DialogItems,sizeof(PreDialogItems)/sizeof(PreDialogItems[0]),0,0,MyDialog,0);
+#else
+  HANDLE hDlg = Info.DialogInit(Info.ModuleNumber,-1,-1,36,11,NULL,DialogItems,sizeof(PreDialogItems)/sizeof(PreDialogItems[0]),0,0,MyDialog,0);
+  if (hDlg != INVALID_HANDLE_VALUE)
+  {
+    Info.DialogRun(hDlg);
+    Info.DialogFree(hDlg);
+  }
+#endif
 
   return INVALID_HANDLE_VALUE;
 }
 
-void WINAPI _export GetPluginInfo(struct PluginInfo *pi)
+void WINAPI EXP_NAME(GetPluginInfo)(struct PluginInfo *pi)
 {
-  static const char *MenuStrings[1];
+  static const TCHAR *MenuStrings[1];
 
   pi->StructSize=sizeof(struct PluginInfo);
   pi->Flags=PF_EDITOR|PF_DISABLEPANELS;
