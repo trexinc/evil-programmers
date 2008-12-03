@@ -1,4 +1,4 @@
-ESC-TSC-Mini v1.1.1
+ESC-TSC-Mini v1.2
 or
 ESC's Temporary Settings Changer - Minimalistic
 or
@@ -9,8 +9,7 @@ Editor Settings Changer - Temporary Settings Changer - Minimalistic
 컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
 
 Author: Alex Yaroslavsky
-E-Mail: at yandex.ru / trexinc
-Home page: http://trexinc.narod.ru/
+Home page: http://trexinc.sf.net/
 
 컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
 
@@ -31,7 +30,7 @@ License
 컴컴컴�
 
 ESC-TSC-Mini plugin for FAR Manager
-Copyright (C) 2001-2004 Alex Yaroslavsky
+Copyright (C) 2001 Alex Yaroslavsky
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

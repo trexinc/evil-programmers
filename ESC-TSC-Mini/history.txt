@@ -1,6 +1,11 @@
 History:
 --------
 
+v1.2 (??/12/08)
+---------------
+ + Far 1.8 support.
+ * Changes in build system.
+
 v1.1.1 (13/12/04)
 -----------------
  * Rearranged folder structure.
