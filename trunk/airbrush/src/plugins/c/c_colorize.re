@@ -99,9 +99,9 @@ colorize_clear:
   ("0"[xX]H+IS?)|("0"D+IS?)|(D+IS?)|
   (D+E FS?)|(D*"."D+E?FS?)|(D+"."D*E?FS?)
   { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_NUMBER1],colors[HC_NUMBER1+1]); goto colorize_clear; }
-  ["]
+  ("L")?["]
   { state[0]=PARSER_STRING; commentstart=yytok; goto colorize_string; }
-  (['] (ESC|any\[\\'])* ['])
+  (("L")?['] (ESC|any\[\\'])* ['])
   { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_STRING1],colors[HC_STRING1+1]); goto colorize_clear; }
   "..."|">>="|"<<="|"+="|"-="|"*="|"/="|"%="|"&="|"^="|"|="|">>"|"<<"|"++"|"--"|"->"|"&&"|"||"|
   "<="|">="|"=="|"!="|","|":"|"="|"."|"&"|"!"|"~"|
