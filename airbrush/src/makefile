@@ -4,7 +4,9 @@ ifdef WIDE
 CCWIDE = -D UNICODE -D _UNICODE
 DIRSURF = W
 endif
+ifndef COMMON
 COMMON = ../../common
+endif
 
 ifdef WIDE
 COMINC = $(COMMON)/unicode
