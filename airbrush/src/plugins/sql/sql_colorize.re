@@ -18,18 +18,25 @@
 
 #include <windows.h>
 #include <stdio.h>
+#include <tchar.h>
 #include "abplugin.h"
 #include "../abpairs.h"
 #include "../plugins/sql/absql.h"
 
-#define YYCTYPE unsigned char
+#ifdef UNICODE
+typedef unsigned short UTCHAR;
+#else
+typedef unsigned char UTCHAR;
+#endif
+
+#define YYCTYPE unsigned long
 #define YYCURSOR yycur
 #define YYLIMIT yyend
 #define YYMARKER yytmp
 #define YYFILL(n)
 
 /*!re2c
-any = [\001-\377];
+any = [\U00000001-\U0000ffff];
 D = [0-9];
 L = [a-zA-Z_];
 L2 = [_$a-zA-Z0-9];
@@ -37,14 +44,14 @@ L2 = [_$a-zA-Z0-9];
 
 void WINAPI _export Colorize(int index,struct ColorizeParams *params)
 {
-  const unsigned char *commentstart;
-  const unsigned char *line;
+  const UTCHAR *commentstart;
+  const UTCHAR *line;
   int linelen,startcol;
   int lColorize=0;
   int state_data=PARSER_CLEAR;
   int *state=&state_data;
   int state_size=sizeof(state_data);
-  const unsigned char *yycur,*yyend,*yytmp,*yytok=NULL;
+  const UTCHAR *yycur,*yyend,*yytmp,*yytok=NULL;
   struct PairStack *hl_state=NULL;
   int hl_row; int hl_col;
   if(params->data_size>=sizeof(state_data))
@@ -60,7 +67,7 @@ void WINAPI _export Colorize(int index,struct ColorizeParams *params)
       if(!Info.pAddState(params->eid,lno/Info.cachestr,state_size,(unsigned char *)state)) goto colorize_exit;
     if(lno==params->topline) lColorize=1;
     if(lColorize&&(!startcol)) Info.pAddColor(lno,-1,1,0,0);
-    line=(const unsigned char *)Info.pGetLine(lno,&linelen);
+    line=(const UTCHAR*)Info.pGetLine(lno,&linelen);
     commentstart=line+startcol;
     yycur=line+startcol;
     yyend=line+linelen;

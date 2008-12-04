@@ -17,12 +17,13 @@
 */
 
 #include <windows.h>
-#include "../../bootstrap/abplugin.h"
+#include <tchar.h>
+#include "abplugin.h"
 #include "abyacclex.h"
 
 ColorizeInfo Info;
 int colors[]={0x03,-1,0x0E,-1,0x00,0x0C,0x0F,-1};
-const char *colornames[]={"Comment","String","Keyword","Set"};
+const TCHAR *colornames[]={_T("Comment"),_T("String"),_T("Keyword"),_T("Set")};
 
 struct CacheParam
 {
@@ -50,7 +51,7 @@ int WINAPI SetColorizeInfo(ColorizeInfo *AInfo)
 
 static int WINAPI c_callback(int from,int row,int col,void *param)
 {
-  const char *line;
+  const TCHAR *line;
   int linelen;
   line=Info.pGetLine(row,&linelen);
   switch(((CallbackParam *)param)->cache->diff)
@@ -59,7 +60,7 @@ static int WINAPI c_callback(int from,int row,int col,void *param)
     case 2:
       if(from==1)
       {
-        if((!STRCMP(line+col,"%}",2))&&(!col))
+        if((!_tcsncmp(line+col,_T("%}"),2))&&(!col))
         {
           if(((CallbackParam *)param)->topline<=row) Info.pAddColor(row,col,2,colors[HC_KEYWORD],colors[HC_KEYWORD+1]);
           ((CallbackParam *)param)->ok=1;
@@ -72,9 +73,9 @@ static int WINAPI c_callback(int from,int row,int col,void *param)
     case 3:
       if(from==0)
       {
-        if(!STRCMP(line+col,"{",1))
+        if(!_tcsncmp(line+col,_T("{"),1))
           (((CallbackParam *)param)->cache->recurse)++;
-        if(!STRCMP(line+col,"}",1))
+        if(!_tcsncmp(line+col,_T("}"),1))
         {
           (((CallbackParam *)param)->cache->recurse)--;
           if(!(((CallbackParam *)param)->cache->recurse))
@@ -112,7 +113,7 @@ static void CallParser(ColorizeParams *params,CallbackParam *data)
   }
   data->ok=0;
   data->topline=params->topline;
-  Info.pCallParser("c/c++",&c_params);
+  Info.pCallParser(_T("c/c++"),&c_params);
   if(data->ok)
   {
     params->startline=data->row;
@@ -129,7 +130,7 @@ static void CallParser(ColorizeParams *params,CallbackParam *data)
 void WINAPI _export Colorize(int index,struct ColorizeParams *params)
 {
   int commentstart,stringstart;
-  const char *line;
+  const TCHAR *line;
   int linelen,startcol;
   int lColorize=0;
   CallbackParam callback_data;
@@ -170,7 +171,7 @@ colorize_start:
       {
         case PARSER_CLEAR:
         case PARSER_RULES:
-          if(!STRCMP(line+i,"/*",2))
+          if(!_tcsncmp(line+i,_T("/*"),2))
           {
             state[0].lex_state=PARSER_COMMENT|(state[0].lex_state<<16);
             commentstart=i;
@@ -199,7 +200,7 @@ colorize_start:
             state[0].lex_state=PARSER_STRING|(state[0].lex_state<<16);
             commentstart=i;
           }
-          else if (!STRCMP(line+i,"//",2))
+          else if (!_tcsncmp(line+i,_T("//"),2))
           {
             if(lColorize) Info.pAddColor(lno,i,linelen-i,colors[HC_COMMENT],colors[HC_COMMENT+1]);
             i=linelen;
@@ -214,7 +215,7 @@ colorize_start:
             if(params->callback)
               if(params->callback(0,lno,i,params->param))
                 goto colorize_exit;
-            if((!STRCMP(line+i,"%%",2))&&(!i))
+            if((!_tcsncmp(line+i,_T("%%"),2))&&(!i))
             {
               if(lColorize) Info.pAddColor(lno,i,2,colors[HC_KEYWORD],colors[HC_KEYWORD+1]);
               if(state[0].lex_state==PARSER_CLEAR)
@@ -233,7 +234,7 @@ colorize_start:
             }
             else
             {
-              if((!STRCMP(line+i,"%{",2))&&(!i))
+              if((!_tcsncmp(line+i,_T("%{"),2))&&(!i))
               {
                 if(lColorize) Info.pAddColor(lno,i,2,colors[HC_KEYWORD],colors[HC_KEYWORD+1]);
                 callback_data.row=lno;
@@ -246,7 +247,7 @@ colorize_start:
               }
               if(state[0].lex_state==PARSER_RULES)
               {
-                if(!STRCMP(line+i,"{",1))
+                if(!_tcsncmp(line+i,_T("{"),1))
                 {
                   callback_data.row=lno;
                   callback_data.col=i;
@@ -261,7 +262,7 @@ colorize_start:
           }
           break;
         case PARSER_COMMENT:
-          if(!STRCMP(line+i,"*/",2))
+          if(!_tcsncmp(line+i,_T("*/"),2))
           {
             i++;
             state[0].lex_state=state[0].lex_state>>16;
@@ -304,12 +305,12 @@ int WINAPI _export GetParams(int index,int command,const char **param)
   switch(command)
   {
     case PAR_GET_NAME:
-      *param="lex/yacc";
+      *param=(const char*)_T("lex/yacc");
       return true;
     case PAR_GET_PARAMS:
       return PAR_MASK_STORE|PAR_MASK_CACHE|PAR_COLORS_STORE|PAR_SHOW_IN_LIST;
     case PAR_GET_MASK:
-      *param="*.l,*.y";
+      *param=(const char*)_T("*.l,*.y");
       return true;
     case PAR_GET_COLOR_COUNT:
       *(int *)param=sizeof(colornames)/sizeof(colornames[0]);

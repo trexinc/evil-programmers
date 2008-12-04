@@ -51,10 +51,10 @@ enum {
   mError,
 };
 
-const char *GetMsg(int MsgId);
-char *GetCommaWord(char *Src,char *Word);
+const TCHAR* GetMsg(int MsgId);
+TCHAR* GetCommaWord(TCHAR* Src,TCHAR* Word);
 
-typedef unsigned long (WINAPI *PLUGINLOADSYNTAXMODULE)(char *ModuleName,void *Info);
+typedef unsigned long (WINAPI *PLUGINLOADSYNTAXMODULE)(TCHAR* ModuleName,void *Info);
 typedef int (WINAPI *PLUGINSETCOLORIZEINFO)(struct ColorizeInfo *AInfo);
 typedef int (WINAPI *PLUGINGETPARAMS)(int index,int command,const char **param);
 typedef void (WINAPI *PLUGINCOLORIZE)(int index,struct ColorizeParams *params);
@@ -67,9 +67,9 @@ struct PluginItem
   HMODULE hModule;
   int Index;
   int Type;
-  const char *Name;
-  char *Mask;
-  char *Start;
+  const TCHAR* Name;
+  TCHAR* Mask;
+  TCHAR* Start;
   int Params;
   PLUGINLOADSYNTAXMODULE pLoadSyntaxModule;
   PLUGINSETCOLORIZEINFO pSetColorizeInfo;
@@ -127,12 +127,12 @@ extern PluginStartupInfo Info;
 extern FARSTANDARDFUNCTIONS FSF;
 extern HANDLE Mutex;
 extern int cursor_row,cursor_col;
-extern char PluginRootKey[];
-extern char PluginMaskKey[];
-extern char PluginColorKey[];
-extern char PluginStartKey[];
+extern TCHAR PluginRootKey[];
+extern TCHAR PluginMaskKey[];
+extern TCHAR PluginColorKey[];
+extern TCHAR PluginStartKey[];
 
-extern void LoadPlugs(const char *ModuleName);
+extern void LoadPlugs(const TCHAR* ModuleName);
 extern void UnloadPlugs(void);
 
 struct InitDialogItem
@@ -140,10 +140,10 @@ struct InitDialogItem
   int Type;
   int X1,Y1,X2,Y2;
   int Focus;
-  int Selected;
+  DWORD_PTR Selected;
   unsigned int Flags;
   int DefaultButton;
-  const char* Data;
+  const TCHAR* Data;
 };
 
 extern void InitDialogItems(InitDialogItem *Init,FarDialogItem *Item,int ItemsNumber);
@@ -158,5 +158,11 @@ struct Options
 
 extern struct Options Opt;
 extern bool fatal;
+
+#ifndef UNICODE
+#define EXP_NAME(p) _export p
+#else
+#define EXP_NAME(p) _export p ## W
+#endif
 
 #endif

@@ -17,12 +17,13 @@
 */
 
 #include <windows.h>
-#include "../../bootstrap/abplugin.h"
+#include <tchar.h>
+#include "abplugin.h"
 #include "abphp.h"
 
 ColorizeInfo Info;
 int colors[]={-1,0,0x03,0,0x0F,0,0x0D,0,0x0E,0,0x0A,0,0x08,0};
-const char* colornames[]={"Common","Comment","Keyword","\";\" Symbol","String","Number","Variable"};
+const TCHAR* colornames[]={_T("Common"),_T("Comment"),_T("Keyword"),_T("\";\" Symbol"),_T("String"),_T("Number"),_T("Variable")};
 
 int WINAPI SetColorizeInfo(ColorizeInfo *AInfo)
 {
@@ -36,12 +37,12 @@ int WINAPI _export GetParams(int index,int command,const char **param)
   switch(command)
   {
     case PAR_GET_NAME:
-      *param="php";
+      *param=(const char*)_T("php");
       return true;
     case PAR_GET_PARAMS:
       return PAR_MASK_STORE|PAR_MASK_CACHE|PAR_COLORS_STORE;
     case PAR_GET_MASK:
-      *param="";
+      *param=(const char*)_T("");
       return true;
     case PAR_GET_COLOR_COUNT:
       *(int *)param=sizeof(colornames)/sizeof(colornames[0]);

@@ -18,12 +18,13 @@
 
 #include <stdio.h>
 #include <windows.h>
-#include "../../bootstrap/abplugin.h"
+#include <tchar.h>
+#include "abplugin.h"
 #include "abre2c.h"
 
 ColorizeInfo Info;
 int colors[]={0x09,-1,0x03,-1,0x0E,-1,0x0F,-1};
-const char *colornames[]={"Re2c","Comment","String","Keyword"};
+const TCHAR *colornames[]={_T("Re2c"),_T("Comment"),_T("String"),_T("Keyword")};
 
 int WINAPI SetColorizeInfo(ColorizeInfo *AInfo)
 {
@@ -37,12 +38,12 @@ int WINAPI _export GetParams(int index,int command,const char **param)
   switch(command)
   {
     case PAR_GET_NAME:
-      *param="re2c";
+      *param=(const char*)_T("re2c");
       return true;
     case PAR_GET_PARAMS:
       return PAR_MASK_STORE|PAR_MASK_CACHE|PAR_COLORS_STORE|PAR_SHOW_IN_LIST;
     case PAR_GET_MASK:
-      *param="*.re";
+      *param=(const char*)_T("*.re");
       return true;
     case PAR_GET_COLOR_COUNT:
       *(int *)param=sizeof(colornames)/sizeof(colornames[0]);

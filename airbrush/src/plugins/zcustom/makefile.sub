@@ -1,7 +1,7 @@
 SYNNAME=zcustom
-TARGET=../../../bin/Formats/$(SYNNAME).fmt
+TARGET=../../../$(BINDIR)/Formats/$(SYNNAME).fmt
 DEF=$(SYNNAME).def
-OBJS=../../../o/$(SYNNAME).o ../../../o/zc_parser.o ../../../o/$(SYNNAME).res.o
+OBJS=../../../$(OBJDIR)/$(SYNNAME).o ../../../$(OBJDIR)/zc_parser.o ../../../$(OBJDIR)/$(SYNNAME).res.o
 LIBS=
 
 all: $(TARGET) SYNTAX
@@ -13,23 +13,23 @@ $(TARGET): $(OBJS)
 	$(RM) $(TARGET).base
 	$(RM) $(TARGET).exp
 
-../../../o/$(SYNNAME).o: $(SYNNAME).cpp ab$(SYNNAME).h ../../bootstrap/abplugin.h
+../../../$(OBJDIR)/$(SYNNAME).o: $(SYNNAME).cpp ab$(SYNNAME).h ../../$(BOOTSTRAPDIR)/abplugin.h
 	$(CC) $(CFLAGS) $< -o $@
 
-../../../o/$(SYNNAME).res.o: $(SYNNAME).rc ../../bootstrap/abversion.h
+../../../$(OBJDIR)/$(SYNNAME).res.o: $(SYNNAME).rc ../../$(BOOTSTRAPDIR)/abversion.h
 	$(WINDRES) -i $< -o $@
 
 .PHONY: SYNTAX
 
 SYNTAX:
-	$(CP) syntax ../../../bin/Formats/syntax
-	$(CP) syntaxes/* ../../../bin/Formats/syntaxes
+	$(CP) syntax ../../../$(BINDIR)/Formats/syntax
+	$(CP) syntaxes/* ../../../$(BINDIR)/Formats/syntaxes
 
-../../bootstrap/zc_lexer.cpp: zc_lexer.re
-	re2c -b $< > $@
+../../$(BOOTSTRAPDIR)/zc_lexer.cpp: zc_lexer.re
+	re2c -u -b $< > $@
 
-../../bootstrap/zc_parser.cpp: zc_parser.y
+../../$(BOOTSTRAPDIR)/zc_parser.cpp: zc_parser.y
 	bison $< -o $@
 
-../../../o/zc_parser.o: ../../bootstrap/zc_parser.cpp ../../bootstrap/zc_lexer.cpp ab$(SYNNAME).h
+../../../$(OBJDIR)/zc_parser.o: ../../$(BOOTSTRAPDIR)/zc_parser.cpp ../../$(BOOTSTRAPDIR)/zc_lexer.cpp ab$(SYNNAME).h
 	$(CC) $(CFLAGS) $< -o $@

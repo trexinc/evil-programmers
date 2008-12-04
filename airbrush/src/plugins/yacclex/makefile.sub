@@ -1,7 +1,7 @@
 SYNNAME=yacclex
-TARGET=../../../bin/Formats/$(SYNNAME).fmt
+TARGET=../../../$(BINDIR)/Formats/$(SYNNAME).fmt
 DEF=$(SYNNAME).def
-OBJS=../../../o/$(SYNNAME).o ../../../o/$(SYNNAME).res.o
+OBJS=../../../$(OBJDIR)/$(SYNNAME).o ../../../$(OBJDIR)/$(SYNNAME).res.o
 LIBS=
 
 all: $(TARGET)
@@ -13,8 +13,8 @@ $(TARGET): $(OBJS)
 	$(RM) $(TARGET).base
 	$(RM) $(TARGET).exp
 
-../../../o/$(SYNNAME).o: $(SYNNAME).cpp ab$(SYNNAME).h ../../bootstrap/abplugin.h
+../../../$(OBJDIR)/$(SYNNAME).o: $(SYNNAME).cpp ab$(SYNNAME).h ../../$(BOOTSTRAPDIR)/abplugin.h
 	$(CC) $(CFLAGS) $< -o $@
 
-../../../o/$(SYNNAME).res.o: $(SYNNAME).rc ../../bootstrap/abversion.h
+../../../$(OBJDIR)/$(SYNNAME).res.o: $(SYNNAME).rc ../../$(BOOTSTRAPDIR)/abversion.h
 	$(WINDRES) -i $< -o $@

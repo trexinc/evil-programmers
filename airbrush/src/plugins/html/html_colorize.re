@@ -18,9 +18,16 @@
 
 #include <windows.h>
 #include <stdio.h>
+#include <tchar.h>
 #include "abplugin.h"
 #include "../abpairs.h"
 #include "../plugins/html/abhtml.h"
+
+#ifdef UNICODE
+typedef unsigned short UTCHAR;
+#else
+typedef unsigned char UTCHAR;
+#endif
 
 struct CallbackParam
 {
@@ -32,12 +39,12 @@ struct CallbackParam
 
 static int WINAPI code_callback(int from,int row,int col,void *param)
 {
-  const char *line;
+  const TCHAR* line;
   int linelen;
   line=Info.pGetLine(row,&linelen);
   if(from==1)
   {
-    if(!strncmp(line+col,"?>",2))
+    if(!_tcsncmp(line+col,_T("?>"),2))
     {
       if(((CallbackParam *)param)->topline<=row) Info.pAddColor(row,col,2,colors[HC_PI],colors[HC_PI+1]);
       ((CallbackParam *)param)->ok=1;
@@ -66,7 +73,7 @@ static void CallParser(ColorizeParams *params,CallbackParam *data)
   code_params.param=data;
   data->ok=0;
   data->topline=params->topline;
-  Info.pCallParser("php",&code_params);
+  Info.pCallParser(_T("php"),&code_params);
   if(data->ok)
   {
     params->data[0]=(unsigned char)(params->data[0]&PARSER_HTML);
@@ -76,7 +83,7 @@ static void CallParser(ColorizeParams *params,CallbackParam *data)
   }
 }
 
-#define YYCTYPE unsigned char
+#define YYCTYPE unsigned long
 #define YYCURSOR yycur
 #define YYLIMIT yyend
 #define YYMARKER yytmp
@@ -84,7 +91,7 @@ static void CallParser(ColorizeParams *params,CallbackParam *data)
 #define YYFILL(n)
 
 /*!re2c
-any                     = [\001-\377];
+any                     = [\U00000001-\U0000ffff];
 
 Digit                   = [0-9];
 LCLetter                = [a-z];
@@ -144,15 +151,15 @@ goto colorize_start;
 
 void WINAPI _export Colorize(int index,struct ColorizeParams *params)
 {
-  const unsigned char *commentstart;
-  const unsigned char *line;
+  const UTCHAR *commentstart;
+  const UTCHAR *line;
   int linelen,startcol;
   int lColorize=0;
   CallbackParam callback_data;
   int state_data=PARSER_CLEAR;
   int *state=&state_data;
   int state_size=sizeof(state_data);
-  const unsigned char *yycur,*yyend,*yytmp,*yyctxtmp,*yytok=NULL;
+  const UTCHAR *yycur,*yyend,*yytmp,*yyctxtmp,*yytok=NULL;
   struct PairStack *hl_state=NULL;
   int hl_row; int hl_col;
   if(params->data_size>=sizeof(state_data))
@@ -181,7 +188,7 @@ colorize_start:
       if(!Info.pAddState(params->eid,lno/Info.cachestr,state_size,(unsigned char *)state)) goto colorize_exit;
     if(lno==params->topline) lColorize=1;
     if(lColorize&&(!startcol)) Info.pAddColor(lno,-1,1,0,0);
-    line=(const unsigned char *)Info.pGetLine(lno,&linelen);
+    line=(const UTCHAR*)Info.pGetLine(lno,&linelen);
     commentstart=line+startcol;
     yycur=line+startcol;
     yyend=line+linelen;
