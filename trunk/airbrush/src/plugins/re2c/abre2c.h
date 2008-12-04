@@ -16,8 +16,6 @@
     along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define STRCMP strncmp
-
 #define HC_RE2C     0
 #define HC_COMMENT  2
 #define HC_STRING   4

@@ -17,7 +17,7 @@
 */
 
 #include <ctype.h>
-#define YYCTYPE unsigned char
+#define YYCTYPE unsigned long
 #define YYCURSOR (*yycur)
 #define YYLIMIT yyend
 #define YYMARKER yytmp

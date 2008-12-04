@@ -17,17 +17,18 @@
 */
 
 #include <stdio.h>
-#include "../../plugin.hpp"
-#include "../../farcolor.hpp"
+#include <tchar.h>
+#include "plugin.hpp"
+#include "farcolor.hpp"
 #include "memory.h"
 #include "ab_main.h"
-#include "./bootstrap/abplugin.h"
-#include "./bootstrap/abversion.h"
+#include "abplugin.h"
+#include "abversion.h"
 
 struct PluginItem *PluginsData=NULL;
 int PluginsCount=0;
 
-static char Unknown[20];
+static TCHAR Unknown[20];
 
 static void WINAPI addcolor(int lno,int start,int len,int fg,int bg)
 {
@@ -45,7 +46,7 @@ static void WINAPI addcolor(int lno,int start,int len,int fg,int bg)
   ReleaseMutex(Mutex);
 }
 
-static const char WINAPI *getline(int lno,int *len)
+static const TCHAR WINAPI *getline(int lno,int *len)
 {
   EditorGetString egs;
   EditorSetPosition esp;
@@ -88,9 +89,9 @@ static bool WINAPI addstate(int eid,int pos,unsigned long size,unsigned char *da
     else if((pos+1)!=fl->cachesize)
     {
       res=false;
-      char buff[256];
-      sprintf(buff,GetMsg(mFatalLine2),fl->cachesize,pos);
-      const char *MsgItems[]={GetMsg(mError),GetMsg(mFatalLine1),buff,GetMsg(mButtonOk)};
+      TCHAR buff[256];
+      FSF.sprintf(buff,GetMsg(mFatalLine2),fl->cachesize,pos);
+      const TCHAR* MsgItems[]={GetMsg(mError),GetMsg(mFatalLine1),buff,GetMsg(mButtonOk)};
       Info.Message(Info.ModuleNumber,FMSG_WARNING,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),1);
     }
   }
@@ -117,35 +118,35 @@ static void WINAPI getcursor(int *row,int *col)
   }
 }
 
-static void WINAPI callparser(const char *parser,struct ColorizeParams *params)
+static void WINAPI callparser(const TCHAR *parser,struct ColorizeParams *params)
 {
   for(int i=0;i<PluginsCount;i++)
-    if(!_stricmp(parser,PluginsData[i].Name))
+    if(!lstrcmpi(parser,PluginsData[i].Name))
       if(PluginsData[i].pColorize)
         PluginsData[i].pColorize(PluginsData[i].Index,params);
 }
 
-void LoadPlugs(const char *ModuleName)
+void LoadPlugs(const TCHAR* ModuleName)
 {
   HANDLE hSScr=Info.SaveScreen(0,0,-1,-1);
   {
-    const char *MsgItems[]={GetMsg(mName),GetMsg(mLoading)};
+    const TCHAR* MsgItems[]={GetMsg(mName),GetMsg(mLoading)};
     Info.Message(Info.ModuleNumber,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),0);
   }
-  char PluginsFolder[MAX_PATH],PluginsMask[MAX_PATH],*NamePtr;
-  strcpy(Unknown,GetMsg(mUnknown));
-  strcpy(PluginsFolder,ModuleName);
-  NamePtr=FSF.PointToName(PluginsFolder);
-  strcpy(NamePtr,"\\Formats\\");
-  sprintf(PluginsMask,"%s*.fmt",PluginsFolder);
+  TCHAR PluginsFolder[MAX_PATH],PluginsMask[MAX_PATH],*NamePtr;
+  lstrcpy(Unknown,GetMsg(mUnknown));
+  lstrcpy(PluginsFolder,ModuleName);
+  NamePtr=(TCHAR*)FSF.PointToName(PluginsFolder);
+  lstrcpy(NamePtr,_T("\\Formats\\"));
+  FSF.sprintf(PluginsMask,_T("%s*.fmt"),PluginsFolder);
 
   HANDLE FindHandle;
   WIN32_FIND_DATA fdata;
   int Done=((FindHandle=FindFirstFile(PluginsMask,&fdata))==INVALID_HANDLE_VALUE);
   while(!Done)
   {
-    char PluginName[NM];
-    sprintf(PluginName,"%s%s",PluginsFolder,fdata.cFileName);
+    TCHAR PluginName[NM];
+    FSF.sprintf(PluginName,_T("%s%s"),PluginsFolder,fdata.cFileName);
     HMODULE hModule=LoadLibrary(PluginName);
     if (hModule!=NULL)
     {
@@ -170,7 +171,7 @@ void LoadPlugs(const char *ModuleName)
         lInfo.version=VER_ALL;
         lInfo.api=VER_API;
         lInfo.cachestr=PARSER_CACHESTR;
-        strcpy(lInfo.folder,PluginsFolder);
+        lstrcpy(lInfo.folder,PluginsFolder);
         lInfo.pAddColor=addcolor;
         lInfo.pGetLine=getline;
         lInfo.pAddState=addstate;
@@ -197,19 +198,19 @@ void LoadPlugs(const char *ModuleName)
             CurPlugin.Mask=NULL;
             CurPlugin.Start=NULL;
             CurPlugin.Params=0;
-            const char *mask,*start,*name=NULL;
-            char buff_mask[2048],buff_start[2048];
-            strcpy(buff_mask,""); strcpy(buff_start,"");
+            const TCHAR *mask,*start,*name=NULL;
+            TCHAR buff_mask[2048],buff_start[2048];
+            lstrcpy(buff_mask,_T("")); lstrcpy(buff_start,_T(""));
             if(CurPlugin.pGetParams)
             {
               CurPlugin.Params=CurPlugin.pGetParams(CurPlugin.Index,PAR_GET_PARAMS,NULL);
-              CurPlugin.pGetParams(CurPlugin.Index,PAR_GET_NAME,&name);
+              CurPlugin.pGetParams(CurPlugin.Index,PAR_GET_NAME,(const char**)&name);
               //load mask
               if(name&&(CurPlugin.Params&PAR_MASK_CACHE))
               {
-                if(!CurPlugin.pGetParams(CurPlugin.Index,PAR_GET_MASK,&mask))
-                  mask="";
-                strcpy(buff_mask,mask);
+                if(!CurPlugin.pGetParams(CurPlugin.Index,PAR_GET_MASK,(const char**)&mask))
+                  mask=_T("");
+                lstrcpy(buff_mask,mask);
                 if(CurPlugin.Params&PAR_MASK_STORE)
                 {
                   HKEY hKey; DWORD Type; DWORD DataSize=0;
@@ -224,9 +225,9 @@ void LoadPlugs(const char *ModuleName)
               //load starts
               if(name&&(CurPlugin.Params&PAR_FILESTART_CACHE))
               {
-                if(!CurPlugin.pGetParams(CurPlugin.Index,PAR_GET_FILESTART,&start))
-                  start="";
-                strcpy(buff_start,start);
+                if(!CurPlugin.pGetParams(CurPlugin.Index,PAR_GET_FILESTART,(const char**)&start))
+                  start=_T("");
+                lstrcpy(buff_start,start);
                 if(CurPlugin.Params&PAR_FILESTART_STORE)
                 {
                   HKEY hKey; DWORD Type; DWORD DataSize=0;
@@ -241,14 +242,14 @@ void LoadPlugs(const char *ModuleName)
             }
             if(name) CurPlugin.Name=name;
             else CurPlugin.Name=Unknown;
-            if(strlen(buff_mask))
-              CurPlugin.Mask=(char *)malloc(strlen(buff_mask)+1);
+            if(lstrlen(buff_mask))
+              CurPlugin.Mask=(TCHAR*)malloc((lstrlen(buff_mask)+1)*sizeof(TCHAR));
             if(CurPlugin.Mask)
-              strcpy(CurPlugin.Mask,buff_mask);
-            if(strlen(buff_start))
-              CurPlugin.Start=(char *)malloc(strlen(buff_start)+1);
+              lstrcpy(CurPlugin.Mask,buff_mask);
+            if(lstrlen(buff_start))
+              CurPlugin.Start=(TCHAR*)malloc((lstrlen(buff_start)+1)*sizeof(TCHAR));
             if(CurPlugin.Start)
-              strcpy(CurPlugin.Start,buff_start);
+              lstrcpy(CurPlugin.Start,buff_start);
             if(CurPlugin.pGetParams)
             { //load colors
               int ColorCount; int *Colors;

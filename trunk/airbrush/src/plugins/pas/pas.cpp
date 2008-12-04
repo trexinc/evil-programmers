@@ -17,12 +17,13 @@
 */
 
 #include <windows.h>
-#include "../../bootstrap/abplugin.h"
+#include <tchar.h>
+#include "abplugin.h"
 #include "abpas.h"
 
 ColorizeInfo Info;
 int colors[]={0x03,-1,0x03,-1,0x09,-1,0x0F,-1,0x0D,-1,0x0E,-1,0x0A,-1,0x0C,-1,0x01,0x0C};
-const char *colornames[]={"Comment {}","Comment (**)","Assembler","Keyword","\";\" Symbol","String","Number","Pair","Wrong Pair"};
+const TCHAR *colornames[]={_T("Comment {}"),_T("Comment (**)"),_T("Assembler"),_T("Keyword"),_T("\";\" Symbol"),_T("String"),_T("Number"),_T("Pair"),_T("Wrong Pair")};
 
 int WINAPI SetColorizeInfo(ColorizeInfo *AInfo)
 {
@@ -36,12 +37,12 @@ int WINAPI _export GetParams(int index,int command,const char **param)
   switch(command)
   {
     case PAR_GET_NAME:
-      *param="pascal";
+      *param=(const char*)_T("pascal");
       return true;
     case PAR_GET_PARAMS:
       return PAR_MASK_STORE|PAR_MASK_CACHE|PAR_COLORS_STORE|PAR_SHOW_IN_LIST;
     case PAR_GET_MASK:
-      *param="*.pas,*.dpr";
+      *param=(const char*)_T("*.pas,*.dpr");
       return true;
     case PAR_GET_COLOR_COUNT:
       *(int *)param=sizeof(colornames)/sizeof(colornames[0]);

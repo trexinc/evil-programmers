@@ -16,10 +16,11 @@
     along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../../plugin.hpp"
+#include <tchar.h>
+#include "plugin.hpp"
 #include "memory.h"
 #include "ab_main.h"
-#include "./bootstrap/abplugin.h"
+#include "abplugin.h"
 
 PEditFile editfiles;
 
@@ -135,7 +136,7 @@ int OnEditorEvent(int event,void *param)
   static bool stop_colorize=false;
   if(stop_colorize) return 0;
 
-  const char *filename;
+  const TCHAR* filename;
   PEditFile curfile;
   EditorInfo ei;
 
@@ -164,14 +165,14 @@ int OnEditorEvent(int event,void *param)
 
   if((!(curfile=ef_getfile(ei.EditorID)))&&Opt.Active&&(ei.TotalLines<=Opt.MaxLines))
   {
-    char ini_path[MAX_PATH],ini_type[256];
-    strncpy(ini_path,ei.FileName,filename-ei.FileName);
+    TCHAR ini_path[MAX_PATH],ini_type[256];
+    lstrcpyn(ini_path,ei.FileName,filename-ei.FileName);
     ini_path[filename-ei.FileName]=0;
-    strcat(ini_path,"airbrush.ini");
-    if(GetPrivateProfileString("types",filename,"",ini_type,sizeof(ini_type),ini_path))
+    lstrcat(ini_path,_T("airbrush.ini"));
+    if(GetPrivateProfileString(_T("types"),filename,_T(""),ini_type,sizeof(ini_type)/sizeof(ini_type[0]),ini_path))
     {
       for(int i=0;i<PluginsCount;i++)
-        if(!_stricmp(PluginsData[i].Name,ini_type))
+        if(!lstrcmpi(PluginsData[i].Name,ini_type))
         {
           curfile=loadfile(ei.EditorID,i);
           break;
@@ -183,10 +184,10 @@ int OnEditorEvent(int event,void *param)
       {
         if(PluginsData[i].Params&PAR_MASK_CACHE)
         {
-          char *mask=PluginsData[i].Mask;
+          TCHAR* mask=PluginsData[i].Mask;
           if(mask)
           {
-            char FileMask[MAX_PATH];
+            TCHAR FileMask[MAX_PATH];
             while((mask=GetCommaWord(mask,FileMask))!=NULL)
               if(Info.CmpName(FileMask,filename,true))
               {
@@ -199,7 +200,7 @@ int OnEditorEvent(int event,void *param)
         else
         {
           if(PluginsData[i].pGetParams)
-            if(PluginsData[i].pGetParams(PluginsData[i].Index,PAR_CHECK_MASK,&filename))
+            if(PluginsData[i].pGetParams(PluginsData[i].Index,PAR_CHECK_MASK,(const char**)&filename))
             {
               curfile=loadfile(ei.EditorID,i);
               break;
@@ -209,7 +210,7 @@ int OnEditorEvent(int event,void *param)
         {
           if(egs.StringLength&&PluginsData[i].Start)
           {
-            int len=strlen(PluginsData[i].Start);
+            int len=lstrlen(PluginsData[i].Start);
             if(len&&(Info.CmpName(PluginsData[i].Start,egs.StringText,false)))
             {
               curfile=loadfile(ei.EditorID,i);
@@ -220,7 +221,7 @@ int OnEditorEvent(int event,void *param)
         else
         {
           if(PluginsData[i].pGetParams)
-            if(PluginsData[i].pGetParams(PluginsData[i].Index,PAR_CHECK_FILESTART,&egs.StringText))
+            if(PluginsData[i].pGetParams(PluginsData[i].Index,PAR_CHECK_FILESTART,(const char**)&egs.StringText))
             {
               curfile=loadfile(ei.EditorID,i);
               break;
@@ -306,7 +307,7 @@ int OnEditorEvent(int event,void *param)
     ctd.pColorize=PluginsData[curfile->type].pColorize;
     ctd.index=PluginsData[curfile->type].Index;
     ctd.params=&params;
-    handles[1]=CreateFile("CONIN$",GENERIC_READ|GENERIC_WRITE,FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
+    handles[1]=CreateFile(_T("CONIN$"),GENERIC_READ|GENERIC_WRITE,FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
     handles[0]=CreateThread(NULL,0,ColorizeThread,&ctd,CREATE_SUSPENDED,&ThreadID);
     if(handles[0])
     {
@@ -333,7 +334,7 @@ int OnEditorEvent(int event,void *param)
                 if((CurEvent.EventType==KEY_EVENT)&&(CurEvent.Event.KeyEvent.bKeyDown)&&(CurEvent.Event.KeyEvent.wVirtualKeyCode==VK_ESCAPE))
                 {
                   WaitForSingleObject(Mutex,INFINITE);
-                  const char *MsgItems[]={GetMsg(mError),GetMsg(mStopQuestion),GetMsg(mButtonYes),GetMsg(mButtonNo)};
+                  const TCHAR* MsgItems[]={GetMsg(mError),GetMsg(mStopQuestion),GetMsg(mButtonYes),GetMsg(mButtonNo)};
                   stop_colorize=true;
                   bool ContinueThread=Info.Message(Info.ModuleNumber,FMSG_WARNING,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),2);
                   stop_colorize=false;

@@ -18,9 +18,16 @@
 
 #include <windows.h>
 #include <stdio.h>
+#include <tchar.h>
 #include "abplugin.h"
 #include "../abpairs.h"
 #include "../plugins/re2c/abre2c.h"
+
+#ifdef UNICODE
+typedef unsigned short UTCHAR;
+#else
+typedef unsigned char UTCHAR;
+#endif
 
 struct CacheParam
 {
@@ -41,7 +48,7 @@ struct CallbackParam
 
 static int WINAPI c_callback(int from,int row,int col,void *param)
 {
-  const char *line;
+  const TCHAR* line;
   int linelen;
   line=Info.pGetLine(row,&linelen);
   switch(((CallbackParam *)param)->cache->diff)
@@ -49,7 +56,7 @@ static int WINAPI c_callback(int from,int row,int col,void *param)
     case 1:
       if(from==1)
       {
-        if(!STRCMP(line+col,"\057\052!re2c",7))
+        if(!_tcsncmp(line+col,_T("\057\052!re2c"),7))
         {
           if(((CallbackParam *)param)->topline<=row) Info.pAddColor(row,col,7,colors[HC_RE2C],colors[HC_RE2C+1]);
           ((CallbackParam *)param)->ok=1;
@@ -62,9 +69,9 @@ static int WINAPI c_callback(int from,int row,int col,void *param)
     case 2:
       if(from==0)
       {
-        if(!STRCMP(line+col,"{",1))
+        if(!_tcsncmp(line+col,_T("{"),1))
           (((CallbackParam *)param)->cache->recurse)++;
-        if(!STRCMP(line+col,"}",1))
+        if(!_tcsncmp(line+col,_T("}"),1))
         {
           (((CallbackParam *)param)->cache->recurse)--;
           if(!(((CallbackParam *)param)->cache->recurse))
@@ -97,7 +104,7 @@ static void CallParser(ColorizeParams *params,CallbackParam *data)
   c_params.param=data;
   data->ok=0;
   data->topline=params->topline;
-  Info.pCallParser("c/c++",&c_params);
+  Info.pCallParser(_T("c/c++"),&c_params);
   if(data->ok)
   {
     params->startline=data->row;
@@ -108,14 +115,14 @@ static void CallParser(ColorizeParams *params,CallbackParam *data)
   }
 }
 
-#define YYCTYPE unsigned char
+#define YYCTYPE unsigned long
 #define YYCURSOR yycur
 #define YYLIMIT yyend
 #define YYMARKER yytmp
 #define YYFILL(n)
 
 /*!re2c
-any = [\001-\377];
+any = [\U00000001-\U0000ffff];
 dot = any \ [\n];
 esc = dot \ [\\];
 cstring = "["  ((esc \ [\]]) | "\\" dot)* "]" ;
@@ -126,15 +133,15 @@ digit = [0-9];
 
 void WINAPI _export Colorize(int index,struct ColorizeParams *params)
 {
-  const unsigned char *commentstart;
-  const unsigned char *line;
+  const UTCHAR *commentstart;
+  const UTCHAR *line;
   int linelen,startcol;
   int lColorize=0;
   CallbackParam callback_data;
   CacheParam state_data={PARSER_CLEAR,PARSER_RE2C,1,0};
   CacheParam *state=&state_data;
   int state_size=sizeof(state_data);
-  const unsigned char *yycur,*yyend,*yytmp,*yytok;
+  const UTCHAR *yycur,*yyend,*yytmp,*yytok;
 
   if(params->data_size>=sizeof(state_data))
   {
@@ -162,7 +169,7 @@ colorize_start:
       if(!Info.pAddState(params->eid,lno/Info.cachestr,state_size,(unsigned char *)state)) goto colorize_exit;
     if(lno==params->topline) lColorize=1;
     if(lColorize&&(!startcol)) Info.pAddColor(lno,-1,1,0,0);
-    line=(const unsigned char *)Info.pGetLine(lno,&linelen);
+    line=(const UTCHAR*)Info.pGetLine(lno,&linelen);
     commentstart=line+startcol;
     yycur=line+startcol;
     yyend=line+linelen;

@@ -19,6 +19,7 @@
 #include <windows.h>
 #include <ctype.h>
 #include <stdio.h>
+#include <tchar.h>
 #include "../../bootstrap/abplugin.h"
 #include "../../memory.h"
 #include "abzcustom.h"
@@ -335,7 +336,7 @@ static void string_to_whole(char *whole,const char *string)
 static void load_syntax_from_file(char *dirname,char *filename,char *whole_chars_left,char *whole_chars_right)
 {
   char include_file[MAX_PATH],include_full_file[MAX_PATH];
-  HANDLE f=CreateFile(filename,GENERIC_READ,0,NULL,OPEN_EXISTING,0,NULL);
+  HANDLE f=CreateFileA(filename,GENERIC_READ,0,NULL,OPEN_EXISTING,0,NULL);
   if(f!=INVALID_HANDLE_VALUE)
   {
     char *line; int size;
@@ -352,7 +353,7 @@ static void load_syntax_from_file(char *dirname,char *filename,char *whole_chars
         {
           if((!_stricmp(argv[0],"include"))&&(argc>1))
           {
-            unsigned long res=ExpandEnvironmentStrings(argv[1],include_file,sizeof(include_file));
+            unsigned long res=ExpandEnvironmentStringsA(argv[1],include_file,sizeof(include_file));
             if(!(res&&(res<=sizeof(include_file))))
               strcpy(include_file,argv[1]);
             if((strlen(include_file)>2)&&(((include_file[1]==':')&&((include_file[2]=='\\')||(include_file[2]=='/')))||((include_file[0]=='\\')&&(include_file[1]=='\\'))))
@@ -603,8 +604,13 @@ static void load_syntax(void)
   }
   char SyntaxFile[MAX_PATH],SyntaxDir[MAX_PATH];
   char whole_chars_left[WHOLE_SIZE],whole_chars_right[WHOLE_SIZE];
+#ifdef UNICODE
+  WideCharToMultiByte(CP_OEMCP,0,Info.folder,-1,SyntaxDir,MAX_PATH,NULL,NULL);
+  WideCharToMultiByte(CP_OEMCP,0,Info.folder,-1,SyntaxFile,MAX_PATH,NULL,NULL);
+#else
   strcpy(SyntaxDir,Info.folder);
   strcpy(SyntaxFile,Info.folder);
+#endif
   strcat(SyntaxFile,"syntax");
   load_syntax_from_file(SyntaxDir,SyntaxFile,whole_chars_left,whole_chars_right);
   if(rules)
