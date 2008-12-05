@@ -34,9 +34,22 @@ static long upper_key(long Key)
 
 static long get_height(HANDLE hDlg,int Index)
 {
-  FarDialogItem DialogItem;
-  Info.SendDlgMessage(hDlg,DM_GETDLGITEM,Index,(long)&DialogItem);
-  return DialogItem.Y2-DialogItem.Y1+1;
+  long result=0;
+#ifdef UNICODE
+  FarDialogItem* DialogItem;
+  DialogItem=(FarDialogItem*)(LONG_PTR)Info.SendDlgMessage(hDlg,DM_GETDLGITEM,Index,0);
+#else
+  FarDialogItem DialogItem_; FarDialogItem* DialogItem=&DialogItem_;
+  Info.SendDlgMessage(hDlg,DM_GETDLGITEM,Index,(LONG_PTR)DialogItem);
+#endif
+  if(DialogItem)
+  {
+    result=DialogItem->Y2-DialogItem->Y1+1;
+#ifdef UNICODE
+    Info.SendDlgMessage(hDlg,DM_FREEDLGITEM,0,(LONG_PTR)DialogItem);
+#endif
+  }
+  return result;
 }
 
 /*
@@ -247,11 +260,11 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
         if(NewItems)
         {
           data->Items=NewItems;
-          data->Items[data->ItemCount].Length=strlen((char *)Param2);
-          data->Items[data->ItemCount].Item=(char *)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,(data->Items[data->ItemCount].Length+1)*sizeof(char));
+          data->Items[data->ItemCount].Length=_tcslen((TCHAR*)Param2);
+          data->Items[data->ItemCount].Item=(TCHAR*)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,(data->Items[data->ItemCount].Length+1)*sizeof(TCHAR));
           if(data->Items[data->ItemCount].Item)
           {
-            strcpy(data->Items[data->ItemCount].Item,(char *)Param2);
+            _tcscpy(data->Items[data->ItemCount].Item,(TCHAR*)Param2);
           }
           for(unsigned long i=0;i<sizeofa(data->Items[data->ItemCount].Attribute);i++)
           {
@@ -351,7 +364,7 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
           data->Items[item->Index].CheckMark=item->Item.CheckMark;
           data->Items[item->Index].Length=item->Item.Length;
           if(data->Items[item->Index].Item) HeapFree(GetProcessHeap(),0,data->Items[item->Index].Item);
-          data->Items[item->Index].Item=(char *)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,(data->Items[item->Index].Length+1)*sizeof(char));
+          data->Items[item->Index].Item=(TCHAR*)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,(data->Items[item->Index].Length+1)*sizeof(TCHAR));
           if(data->Items[item->Index].Item)
           {
             if(item->Item.Item)
@@ -535,71 +548,94 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
       return_flag=false;
       if(data)
       {
-        FarDialogItem DialogItem;
-        Info.SendDlgMessage(hDlg,DM_GETDLGITEM,Param1,(long)&DialogItem);
-        if(DialogItem.VBuf)
+#ifdef UNICODE
+        FarDialogItem* DialogItem;
+        DialogItem=(FarDialogItem*)(LONG_PTR)Info.SendDlgMessage(hDlg,DM_GETDLGITEM,Param1,0);
+#else
+        FarDialogItem DialogItem_; FarDialogItem* DialogItem=&DialogItem_;
+        Info.SendDlgMessage(hDlg,DM_GETDLGITEM,Param1,(LONG_PTR)DialogItem);
+#endif
+        if(DialogItem)
         {
-          int width=DialogItem.X2-DialogItem.X1+1,height=DialogItem.Y2-DialogItem.Y1+1;
-          unsigned char *char_buffer=(unsigned char *)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,width*sizeof(unsigned char));
-          unsigned short *attr_buffer=(unsigned short *)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,width*sizeof(unsigned short));
-          if(char_buffer&&attr_buffer)
+          if(DialogItem->VBuf)
           {
-            for(long i=0,current_item=data->Top;i<height;i++,get_next_item(data,&current_item,1,true))
+            int width=DialogItem->X2-DialogItem->X1+1,height=DialogItem->Y2-DialogItem->Y1+1;
+            TCHAR *char_buffer=(TCHAR*)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,width*sizeof(TCHAR));
+            unsigned short *attr_buffer=(unsigned short *)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,width*sizeof(unsigned short));
+            if(char_buffer&&attr_buffer)
             {
-              for(long j=0,k=-2;j<width;j++,k++)
+              for(long i=0,current_item=data->Top;i<height;i++,get_next_item(data,&current_item,1,true))
               {
-                if(k==data->Frozen) k+=data->CurCol;
-                if(current_item<0)
+                for(long j=0,k=-2;j<width;j++,k++)
                 {
-                  char_buffer[j]=' ';
-                  attr_buffer[j]=data->Colors[LISTBOXEX_COLOR_BACKGROUND];
-                }
-                else
-                {
-                  if(k>=0&&k<(long)data->Items[current_item].Length)
+                  if(k==data->Frozen) k+=data->CurCol;
+                  if(current_item<0)
                   {
-                    int color_type=LISTBOXEX_COLORS_ITEM;
-                    if(current_item==data->CurPos)
-                      color_type=LISTBOXEX_COLORS_SELECTED;
-                    else if(data->Items[current_item].Flags&LIFEX_DISABLE)
-                      color_type=LISTBOXEX_COLORS_DISABLED;
-                    char_buffer[j]=data->Items[current_item].Item[k];
-
-                    if(!data->Items[current_item].Attribute[color_type]||data->Items[current_item].Attribute[color_type][k]>=LISTBOXEX_COLOR_DEFAULT)
-                    {
-                      unsigned short color=data->Items[current_item].Attribute[color_type]?(data->Items[current_item].Attribute[color_type][k]-LISTBOXEX_COLOR_DEFAULT):(default_colors[color_type]-LISTBOXEX_COLOR_DEFAULT);
-                      if(color>=LISTBOXEX_COLOR_COUNT) color=LISTBOXEX_COLOR_BACKGROUND;
-                      attr_buffer[j]=data->Colors[color];
-                    }
-                    else
-                      attr_buffer[j]=data->Items[current_item].Attribute[color_type][k];
+                    char_buffer[j]=' ';
+                    attr_buffer[j]=data->Colors[LISTBOXEX_COLOR_BACKGROUND];
                   }
                   else
                   {
-                    char_buffer[j]=' ';
-                    if((data->Items[current_item].Flags&LIFEX_CHECKED)&&!j)
+                    if(k>=0&&k<(long)data->Items[current_item].Length)
                     {
-                      char_buffer[j]='û';
-                      if(data->Items[current_item].CheckMark) char_buffer[j]=data->Items[current_item].CheckMark;
+                      int color_type=LISTBOXEX_COLORS_ITEM;
+                      if(current_item==data->CurPos)
+                        color_type=LISTBOXEX_COLORS_SELECTED;
+                      else if(data->Items[current_item].Flags&LIFEX_DISABLE)
+                        color_type=LISTBOXEX_COLORS_DISABLED;
+                      char_buffer[j]=data->Items[current_item].Item[k];
+
+                      if(!data->Items[current_item].Attribute[color_type]||data->Items[current_item].Attribute[color_type][k]>=LISTBOXEX_COLOR_DEFAULT)
+                      {
+                        unsigned short color=data->Items[current_item].Attribute[color_type]?(data->Items[current_item].Attribute[color_type][k]-LISTBOXEX_COLOR_DEFAULT):(default_colors[color_type]-LISTBOXEX_COLOR_DEFAULT);
+                        if(color>=LISTBOXEX_COLOR_COUNT) color=LISTBOXEX_COLOR_BACKGROUND;
+                        attr_buffer[j]=data->Colors[color];
+                      }
+                      else
+                        attr_buffer[j]=data->Items[current_item].Attribute[color_type][k];
                     }
-                    if(current_item==data->CurPos)
-                      attr_buffer[j]=data->Colors[LISTBOXEX_COLOR_SELECTEDITEM];
-                    else if(data->Items[current_item].Flags&LIFEX_DISABLE)
-                      attr_buffer[j]=data->Colors[LISTBOXEX_COLOR_DISABLED];
                     else
-                      attr_buffer[j]=data->Colors[LISTBOXEX_COLOR_ITEM];
+                    {
+                      char_buffer[j]=' ';
+                      if((data->Items[current_item].Flags&LIFEX_CHECKED)&&!j)
+                      {
+                        char_buffer[j]=
+#ifdef UNICODE
+                        0x221a
+#else
+                        'û'
+#endif
+                        ;
+                        if(data->Items[current_item].CheckMark) char_buffer[j]=data->Items[current_item].CheckMark;
+                      }
+                      if(current_item==data->CurPos)
+                        attr_buffer[j]=data->Colors[LISTBOXEX_COLOR_SELECTEDITEM];
+                      else if(data->Items[current_item].Flags&LIFEX_DISABLE)
+                        attr_buffer[j]=data->Colors[LISTBOXEX_COLOR_DISABLED];
+                      else
+                        attr_buffer[j]=data->Colors[LISTBOXEX_COLOR_ITEM];
+                    }
                   }
                 }
-              }
-              for(int j=0;j<width;j++)
-              {
-                DialogItem.VBuf[i*width+j].Char.AsciiChar=char_buffer[j];
-                DialogItem.VBuf[i*width+j].Attributes=attr_buffer[j];
+                for(int j=0;j<width;j++)
+                {
+                  DialogItem->VBuf[i*width+j].Char.
+#ifdef UNICODE
+                  UnicodeChar
+#else
+                  AsciiChar
+#endif
+                  =char_buffer[j];
+                  DialogItem->VBuf[i*width+j].Attributes=attr_buffer[j];
+                }
               }
             }
+            if(char_buffer) HeapFree(GetProcessHeap(),0,char_buffer);
+            if(attr_buffer) HeapFree(GetProcessHeap(),0,attr_buffer);
           }
-          if(char_buffer) HeapFree(GetProcessHeap(),0,char_buffer);
-          if(attr_buffer) HeapFree(GetProcessHeap(),0,attr_buffer);
+#ifdef UNICODE
+          Info.SendDlgMessage(hDlg,DM_FREEDLGITEM,0,(LONG_PTR)DialogItem);
+#endif
         }
       }
       break;
@@ -673,8 +709,8 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
               long FirstKey=upper_key(Param2),SecondKey=FirstKey;
               if(FSF.LIsAlpha((unsigned long)FirstKey))
               {
-                unsigned char xlat_str[1]={(unsigned long)FirstKey};
-                FSF.XLat((char *)xlat_str,0,1,NULL,0);
+                unsigned char xlat_str[1]={(unsigned long)FirstKey}; //FIXME
+                FSF.XLat((char*)xlat_str,0,1,NULL,0);
                 SecondKey=upper_key(xlat_str[0]);
               }
               for(long i=0;i<data->ItemCount;i++)
