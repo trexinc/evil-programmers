@@ -166,7 +166,7 @@ int OnEditorEvent(int event,void *param)
   if((!(curfile=ef_getfile(ei.EditorID)))&&Opt.Active&&(ei.TotalLines<=Opt.MaxLines))
   {
     TCHAR ini_path[MAX_PATH],ini_type[256];
-    lstrcpyn(ini_path,ei.FileName,filename-ei.FileName);
+    lstrcpyn(ini_path,ei.FileName,filename-ei.FileName+1);
     ini_path[filename-ei.FileName]=0;
     lstrcat(ini_path,_T("airbrush.ini"));
     if(GetPrivateProfileString(_T("types"),filename,_T(""),ini_type,sizeof(ini_type)/sizeof(ini_type[0]),ini_path))
