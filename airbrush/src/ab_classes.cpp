@@ -230,7 +230,6 @@ int OnEditorEvent(int event,void *param)
       }
     }
   }
-  if(curfile)
 
   if((!curfile)&&(Opt.ColorizeAll)) curfile=loadfile(ei.EditorID,-1);
   if(!curfile) return 0;
