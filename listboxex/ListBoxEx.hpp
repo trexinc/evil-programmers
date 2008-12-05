@@ -20,6 +20,7 @@
 #ifndef __LISTBOXEX_HPP__
 #define __LISTBOXEX_HPP__
 
+#include <tchar.h>
 #include "plugin.hpp"
 #include "farkeys.hpp"
 #include "farcolor.hpp"
@@ -99,11 +100,11 @@ struct ListBoxExItem
 {
   long Flags;
   long Hotkey;
-  char CheckMark;
+  TCHAR CheckMark;
   unsigned long Length;
-  char *Item;
-  unsigned short *Attribute[3];
-  void *UserData;
+  TCHAR* Item;
+  unsigned short* Attribute[3];
+  void* UserData;
 };
 
 struct ListBoxExData
@@ -115,7 +116,7 @@ struct ListBoxExData
   long CurCol;
   long UserData;
   long ItemCount;
-  ListBoxExItem *Items;
+  ListBoxExItem* Items;
   unsigned short Colors[LISTBOXEX_COLOR_COUNT];
 };
 
@@ -157,4 +158,5 @@ struct ListBoxExColors
   long Count;
   unsigned short *Colors;
 };
+
 #endif

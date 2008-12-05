@@ -12,7 +12,7 @@ else
 COMINC = $(COMMON)/ascii
 endif
 
-CFLAGS=-c -march=pentium4 -Os -Wall -I $(COMINC)
+CFLAGS=-c -march=pentium4 -Os -Wall -I $(COMINC) $(CCWIDE)
 LFLAGS=-s
 LIBS=
 
@@ -21,7 +21,7 @@ CC=gcc
 DLLTOOL=dlltool
 M4=m4
 
-DEF=test.def
+DEF=test$(DIRSURF).def
 OBJS=test.o ListBoxEx.o
 TARGET=test.dll
 MAP=$(patsubst %.dll,%.map,$(TARGET))
