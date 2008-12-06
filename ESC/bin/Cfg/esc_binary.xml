@@ -1,0 +1,32 @@
+<Esc-Settings>
+  <Types>
+    <type name="Binary executable files" mask="*.exe,*.com,*.dll,*.bin,*.lib,*.obj,*.bav,*.srp,*.srs,*.class,*.msi,*.vxd,*.vdd,*.fmp,*.wcx,*.wfx,*.fll"
+      inherit="Binary"
+    />
+
+    <type name="Archives" mask="*.rar,*.arj,*.jar,*.zip,*.lzh,*.ha,*.r[0-9][0-9],*.a[0-9][0-9],*.wsz,*.tar,*.gz,*.bz2,*.tgz,*.j,*.ace,*.z"
+      inherit="Binary"
+    />
+
+    <type name="Pictures" mask="*.ani,*.bmp,*.bw,*.cur,*.dcx,*.dib,*.emf,*.eps,*.fpx,*.gif,*.ico,*.iff,*.ilbm,*.jpe,*.jpeg,*.jif,*.jfif,*.jpg,*.kdc,*.lbm,*.mag,*.pmb,*.pcd,*.pcx,*.pgm,*.pix,*.png,*.ppm,*.psd,*.ras,*.rgb,*.rgba,*.rle,*.sgi,*.tga,*.tif,*.tiff"
+      inherit="Binary"
+    />
+
+    <type name="Video files" mask="*.mpg,*.mpeg,*.mp4,*.avi,*.divx,*.asf,*.wm,*.wmv,*.m[12o]v"
+      inherit="Binary"
+    />
+
+    <type name="Audio files" mask="*.cda,*.mp2,*.mp3,*.wma,*.mid,*.midi,*.rmi,*.wav,*.snd,*.au,*.aif,*.aifc,*.aiff"
+      inherit="Binary"
+    />
+
+    <type name="Binary help files" mask="*.chm,*.hlp,*.gid,*.fts"
+      inherit="Binary"
+    />
+
+    <type name="Other binary files" mask="*.lnk,*.pif,*.ttf,*.fon,*.ow,*.o,*.spk"
+      inherit="Binary"
+    />
+
+  </Types>
+</Esc-Settings>

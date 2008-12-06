@@ -1,0 +1,25 @@
+.Language=English,English
+
+"[ESC] Editor's settings changer"
+"Turn &on plugin module"
+"Reload settings &automatically"
+"&Show file-masks in the menu (editor)"
+"&Check out settings"
+"&Reload settings"
+"Ok"
+"Cancel"
+
+"Settings are correct\nOk"
+"There are errors in XML-file:"
+"File with settings is absent:"
+"Settings were reloaded\nOk"
+
+"Warning"
+"Problem in the file:"
+"Cannot allocate a memory!\nOk"
+"Unknown key:"
+"Type: "
+"Parameter: "
+
+"[ESC] - working..."
+"[ESC] - Stop file processing?"

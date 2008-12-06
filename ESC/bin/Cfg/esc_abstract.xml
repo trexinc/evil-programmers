@@ -1,0 +1,55 @@
+<Esc-Settings>
+  <Types>
+
+    <type name="Sources" mask="|abstract">
+      <lockmode value="ignore"/>
+      <margin autowrap="off" wrap="0" justify="off"/>
+      <quote value="off" quoteeol="off"/>
+      <tab tabsize="2" expandtabs="on"/>
+      <smartkey tab="on" backspace="on" home="on" lines="64"/>
+      <kill killspace="on" killemptylines="on" forcekel="off"
+        p_end="on" p_minuses="off"
+      />
+      <addsymbol value="on"
+        start="," end="&#x20;"
+        start_b="&quot;&apos;({[" end_b="&quot;&apos;)}]"
+      />
+      <autoindent value="on"/>
+      <cursorbeol value="on"/>
+      <charcodebase value="hex"/>
+      <savepos value="on" minlines="0"/>
+      <eol value=""/>
+      <lockfile value="on"/>
+      <wordsym value="on" alphanum="yes" additional="_"/>
+    </type>
+
+    <type name="Unix Sources" mask="|abstract" inherit="Sources">
+      <eol value="&#x0a;"/>
+    </type>
+
+    <type name="Binary" mask="|abstract">
+      <lockmode value="on"/>
+      <margin autowrap="off" wrap="0" justify="off"/>
+      <quote value="off"/>
+      <tab tabsize="8" expandtabs="off"/>
+      <smartkey tab="off" backspace="off" home="off"/>
+      <kill killspace="off" killemptylines="off"/>
+      <addsymbol value="off"/>
+      <autoindent value="off"/>
+      <cursorbeol value="ignore"/>
+      <charcodebase value="hex"/>
+      <savepos value="ignore" minlines="0"/>
+      <eol value=""/>
+    </type>
+
+    <type name="Texts" mask="|abstract" inherit="Sources">
+      <lockmode value="ignore"/>
+      <tab tabsize="8"/>
+      <margin autowrap="on" wrap="78" justify="on"/>
+      <charcodebase value="dec"/>
+      <savepos value="ignore" minlines="0"/>
+      <eol value=""/>
+    </type>
+
+  </Types>
+</Esc-Settings>

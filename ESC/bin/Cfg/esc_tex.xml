@@ -1,0 +1,7 @@
+<Esc-Settings>
+  <Types>
+
+    <type name="LaTeX" mask="*.tex,*.sty" inherit="XML"/>
+
+  </Types>
+</Esc-Settings>

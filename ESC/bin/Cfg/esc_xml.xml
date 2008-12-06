@@ -1,0 +1,15 @@
+<Esc-Settings>
+  <Types>
+
+    <type name="XML" mask="*.xml,*.xsl,*.xsd,*.hrc" inherit="Sources">
+      <margin autowrap="on" wrap="99%" justify="off"/>
+      <addsymbol value="on"
+        start="," end="&#x20;"
+        start_b="&quot;&apos;({[&lt;" end_b="&quot;&apos;)}]&gt;"
+      />
+    </type>
+
+    <type name="HTML" mask="*.html,*.htm,*.shtml,*.shtm" inherit="XML"/>
+
+  </Types>
+</Esc-Settings>
