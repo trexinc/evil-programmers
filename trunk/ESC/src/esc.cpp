@@ -1,12 +1,44 @@
+/*
+    [ESC] Editor's settings changer plugin for FAR Manager
+    Copyright (C) 2001 Ivan Sintyurin
+    Copyright (C) 2008 Alex Yaroslavsky
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
 #define STRICT
 #include "myrtl.hpp"
 #include "plugin.hpp"
 
+#if defined(__GNUC__)
+extern "C"
+{
+  BOOL WINAPI DllMainCRTStartup(HANDLE hDll,DWORD dwReason,LPVOID lpReserved);
+};
+
+BOOL WINAPI DllMainCRTStartup(HANDLE hDll,DWORD dwReason,LPVOID lpReserved)
+{
+  (void) hDll;
+  (void) dwReason;
+  (void) lpReserved;
+  return TRUE;
+}
+#endif
+
 #ifndef FARMACRO_KEY_EVENT
   #define FARMACRO_KEY_EVENT (KEY_EVENT|0x8000)
 #endif
-
-BOOL IsNewMacro=FALSE; // включение нового механизма работы с макросами (для FAR 1.70 build 1715 и выше)
 
 #include "KeySequenceStorage.hpp"
 #include "rbtree.cpp"
@@ -18,7 +50,7 @@ BOOL IsNewMacro=FALSE; // включение нового механизма работы с макросами (для FAR
 #include "CIndicator.hpp"
 #include "syslog.hpp"
 #ifdef _DEBUG
-extern char SysLogName[MAX_PATH*2];
+extern wchar_t SysLogName[MAX_PATH*2];
 #endif
 
 #include "xmlite.hpp"
@@ -29,32 +61,10 @@ extern bool prc_Minuses;
 extern DWORD _check_mem_DAT;
 #endif
 
-extern char GLOBAL_EOL[10];
+extern wchar_t GLOBAL_EOL[10];
 extern HANDLE heapNew_ESC;
 
-#ifdef LITE_VERSION
-int FullEscCheckResult=-1; // -1 - не проверял, 0 - не загружен, 1 - загружен
-
-// проверяем, загружена ли "нормальная" версия плагина
-BOOL IsFullEscExisting()
-{
-  if(FullEscCheckResult==-1)
-  {
-    HANDLE hFullEsc=GetModuleHandle("esc.dll");
-    FullEscCheckResult=(hFullEsc && GetProcAddress(static_cast<HMODULE>(hFullEsc), "CreateMultiMacro"));
-  }
-  return FullEscCheckResult;
-}
-#define MACRO_ANDISNOTFULLESCEXISTING && !IsFullEscExisting()
-#define MACRO_ORISFULLESCEXISTING || IsFullEscExisting()
-#else
-#define MACRO_ANDISNOTFULLESCEXISTING
-#define MACRO_ORISFULLESCEXISTING
-#endif // LITE_VERSION
-
 #ifdef __cplusplus
-#ifndef __NEW_DEFINED
-#define __NEW_DEFINED
 void *operator new(size_t size)
 {
   size = size ? size : 1;
@@ -77,7 +87,6 @@ void operator delete[] (void *ptr)
 {
   ::operator delete(ptr);
 }
-#endif // __NEW_DEFINED
 #endif // __cplusplus
 
 BOOL WINAPI CompLT(const EditorSettingsStorage &a,const EditorSettingsStorage &b)
@@ -92,7 +101,7 @@ BOOL WINAPI CompEQ(const EditorSettingsStorage &a,const EditorSettingsStorage &b
 
 BOOL WINAPI ESCFICompLT(const ESCFileInfo &a,const ESCFileInfo &b)
 {
-  return (a.Name.str && b.Name.str)?stricmp(a.Name.str, b.Name.str)<0:0;
+  return (a.Name.str && b.Name.str)?wstricmp(a.Name.str, b.Name.str)<0:0;
 }
 
 BOOL WINAPI ESCFICompEQ(const ESCFileInfo &a,const ESCFileInfo &b)
@@ -137,7 +146,7 @@ BOOL InitSetsTree(const EditorInfo &EI)
 
      Ret=TRUE;
    }
-   _D(SysLog("IST: Ret=%d", Ret));
+   _D(SysLog(L"IST: Ret=%d", Ret));
    return Ret;
 }
 
@@ -153,67 +162,47 @@ void FreeMem()
     ESETStorage->Empty();
 }
 
-void WINAPI _export SetStartupInfo(const struct PluginStartupInfo *Info)
+void WINAPI _export SetStartupInfoW(const struct PluginStartupInfo *Info)
 {
-#ifndef LITE_VERSION
-#ifdef __BORLANDC__
-#pragma warn -aus
-#endif
-  {
-    char Tanya[]="\x0d\x0a\x0d\x0a\x0d\x0a"
-     "\tНе слагайте насильно стихов,\x0d\x0a"
-     "\tНе пишите тупых посвящений,\x0d\x0a"
-     "\tНе тревожьте могилы творцов,\x0d\x0a"
-     "\tСлавит их и без вас их же гений.\x0d\x0a"
-     "\tЩелкать оды ушедшим до нас -\x0d\x0a"
-     "\tЭто каторга мыслям свободным,\x0d\x0a"
-     "\tК юбилею исполнить заказ -\x0d\x0a"
-     "\tНастрочить два листа громких фраз,\x0d\x0a"
-     "\tВот мой крест, ненавистный приказ."
-     "\x0d\x0a\x0d\x0a\x0d\x0a";
-  }
-#ifdef __BORLANDC__
-#pragma warn .aus
-#endif
-#endif // LITE_VERSION
   ::Info=*Info;
   EditorControl=::Info.EditorControl;
   CharTable=::Info.CharTable;
   ModuleNumber=::Info.ModuleNumber;
   FarMessage=::Info.Message;
   IsOldFar=TRUE;
-  IsNewMacro=FALSE;
   XMLLoadedOK=FALSE;
   NodeData=NULL;
-  strcpy(PluginRootKey,Info->RootKey);
-  strcat(PluginRootKey,"\\ESC");
-  _D(wsprintf(SysLogName, "%s.LOG", ::Info.ModuleName););
-  _D(SysLog("SetStartupInfo - start"));
+  wstrcpy(PluginRootKey,Info->RootKey);
+  wstrcat(PluginRootKey,L"\\ESC");
+  _D(wsprintf(SysLogName, L"%s.LOG", ::Info.ModuleName););
+  _D(SysLog(L"SetStartupInfo - start"));
   heapNew_ESC = HeapCreate(0, 0, 0);
 #ifdef _check_mem
   _check_mem_DAT = 0;
 #endif
-  if(Info->StructSize >= sizeof(struct PluginStartupInfo) && heapNew_ESC)
+  if(Info->StructSize >= (int)sizeof(struct PluginStartupInfo) && heapNew_ESC)
   {
     ::FSF=*Info->FSF;
     ::Info.FSF=&::FSF;
-    ExpandEnvironmentStr=FSF.ExpandEnvironmentStr;
     TruncPathStr=FSF.TruncPathStr;
-    strcpy(XMLFilePath, ::Info.ModuleName);
-    int offset=strlen(XMLFilePath)-3;
-    strcpy(XMLFilePath+offset, "XML");
+    wstrcpy(XMLFilePath, ::Info.ModuleName);
+    int offset=wstrlen(XMLFilePath)-3;
+    wstrcpy(XMLFilePath+offset, L"XML");
 
     DWORD __FarVer=0;
     ::Info.AdvControl(ModuleNumber, ACTL_GETFARVERSION, &__FarVer);
 
+#ifndef UNICODE
     IsOldFar=!(HIBYTE(LOWORD(__FarVer))>1 ||
       (HIBYTE(LOWORD(__FarVer))==1 && LOBYTE(LOWORD(__FarVer))>70) ||
       (HIBYTE(LOWORD(__FarVer))==1 && LOBYTE(LOWORD(__FarVer))==70 &&
-       HIWORD(__FarVer)>=1634));
-    IsNewMacro=(HIBYTE(LOWORD(__FarVer))>1 ||
-      (HIBYTE(LOWORD(__FarVer))==1 && LOBYTE(LOWORD(__FarVer))>70) ||
-      (HIBYTE(LOWORD(__FarVer))==1 && LOBYTE(LOWORD(__FarVer))>=70 &&
-       HIWORD(__FarVer)>=1715));
+       HIWORD(__FarVer)>=2087));
+#else
+    IsOldFar=!(HIBYTE(LOWORD(__FarVer))>1 ||
+      (HIBYTE(LOWORD(__FarVer))==1 && LOBYTE(LOWORD(__FarVer))>80) ||
+      (HIBYTE(LOWORD(__FarVer))==1 && LOBYTE(LOWORD(__FarVer))==80 &&
+       HIWORD(__FarVer)>=635));
+#endif
     LoadGlobalConfig();
 
     nlsStopChars=new strcon;
@@ -227,13 +216,13 @@ void WINAPI _export SetStartupInfo(const struct PluginStartupInfo *Info)
     ReloadSettings(TRUE);
     Opt.ReloadSettingsAutomatically=OldSet;
   }
-  _D(SysLog("SetStartupInfo - end (%d)", IsOldFar));
+  _D(SysLog(L"SetStartupInfo - end (%d)", IsOldFar));
 }
 
-HANDLE WINAPI _export OpenPlugin(int /*OpenFrom*/,int /*Item*/)
+HANDLE WINAPI _export OpenPluginW(int /*OpenFrom*/,int /*Item*/)
 {
     ReloadSettings(FALSE);
-    if(!IsOldFar MACRO_ANDISNOTFULLESCEXISTING)
+    if(!IsOldFar)
     {
         DWORD TotalNodes=XMLLoadedOK?NodeData->getSize():0;
         DWORD FMISize=(1+TotalNodes)*sizeof(FarMenuItem);
@@ -244,9 +233,9 @@ HANDLE WINAPI _export OpenPlugin(int /*OpenFrom*/,int /*Item*/)
             if(ESETStorage->IsEmpty())
                InitSetsTree(ei);
             memset(fmi, 0, FMISize);
-            char Buf[120], Mask[120], fmt1[32], fmt2[32];
+            wchar_t Buf[120], Mask[120], fmt1[32], fmt2[32];
 
-            int MaxNameSize=0, len, MaxMaskSize,
+            int MaxNameSize=0, len, MaxMaskSize=0,
                 RealPos=-1; // где ставить галку, если "-1", то нигде
             NODEDATA *nd;
             int LastAcceptableType=-1;
@@ -275,36 +264,36 @@ HANDLE WINAPI _export OpenPlugin(int /*OpenFrom*/,int /*Item*/)
                }
                len=(ei.WindowSizeX>110)?100:(ei.WindowSizeX-18);
                MaxMaskSize=len-MaxNameSize;
-               FSF.sprintf(fmt1, "&%%c. %%%ds │ %%s", MaxNameSize);
-               FSF.sprintf(fmt2, "   %%%ds │ %%s", MaxNameSize);
+               FSF.sprintf(fmt1, L"&%%c. %%%ds \x2502 %%s", MaxNameSize);
+               FSF.sprintf(fmt2, L"   %%%ds \x2502 %%s", MaxNameSize);
             }
             else
             {
                int m=ei.WindowSizeX-16;
                if(MaxNameSize>110) MaxNameSize=110;
                if(!MaxNameSize || MaxNameSize>m) MaxNameSize=m;
-               FSF.sprintf(fmt1, "&%%c. %%%ds", MaxNameSize);
-               FSF.sprintf(fmt2, "   %%%ds", MaxNameSize);
+               FSF.sprintf(fmt1, L"&%%c. %%%ds", MaxNameSize);
+               FSF.sprintf(fmt2, L"   %%%ds", MaxNameSize);
             }
 
             if(Opt.ShowFileMaskInMenu) for (DWORD f = 0; f < TotalNodes; ++f)
             {
                 nd=NodeData->getItem(f);
-                strncpy(Buf, nd->Name.str, sizeof(Buf)-1);
-                strncpy(Mask, nd->mask.str, sizeof(Mask)-1);
+                wstrncpy(Buf, nd->Name.str, sizeof(Buf)/sizeof(wchar_t)-1);
+                wstrncpy(Mask, nd->mask.str, sizeof(Mask)/sizeof(wchar_t)-1);
                 TruncFromRigth(Buf, MaxNameSize, TRUE);
                 TruncFromRigth(Mask, MaxMaskSize, FALSE);
-                if(f<10) FSF.sprintf(fmi[f].Text,fmt1,'0'+f,Buf,Mask);
-                else if(f<36) FSF.sprintf(fmi[f].Text,fmt1,55+f,Buf,Mask) ;//55='A'-10
-                else FSF.sprintf(fmi[f].Text,fmt2, Buf, Mask);
+//FIXME                if(f<10) FSF.sprintf(fmi[f].Text,fmt1,L'0'+f,Buf,Mask);
+//                else if(f<36) FSF.sprintf(fmi[f].Text,fmt1,55+f,Buf,Mask) ;//55='A'-10
+//                else FSF.sprintf(fmi[f].Text,fmt2, Buf, Mask);
             }
             else for (DWORD f = 0; f < TotalNodes; ++f)
             {
-                strncpy(Buf, NodeData->getItem(f)->Name.str, sizeof(Buf)-1);
+                wstrncpy(Buf, NodeData->getItem(f)->Name.str, sizeof(Buf)/sizeof(wchar_t)-1);
                 TruncFromRigth(Buf, MaxNameSize, TRUE);
-                if(f<10) FSF.sprintf(fmi[f].Text,fmt1,'0'+f,Buf);
-                else if(f<36) FSF.sprintf(fmi[f].Text,fmt1,55+f,Buf) ;//55='A'-10
-                else FSF.sprintf(fmi[f].Text,fmt2, Buf);
+//FIXME                if(f<10) FSF.sprintf(fmi[f].Text,fmt1,L'0'+f,Buf);
+//                else if(f<36) FSF.sprintf(fmi[f].Text,fmt1,55+f,Buf) ;//55='A'-10
+//                else FSF.sprintf(fmi[f].Text,fmt2, Buf);
             }
 
             EditorSettingsStorage ESS(ei.EditorID);
@@ -313,18 +302,11 @@ HANDLE WINAPI _export OpenPlugin(int /*OpenFrom*/,int /*Item*/)
             if(MenuCode<0 || MenuCode>=(int)TotalNodes)
                 MenuCode=0;
             fmi[MenuCode].Selected=TRUE;
-            if(RealPos>-1) fmi[RealPos].Checked='*';
-            #ifdef LITE_VERSION
-            NewMenuCode = Info.Menu(ModuleNumber, -1, -1, 0,
-                                    FMENU_AUTOHIGHLIGHT | FMENU_WRAPMODE | FMENU_CHANGECONSOLETITLE,
-                                    GetMsg(MTitleLITE), NULL, NULL,
-                                    NULL, NULL, fmi, TotalNodes);
-            #else
+            if(RealPos>-1) fmi[RealPos].Checked=L'*';
             NewMenuCode = Info.Menu(ModuleNumber, -1, -1, 0,
                                     FMENU_AUTOHIGHLIGHT | FMENU_WRAPMODE | FMENU_CHANGECONSOLETITLE,
                                     GetMsg(MTitle), NULL, NULL,
                                     NULL, NULL, fmi, TotalNodes);
-            #endif // LITE_VERSION
             if(NewMenuCode>=0 && (!Item || (Item && NewMenuCode!=MenuCode)))
             {
                if(Item)
@@ -350,7 +332,7 @@ HANDLE WINAPI _export OpenPlugin(int /*OpenFrom*/,int /*Item*/)
     return INVALID_HANDLE_VALUE;
 }
 
-void WINAPI _export ExitFAR(void)
+void WINAPI _export ExitFARW(void)
 {
   FreeMem();
   delete ESETStorage;
@@ -360,7 +342,7 @@ void WINAPI _export ExitFAR(void)
   delete nlsStopChars;
   nlsStopChars=NULL;
 #ifdef _check_mem
-  _D(SysLog("_check_mem_DAT=%d", _check_mem_DAT));
+  _D(SysLog(L"_check_mem_DAT=%d", _check_mem_DAT));
 #endif //_check_mem
   if (heapNew_ESC)
     HeapDestroy(heapNew_ESC);
@@ -403,25 +385,21 @@ long WINAPI ConfigDlgProc (HANDLE hDlg, int Msg, int Param1, long Param2)
   return Info.DefDlgProc (hDlg, Msg, Param1, Param2);
 }
 
-int WINAPI Configure(int /*ItemNumber*/)
+int WINAPI ConfigureW(int /*ItemNumber*/)
 {
-  if(IsOldFar MACRO_ORISFULLESCEXISTING) return FALSE;
+  if(IsOldFar) return FALSE;
 
   struct InitDialogItem InitItems[] = {
-#ifdef LITE_VERSION
-/*00*/ {DI_DOUBLEBOX, 3, 1, 71, 9, 0, 0, 0, 0, (char*)MTitleLITE},
-#else
-/*00*/ {DI_DOUBLEBOX, 3, 1, 71, 9, 0, 0, 0, 0, (char*)MTitle},
-#endif
-/*01*/ {DI_CHECKBOX, 5, 2, 0, 0, 0, 0, 0, 0, (char*)MTurnOnPluginModule},
-/*02*/ {DI_CHECKBOX, 5, 3, 0, 0, 0, 0, 0, 0, (char*)MReloadSettingsAutomatically},
-/*03*/ {DI_CHECKBOX, 5, 4, 0, 0, 0, 0, 0, 0, (char*)MShowFileMaskInMenu},
-/*04*/ {DI_TEXT, 0, 5, 0, 0, 0, 0, DIF_BOXCOLOR | DIF_SEPARATOR, 0, ""},
-/*05*/ {DI_BUTTON, 0, 6, 0, 0, 0, 0, DIF_CENTERGROUP, 0,(char*)MCheckOutSettings},
-/*06*/ {DI_BUTTON, 0, 6, 0, 0, 0, 0, DIF_CENTERGROUP, 0,(char*)MReloadSettings},
-/*07*/ {DI_TEXT, 0, 7, 0, 0, 0, 0, DIF_BOXCOLOR | DIF_SEPARATOR, 0, ""},
-/*08*/ {DI_BUTTON, 0, 8, 0, 0, 0, 0, DIF_CENTERGROUP, 1,(char*)MOk},
-/*09*/ {DI_BUTTON, 0, 8, 0, 0, 0, 0, DIF_CENTERGROUP, 0,(char*)MCancel},
+/*00*/ {DI_DOUBLEBOX, 3, 1, 71, 9, 0, 0, 0, 0, (wchar_t*)MTitle},
+/*01*/ {DI_CHECKBOX, 5, 2, 0, 0, 0, 0, 0, 0, (wchar_t*)MTurnOnPluginModule},
+/*02*/ {DI_CHECKBOX, 5, 3, 0, 0, 0, 0, 0, 0, (wchar_t*)MReloadSettingsAutomatically},
+/*03*/ {DI_CHECKBOX, 5, 4, 0, 0, 0, 0, 0, 0, (wchar_t*)MShowFileMaskInMenu},
+/*04*/ {DI_TEXT, 0, 5, 0, 0, 0, 0, DIF_BOXCOLOR | DIF_SEPARATOR, 0, L""},
+/*05*/ {DI_BUTTON, 0, 6, 0, 0, 0, 0, DIF_CENTERGROUP, 0,(wchar_t*)MCheckOutSettings},
+/*06*/ {DI_BUTTON, 0, 6, 0, 0, 0, 0, DIF_CENTERGROUP, 0,(wchar_t*)MReloadSettings},
+/*07*/ {DI_TEXT, 0, 7, 0, 0, 0, 0, DIF_BOXCOLOR | DIF_SEPARATOR, 0, L""},
+/*08*/ {DI_BUTTON, 0, 8, 0, 0, 0, 0, DIF_CENTERGROUP, 1,(wchar_t*)MOk},
+/*09*/ {DI_BUTTON, 0, 8, 0, 0, 0, 0, DIF_CENTERGROUP, 0,(wchar_t*)MCancel},
   };
   struct FarDialogItem DialogItems[10];
   int ExitCode, oldTurnOnPluginModule=Opt.TurnOnPluginModule;
@@ -446,9 +424,9 @@ int WINAPI Configure(int /*ItemNumber*/)
 
   for(;;)
   {
-    //показ диалога
-    ExitCode = Info.DialogEx (ModuleNumber, -1, -1, 75, 11,
-                              NULL, DialogItems, 10, 0, 0, ConfigDlgProc, 0);
+    //показ диалога FIXME
+//    ExitCode = Info.DialogEx (ModuleNumber, -1, -1, 75, 11,
+//                              NULL, DialogItems, 10, 0, 0, ConfigDlgProc, 0);
     if(8==ExitCode)
       {
          Opt.TurnOnPluginModule=DialogItems[1].Selected;
@@ -476,36 +454,32 @@ int WINAPI Configure(int /*ItemNumber*/)
   return TRUE;
 }
 
-void WINAPI _export GetPluginInfo(struct PluginInfo *Info)
+void WINAPI _export GetPluginInfoW(struct PluginInfo *Info)
 {
-  if(IsOldFar MACRO_ORISFULLESCEXISTING) return;
+  if(IsOldFar) return;
   Info->StructSize=sizeof(*Info);
   Info->Flags=PF_PRELOAD|PF_DISABLEPANELS|PF_EDITOR;
 
-  static char *PluginConfigStrings[1], *PluginMenuStrings[1];
+  static wchar_t *PluginConfigStrings[1], *PluginMenuStrings[1];
 
   PluginConfigStrings[0]=
-  #ifdef LITE_VERSION
-    PluginMenuStrings[0]=const_cast<char*>(GetMsg(MTitleLITE));
-  #else
-    PluginMenuStrings[0]=const_cast<char*>(GetMsg(MTitle));
-  #endif
+  PluginMenuStrings[0]=const_cast<wchar_t*>(GetMsg(MTitle));
   Info->PluginMenuStringsNumber=sizeof(PluginMenuStrings)/sizeof(PluginMenuStrings[0]);
   Info->PluginMenuStrings=PluginMenuStrings;
   Info->PluginConfigStrings=PluginConfigStrings;
   Info->PluginConfigStringsNumber=sizeof(PluginConfigStrings)/sizeof(PluginConfigStrings[0]);
 }
 
-int WINAPI _export ProcessEditorEvent(int Event, void *Param)
+int WINAPI _export ProcessEditorEventW(int Event, void *Param)
 {
   /*#ifdef _DEBUG
-  char *EES[]={"EE_READ","EE_SAVE","EE_REDRAW","EE_CLOSE"};
+  wchar_t *EES[]={"EE_READ","EE_SAVE","EE_REDRAW","EE_CLOSE"};
   if(Event>=EE_READ && Event<=EE_CLOSE)
-    SysLog("PEE: Event: %s", EES[Event]);
+    SysLog(L"PEE: Event: %s", EES[Event]);
   else
-    SysLog("PEE: Event: Unknown (%d)", Event);
+    SysLog(L"PEE: Event: Unknown (%d)", Event);
   #endif*/
-  if(ESETStorage MACRO_ANDISNOTFULLESCEXISTING)
+  if(ESETStorage)
   {
    if(Event==EE_REDRAW ||
       ((Event==EE_READ || Event==EE_SAVE) && ReloadSettings(FALSE)))
@@ -523,7 +497,7 @@ int WINAPI _export ProcessEditorEvent(int Event, void *Param)
 
           if(!IsLocked && (nodedata.Options&E_KillSpaces_On || nodedata.EOL))
           {
-             _D(SysLog("PEE: 0. TotalLines=%d", ei.TotalLines));
+             _D(SysLog(L"PEE: 0. TotalLines=%d", ei.TotalLines));
 
              prc_Minuses=nodedata.Options&E_Process_Minuses_On;
 
@@ -625,7 +599,7 @@ int WINAPI _export ProcessEditorEvent(int Event, void *Param)
           ApplyEditorOptions(nodedata,ei.FileName);
           KeySequence macro;
           const KeySequenceStorage *KSS;
-          BOOL stop;
+          BOOL stop=TRUE;
           if(!FileExists(ei.FileName)) // файла нет на диске, значит он новый
           {
             EditorSetParameter espar;
@@ -648,7 +622,7 @@ int WINAPI _export ProcessEditorEvent(int Event, void *Param)
               EditorControl(ECTL_SETPARAM, &espar);
             }
 
-            _D(SysLog("PEE: auto-macros / OnCreate - start"));
+            _D(SysLog(L"PEE: auto-macros / OnCreate - start"));
             nodedata.OnCreateMacros.toBegin();
             do
             {
@@ -660,9 +634,9 @@ int WINAPI _export ProcessEditorEvent(int Event, void *Param)
               }
               nodedata.OnCreateMacros.toNext();
             } while(KSS && !stop);
-            _D(SysLog("PEE: auto-macros / OnCreate - end"));
+            _D(SysLog(L"PEE: auto-macros / OnCreate - end"));
           }
-          _D(SysLog("PEE: auto-macros / OnLoad - start"));
+          _D(SysLog(L"PEE: auto-macros / OnLoad - start"));
           nodedata.OnLoadMacros.toBegin();
           do
           {
@@ -674,7 +648,7 @@ int WINAPI _export ProcessEditorEvent(int Event, void *Param)
             }
             nodedata.OnLoadMacros.toNext();
           } while(KSS && !stop);
-          _D(SysLog("PEE: auto-macros / OnLoad - end"));
+          _D(SysLog(L"PEE: auto-macros / OnLoad - end"));
         }
     }
    }
@@ -685,24 +659,24 @@ int WINAPI _export ProcessEditorEvent(int Event, void *Param)
      if(Item) ESETStorage->deleteNode(Item);
    }
   }
-//  _D(SysLog("PEE: end"));
+//  _D(SysLog(L"PEE: end"));
   return 0;
 }
 
-int WINAPI _export ProcessEditorInput(const INPUT_RECORD *Rec)
+int WINAPI _export ProcessEditorInputW(const INPUT_RECORD *Rec)
 {
     static int isReenter=0, Lines, CoordX, RetCode;
 
-    if(IsOldFar MACRO_ORISFULLESCEXISTING || isReenter ||
+    if(IsOldFar || isReenter ||
        (Rec->EventType!=KEY_EVENT && Rec->EventType!=FARMACRO_KEY_EVENT && Rec->EventType!=MOUSE_EVENT))
     {
-      //_D(SysLog("PEI: 1 return"));
+      //_D(SysLog(L"PEI: 1 return"));
       return 0;
     }
 
     if((Rec->EventType==KEY_EVENT || Rec->EventType==FARMACRO_KEY_EVENT) && !Rec->Event.KeyEvent.bKeyDown)
     {
-      //_D(SysLog("PEI: 2 return"));
+      //_D(SysLog(L"PEI: 2 return"));
       return 0;
     }
 
@@ -713,14 +687,14 @@ int WINAPI _export ProcessEditorInput(const INPUT_RECORD *Rec)
        )
       )
     {
-      //_D(SysLog("PEI: 3 return"));
+      //_D(SysLog(L"PEI: 3 return"));
       return 0;
     }
 
-    _D(SysLog("PEI: EventType=%s",
-       (Rec->EventType==KEY_EVENT)?"KEY_EVENT":
-         ((Rec->EventType==FARMACRO_KEY_EVENT)?"FARMACRO_KEY_EVENT":
-           (Rec->EventType==MOUSE_EVENT)?"MOUSE_EVENT":"UNKNOWN"
+    _D(SysLog(L"PEI: EventType=%s",
+       (Rec->EventType==KEY_EVENT)?L"KEY_EVENT":
+         ((Rec->EventType==FARMACRO_KEY_EVENT)?L"FARMACRO_KEY_EVENT":
+           (Rec->EventType==MOUSE_EVENT)?L"MOUSE_EVENT":L"UNKNOWN"
          )
        )
       );
@@ -732,7 +706,7 @@ int WINAPI _export ProcessEditorInput(const INPUT_RECORD *Rec)
     Node_<EditorSettingsStorage> *Item=ESETStorage->findNode(ESS);
     if(NULL==Item)
     {
-      _D(SysLog("PEI: 4 return"));
+      _D(SysLog(L"PEI: 4 return"));
       return 0;
     }
     NODEDATA &nodedata=Item->data.Data;
@@ -764,17 +738,17 @@ int WINAPI _export ProcessEditorInput(const INPUT_RECORD *Rec)
          BOOL Stop;
          if(EditorPostMacro(nodedata.MouseMacros,id,ei,Stop))
          {
-           _D(SysLog("PEI: 5 return"));
+           _D(SysLog(L"PEI: 5 return"));
            return Stop?1:0;
          }
       }
-      _D(SysLog("PEI: 6 return"));
+      _D(SysLog(L"PEI: 6 return"));
       return 0;
     }
 
     if(Rec->EventType!=KEY_EVENT && Rec->EventType!=FARMACRO_KEY_EVENT)
     {
-      _D(SysLog("PEI: 7 return"));
+      _D(SysLog(L"PEI: 7 return"));
       return 0;
     }
 
@@ -788,7 +762,7 @@ int WINAPI _export ProcessEditorInput(const INPUT_RECORD *Rec)
        BOOL Stop;
        if(EditorPostMacro(nodedata.KeyMacros,id,ei,Stop))
        {
-         _D(SysLog("PEI: 8 return"));
+         _D(SysLog(L"PEI: 8 return"));
          return Stop?1:0;
        }
     }
@@ -810,7 +784,7 @@ int WINAPI _export ProcessEditorInput(const INPUT_RECORD *Rec)
        )
       )
     {
-      _D(SysLog("PEI: 9 return"));
+      _D(SysLog(L"PEI: 9 return"));
       return 0; // все лишнее отсекаем сразу
                 // реагируем только на печатные символы и end/shift-end
     }
@@ -831,7 +805,7 @@ int WINAPI _export ProcessEditorInput(const INPUT_RECORD *Rec)
            EditorControl(ECTL_TURNOFFMARKINGBLOCK,NULL);
          isReenter=0;
       }
-      _D(SysLog("PEI: 9 return"));
+      _D(SysLog(L"PEI: 9 return"));
       return RetCode;
     }
 
@@ -841,7 +815,7 @@ int WINAPI _export ProcessEditorInput(const INPUT_RECORD *Rec)
       RetCode=0;
       isReenter=1;
       if(nodedata.Lines && (nodedata.Options&E_SmartTab_On) &&
-         (ei.Options&EOPT_EXPANDTABS)
+         (ei.Options&EOPT_EXPANDALLTABS)
         )
       {
         Lines=nodedata.Lines;
@@ -866,30 +840,30 @@ int WINAPI _export ProcessEditorInput(const INPUT_RECORD *Rec)
             EditorControl(ECTL_GETINFO,&ei);
           }
           CoordX=GetNextCoordX(ei, Lines, nlsStopChars->str)-ei.CurPos;
-          //_D(SysLog("SmartTab=%d", CoordX));
+          //_D(SysLog(L"SmartTab=%d", CoordX));
           if(CoordX>-1)
           {
             EditorControl(ECTL_GETSTRING, &egs);
             ess.StringNumber=-1;
-            ess.StringEOL=const_cast<char*>(egs.StringEOL);
+            ess.StringEOL=egs.StringEOL;
             ess.StringLength=egs.StringLength+CoordX;
             if(ei.CurPos>=egs.StringLength)
               ess.StringLength+=ei.CurPos-egs.StringLength;
-            ess.StringText=static_cast<char*>(malloc(ess.StringLength));
+            ess.StringText=static_cast<wchar_t*>(malloc(ess.StringLength*sizeof(wchar_t)));
             if(ess.StringText)
             {
               if(egs.StringLength>ei.CurPos)
-                 memcpy(ess.StringText, egs.StringText, ei.CurPos);
+                 memcpy((wchar_t *)ess.StringText, egs.StringText, ei.CurPos*sizeof(wchar_t));
               else
               {
-                 memcpy(ess.StringText, egs.StringText, egs.StringLength);
-                 memset(ess.StringText+egs.StringLength, nlsSpace,
-                        ei.CurPos-egs.StringLength);
+                 memcpy((wchar_t *)ess.StringText, egs.StringText, egs.StringLength*sizeof(wchar_t));
+                 wwmemset((wchar_t *)ess.StringText+egs.StringLength, nlsSpace,
+                         ei.CurPos-egs.StringLength);
               }
-              memset(ess.StringText+ei.CurPos, nlsSpace, CoordX);
+              wwmemset((wchar_t *)ess.StringText+ei.CurPos, nlsSpace, CoordX);
               if(egs.StringLength>ei.CurPos)
-                 memcpy(ess.StringText+ei.CurPos+CoordX,
-                        egs.StringText+ei.CurPos, egs.StringLength-ei.CurPos);
+                 memcpy((wchar_t *)ess.StringText+ei.CurPos+CoordX,
+                        egs.StringText+ei.CurPos, (egs.StringLength-ei.CurPos)*sizeof(wchar_t));
               if(EditorControl(ECTL_SETSTRING,&ess))
               {
                 InitESPandEGS(esp, egs);
@@ -898,7 +872,7 @@ int WINAPI _export ProcessEditorInput(const INPUT_RECORD *Rec)
                 EditorControl(ECTL_REDRAW, NULL);
                 RetCode=1;
               }
-              free(ess.StringText);
+              free((wchar_t *)ess.StringText);
             }
           }
         }
@@ -906,13 +880,13 @@ int WINAPI _export ProcessEditorInput(const INPUT_RECORD *Rec)
       if(RetCode)
         EditorControl(ECTL_TURNOFFMARKINGBLOCK,NULL);
       isReenter=0;
-      _D(SysLog("PEI: 10 return"));
+      _D(SysLog(L"PEI: 10 return"));
       return RetCode;
     }
 
     if(IsLocked)
     {
-      _D(SysLog("PEI: 11 return"));
+      _D(SysLog(L"PEI: 11 return"));
       return 0;
     }
 
@@ -928,14 +902,14 @@ int WINAPI _export ProcessEditorInput(const INPUT_RECORD *Rec)
         KillSpaces();
         isReenter=0;
       }
-      _D(SysLog("PEI: 12 return"));
+      _D(SysLog(L"PEI: 12 return"));
       return 0;
     }
     else if(KeyEvent.wVirtualKeyCode==VK_BACK)
     {
       RetCode=0;
       if(nodedata.Lines && (nodedata.Options&E_SmartBackSpace_On) &&
-         (ei.Options&EOPT_EXPANDTABS) &&
+         (ei.Options&EOPT_EXPANDALLTABS) &&
          ei.CurPos && !(KeyEvent.dwControlKeyState & SHIFT_PRESSED) &&
          (ei.BlockType==BTYPE_NONE || !(ei.Options&EOPT_DELREMOVESBLOCKS) ||
           ei.Options&EOPT_PERSISTENTBLOCKS)
@@ -957,28 +931,28 @@ int WINAPI _export ProcessEditorInput(const INPUT_RECORD *Rec)
         }
 
         CoordX=(X==-1)?-1:GetPrevCoordX(ei, Lines, nlsStopChars->str);
-        //_D(SysLog("SmartBackSpace: %d", CoordX));
+        //_D(SysLog(L"SmartBackSpace: %d", CoordX));
         if(CoordX>-1)
         {
           EditorControl(ECTL_GETSTRING, &egs);
           ess.StringNumber=-1;
-          ess.StringEOL=const_cast<char*>(egs.StringEOL);
+          ess.StringEOL=egs.StringEOL;
           ess.StringLength=egs.StringLength+CoordX;
           if(ei.CurPos>=egs.StringLength)
             ess.StringLength=egs.StringLength?CoordX:0;
           else
             ess.StringLength=egs.StringLength-(ei.CurPos-CoordX);
-          ess.StringText=static_cast<char*>(malloc(ess.StringLength+1));
+          ess.StringText=static_cast<wchar_t*>(malloc((ess.StringLength+1)*sizeof(wchar_t)));
           if(ess.StringText)
           {
             if(egs.StringLength>CoordX)
-              memcpy(ess.StringText, egs.StringText, CoordX);
+              memcpy((wchar_t *)ess.StringText, egs.StringText, CoordX*sizeof(wchar_t));
             else
-              memcpy(ess.StringText, egs.StringText, egs.StringLength);
+              memcpy((wchar_t *)ess.StringText, egs.StringText, egs.StringLength*sizeof(wchar_t));
 
             if(egs.StringLength>ei.CurPos)
-              memcpy(ess.StringText+CoordX,
-                     egs.StringText+ei.CurPos, egs.StringLength-ei.CurPos);
+              memcpy((wchar_t *)ess.StringText+CoordX,
+                     egs.StringText+ei.CurPos, (egs.StringLength-ei.CurPos)*sizeof(wchar_t));
             if(EditorControl(ECTL_SETSTRING,&ess))
             {
               InitESPandEGS(esp, egs);
@@ -988,12 +962,12 @@ int WINAPI _export ProcessEditorInput(const INPUT_RECORD *Rec)
               RetCode=1;
               EditorControl(ECTL_TURNOFFMARKINGBLOCK,NULL);
             }
-            free(ess.StringText);
+            free((wchar_t *)ess.StringText);
           }
         }
         isReenter=0;
       }
-      _D(SysLog("PEI: 13 return"));
+      _D(SysLog(L"PEI: 13 return"));
       return RetCode;
     }
     else if(KeyEvent.wVirtualKeyCode==VK_RETURN)
@@ -1013,7 +987,7 @@ int WINAPI _export ProcessEditorInput(const INPUT_RECORD *Rec)
         if(RetCode)
           EditorControl(ECTL_TURNOFFMARKINGBLOCK,NULL);
       }
-      _D(SysLog("PEI: 14 return"));
+      _D(SysLog(L"PEI: 14 return"));
       return RetCode;
     }
     else if(KeyEvent.wVirtualKeyCode==VK_DELETE)
@@ -1035,7 +1009,7 @@ int WINAPI _export ProcessEditorInput(const INPUT_RECORD *Rec)
             EditorControl(ECTL_TURNOFFMARKINGBLOCK,NULL);
         }
       }
-      _D(SysLog("PEI: 15 return"));
+      _D(SysLog(L"PEI: 15 return"));
       return RetCode;
     }
     else if(nodedata.Options&E_AddSymbol_On)
@@ -1048,7 +1022,7 @@ int WINAPI _export ProcessEditorInput(const INPUT_RECORD *Rec)
       }
       RetCode=0;
       InitNLS(ei, nodedata);
-      //_D(SysLog("AsciiChar=[%c] AddSym_S=[%s]",KeyEvent.uChar.AsciiChar, nodedata.AddSym_S.str));
+      //_D(SysLog(L"AsciiChar=[%c] AddSym_S=[%s]",KeyEvent.uChar.AsciiChar, nodedata.AddSym_S.str));
       if(nodedata.AddSym_S.getLength() &&
          nodedata.AddSym_S.getLength()==nodedata.AddSym_E.getLength())
          RetCode=InsertAdditionalSymbol(ei, esp, ess, egs,
@@ -1064,13 +1038,13 @@ int WINAPI _export ProcessEditorInput(const INPUT_RECORD *Rec)
       if(RetCode)
       {
         EditorControl(ECTL_TURNOFFMARKINGBLOCK,NULL);
-        _D(SysLog("PEI: 16 return"));
+        _D(SysLog(L"PEI: 16 return"));
         return TRUE;
       }
     }
 
     struct EditorConvertText ect, ect2;
-    char* buff, *buff1, *buff2=NULL, *buff3=NULL;
+    wchar_t* buff, *buff1, *buff2=NULL, *buff3=NULL;
     int Blank;
     int i;
     int nbCount, nbExtra;
@@ -1078,10 +1052,10 @@ int WINAPI _export ProcessEditorInput(const INPUT_RECORD *Rec)
         isJustifyEnabled=(nodedata.Options&E_Wrap_Justify)?1:0;
     div_t SpaceCount;
 
-    _D(SysLog("PEI: Wrap=%d", !!(nodedata.Options&E_AutoWrap_On)));
+    _D(SysLog(L"PEI: Wrap=%d", !!(nodedata.Options&E_AutoWrap_On)));
     if( nWrapPos<1 || !(nodedata.Options&E_AutoWrap_On))
     {
-      _D(SysLog("PEI: 17 return"));
+      _D(SysLog(L"PEI: 17 return"));
       return 0;
     }
 
@@ -1100,16 +1074,16 @@ int WINAPI _export ProcessEditorInput(const INPUT_RECORD *Rec)
         InitESPandEGS(esp, egs);
         EditorControl(ECTL_GETSTRING,&egs);
 
-        _D(SysLog("PEI: ei.CurTabPos=%d, nWrapPos=%d, egs.StringLength=%d",
+        _D(SysLog(L"PEI: ei.CurTabPos=%d, nWrapPos=%d, egs.StringLength=%d",
            ei.CurPos, nWrapPos, egs.StringLength));
         if( ei.CurTabPos>nWrapPos && ei.CurTabPos==egs.StringLength ){ // must be at the end of string
-          ect.Text=buff1=(char*)malloc(egs.StringLength);
-          buff=(char*)malloc(nWrapPos);
+          ect.Text=buff1=(wchar_t*)malloc(egs.StringLength*sizeof(wchar_t));
+          buff=(wchar_t*)malloc(nWrapPos*sizeof(wchar_t));
           if(buff1 && buff){
-            memcpy(ect.Text,egs.StringText,egs.StringLength);
+            memcpy(ect.Text,egs.StringText,egs.StringLength*sizeof(wchar_t));
             ect.TextLength=egs.StringLength;
 
-            memcpy(buff,ect.Text,nWrapPos);
+            memcpy(buff,ect.Text,nWrapPos*sizeof(wchar_t));
 
             Blank=0;
             if( ect.TextLength>nWrapPos && ect.Text[nWrapPos]==nlsSpace )
@@ -1140,7 +1114,7 @@ int WINAPI _export ProcessEditorInput(const INPUT_RECORD *Rec)
                 if( isJustifyEnabled ){
                     // make justify on buff...
 
-                    ect2.Text=buff2=(char*)malloc(nWrapPos);
+                    ect2.Text=buff2=(wchar_t*)malloc(nWrapPos*sizeof(wchar_t));
                     if(!buff2) goto EXIT;
                     ect2.TextLength=0;
 
@@ -1202,7 +1176,7 @@ int WINAPI _export ProcessEditorInput(const INPUT_RECORD *Rec)
 
                         for( i=ect2.TextLength; i<ess.StringLength; ){
                             if( buff[i]==nlsSpace ){
-                                memset( ect2.Text+ect2.TextLength, nlsSpace, SpaceCount.quot );
+                                wwmemset( ect2.Text+ect2.TextLength, nlsSpace, SpaceCount.quot );
                                 ect2.TextLength+=SpaceCount.quot;
                                 if( SpaceCount.rem ) SpaceCount.rem--;
                                 else ect2.Text[ect2.TextLength++]=nlsSpace;
@@ -1215,7 +1189,7 @@ int WINAPI _export ProcessEditorInput(const INPUT_RECORD *Rec)
 
                         // fill up to nWrapPos with the initial part of the resting string...
                         if( Blank ){
-                            memset( ect2.Text+ect2.TextLength, nlsSpace, SpaceCount.quot );
+                            wwmemset( ect2.Text+ect2.TextLength, nlsSpace, SpaceCount.quot);
                             ect2.TextLength+=SpaceCount.quot;
                             if( SpaceCount.rem ) SpaceCount.rem--;
                             else ect2.Text[ect2.TextLength++]=nlsSpace;
@@ -1223,7 +1197,7 @@ int WINAPI _export ProcessEditorInput(const INPUT_RECORD *Rec)
                             for( i=0; i<ect.TextLength; ){
                                 if( ect.Text[i]==nlsSpace ){
                                     if( Blank ){
-                                        memset( ect2.Text+ect2.TextLength, nlsSpace, SpaceCount.quot );
+                                        wwmemset( ect2.Text+ect2.TextLength, nlsSpace, SpaceCount.quot );
                                         ect2.TextLength+=SpaceCount.quot;
                                         if( SpaceCount.rem ) SpaceCount.rem--;
                                         else ect2.Text[ect2.TextLength++]=nlsSpace;
@@ -1248,7 +1222,7 @@ int WINAPI _export ProcessEditorInput(const INPUT_RECORD *Rec)
                 ess.StringText=ect2.Text;
                 ess.StringLength=ect2.TextLength;
                 ess.StringNumber=-1;
-                ess.StringEOL=const_cast<char*>(egs.StringEOL);
+                ess.StringEOL=const_cast<wchar_t*>(egs.StringEOL);
                 EditorControl(ECTL_SETSTRING,&ess);
 
                 // may be here we need to pack the tabs back, if tabs are enabled...
@@ -1263,13 +1237,13 @@ int WINAPI _export ProcessEditorInput(const INPUT_RECORD *Rec)
                             if( ess.StringText[i]!=nlsSpace ) break;
 
                         ess.StringLength=ect.TextLength+i;
-                        ess.StringText=buff3=(char*)malloc(ess.StringLength+1);
+                        ess.StringText=buff3=(wchar_t*)malloc((ess.StringLength+1)*sizeof(wchar_t));
                         if( ess.StringText==NULL ){
                             ess.StringLength=ect.TextLength;
                             ess.StringText=ect.Text;
                         }else{
-                            memset(ess.StringText,nlsSpace,i);
-                            memcpy(ess.StringText+i,ect.Text,ect.TextLength);
+                            wwmemset((wchar_t *)ess.StringText,nlsSpace,i);
+                            memcpy((wchar_t *)ess.StringText+i,ect.Text,ect.TextLength*sizeof(wchar_t));
                         }
                     }else{
                         ess.StringLength=ect.TextLength;
@@ -1287,7 +1261,7 @@ int WINAPI _export ProcessEditorInput(const INPUT_RECORD *Rec)
                         esp.Overtype=-1;
                         EditorControl(ECTL_SETPOSITION,&esp);
 
-                        buff[nQuote]='\0';
+                        buff[nQuote]=L'\0';
                         ect.Text=buff;
                         ect.TextLength=nQuote;
                         EditorControl(ECTL_EDITORTOOEM,&ect);
@@ -1315,10 +1289,10 @@ EXIT:
           if(buff1) free(buff1);
         }
         // may be here we need to pack the tabs back, if tabs are enabled...
-        _D(SysLog("PEI: 18 return"));
+        _D(SysLog(L"PEI: 18 return"));
         return 1;
     }
-    _D(SysLog("PEI: last return"));
+    _D(SysLog(L"PEI: last return"));
     return 0;
 }
 
@@ -1327,7 +1301,7 @@ extern "C"
 {
 #endif
 int WINAPI _export
-GetEditorSettings(int EditorID, const char *szName, void *Param)
+GetEditorSettingsW(int EditorID, const wchar_t *szName, void *Param)
 {
   if(!szName || !Param || *szName==0 || !NodeData || !ESETStorage)
     return FALSE;
@@ -1339,129 +1313,129 @@ GetEditorSettings(int EditorID, const char *szName, void *Param)
   const NODEDATA &Data=Item->data.Data;
   BOOL RetCode=TRUE;
 
-  if(!strcmp(szName, XMLStr.TabSize))
+  if(!wstrcmp(szName, XMLStr.TabSize))
   {
      *static_cast<int *>(Param)=Data.TabSize;
   }
-  else if(!strcmp(szName, XMLStr.ExpandTabs))
+  else if(!wstrcmp(szName, XMLStr.ExpandTabs))
   {
      *static_cast<int *>(Param)=(Data.Options&E_ExpandTabs_On)?1:
        ((Data.Options&E_ExpandTabs_Off)?0:2);
   }
-  else if(!strcmp(szName, XMLStr.CursorBEOL))
+  else if(!wstrcmp(szName, XMLStr.CursorBEOL))
   {
      *static_cast<int *>(Param)=(Data.Options&E_CursorBeyondEOL_On)?1:
        ((Data.Options&E_CursorBeyondEOL_Off)?0:2);
   }
-  else if(!strcmp(szName, XMLStr.AutoIndent))
+  else if(!wstrcmp(szName, XMLStr.AutoIndent))
   {
      *static_cast<int *>(Param)=(Data.Options&E_AutoIndent_On)?1:
        ((Data.Options&E_AutoIndent_On)?0:2);
   }
-  else if(!strcmp(szName, XMLStr.CharCodeBase))
+  else if(!wstrcmp(szName, XMLStr.CharCodeBase))
   {
      *static_cast<int *>(Param)=(Data.Options&E_CharCodeBase_Oct)?8:
        ((Data.Options&E_CharCodeBase_Dec)?10:
         ((Data.Options&E_CharCodeBase_Hex)?16:0));
   }
-  else if(!strcmp(szName, XMLStr.KillSpaces))
+  else if(!wstrcmp(szName, XMLStr.KillSpaces))
   {
      *static_cast<int *>(Param)=(Data.Options&E_KillSpaces_On)?1:0;
   }
-  else if(!strcmp(szName, XMLStr.p_Minuses))
+  else if(!wstrcmp(szName, XMLStr.p_Minuses))
   {
      *static_cast<int *>(Param)=(Data.Options&E_Process_Minuses_On)?1:0;
   }
-  else if(!strcmp(szName, XMLStr.KillEmptyLines))
+  else if(!wstrcmp(szName, XMLStr.KillEmptyLines))
   {
      *static_cast<int *>(Param)=(Data.Options&E_KillEmptyLines_On)?1:0;
   }
-  else if(!strcmp(szName, XMLStr.ForceKillEmptyLines))
+  else if(!wstrcmp(szName, XMLStr.ForceKillEmptyLines))
   {
      *static_cast<int *>(Param)=(Data.Options&E_ForceKillEL_On)?1:0;
   }
-  else if(!strcmp(szName, XMLStr.AutoWrap))
+  else if(!wstrcmp(szName, XMLStr.AutoWrap))
   {
      *static_cast<int *>(Param)=(Data.Options&E_AutoWrap_On)?1:0;
   }
-  else if(!strcmp(szName, XMLStr.Wrap))
+  else if(!wstrcmp(szName, XMLStr.Wrap))
   {
      EditorControl(ECTL_GETINFO, &ei);
      *static_cast<int *>(Param)=CalcWrapPos(Data, ei);
   }
-  else if(!strcmp(szName, XMLStr.Justify))
+  else if(!wstrcmp(szName, XMLStr.Justify))
   {
      *static_cast<int *>(Param)=(Data.Options&E_Wrap_Justify)?1:0;
   }
-  else if(!strcmp(szName, XMLStr.eol))
+  else if(!wstrcmp(szName, XMLStr.eol))
   {
      *static_cast<DWORD *>(Param)=Data.EOL;
   }
-  else if(!strcmp(szName, XMLStr.Table))
+  else if(!wstrcmp(szName, XMLStr.Table))
   {
      *static_cast<DWORD *>(Param)=Data.Table;
   }
-  else if(!strcmp(szName, XMLStr.ProcessKeyEnd))
+  else if(!wstrcmp(szName, XMLStr.ProcessKeyEnd))
   {
      *static_cast<int *>(Param)=(Data.Options&E_ProcessKeyEnd_On)?1:0;
   }
-  else if(!strcmp(szName, XMLStr.SmartTab))
+  else if(!wstrcmp(szName, XMLStr.SmartTab))
   {
      *static_cast<int *>(Param)=(Data.Options&E_SmartTab_On)?1:0;
   }
-  else if(!strcmp(szName, XMLStr.SmartBackSpace))
+  else if(!wstrcmp(szName, XMLStr.SmartBackSpace))
   {
      *static_cast<int *>(Param)=(Data.Options&E_SmartBackSpace_On)?1:0;
   }
-  else if(!strcmp(szName, XMLStr.Lines))
+  else if(!wstrcmp(szName, XMLStr.Lines))
   {
      *static_cast<int *>(Param)=Data.Lines;
   }
-  else if(!strcmp(szName, XMLStr.SmartHome))
+  else if(!wstrcmp(szName, XMLStr.SmartHome))
   {
      *static_cast<int *>(Param)=(Data.Options&E_SmartHome_On)?1:0;
   }
-  else if(!strcmp(szName, XMLStr.ProcessQuote))
+  else if(!wstrcmp(szName, XMLStr.ProcessQuote))
   {
      *static_cast<int *>(Param)=(Data.Options&E_ProcessQuote_On)?1:0;
   }
-  else if(!strcmp(szName, XMLStr.QuoteEOL))
+  else if(!wstrcmp(szName, XMLStr.QuoteEOL))
   {
      *static_cast<int *>(Param)=(Data.Options&E_QuoteEOL_On)?1:0;
   }
-  else if(!strcmp(szName, XMLStr.SaveFilePos))
+  else if(!wstrcmp(szName, XMLStr.SaveFilePos))
   {
      *static_cast<int *>(Param)=(Data.Options&E_SaveFilePos_On)?1:
        ((Data.Options&E_SaveFilePos_Off)?0:2);
   }
-  else if(!strcmp(szName, XMLStr.LockMode))
+  else if(!wstrcmp(szName, XMLStr.LockMode))
   {
      *static_cast<int *>(Param)=(Data.Options&E_LockMode_On)?1:
        ((Data.Options&E_LockMode_Off)?0:2);
   }
-  else if(!strcmp(szName, XMLStr.MinLinesNum))
+  else if(!wstrcmp(szName, XMLStr.MinLinesNum))
   {
      *static_cast<int *>(Param)=Data.MinLinesNum;
   }
-  else if(!strcmp(szName, XMLStr.AddSymbol))
+  else if(!wstrcmp(szName, XMLStr.AddSymbol))
   {
     *static_cast<int *>(Param)=(Data.Options&E_AddSymbol_On)?1:0;
   }
-  else if(!strcmp(szName, XMLStr.LockFile))
+  else if(!wstrcmp(szName, XMLStr.LockFile))
   {
     *static_cast<int *>(Param)=Data.LockFile.IsOn()?1:0;
   }
-  else if(!strcmp(szName, XMLStr.WordSym))
+  else if(!wstrcmp(szName, XMLStr.WordSym))
   {
     *static_cast<int *>(Param)=(Data.Options2&E_WordSym_On)?1:0;
   }
-  else if(!strcmp(szName, XMLStr.AlphaNum))
+  else if(!wstrcmp(szName, XMLStr.AlphaNum))
   {
     *static_cast<int *>(Param)=(Data.Options2&E_AlphaNum_On)?1:0;
   }
-  else if(!strcmp(szName, XMLStr.Additional) && Param!=NULL)
+  else if(!wstrcmp(szName, XMLStr.Additional) && Param!=NULL)
   {
-    strcpy(static_cast<char *>(Param), Data.AdditionalLetters.str);
+    wstrcpy(static_cast<wchar_t *>(Param), Data.AdditionalLetters.str);
   }
   else
     RetCode=FALSE;
@@ -1470,7 +1444,7 @@ GetEditorSettings(int EditorID, const char *szName, void *Param)
 }
 
 int WINAPI _export
-SetEditorOption(int EditorID, const char *szName, void *Param)
+SetEditorOptionW(int EditorID, const wchar_t *szName, void *Param)
 {
   if(!szName || !Param || *szName==0 || !NodeData || !ESETStorage)
     return FALSE;
@@ -1484,12 +1458,12 @@ SetEditorOption(int EditorID, const char *szName, void *Param)
   int RetCode=TRUE, RCisFALSEbutApplyIs=FALSE, param=*static_cast<int *>(Param);
   DWORD Type(-1); //EDITOR_SETPARAMETER_TYPES
 
-  if(!strcmp(szName, XMLStr.TabSize))
+  if(!wstrcmp(szName, XMLStr.TabSize))
   {
     Data.TabSize=param;
     Type=ESPT_TABSIZE;
   }
-  else if(!strcmp(szName, XMLStr.ExpandTabs))
+  else if(!wstrcmp(szName, XMLStr.ExpandTabs))
   {
     Data.Options&=~E_ExpandTabs_On;
     Data.Options&=~E_ExpandTabs_Off;
@@ -1497,7 +1471,7 @@ SetEditorOption(int EditorID, const char *szName, void *Param)
                   ((param==0)?E_ExpandTabs_Off:0);
     Type=ESPT_EXPANDTABS;
   }
-  else if(!strcmp(szName, XMLStr.CursorBEOL))
+  else if(!wstrcmp(szName, XMLStr.CursorBEOL))
   {
     Data.Options&=~E_CursorBeyondEOL_On;
     Data.Options&=~E_CursorBeyondEOL_Off;
@@ -1505,7 +1479,7 @@ SetEditorOption(int EditorID, const char *szName, void *Param)
                   ((param==0)?E_CursorBeyondEOL_Off:0);
     Type=ESPT_CURSORBEYONDEOL;
   }
-  else if(!strcmp(szName, XMLStr.AutoIndent))
+  else if(!wstrcmp(szName, XMLStr.AutoIndent))
   {
     Data.Options&=~E_AutoIndent_On;
     Data.Options&=~E_AutoIndent_Off;
@@ -1513,7 +1487,7 @@ SetEditorOption(int EditorID, const char *szName, void *Param)
                   ((param==0)?E_AutoIndent_Off:0);
     Type=ESPT_AUTOINDENT;
   }
-  else if(!strcmp(szName, XMLStr.CharCodeBase))
+  else if(!wstrcmp(szName, XMLStr.CharCodeBase))
   {
     Data.Options&=~E_CharCodeBase_Dec;
     Data.Options&=~E_CharCodeBase_Oct;
@@ -1524,7 +1498,7 @@ SetEditorOption(int EditorID, const char *szName, void *Param)
                    );
     Type=ESPT_CHARCODEBASE;
   }
-  else if(!strcmp(szName, XMLStr.KillSpaces))
+  else if(!wstrcmp(szName, XMLStr.KillSpaces))
   {
     if(param)
       Data.Options|=E_KillSpaces_On;
@@ -1534,45 +1508,45 @@ SetEditorOption(int EditorID, const char *szName, void *Param)
       Data.Options&=~E_ProcessKeyEnd_On;
     }
   }
-  else if(!strcmp(szName, XMLStr.p_Minuses))
+  else if(!wstrcmp(szName, XMLStr.p_Minuses))
   {
     if(param) Data.Options|=E_Process_Minuses_On;
     else      Data.Options&=~E_Process_Minuses_On;
   }
-  else if(!strcmp(szName, XMLStr.KillEmptyLines))
+  else if(!wstrcmp(szName, XMLStr.KillEmptyLines))
   {
     if(param) Data.Options|=E_KillEmptyLines_On;
     else      Data.Options&=~E_KillEmptyLines_On;
   }
-  else if(!strcmp(szName, XMLStr.ForceKillEmptyLines))
+  else if(!wstrcmp(szName, XMLStr.ForceKillEmptyLines))
   {
     if(param) Data.Options|=E_ForceKillEL_On;
     else      Data.Options&=~E_ForceKillEL_On;
   }
-  else if(!strcmp(szName, XMLStr.AutoWrap))
+  else if(!wstrcmp(szName, XMLStr.AutoWrap))
   {
     if(param) Data.Options|=E_AutoWrap_On;
     else      Data.Options&=~E_AutoWrap_On;
   }
-  else if(!strcmp(szName, XMLStr.Wrap))
+  else if(!wstrcmp(szName, XMLStr.Wrap))
   {
     Data.Options&=~E_Wrap_Percent;
     Data.WrapPos=param;
   }
-  else if(!strcmp(szName, XMLStr.Justify))
+  else if(!wstrcmp(szName, XMLStr.Justify))
   {
     if(param) Data.Options|=E_Wrap_Justify;
     else      Data.Options&=~E_Wrap_Justify;
   }
-  else if(!strcmp(szName, XMLStr.eol))
+  else if(!wstrcmp(szName, XMLStr.eol))
   {
     Data.EOL=*static_cast<DWORD*>(Param);
   }
-  else if(!strcmp(szName, XMLStr.Table))
+  else if(!wstrcmp(szName, XMLStr.Table))
   {
     Data.Table=*static_cast<DWORD *>(Param);
   }
-  else if(!strcmp(szName, XMLStr.ProcessKeyEnd))
+  else if(!wstrcmp(szName, XMLStr.ProcessKeyEnd))
   {
     if(param)
     {
@@ -1589,36 +1563,36 @@ SetEditorOption(int EditorID, const char *szName, void *Param)
     else
       Data.Options&=~E_ProcessKeyEnd_On;
   }
-  else if(!strcmp(szName, XMLStr.SmartTab))
+  else if(!wstrcmp(szName, XMLStr.SmartTab))
   {
     if(param) Data.Options|=E_SmartTab_On;
     else      Data.Options&=~E_SmartTab_On;
   }
-  else if(!strcmp(szName, XMLStr.SmartBackSpace))
+  else if(!wstrcmp(szName, XMLStr.SmartBackSpace))
   {
     if(param) Data.Options|=E_SmartBackSpace_On;
     else      Data.Options&=~E_SmartBackSpace_On;
   }
-  else if(!strcmp(szName, XMLStr.Lines))
+  else if(!wstrcmp(szName, XMLStr.Lines))
   {
     Data.Lines=param;
   }
-  else if(!strcmp(szName, XMLStr.SmartHome))
+  else if(!wstrcmp(szName, XMLStr.SmartHome))
   {
     if(param) Data.Options|=E_SmartHome_On;
     else      Data.Options&=~E_SmartHome_On;
   }
-  else if(!strcmp(szName, XMLStr.ProcessQuote))
+  else if(!wstrcmp(szName, XMLStr.ProcessQuote))
   {
     if(param) Data.Options|=E_ProcessQuote_On;
     else      Data.Options&=~E_ProcessQuote_On;
   }
-  else if(!strcmp(szName, XMLStr.QuoteEOL))
+  else if(!wstrcmp(szName, XMLStr.QuoteEOL))
   {
     if(param) Data.Options|=E_QuoteEOL_On;
     else      Data.Options&=~E_QuoteEOL_On;
   }
-  else if(!strcmp(szName, XMLStr.SaveFilePos))
+  else if(!wstrcmp(szName, XMLStr.SaveFilePos))
   {
     Data.Options&=~E_SaveFilePos_On;
     Data.Options&=~E_SaveFilePos_Off;
@@ -1626,7 +1600,7 @@ SetEditorOption(int EditorID, const char *szName, void *Param)
                   ((param==0)?E_SaveFilePos_Off:0);
     Type=ESPT_SAVEFILEPOSITION;
   }
-  else if(!strcmp(szName, XMLStr.LockMode))
+  else if(!wstrcmp(szName, XMLStr.LockMode))
   {
     Data.Options&=~E_LockMode_On;
     Data.Options&=~E_LockMode_Off;
@@ -1634,17 +1608,17 @@ SetEditorOption(int EditorID, const char *szName, void *Param)
                   ((param==0)?E_LockMode_Off:0);
     Type=ESPT_LOCKMODE;
   }
-  else if(!strcmp(szName, XMLStr.MinLinesNum))
+  else if(!wstrcmp(szName, XMLStr.MinLinesNum))
   {
     Data.MinLinesNum=param;
     Type=ESPT_SAVEFILEPOSITION;
   }
-  else if(!strcmp(szName, XMLStr.AddSymbol))
+  else if(!wstrcmp(szName, XMLStr.AddSymbol))
   {
     if(param) Data.Options|=E_AddSymbol_On;
     else      Data.Options&=~E_AddSymbol_On;
   }
-  else if(!strcmp(szName, XMLStr.LockFile))
+  else if(!wstrcmp(szName, XMLStr.LockFile))
   {
     if(param)
     {
@@ -1657,21 +1631,21 @@ SetEditorOption(int EditorID, const char *szName, void *Param)
       Data.LockFile.Off();
     }
   }
-  else if(!strcmp(szName, XMLStr.WordSym))
+  else if(!wstrcmp(szName, XMLStr.WordSym))
   {
     if(param) Data.Options2|=E_WordSym_On;
     else      Data.Options2&=~E_WordSym_On;
     Type=ESPT_SETWORDDIV;
   }
-  else if(!strcmp(szName, XMLStr.AlphaNum))
+  else if(!wstrcmp(szName, XMLStr.AlphaNum))
   {
     if(param) Data.Options2|=E_AlphaNum_On;
     else      Data.Options2&=~E_AlphaNum_On;
     Type=ESPT_SETWORDDIV;
   }
-  else if(!strcmp(szName, XMLStr.Additional))
+  else if(!wstrcmp(szName, XMLStr.Additional))
   {
-    Data.AdditionalLetters=Param?static_cast<char*>(Param):"";
+    Data.AdditionalLetters=Param?static_cast<wchar_t*>(Param):L"";
     Type=ESPT_SETWORDDIV;
   }
   else
@@ -1691,7 +1665,7 @@ SetEditorOption(int EditorID, const char *szName, void *Param)
   return RetCode;
 }
 
-BOOL WINAPI _export CreateMultiMacro(HANDLE *Macro, const char *Sequence, DWORD total)
+BOOL WINAPI _export CreateMultiMacroW(HANDLE *Macro, const wchar_t *Sequence, DWORD total)
 {
   if(Macro)
   {
@@ -1708,12 +1682,12 @@ BOOL WINAPI _export CreateMultiMacro(HANDLE *Macro, const char *Sequence, DWORD 
   return FALSE;
 }
 
-BOOL WINAPI _export CreateMacro(HANDLE *Macro, const char *Sequence)
+BOOL WINAPI _export CreateMacroW(HANDLE *Macro, const wchar_t *Sequence)
 {
-  return CreateMultiMacro(Macro,Sequence,1);
+  return CreateMultiMacroW(Macro,Sequence,1);
 }
 
-BOOL WINAPI _export CloneMacro(const HANDLE Src, HANDLE *Dest)
+BOOL WINAPI _export CloneMacroW(const HANDLE Src, HANDLE *Dest)
 {
   if(Dest && Src)
   {
@@ -1729,13 +1703,13 @@ BOOL WINAPI _export CloneMacro(const HANDLE Src, HANDLE *Dest)
   return FALSE;
 }
 
-BOOL WINAPI _export IsMacroOK(const HANDLE Macro)
+BOOL WINAPI _export IsMacroOKW(const HANDLE Macro)
 {
   return Macro?
     static_cast<const KeySequenceStorage*>(Macro)->IsOK():FALSE;
 }
 
-void WINAPI _export DeleteMacro(HANDLE *Macro)
+void WINAPI _export DeleteMacroW(HANDLE *Macro)
 {
   if(Macro)
   {
@@ -1744,7 +1718,7 @@ void WINAPI _export DeleteMacro(HANDLE *Macro)
   }
 }
 
-BOOL WINAPI _export PostMacro(const HANDLE Macro, BOOL silent)
+BOOL WINAPI _export PostMacroW(const HANDLE Macro, BOOL silent)
 {
    const KeySequenceStorage *Cmd=static_cast<const KeySequenceStorage*>(Macro);
    if(Cmd && Cmd->IsOK())

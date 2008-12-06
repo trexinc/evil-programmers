@@ -1,3 +1,22 @@
+/*
+    [ESC] Editor's settings changer plugin for FAR Manager
+    Copyright (C) 2001 Ivan Sintyurin
+    Copyright (C) 2008 Alex Yaroslavsky
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
 #ifndef __CIndicator_cpp
 #define __CIndicator_cpp
 
@@ -13,19 +32,19 @@ extern PluginStartupInfo Info;
 extern FARAPIMESSAGE FarMessage;
 extern int ModuleNumber;
 
-CIndicator::CIndicator(const char *BarTitle)
+CIndicator::CIndicator(const wchar_t *BarTitle)
 {
   if(BarTitle)
   {
     Items=3;
     MsgData[0] = BarTitle;
-    MsgData[1] = "";
+    MsgData[1] = L"";
     MsgData[2] = Bar;
   }
   else
   {
     Items=2;
-    MsgData[0] = "";
+    MsgData[0] = L"";
     MsgData[1] = Bar;
   }
   Bar[BarSize] = 0;
@@ -43,7 +62,7 @@ void CIndicator::ShowFinal(void)
       ptr = Bar + (Counter = CurPos);
       while (Counter < BarSize)
         {
-          *ptr = 219;           //'Û'
+          *ptr = 0x2588;           //'Û'
           ++ptr;
           ++Counter;
         }
@@ -65,7 +84,7 @@ void CIndicator::ShowProgress(int Cur)
           ptr = Bar + (Counter = CurPos);
           while (Counter < NewProcent)
             {
-              *ptr = 219;       //'Û'
+              *ptr = 0x2588;       //'Û'
               ++ptr;
               ++Counter;
             }
@@ -76,7 +95,7 @@ void CIndicator::ShowProgress(int Cur)
     }
 }
 
-void CIndicator::SetParams(const char *Title, int total)
+void CIndicator::SetParams(const wchar_t *Title, int total)
 {
   if (Title != NULL)
     MsgData[Items-2] = Title;
@@ -92,7 +111,7 @@ void CIndicator::StartTimer(DWORD ms)
   ptr = Bar;
   while (Counter < BarSize)
     {
-      *ptr = 176;               //'°'
+      *ptr = 0x2591;               //'°'
       ++ptr;
       ++Counter;
     }

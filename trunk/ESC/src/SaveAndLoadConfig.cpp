@@ -1,7 +1,27 @@
+/*
+    [ESC] Editor's settings changer plugin for FAR Manager
+    Copyright (C) 2001 Ivan Sintyurin
+    Copyright (C) 2008 Alex Yaroslavsky
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
 #ifndef __SaveAndLoadConfig
 #define __SaveAndLoadConfig
 
 #include <windows.h>
+#include "myrtl.hpp"
 #include "SaveAndLoadConfig.hpp"
 #include "options.hpp"
 #include "plugin.hpp"
@@ -9,9 +29,9 @@
 
 extern OPTIONS Opt;
 extern FarStandardFunctions FSF;
-extern char PluginRootKey[NM];
-const char *REGStrSSS="%s%s%s", *REGStrOptions="Options";
-char REGFullKeyName[512];
+extern wchar_t PluginRootKey[NM];
+const wchar_t *REGStrSSS=L"%s%s%s", *REGStrOptions=L"Options";
+wchar_t REGFullKeyName[512];
 
 enum
 {
@@ -21,11 +41,11 @@ enum
 };
 
 
-HKEY CreateRegKey(HKEY hRoot, const char *RootKey, const char *Key);
-HKEY OpenRegKey(HKEY hRoot, const char *RootKey, const char *Key);
+HKEY CreateRegKey(HKEY hRoot, const wchar_t *RootKey, const wchar_t *Key);
+HKEY OpenRegKey(HKEY hRoot, const wchar_t *RootKey, const wchar_t *Key);
 
-void SetRegKey(HKEY hRoot, const char *RootKey, const char *Key,
-               const char *ValueName, DWORD ValueData)
+void SetRegKey(HKEY hRoot, const wchar_t *RootKey, const wchar_t *Key,
+               const wchar_t *ValueName, DWORD ValueData)
 {
   HKEY hKey = CreateRegKey(hRoot, RootKey, Key);
 
@@ -35,29 +55,29 @@ void SetRegKey(HKEY hRoot, const char *RootKey, const char *Key,
 }
 
 
-void SetRegKey(HKEY hRoot, const char *RootKey, const char *Key,
-               const char *ValueName, const char *ValueData)
+void SetRegKey(HKEY hRoot, const wchar_t *RootKey, const wchar_t *Key,
+               const wchar_t *ValueName, const wchar_t *ValueData)
 {
   HKEY hKey = CreateRegKey(hRoot, RootKey, Key);
 
   RegSetValueEx(hKey, ValueName, 0, REG_SZ, (CONST BYTE *) ValueData,
-                strlen(ValueData) + 1);
+                (wstrlen(ValueData) + 1)*sizeof(wchar_t));
   RegCloseKey(hKey);
 }
 
-void SetRegKey(HKEY hRoot, const char *RootKey, const char *Key,
-               const char *ValueName, const BYTE *ValueData, DWORD ValueSize)
+void SetRegKey(HKEY hRoot, const wchar_t *RootKey, const wchar_t *Key,
+               const wchar_t *ValueName, const BYTE *ValueData, DWORD ValueSize)
 {
   HKEY hKey=CreateRegKey(hRoot, RootKey, Key);
   RegSetValueEx(hKey, ValueName,0, REG_BINARY, ValueData, ValueSize);
   RegCloseKey(hKey);
 }
 
-int GetRegKey(HKEY hRoot, const char *RootKey, const char *Key,
-              const char *ValueName, BYTE *ValueData,
+int GetRegKey(HKEY hRoot, const wchar_t *RootKey, const wchar_t *Key,
+              const wchar_t *ValueName, BYTE *ValueData,
               const BYTE *Default, DWORD DataSize)
 {
-  int ExitCode;
+  int ExitCode=ERROR_MORE_DATA;
   HKEY hKey=OpenRegKey(hRoot, RootKey, Key);
   if(hKey)
   {
@@ -89,8 +109,8 @@ int GetRegKey(HKEY hRoot, const char *RootKey, const char *Key,
   return(DataSize);
 }
 
-int GetRegKey(HKEY hRoot, const char *RootKey, const char *Key,
-              const char *ValueName, int &ValueData,
+int GetRegKey(HKEY hRoot, const wchar_t *RootKey, const wchar_t *Key,
+              const wchar_t *ValueName, int &ValueData,
               DWORD Default)
 {
   HKEY hKey = OpenRegKey(hRoot, RootKey, Key);
@@ -107,8 +127,8 @@ int GetRegKey(HKEY hRoot, const char *RootKey, const char *Key,
 }
 
 
-int GetRegKey(HKEY hRoot, const char *RootKey, const char *Key,
-              const char *ValueName, DWORD Default)
+int GetRegKey(HKEY hRoot, const wchar_t *RootKey, const wchar_t *Key,
+              const wchar_t *ValueName, DWORD Default)
 {
   int ValueData;
 
@@ -116,10 +136,10 @@ int GetRegKey(HKEY hRoot, const char *RootKey, const char *Key,
   return (ValueData);
 }
 
-
-int GetRegKey(HKEY hRoot, const char *RootKey, const char *Key,
-              const char *ValueName, char *ValueData,
-              const char *Default, DWORD DataSize)
+/*
+int GetRegKey(HKEY hRoot, const wchar_t *RootKey, const wchar_t *Key,
+              const wchar_t *ValueName, wchar_t *ValueData,
+              const wchar_t *Default, DWORD DataSize)
 {
   HKEY hKey = OpenRegKey(hRoot, RootKey, Key);
   DWORD Type;
@@ -128,43 +148,44 @@ int GetRegKey(HKEY hRoot, const char *RootKey, const char *Key,
   RegCloseKey(hKey);
   if (hKey == NULL || ExitCode != ERROR_SUCCESS)
     {
-      strncpy(ValueData, Default, DataSize-1);
+      wstrncpy(ValueData, Default, DataSize-1);
       return (FALSE);
     }
   return (TRUE);
 }
+*/
 
-HKEY CreateRegKey(HKEY hRoot, const char *RootKey, const char *Key)
+HKEY CreateRegKey(HKEY hRoot, const wchar_t *RootKey, const wchar_t *Key)
 {
   HKEY hKey;
   DWORD Disposition;
-  FSF.sprintf(REGFullKeyName, REGStrSSS, RootKey, *Key ? "\\" : "", Key);
+  FSF.sprintf(REGFullKeyName, REGStrSSS, RootKey, *Key ? L"\\" : L"", Key);
   RegCreateKeyEx(hRoot, REGFullKeyName, 0, NULL, 0, KEY_WRITE, NULL,
                  &hKey, &Disposition);
   return (hKey);
 }
 
 
-HKEY OpenRegKey(HKEY hRoot, const char *RootKey, const char *Key)
+HKEY OpenRegKey(HKEY hRoot, const wchar_t *RootKey, const wchar_t *Key)
 {
   HKEY hKey;
-  FSF.sprintf(REGFullKeyName, REGStrSSS, RootKey, *Key ? "\\" : "", Key);
+  FSF.sprintf(REGFullKeyName, REGStrSSS, RootKey, *Key ? L"\\" : L"", Key);
   if (RegOpenKeyEx(hRoot, REGFullKeyName, 0, KEY_QUERY_VALUE, &hKey) !=
       ERROR_SUCCESS)
     return (NULL);
   return (hKey);
 }
 
-void DeleteRegKey(HKEY hRoot, const char *RootKey, const char *Key)
+void DeleteRegKey(HKEY hRoot, const wchar_t *RootKey, const wchar_t *Key)
 {
-  FSF.sprintf(REGFullKeyName, REGStrSSS, RootKey, *Key ? "\\" : "", Key);
+  FSF.sprintf(REGFullKeyName, REGStrSSS, RootKey, *Key ? L"\\" : L"", Key);
   RegDeleteKey(hRoot, REGFullKeyName);
 }
 
 
 void LoadGlobalConfig() // грузится здесь, а сохраняется в настройках
 {
-  DWORD Options=GetRegKey(HKEY_CURRENT_USER, PluginRootKey, "",
+  DWORD Options=GetRegKey(HKEY_CURRENT_USER, PluginRootKey, L"",
                           REGStrOptions,
                           O_TurnOnPluginModule|O_ReloadSettingsAutomatically|
                           O_ShowFileMaskInMenu);
@@ -182,7 +203,7 @@ void SaveGlobalConfig()
      Options|=O_ReloadSettingsAutomatically;
   if(Opt.ShowFileMaskInMenu)
      Options|=O_ShowFileMaskInMenu;
-  SetRegKey(HKEY_CURRENT_USER, PluginRootKey, "", REGStrOptions, Options);
+  SetRegKey(HKEY_CURRENT_USER, PluginRootKey, L"", REGStrOptions, Options);
 }
 
 #endif //__SaveAndLoadConfig

@@ -1,3 +1,22 @@
+/*
+    [ESC] Editor's settings changer plugin for FAR Manager
+    Copyright (C) 2001 Ivan Sintyurin
+    Copyright (C) 2008 Alex Yaroslavsky
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
 #ifndef __mix_cpp
 #define __mix_cpp
 
@@ -13,12 +32,11 @@
 #include "TArray.cpp"
 #include "kserror.hpp"
 
-extern BOOL IsNewMacro;
 extern TArray<NODEDATA> *NodeData;
 extern CRedBlackTree<ESCFileInfo> *FileInfoTree;
 extern PluginStartupInfo Info;
 extern FarStandardFunctions FSF;
-extern char XMLFilePath[NM];
+extern wchar_t XMLFilePath[NM];
 extern BOOL XMLLoadedOK, IsOldFar;
 extern XMLStrings XMLStr;
 extern struct OPTIONS Opt;
@@ -26,7 +44,6 @@ extern int ModuleNumber;
 extern FARAPIEDITORCONTROL EditorControl;
 extern FARAPICHARTABLE CharTable;
 extern FARAPIMESSAGE FarMessage;
-extern FARSTDEXPANDENVIRONMENTSTR ExpandEnvironmentStr;
 extern FARSTDTRUNCPATHSTR TruncPathStr;
 extern EditorSetPosition esp;
 extern EditorGetString egs;
@@ -37,25 +54,24 @@ extern strcon *nlsStopChars;
 
 extern "C" const int maxTabSize=512;
 
-inline int atoi(const char *s) { return FSF.atoi(s); }
-
 void InitNLS(const EditorInfo &ei, NODEDATA &nodedata)
 {
-   _D(SysLog("InitNLS: AnsiMode=%d/%d, TableNum=%d/%d", ei.AnsiMode,nodedata.AnsiMode,ei.TableNum,nodedata.TableNum));
+//   _D(SysLog(L"InitNLS: AnsiMode=%d/%d, TableNum=%d/%d", ei.AnsiMode,nodedata.AnsiMode,ei.TableNum,nodedata.TableNum));
    nlsSpace=0x20;
    nlsTab=0x09;
-   nlsQuoteSym='>';
-   nlsMinus='-';
+   nlsQuoteSym=L'>';
+   nlsMinus=L'-';
    if(nlsStopChars)
      *nlsStopChars=nodedata.StopChar;
    BOOL ReSet=FALSE;
+/*
    if(ei.AnsiMode)
    {
      ReSet=TRUE;
      if(ei.AnsiMode!=nodedata.AnsiMode)
      {
-       _D(SysLog("InitNLS: rebuild ansi table"));
-       char toUpper[2], toLower[2], decode[2], encode[2];
+       _D(SysLog(L"InitNLS: rebuild ansi table"));
+       wchar_t toUpper[2], toLower[2], decode[2], encode[2];
        toUpper[1] = toLower[1] = decode[1] = encode[1] = 0;
        for (unsigned int m = 0; m < 256; ++m)
           {
@@ -80,8 +96,8 @@ void InitNLS(const EditorInfo &ei, NODEDATA &nodedata)
      ReSet=TRUE;
      if(ei.TableNum!=nodedata.TableNum)
      {
-       _D(SysLog("InitNLS: rebuild FAR table"));
-       ReSet=(-1!=CharTable(ei.TableNum,(char*)&CharSet,sizeof(CharSet)));
+       _D(SysLog(L"InitNLS: rebuild FAR table"));
+       ReSet=(-1!=CharTable(ei.TableNum,(wchar_t*)&CharSet,sizeof(CharSet)));
      }
    }
 
@@ -99,24 +115,21 @@ void InitNLS(const EditorInfo &ei, NODEDATA &nodedata)
 
    nodedata.AnsiMode=ei.AnsiMode;
    nodedata.TableNum=ei.TableNum;
+*/
 }
 
 int FARPostMacro(const KeySequence *KS)
 {
-  if(IsNewMacro)
-  {
-    static ActlKeyMacro KeyMacro;
-    memset(&KeyMacro,0,sizeof(KeyMacro));
-    KeyMacro.Command=MCMD_POSTMACROSTRING;
-    KeyMacro.Param.PlainText.SequenceText=reinterpret_cast<char *>(KS->Sequence);
-    KeyMacro.Param.PlainText.Flags=KS->Flags;
-    _D(int res=Info.AdvControl(ModuleNumber,ACTL_KEYMACRO,&KeyMacro));
-    _D(SysLog("FARPostMacro: [%s] Flags=%p, ExitCode=%d",
-       KeyMacro.Param.PlainText.SequenceText, KS->Flags, res));
-    _D(return res);
-    return Info.AdvControl(ModuleNumber,ACTL_KEYMACRO,&KeyMacro);
-  }
-  return Info.AdvControl(ModuleNumber,ACTL_POSTKEYSEQUENCE,const_cast<KeySequence*>(KS));
+  static ActlKeyMacro KeyMacro;
+  memset(&KeyMacro,0,sizeof(KeyMacro));
+  KeyMacro.Command=MCMD_POSTMACROSTRING;
+  KeyMacro.Param.PlainText.SequenceText=reinterpret_cast<wchar_t *>(KS->Sequence);
+  KeyMacro.Param.PlainText.Flags=KS->Flags;
+  _D(int res=Info.AdvControl(ModuleNumber,ACTL_KEYMACRO,&KeyMacro));
+  _D(SysLog(L"FARPostMacro: [%s] Flags=%p, ExitCode=%d",
+      KeyMacro.Param.PlainText.SequenceText, KS->Flags, res));
+  _D(return res);
+  return Info.AdvControl(ModuleNumber,ACTL_KEYMACRO,&KeyMacro);
 }
 
 BOOL EditorPostMacro(CUserMacros &macros,UserMacroID &id,const EditorInfo &ei, BOOL &Stop)
@@ -155,7 +168,7 @@ BOOL EditorPostMacro(CUserMacros &macros,UserMacroID &id,const EditorInfo &ei, B
 
 // returns the length of initial string part which is a quote or 0 otherwize
 // CharSet must be initialized already!
-int IsQuote(const char* pszStr, size_t nLength)
+int IsQuote(const wchar_t* pszStr, size_t nLength)
 {
   size_t i=0;
   while( i<nLength && i<4 )
@@ -171,7 +184,7 @@ int IsQuote(const char* pszStr, size_t nLength)
 }
 
 // CharSet must be initialized already!
-int IsSameQuote(const char* pszQuote1, size_t nLen1, const char*pszQuote2,
+int IsSameQuote(const wchar_t* pszQuote1, size_t nLen1, const wchar_t*pszQuote2,
                 size_t nLen2)
 {
   while( nLen1 )
@@ -180,10 +193,10 @@ int IsSameQuote(const char* pszQuote1, size_t nLen1, const char*pszQuote2,
   while( nLen2 )
     if( nlsSpace==pszQuote2[nLen2-1] ) nLen2--;
     else break;
-  return nLen1==nLen2 && !memcmp(pszQuote1,pszQuote2,nLen1);
+  return nLen1==nLen2 && !memcmp(pszQuote1,pszQuote2,nLen1*sizeof(wchar_t));
 }
 
-BOOL FileExists(const char *Name)
+BOOL FileExists(const wchar_t *Name)
 {
   // Если GetFileAttributes вернул ошибку, но она ERROR_ACCESS_DENIED,
   // то файл все-таки существует
@@ -212,7 +225,7 @@ BOOL CheckForEsc(void)
   return (EC);
 }
 
-DWORD PackEOL(const char *eolstr)
+DWORD PackEOL(const wchar_t *eolstr)
 {
   DWORD Res=0;
   if(eolstr)
@@ -224,12 +237,12 @@ DWORD PackEOL(const char *eolstr)
       Mul*=256;
       ++i;
     }
-    _D(SysLog("PackEOL: eolstr[%s], Res=%u", eolstr, Res));
+    _D(SysLog(L"PackEOL: eolstr[%s], Res=%u", eolstr, Res));
   }
   return Res;
 }
 
-BOOL UnpackEOL(DWORD EOL, char *Dest)
+BOOL UnpackEOL(DWORD EOL, wchar_t *Dest)
 {
    if(!Dest) return FALSE;
    *Dest=EOL & 0xFF;
@@ -237,7 +250,7 @@ BOOL UnpackEOL(DWORD EOL, char *Dest)
    Dest[2]=(EOL & 0xFF0000)/65536;
    Dest[3]=(EOL & 0xFF000000)/16777216;
    Dest[4]=0;
-   _D(SysLog("UnpackEOL: EOL=%u, Dest=[%s]", EOL, Dest));
+   _D(SysLog(L"UnpackEOL: EOL=%u, Dest=[%s]", EOL, Dest));
    return TRUE;
 }
 
@@ -257,23 +270,23 @@ void InitDialogItems(struct InitDialogItem *Init,
       Item[I].Flags = Init[I].Flags;
       Item[I].DefaultButton = Init[I].DefaultButton;
       if ((unsigned int) Init[I].Data < 2000)
-        lstrcpy(Item[I].Data, GetMsg((unsigned int) Init[I].Data));
+        Item[I].PtrData = GetMsg((unsigned int) Init[I].Data);
       else
-        lstrcpy(Item[I].Data, Init[I].Data);
+        Item[I].PtrData = Init[I].Data;
     }
 }
 //возвращает строку из LNG в соответствие с языковыми настройками
-const char *GetMsg(int MsgId) {return (Info.GetMsg(ModuleNumber, MsgId));}
+const wchar_t *GetMsg(int MsgId) {return (Info.GetMsg(ModuleNumber, MsgId));}
 
-int FarAllInOneMessage(const char *Message, unsigned int Flags)
+int FarAllInOneMessage(const wchar_t *Message, unsigned int Flags)
 {
   return FarMessage(ModuleNumber, Flags|FMSG_ALLINONE, NULL,
-                      (const char * const *)Message, 1, 1);
+                      (const wchar_t * const *)Message, 1, 1);
 }
 
-void MessageFileError(const char *msg, const char *name)
+void MessageFileError(const wchar_t *msg, const wchar_t *name)
 {
-  const char *MsgItems[4];
+  const wchar_t *MsgItems[4];
   strcon fn(name);
   TruncPathStr(fn.str,62);
   MsgItems[0] = GetMsg(MWarning);
@@ -326,13 +339,13 @@ BOOL IsFilesChanged()
 void SetMarginOpt(CXMLNode &n, NODEDATA &node,
                   const int &Inherit)
 {
-  const char *Attr=n.Attr(XMLStr.AutoWrap);
+  const wchar_t *Attr=n.Attr(XMLStr.AutoWrap);
   if(*Attr)
   {
     if(Inherit)
       node.Options&=~E_AutoWrap_On;
 
-    if(!stricmp(Attr, XMLStr.On))
+    if(!wstricmp(Attr, XMLStr.On))
       node.Options|=E_AutoWrap_On;
   }
   else if(!Inherit)
@@ -347,7 +360,7 @@ void SetMarginOpt(CXMLNode &n, NODEDATA &node,
       node.Options&=~E_Wrap_Percent;
     }
 
-    int len=strlen(Attr)-1, newAttr;
+    int len=wstrlen(Attr)-1, newAttr;
     if(Attr[len]=='%')
     {
       newAttr=0;
@@ -374,7 +387,7 @@ void SetMarginOpt(CXMLNode &n, NODEDATA &node,
       if(Inherit)
         node.Options&=~E_Wrap_Justify;
 
-      if(!stricmp(Attr, XMLStr.On))
+      if(!wstricmp(Attr, XMLStr.On))
         node.Options|=E_Wrap_Justify;
     }
   }
@@ -382,7 +395,7 @@ void SetMarginOpt(CXMLNode &n, NODEDATA &node,
     node.Options&=~E_Wrap_Justify;
 }
 
-void SetOption(const char *Attr,DWORD &Options,DWORD Value,
+void SetOption(const wchar_t *Attr,DWORD &Options,DWORD Value,
                const int &Inherit, BOOL OnByDefault)
 {
   if(*Attr)
@@ -390,15 +403,15 @@ void SetOption(const char *Attr,DWORD &Options,DWORD Value,
     if(Inherit)
       Options&=~Value;
 
-    if(!stricmp(Attr, XMLStr.On))
+    if(!wstricmp(Attr, XMLStr.On))
       Options|=Value;
   }
   else if(!Inherit && OnByDefault)
     Options|=Value;
 }
 
-void SetOption(const char *Attr,DWORD &Options,
-               DWORD ValueOn, DWORD ValueOff,
+void SetOption(const wchar_t *Attr,DWORD &Options,
+               E_OPTIONS ValueOn, E_OPTIONS ValueOff,
                const int &Inherit)
 {
   if(*Attr)
@@ -409,14 +422,14 @@ void SetOption(const char *Attr,DWORD &Options,
       Options&=~ValueOff;
     }
 
-    if(!stricmp(Attr, XMLStr.On))
+    if(!wstricmp(Attr, XMLStr.On))
       Options|=ValueOn;
-    else if(!stricmp(Attr, XMLStr.Off))
+    else if(!wstricmp(Attr, XMLStr.Off))
       Options|=ValueOff;
   }
 }
 
-void SetNumOpt(const char *Attr, DWORD &Num, DWORD Default, const int &Inherit)
+void SetNumOpt(const wchar_t *Attr, DWORD &Num, DWORD Default, const int &Inherit)
 {
   if(*Attr)
   {
@@ -428,7 +441,7 @@ void SetNumOpt(const char *Attr, DWORD &Num, DWORD Default, const int &Inherit)
     Num=Default;
 }
 
-void SetStrOpt(const char *Attr, strcon &DestStr, const strcon &Default, const int &Inherit)
+void SetStrOpt(const wchar_t *Attr, strcon &DestStr, const strcon &Default, const int &Inherit)
 {
   if(*Attr)
     DestStr=Attr;
@@ -436,10 +449,10 @@ void SetStrOpt(const char *Attr, strcon &DestStr, const strcon &Default, const i
     DestStr=Default;
 }
 
-void SetAddSymbolOpt(const char *Attr, CXMLNode &n, NODEDATA &node,
+void SetAddSymbolOpt(const wchar_t *Attr, CXMLNode &n, NODEDATA &node,
                      const int &Inherit, bool NewConfig)
 {
-  SetOption(n.Attr(const_cast<char*>(Attr)),node.Options,E_AddSymbol_On,Inherit,FALSE);
+  SetOption(n.Attr(const_cast<wchar_t*>(Attr)),node.Options,E_AddSymbol_On,Inherit,FALSE);
   Attr=n.Attr(NewConfig?XMLStr.Start:XMLStr.AddSym_S);
   if(*Attr)
     node.AddSym_S=Attr;
@@ -456,7 +469,7 @@ void SetAddSymbolOpt(const char *Attr, CXMLNode &n, NODEDATA &node,
 
 void SetTabOpt(CXMLNode &n, NODEDATA &node, const int &Inherit)
 {
-  const char *Attr=n.Attr(XMLStr.TabSize);
+  const wchar_t *Attr=n.Attr(XMLStr.TabSize);
   if(*Attr)
   {
     node.TabSize=0;
@@ -474,10 +487,12 @@ void SetTabOpt(CXMLNode &n, NODEDATA &node, const int &Inherit)
       node.Options&=~E_ExpandTabs_Off;
     }
 
-    if(!stricmp(Attr, XMLStr.On))
+    if(!wstricmp(Attr, XMLStr.On))
       node.Options|=E_ExpandTabs_On;
-    else if(!stricmp(Attr, XMLStr.Off))
+    else if(!wstricmp(Attr, XMLStr.Off))
       node.Options|=E_ExpandTabs_Off;
+
+    _D(SysLog(L"XML EXPANDTABS: Name:[%s] mask:[%s] Attr:[%s] Options:[%x]", node.Name.str, node.mask.str, Attr, node.Options));
   }
 }
 
@@ -485,17 +500,17 @@ bool InsertMacro(CXMLNode &n,CUserMacros &Macro,
   const DWORD Key, const DWORD ButtonState, const DWORD ControlState,
   DWORD &Flags, bool silent,BOOL Stop,int &Error,strcon &unknownKey)
 {
-  const char *Attr;
+  const wchar_t *Attr;
   if(!Flags)
   {
     Attr=n.Attr(XMLStr.Selection);
-    if(!stricmp(Attr,XMLStr.On))
+    if(!wstricmp(Attr,XMLStr.On))
       Flags|=KSSF_SELECTION_ON;
-    else if(!stricmp(Attr,XMLStr.Off))
+    else if(!wstricmp(Attr,XMLStr.Off))
       Flags|=KSSF_SELECTION_OFF;
-    else if(!stricmp(Attr,XMLStr.Stream))
+    else if(!wstricmp(Attr,XMLStr.Stream))
       Flags|=KSSF_SELECTION_ON|KSSF_SELECTION_STREAM;
-    else if(!stricmp(Attr,XMLStr.Column))
+    else if(!wstricmp(Attr,XMLStr.Column))
       Flags|=KSSF_SELECTION_ON|KSSF_SELECTION_COLUMN;
     else
       Flags|=KSSF_SELECTION_ON|KSSF_SELECTION_OFF;
@@ -509,26 +524,26 @@ bool AddMacro(CXMLNode &n,NODEDATA &node,int &Error,strcon &unknownKey)
 {
   bool res=true, silent=true, Stop=true;
   DWORD ButtonState=0, Flags=0;
-  const char *Attr;
+  const wchar_t *Attr;
 
-  if(!stricmp(n.Attr(XMLStr.Stop),XMLStr.Off))
+  if(!wstricmp(n.Attr(XMLStr.Stop),XMLStr.Off))
     Stop=false;
 
   Attr=n.Attr(XMLStr.Silent);
-  if(*Attr && 0!=stricmp(Attr,XMLStr.On))
+  if(*Attr && 0!=wstricmp(Attr,XMLStr.On))
     silent=false;
 
   // проверим автостартующие макросы
   TList<KeySequenceStorage> *Macros=NULL;
   Attr=n.Attr(XMLStr.Auto);
-  if(!stricmp(Attr,XMLStr.onCreate))
+  if(!wstricmp(Attr,XMLStr.onCreate))
   {
-    _D(SysLog("AddMacro: OnCreateMacros"));
+    _D(SysLog(L"AddMacro: OnCreateMacros"));
     Macros=&node.OnCreateMacros;
   }
-  else if(!stricmp(Attr,XMLStr.onLoad))
+  else if(!wstricmp(Attr,XMLStr.onLoad))
   {
-    _D(SysLog("AddMacro: OnLoadMacros"));
+    _D(SysLog(L"AddMacro: OnLoadMacros"));
     Macros=&node.OnLoadMacros;
   }
   if(Macros)
@@ -537,37 +552,37 @@ bool AddMacro(CXMLNode &n,NODEDATA &node,int &Error,strcon &unknownKey)
     if(tmpMacro.compile(n.Attr(XMLStr.Sequence), silent, 1, Stop, Error, unknownKey))
     {
       Macros->insert(tmpMacro);
-      _D(SysLog("AddMacro: 'on'-macros: inserted"));
+      _D(SysLog(L"AddMacro: 'on'-macros: inserted"));
     }
     else
     {
       Error=KSE_UNKNOWNKEY;
       res=false;
-      _D(SysLog("AddMacro: 'on'-macros: NOT inserted (unknownKey='%s')", unknownKey.str?unknownKey.str:"(null)"));
+      _D(SysLog(L"AddMacro: 'on'-macros: NOT inserted (unknownKey='%s')", unknownKey.str?unknownKey.str:L"(null)"));
     }
   }
 
   if(res)
   {
-    if(!stricmp(n.Attr(XMLStr.LClick),XMLStr.On))
+    if(!wstricmp(n.Attr(XMLStr.LClick),XMLStr.On))
       ButtonState|=EBS_LClick_On;
-    if(!stricmp(n.Attr(XMLStr.RClick),XMLStr.On))
+    if(!wstricmp(n.Attr(XMLStr.RClick),XMLStr.On))
       ButtonState|=EBS_RClick_On;
-    if(!stricmp(n.Attr(XMLStr.MClick),XMLStr.On))
+    if(!wstricmp(n.Attr(XMLStr.MClick),XMLStr.On))
       ButtonState|=EBS_MClick_On;
 
     if(0!=ButtonState) // есть мышиный макрос
     {
       DWORD ControlState=0;
-      if(!stricmp(n.Attr(XMLStr.RCtrl),XMLStr.On))
+      if(!wstricmp(n.Attr(XMLStr.RCtrl),XMLStr.On))
         ControlState|=ECS_RCtrl_On;
-      if(!stricmp(n.Attr(XMLStr.LCtrl),XMLStr.On))
+      if(!wstricmp(n.Attr(XMLStr.LCtrl),XMLStr.On))
         ControlState|=ECS_LCtrl_On;
-      if(!stricmp(n.Attr(XMLStr.RAlt),XMLStr.On))
+      if(!wstricmp(n.Attr(XMLStr.RAlt),XMLStr.On))
         ControlState|=ECS_RAlt_On;
-      if(!stricmp(n.Attr(XMLStr.LAlt),XMLStr.On))
+      if(!wstricmp(n.Attr(XMLStr.LAlt),XMLStr.On))
         ControlState|=ECS_LAlt_On;
-      if(!stricmp(n.Attr(XMLStr.Shift),XMLStr.On))
+      if(!wstricmp(n.Attr(XMLStr.Shift),XMLStr.On))
         ControlState|=ECS_Shift_On;
       res=InsertMacro(n,node.MouseMacros,0,ButtonState,ControlState,Flags,
            silent,Stop,Error,unknownKey);
@@ -590,7 +605,7 @@ bool AddMacro(CXMLNode &n,NODEDATA &node,int &Error,strcon &unknownKey)
   return res;
 }
 
-void SetCharCodeBaseOpt(const char *Attr, DWORD &Options, const int &Inherit)
+void SetCharCodeBaseOpt(const wchar_t *Attr, DWORD &Options, const int &Inherit)
 {
   if(*Attr)
   {
@@ -601,26 +616,26 @@ void SetCharCodeBaseOpt(const char *Attr, DWORD &Options, const int &Inherit)
       Options&=~E_CharCodeBase_Hex;
     }
 
-    if(!stricmp(Attr, XMLStr.Oct))
+    if(!wstricmp(Attr, XMLStr.Oct))
       Options|=E_CharCodeBase_Oct;
-    else if(!stricmp(Attr, XMLStr.Dec))
+    else if(!wstricmp(Attr, XMLStr.Dec))
       Options|=E_CharCodeBase_Dec;
-    else if(!stricmp(Attr, XMLStr.Hex))
+    else if(!wstricmp(Attr, XMLStr.Hex))
       Options|=E_CharCodeBase_Hex;
   }
 }
 
-void SetEOLOpt(const char *Attr, DWORD &EOL)
+void SetEOLOpt(const wchar_t *Attr, DWORD &EOL)
 {
   if(*Attr)
     EOL=PackEOL(Attr);
 }
 
-void ShowCfgError(const char *FileName, const char *Type,
-                  const char *Param, const char *ErrorMsg,
-                  const char *Comment)
+void ShowCfgError(const wchar_t *FileName, const wchar_t *Type,
+                  const wchar_t *Param, const wchar_t *ErrorMsg,
+                  const wchar_t *Comment)
 {
-  const char *MsgItems[7];
+  const wchar_t *MsgItems[7];
   strcon fn(FileName);
   TruncPathStr(fn.str,62);
   strcon type(GetMsg(MType)), param(GetMsg(MParam));
@@ -645,14 +660,14 @@ void ShowCfgError(const char *FileName, const char *Type,
    -1        - ошибка выделения памяти
    -2        - файл не найден
 */
-int ParseFile(const pchar filename,CRedBlackTree<ESCFileInfo>&FITree,
+int ParseFile(const wchar_t *filename,CRedBlackTree<ESCFileInfo>&FITree,
               TArray<NODEDATA>&NodeData, const bool test)
 {
-  char FileName[MAX_PATH];
-  ExpandEnvironmentStr(filename,FileName,sizeof(FileName));
-  _D(SysLog("ParseFile: [%s] - start", FileName));
+  wchar_t FileName[MAX_PATH];
+  ExpandEnvironmentStrings(filename,FileName,sizeof(FileName));
+  _D(SysLog(L"ParseFile: [%s] - start", FileName));
   int rc=0;
-  ESCFileInfo fi(const_cast<const char*>(FileName));
+  ESCFileInfo fi(const_cast<const wchar_t*>(FileName));
   if (!FileName || FITree.findNode(fi))
     rc=1;
   else
@@ -690,7 +705,7 @@ int ParseFile(const pchar filename,CRedBlackTree<ESCFileInfo>&FITree,
     NODEDATA *nd;
     CXMLNode n, N, macroN, p=xmlnode.GetItem(XMLStr.Settings);
     CXMLNode::Iterator i=NULL, macroI;
-    const char *Attr;
+    const wchar_t *Attr;
     BOOL Error=FALSE;
     {
       i=NULL;
@@ -698,17 +713,16 @@ int ParseFile(const pchar filename,CRedBlackTree<ESCFileInfo>&FITree,
       BOOL Inherit;
       while(!Error && NULL!=(i=p.EnumName(XMLStr.Type, i,n)))
       {
-        #ifndef LITE_VERSION
         Attr=n.Attr(XMLStr.Include);
         if(*Attr)
         {
-          _D(SysLog("ParseFile: [%s], include=[%s]", FileName, Attr));
+          _D(SysLog(L"ParseFile: [%s], include=[%s]", FileName, Attr));
           strcon newName;
-          if((Attr[1]==':' && Attr[2]) || (Attr[0]=='\\' && Attr[1]=='\\'))
+          if((Attr[1]==L':' && Attr[2]) || (Attr[0]==L'\\' && Attr[1]==L'\\'))
             newName=Attr;
           else
           {
-            const char *slash=strrchr(FileName,'\\');
+            const wchar_t *slash=wstrrchr(FileName,L'\\');
             int l=slash?slash-FileName+1:0;
             newName.setStr(FileName,l);
             newName.AddStr(Attr);
@@ -721,20 +735,15 @@ int ParseFile(const pchar filename,CRedBlackTree<ESCFileInfo>&FITree,
           rc=1;
           continue;
         }
-        #endif // LITE_VERSION
         Attr=n.Attr(XMLStr.Name);
-        _D(SysLog("ParseFile: [%s], type=[%s]", FileName, Attr));
+        _D(SysLog(L"ParseFile: [%s], type=[%s]", FileName, Attr));
         if(*Attr)
         {
           SameType=-1;
-          #ifdef LITE_VERSION
-          Inherit=FALSE;
-          #endif
           NODEDATA node;
           node.Name=Attr;
           if(node.Name.str)
           {
-           #ifndef LITE_VERSION
            SameType=NodeData.getIndex(node);
            if(SameType!=-1 && NULL!=(nd=NodeData.getItem(SameType)))
            {
@@ -746,10 +755,9 @@ int ParseFile(const pchar filename,CRedBlackTree<ESCFileInfo>&FITree,
              SameType=-1;
              Inherit=FALSE;
            }
-           #endif // LITE_VERSION
 
            Attr=n.Attr(XMLStr.Mask);
-           _D(SysLog("ParseFile: [%s], Mask=[%s], SameType=%d",
+           _D(SysLog(L"ParseFile: [%s], Mask=[%s], SameType=%d",
               FileName, Attr, SameType));
            if(*Attr || SameType!=-1)
            {
@@ -777,7 +785,7 @@ int ParseFile(const pchar filename,CRedBlackTree<ESCFileInfo>&FITree,
               {
                 node.Options&=~E_SkipPath_On;
                 Attr=n.Attr(XMLStr.SkipPath);
-                if(!*Attr || !stricmp(Attr, XMLStr.On))
+                if(!*Attr || !wstricmp(Attr, XMLStr.On))
                   node.Options|=E_SkipPath_On;
               }
 
@@ -826,7 +834,7 @@ int ParseFile(const pchar filename,CRedBlackTree<ESCFileInfo>&FITree,
 
               N=n.GetItem(XMLStr.Table);
               SetNumOpt(N.Attr(XMLStr.Value),node.Table,node.Table,Inherit);
-              SetStrOpt(N.Attr(XMLStr.Name),node.TableName,"",Inherit);
+              SetStrOpt(N.Attr(XMLStr.Name),node.TableName,L"",Inherit);
 
               N=n.GetItem(XMLStr.AddSymbol);
               SetAddSymbolOpt(XMLStr.Value,N,node,Inherit,true);
@@ -849,17 +857,17 @@ int ParseFile(const pchar filename,CRedBlackTree<ESCFileInfo>&FITree,
                 while(NULL!=(macroI=N.EnumName(XMLStr.Macro, macroI, macroN)))
                 {
                   Attr=macroN.Attr(XMLStr.Enable);
-                  if(!*Attr || !stricmp(Attr, XMLStr.On))
+                  if(!*Attr || !wstricmp(Attr, XMLStr.On))
                   {
                     if(!AddMacro(macroN,node,macro_err,unknownKey))
                       {
                         Error=TRUE;
                         if(macro_err==KSE_UNKNOWNKEY)
                         {
-                          comment.AddStrings("\"",unknownKey.str,"\"",0);
+                          comment.AddStrings(L"\"",unknownKey.str,L"\"",0);
                           param=XMLStr.UserMacro;
                           if(*(Attr=macroN.Attr(XMLStr.Key)))
-                            param.AddStrings("/",XMLStr.Macro,"/key=",Attr,0);
+                            param.AddStrings(L"/",XMLStr.Macro,L"/key=",Attr,0);
                           ShowCfgError(FileName,node.Name.str,
                             param.str, GetMsg(MMacroUnknownKey),
                             comment.str);
@@ -878,7 +886,7 @@ int ParseFile(const pchar filename,CRedBlackTree<ESCFileInfo>&FITree,
               N=n.GetItem(XMLStr.WordSym);
               SetOption(N.Attr(XMLStr.Value),node.Options2,E_WordSym_On,Inherit,FALSE);
               SetOption(N.Attr(XMLStr.AlphaNum),node.Options2,E_AlphaNum_On,Inherit,FALSE);
-              SetStrOpt(N.Attr(XMLStr.Additional),node.AdditionalLetters,"",Inherit);
+              SetStrOpt(N.Attr(XMLStr.Additional),node.AdditionalLetters,L"",Inherit);
 
               // отследим взаимосвязи
               if(!(node.Options&E_KillSpaces_On))
@@ -921,8 +929,8 @@ int ParseFile(const pchar filename,CRedBlackTree<ESCFileInfo>&FITree,
               }
               // закончили отслеживание взаимосвязей
 
-              //_D(SysLog("ReloadSettings: Name=[%s], tabsize=%d wrap=%d Justify=%s",
-              //   node.Name, node.TabSize, node.WrapPos, node.Options&E_Wrap_Justify?"on":"off"));
+              //_D(SysLog(L"ReloadSettings: Name=[%s], tabsize=%d wrap=%d Justify=%s",
+              //   node.Name, node.TabSize, node.WrapPos, node.Options&E_Wrap_Justify?L"on":L"off"));
             }
             else
               Error=TRUE;
@@ -934,25 +942,20 @@ int ParseFile(const pchar filename,CRedBlackTree<ESCFileInfo>&FITree,
           {
             nd=(SameType==-1)?NodeData.addItem(node):
                NodeData.setItem(SameType,node);
-            #ifndef LITE_VERSION
             if(!nd)
               Error=TRUE;
-            #endif
           }
         }
-        #ifdef LITE_VERSION
-        break;
-        #endif
       }
     }
   }
-  _D(SysLog("ParseFile: [%s] - end (%d)", FileName, rc));
+  _D(SysLog(L"ParseFile: [%s] - end (%d)", FileName, rc));
   return rc;
 }
 
 void TestCfgFiles()
 {
-  _D(SysLog("TestCfgFiles: start"));
+  _D(SysLog(L"TestCfgFiles: start"));
   CRedBlackTree<ESCFileInfo> FITree(ESCFICompLT, ESCFICompEQ);
   TArray<NODEDATA> ND;
   int rc=ParseFile(XMLFilePath,FITree,ND,true);
@@ -960,13 +963,13 @@ void TestCfgFiles()
     FarAllInOneMessage(GetMsg(MCannotAllocateAMemory), FMSG_WARNING);
   else if(rc>0)
     FarAllInOneMessage(GetMsg(MConfigIsOK), 0);
-  _D(SysLog("TestCfgFiles: end = %d", rc));
+  _D(SysLog(L"TestCfgFiles: end = %d", rc));
 }
 
 BOOL ReloadSettings(BOOL Force)
 {
   if(IsOldFar) return FALSE;
-  _D(SysLog("ReloadSettings(%d) - start", Force));
+  _D(SysLog(L"ReloadSettings(%d) - start", Force));
 
   if(Opt.TurnOnPluginModule || Force)
   {
@@ -985,7 +988,7 @@ BOOL ReloadSettings(BOOL Force)
   else
     FreeMem();
 
-  _D(SysLog("ReloadSettings(%d) = %d", Force, XMLLoadedOK));
+  _D(SysLog(L"ReloadSettings(%d) = %d", Force, XMLLoadedOK));
   return XMLLoadedOK;
 }
 
@@ -1008,7 +1011,7 @@ void KillSpaces()
 {
    EditorControl(ECTL_SETPOSITION,&esp);
    EditorControl(ECTL_GETSTRING,&egs);
-   _D(SysLog("ks: StringLength=%d", egs.StringLength));
+   _D(SysLog(L"ks: StringLength=%d", egs.StringLength));
    if(egs.StringLength>0 && !(prc_Minuses && IsMinusMinusSpace(egs)))
    {
      Size=egs.StringLength-1;
@@ -1016,18 +1019,18 @@ void KillSpaces()
      ++Size;
      if(Size!=egs.StringLength)
      {
-       _D(SysLog("ks: 1. esp.CurLine=%d", esp.CurLine));
+       _D(SysLog(L"ks: 1. esp.CurLine=%d", esp.CurLine));
        ess.StringNumber=-1;
-       ess.StringText=const_cast<char*>(egs.StringText);
-       ess.StringEOL =const_cast<char*>(egs.StringEOL);
+       ess.StringText=const_cast<wchar_t*>(egs.StringText);
+       ess.StringEOL =const_cast<wchar_t*>(egs.StringEOL);
        ess.StringLength=Size;
        EditorControl(ECTL_SETSTRING, &ess);
      }
-     _D(else SysLog("ks: 2. esp.CurLine=%d", esp.CurLine));
+     _D(else SysLog(L"ks: 2. esp.CurLine=%d", esp.CurLine));
    }
 }
 
-char GLOBAL_EOL[16];
+wchar_t GLOBAL_EOL[16];
 void KillSpacesAndChangeEOL()
 {
    EditorControl(ECTL_SETPOSITION,&esp);
@@ -1047,52 +1050,52 @@ void KillSpacesAndChangeEOL()
    else
      Size=0;
 
-   if(*egs.StringEOL && 0!=strcmp(GLOBAL_EOL,egs.StringEOL))
+   if(*egs.StringEOL && 0!=wstrcmp(GLOBAL_EOL,egs.StringEOL))
    {
-     _D(SysLog("ksceol: 1. esp.CurLine=%d", esp.CurLine));
+     _D(SysLog(L"ksceol: 1. esp.CurLine=%d", esp.CurLine));
      ess.StringNumber=-1;
-     ess.StringText=const_cast<char*>(egs.StringText);
+     ess.StringText=const_cast<wchar_t*>(egs.StringText);
      ess.StringEOL=GLOBAL_EOL;
      ess.StringLength=Size;
      EditorControl(ECTL_SETSTRING, &ess);
    }
    else if(Size!=egs.StringLength)
    {
-     _D(SysLog("ksceol: 2. esp.CurLine=%d", esp.CurLine));
+     _D(SysLog(L"ksceol: 2. esp.CurLine=%d", esp.CurLine));
      ess.StringNumber=-1;
-     ess.StringText=const_cast<char*>(egs.StringText);
-     ess.StringEOL =const_cast<char*>(egs.StringEOL);
+     ess.StringText=const_cast<wchar_t*>(egs.StringText);
+     ess.StringEOL =const_cast<wchar_t*>(egs.StringEOL);
      ess.StringLength=Size;
      EditorControl(ECTL_SETSTRING, &ess);
    }
-   _D(else SysLog("ksceol: 3. esp.CurLine=%d", esp.CurLine));
+   _D(else SysLog(L"ksceol: 3. esp.CurLine=%d", esp.CurLine));
 }
 
 void ChangeEOL()
 {
    EditorControl(ECTL_SETPOSITION,&esp);
    EditorControl(ECTL_GETSTRING,&egs);
-   _D(SysLog("ceol: 0. myeol=[%s], original_eol=[%s]", GLOBAL_EOL, egs.StringEOL));
-   if(*egs.StringEOL && 0!=strcmp(GLOBAL_EOL,egs.StringEOL))
+   _D(SysLog(L"ceol: 0. myeol=[%s], original_eol=[%s]", GLOBAL_EOL, egs.StringEOL));
+   if(*egs.StringEOL && 0!=wstrcmp(GLOBAL_EOL,egs.StringEOL))
    {
-     _D(SysLog("ceol: 1. esp.CurLine=%d", esp.CurLine));
+     _D(SysLog(L"ceol: 1. esp.CurLine=%d", esp.CurLine));
      ess.StringNumber=-1;
-     ess.StringText=const_cast<char*>(egs.StringText);
+     ess.StringText=const_cast<wchar_t*>(egs.StringText);
      ess.StringEOL=GLOBAL_EOL;
      ess.StringLength=egs.StringLength;
      EditorControl(ECTL_SETSTRING, &ess);
    }
-   _D(else SysLog("ceol: 2. esp.CurLine=%d", esp.CurLine));
+   _D(else SysLog(L"ceol: 2. esp.CurLine=%d", esp.CurLine));
 }
 
-char *TruncFromRigth(char *Str, unsigned int maxsize, BOOL AddSpaces)
+wchar_t *TruncFromRigth(wchar_t *Str, unsigned int maxsize, BOOL AddSpaces)
 {
-  unsigned int len=strlen(Str);
+  unsigned int len=wstrlen(Str);
   if (maxsize < 5) maxsize = 5;
-  if (len > maxsize) strcpy(Str+maxsize-3, "...");
+  if (len > maxsize) wstrcpy(Str+maxsize-3, L"...");
   else if(AddSpaces)
   {
-     memset(Str+len, 0x20, maxsize-len);
+     wwmemset(Str+len, 0x20, (maxsize-len));
      Str[maxsize]=0;
   }
   return Str;
@@ -1109,7 +1112,7 @@ int CalcWrapPos(const NODEDATA &Data, const EditorInfo &ei)
       return Data.WrapPos;
 }
 
-int GetPrevCoordX(EditorInfo &ei, int Lines, const char *StopChars)
+int GetPrevCoordX(EditorInfo &ei, int Lines, const wchar_t *StopChars)
 {
    int oldX(ei.CurPos), oldY(ei.CurLine), CoordX(-1), LastCoordX(ei.CurPos),
        ForceRight(TRUE);
@@ -1131,7 +1134,7 @@ int GetPrevCoordX(EditorInfo &ei, int Lines, const char *StopChars)
          if(LastX>-1 && LastX<oldX)
          {
            LastCoordX=LastX;
-           _D(SysLog("GetPrevCoordX: LastX=%d", LastX));
+           _D(SysLog(L"GetPrevCoordX: LastX=%d", LastX));
            break;
          }
          ei.CurPos=0;
@@ -1155,11 +1158,11 @@ int GetPrevCoordX(EditorInfo &ei, int Lines, const char *StopChars)
    if(CoordX<0 || LastCoordX<0)
      LastCoordX=-1;
 
-   _D(SysLog("GetPrevCoordX = %d", LastCoordX));
+   _D(SysLog(L"GetPrevCoordX = %d", LastCoordX));
    return LastCoordX;
 }
 
-int GetNextCoordX(const EditorInfo &EI, int Lines, const char *StopChars)
+int GetNextCoordX(const EditorInfo &EI, int Lines, const wchar_t *StopChars)
 {
   int Ret=-1, tmpX, f, ExistNonSpace, LastExistNonSpace;
   _D(esp.CurLine=EI.CurLine-1);
@@ -1173,29 +1176,29 @@ int GetNextCoordX(const EditorInfo &EI, int Lines, const char *StopChars)
          while(IsCSpaceOrTab(egs.StringText[egs.StringLength-1]))
             --egs.StringLength;
 
-       _D(SysLog("GetNextCoordX(%d) egs.StringLength=%d", esp.CurLine, egs.StringLength));
+       _D(SysLog(L"GetNextCoordX(%d) egs.StringLength=%d", esp.CurLine, egs.StringLength));
        if(egs.StringLength>0)
        {
           tmpX=EI.CurPos;
           if(tmpX<egs.StringLength)
           {
-            _D(SysLog("GetNextCoordX(%d): [%s]", esp.CurLine, egs.StringText));
-            _D(SysLog("GetNextCoordX: StopChars=[%s]", StopChars));
+            _D(SysLog(L"GetNextCoordX(%d): [%s]", esp.CurLine, egs.StringText));
+            _D(SysLog(L"GetNextCoordX: StopChars=[%s]", StopChars));
             // проверим StopChars
             if(StopChars)
             {
               for(; tmpX<egs.StringLength &&
                   !IsCSpaceOrTab(egs.StringText[tmpX]); ++tmpX)
-                if(NULL!=strchr(StopChars, egs.StringText[tmpX]))
+                if(NULL!=wstrchr(StopChars, egs.StringText[tmpX]))
                 {
                   Ret=tmpX+1;
-                  while(NULL!=strchr(StopChars, egs.StringText[Ret]))
+                  while(NULL!=wstrchr(StopChars, egs.StringText[Ret]))
                     ++Ret;
                   break;
                 }
               if(Ret!=-1) // уже нашли, что искали
                 break;
-              _D(SysLog("GetNextCoordX: StopChars not found"));
+              _D(SysLog(L"GetNextCoordX: StopChars not found"));
             }
 
             f=tmpX+1; // tmpX указывает на следующий символ
@@ -1242,7 +1245,7 @@ int GetNextCoordX(const EditorInfo &EI, int Lines, const char *StopChars)
 
   _D(int espCurLine=esp.CurLine;)
   RestorePosition(EI); // восстановим позицию курсора
-  _D(SysLog("GetNextCoordX=%d Line=%d", Ret, espCurLine));
+  _D(SysLog(L"GetNextCoordX=%d Line=%d", Ret, espCurLine));
   return Ret;
 }
 
@@ -1294,15 +1297,15 @@ BOOL GotoHome(const EditorInfo &ei, NODEDATA &nodedata)
    return esp.CurPos?ChangeCoordX(ei, esp):FALSE;
 }
 
-BOOL CmpWithFileMask(const char *Mask, const char *Name, bool SkipPath)
+BOOL CmpWithFileMask(const wchar_t *Mask, const wchar_t *Name, bool SkipPath)
 {
    DWORD Flags=PN_CMPNAMELIST;
    if(SkipPath)
      Flags|=PN_SKIPPATH;
-   return FSF.ProcessName(Mask, const_cast<char*>(Name), Flags);
+   return FSF.ProcessName(Mask, const_cast<wchar_t*>(Name), 0, Flags);
 }
 
-void ApplyEditorOptions(NODEDATA &Settings, const char *FileName)
+void ApplyEditorOptions(NODEDATA &Settings, const wchar_t *FileName)
 {
    CEditorOptions eo(Settings);
    eo.ApplyAllOptions();
@@ -1328,17 +1331,17 @@ BOOL ProcessKeyEnter(const EditorInfo &ei, EditorSetPosition &esp,
         return FALSE;
   }
 
-  char *buff=static_cast<char*>(malloc(nQuote+1));
+  wchar_t *buff=static_cast<wchar_t*>(malloc((nQuote+1)*sizeof(wchar_t)));
   if(buff==NULL) return FALSE;
 
-  memcpy(buff,egs.StringText,nQuote);
-  buff[nQuote]='\0';
+  memcpy(buff,egs.StringText,nQuote*sizeof(wchar_t));
+  buff[nQuote]=L'\0';
   struct EditorConvertText ect={buff, nQuote};
   EditorControl(ECTL_EDITORTOOEM,&ect);
 
   BOOL RetCode=TRUE;
   for(int i=ei.CurPos; i<nQuote; i++ )
-    if( buff[i]!=' ' )
+    if( buff[i]!=L' ' )
     {
       RetCode=FALSE;
       break;
@@ -1347,7 +1350,7 @@ BOOL ProcessKeyEnter(const EditorInfo &ei, EditorSetPosition &esp,
   if(RetCode)
   {
     EditorControl(ECTL_INSERTSTRING,0);
-    buff[nQuote]='\0';
+    buff[nQuote]=L'\0';
     EditorControl(ECTL_INSERTTEXT,buff);
     esp.CurPos=nQuote;
     EditorControl(ECTL_SETPOSITION,&esp);
@@ -1362,11 +1365,11 @@ BOOL ProcessKeyDelete(EditorGetString &egs, int nQuote)
 {
   if(nQuote<1) return FALSE;
 
-  char *buff=static_cast<char*>(malloc(nQuote+1));
+  wchar_t *buff=static_cast<wchar_t*>(malloc((nQuote+1)*sizeof(wchar_t)));
   if(buff==NULL) return FALSE;
 
-  memcpy(buff,egs.StringText,nQuote);
-  buff[nQuote]='\0';
+  memcpy(buff,egs.StringText,nQuote*sizeof(wchar_t));
+  buff[nQuote]=L'\0';
 
   EditorControl(ECTL_DELETECHAR,0);
 
@@ -1377,8 +1380,8 @@ BOOL ProcessKeyDelete(EditorGetString &egs, int nQuote)
   if( IsSameQuote(buff,nQuote,&egs.StringText[ei.CurPos],i) )
   {
     while( i-- ) EditorControl(ECTL_DELETECHAR,0);
-    buff[0]=' ';
-    buff[1]='\0';
+    buff[0]=L' ';
+    buff[1]=L'\0';
     EditorControl(ECTL_INSERTTEXT,buff);
   }
 
@@ -1395,50 +1398,39 @@ BOOL InsertAdditionalSymbol(const EditorInfo &ei,
                             BYTE Symbol, BOOL IncreaseCoordX)
 {
   BOOL RetCode=FALSE;
-  char *AddSym_Pos=strchr(AddSym_S.str, static_cast<char>(Symbol));
+  wchar_t *AddSym_Pos=wstrchr(AddSym_S.str, static_cast<wchar_t>(Symbol));
   if(AddSym_Pos)
   {
     InitESPandEGS(esp, egs);
     EditorControl(ECTL_GETSTRING,&egs);
     if(ei.CurPos>=egs.StringLength || IsCSpaceOrTab(egs.StringText[ei.CurPos])
-       || (!IncreaseCoordX && strchr(AddSym_E.str,
-       ( ei.AnsiMode || ei.TableNum!=-1 )?
-       CharSet.DecodeTable[static_cast<BYTE>(egs.StringText[ei.CurPos])]:
-       egs.StringText[ei.CurPos]))
+       || (!IncreaseCoordX && wstrchr(AddSym_E.str,egs.StringText[ei.CurPos]))
       )
     {
       ess.StringNumber=-1;
-      ess.StringEOL=const_cast<char*>(egs.StringEOL);
+      ess.StringEOL=const_cast<wchar_t*>(egs.StringEOL);
       if(ei.CurPos<egs.StringLength)
         ess.StringLength=egs.StringLength+2;
       else
         ess.StringLength=ei.CurPos+2;
-      ess.StringText=static_cast<char*>(malloc(ess.StringLength));
+      ess.StringText=static_cast<wchar_t*>(malloc(ess.StringLength*sizeof(wchar_t)));
       if(ess.StringText)
       {
         if(egs.StringLength>ei.CurPos)
         {
-          memcpy(ess.StringText, egs.StringText, ei.CurPos);
-          memcpy(ess.StringText+ei.CurPos+2, egs.StringText+ei.CurPos,
-                 egs.StringLength-ei.CurPos);
+          memcpy((wchar_t*)ess.StringText, egs.StringText, ei.CurPos*sizeof(wchar_t));
+          memcpy((wchar_t*)ess.StringText+ei.CurPos+2, egs.StringText+ei.CurPos,
+                 (egs.StringLength-ei.CurPos)*sizeof(wchar_t));
         }
         else
         {
-          memcpy(ess.StringText, egs.StringText, egs.StringLength);
-          memset(ess.StringText+egs.StringLength, nlsSpace,
-                 ei.CurPos-egs.StringLength);
+          memcpy((wchar_t*)ess.StringText, egs.StringText, egs.StringLength*sizeof(wchar_t));
+          wwmemset((wchar_t*)ess.StringText+egs.StringLength, nlsSpace,
+                  ei.CurPos-egs.StringLength);
         }
 
-        if( ei.AnsiMode || ei.TableNum!=-1 )
-        {
-          ess.StringText[ei.CurPos]=CharSet.EncodeTable[Symbol];
-          ess.StringText[ei.CurPos+1]=CharSet.EncodeTable[static_cast<BYTE>(AddSym_E.str[AddSym_Pos-AddSym_S.str])];
-        }
-        else
-        {
-          ess.StringText[ei.CurPos]=Symbol;
-          ess.StringText[ei.CurPos+1]=AddSym_E.str[AddSym_Pos-AddSym_S.str];
-        }
+        ((wchar_t *)ess.StringText)[ei.CurPos]=Symbol;
+        ((wchar_t *)ess.StringText)[ei.CurPos+1]=AddSym_E.str[AddSym_Pos-AddSym_S.str];
 
         if(EditorControl(ECTL_SETSTRING,&ess))
         {
@@ -1450,7 +1442,7 @@ BOOL InsertAdditionalSymbol(const EditorInfo &ei,
           EditorControl(ECTL_REDRAW, NULL);
         }
 
-        free(ess.StringText);
+        free((wchar_t*)ess.StringText);
       }
     }
   }
@@ -1458,11 +1450,12 @@ BOOL InsertAdditionalSymbol(const EditorInfo &ei,
 }
 
 // Возвращает номер кодовой таблицы с именем name или -1, если не нашли таблицу
-int FindCodeTable(const char *Mask)
+int FindCodeTable(const wchar_t *Mask)
 {
   int ret = -1, ct = 0;
+/*
   if (*Mask)
-    while (-1 < Info.CharTable(ct, reinterpret_cast<char *>(&tmpCharSet),
+    while (-1 < Info.CharTable(ct, reinterpret_cast<wchar_t *>(&tmpCharSet),
                                sizeof(tmpCharSet)))
       {
         if (CmpWithFileMask(Mask, tmpCharSet.TableName, FALSE))
@@ -1472,6 +1465,7 @@ int FindCodeTable(const char *Mask)
           }
         ++ct;
       }
+*/
   return ret;
 }
 

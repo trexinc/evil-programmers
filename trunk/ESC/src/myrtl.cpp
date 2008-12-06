@@ -1,3 +1,22 @@
+/*
+    [ESC] Editor's settings changer plugin for FAR Manager
+    Copyright (C) 2001 Ivan Sintyurin
+    Copyright (C) 2008 Alex Yaroslavsky
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
 #ifndef __myrtl_cpp
 #define __myrtl_cpp
 
@@ -147,6 +166,18 @@ void *memset(void *s, int c, size_t n)
   return s;
 }
 
+wchar_t *wwmemset(wchar_t *s, wchar_t c, size_t n)
+{
+  wchar_t *dst = s;
+
+  while (n--)
+    {
+      *dst = c;
+      ++dst;
+    }
+  return s;
+}
+
 int memcmp(const void *s1, const void *s2, size_t n)
 {
   if (!n)
@@ -161,33 +192,33 @@ int memcmp(const void *s1, const void *s2, size_t n)
   return (*b1 - *b2);
 }
 
-char *strchr(const char *s, int c)
+wchar_t *wstrchr(const wchar_t *s, wchar_t c)
 {
   while (*s)
     {
       if (*s == c)
-        return const_cast<char*>(s);
+        return const_cast<wchar_t*>(s);
       ++s;
     }
   return NULL;
 }
 
-char *strrchr(const char *s, int c)
+wchar_t *wstrrchr(const wchar_t *s, wchar_t c)
 {
-  register const char *ss;
+  register const wchar_t *ss;
   register size_t i;
 
-  for (i = strlen(s) + 1, ss = s + i; i; --i)
+  for (i = wstrlen(s) + 1, ss = s + i; i; --i)
     {
-      if (*(--ss) == (char) c)
-        return ((char *) ss);
+      if (*(--ss) == (wchar_t) c)
+        return ((wchar_t *) ss);
     }
   return NULL;
 }
 
-char *strncpy(char *dest, const char *source, size_t n)
+wchar_t *wstrncpy(wchar_t *dest, const wchar_t *source, size_t n)
 {
-  char *src = dest;
+  wchar_t *src = dest;
 
   while (n && 0 != (*dest++ = *source++))
     --n;
@@ -196,19 +227,17 @@ char *strncpy(char *dest, const char *source, size_t n)
   return (src);
 }
 
-int strcmp(const char *s1, const char *s2)
+int wstrcmp(const wchar_t *s1, const wchar_t *s2)
 {
-  BYTE *b1 = (BYTE *) s1, *b2 = (BYTE *) s2;
-
-  while (*b1 && *b1 == *b2)
+  while (*s1 && *s1 == *s2)
     {
-      ++b1;
-      ++b2;
+      ++s1;
+      ++s2;
     }
-  return (*b1 - *b2);
+  return (*s1 - *s2);
 }
 
-int strncmp(const char *s1, const char *s2, size_t n)
+int wstrncmp(const wchar_t *s1, const wchar_t *s2, size_t n)
 {
   if (!n)
     return (0);
@@ -217,95 +246,74 @@ int strncmp(const char *s1, const char *s2, size_t n)
       ++s1;
       ++s2;
     }
-  return (*(BYTE *) s1 - *(BYTE *) s2);
+  return (*s1 - *s2);
 }
 
-char *strdup(const char *s)
+wchar_t *wstrdup(const wchar_t *s)
 {
-  char *p=NULL;
+  wchar_t *p=NULL;
   if(s)
   {
-    int len=strlen(s)+1;
-    p=static_cast<char*>(malloc(len));
+    int len=wstrlen(s)+1;
+    p=static_cast<wchar_t*>(malloc(len*sizeof(wchar_t)));
     if(p)
-      memcpy(p, s, len);
+      memcpy(p, s, len*sizeof(wchar_t));
   }
   return p;
 }
 
-size_t strlen (const char * str)
+size_t wstrlen (const wchar_t * str)
 {
-        const char *eos = str;
+        const wchar_t *eos = str;
 
         while( *eos++ ) ;
 
         return( (int)(eos - str - 1) );
 }
 
-char * strcat (char * dst, const char * src)
+wchar_t * wstrcat (wchar_t * dst, const wchar_t * src)
 {
-        char * cp = dst;
+        wchar_t * cp = dst;
 
         while( *cp )
                 cp++;                   /* find end of dst */
 
-        while( *cp++ = *src++ ) ;       /* Copy src to end of dst */
+        while( (*cp++ = *src++) != 0 ) ;       /* Copy src to end of dst */
 
         return( dst );                  /* return dst */
 
 }
 
-char *strcpy(char * dst, const char * src)
+wchar_t *wstrcpy(wchar_t * dst, const wchar_t * src)
 {
-        char * cp = dst;
+        wchar_t * cp = dst;
 
-        while( *cp++ = *src++ )
+        while( (*cp++ = *src++) != 0 )
                 ;               /* Copy src over dst */
 
         return( dst );
 }
 
-int stricmp(const char *s1, const char *s2)
+int wstricmp(const wchar_t *s1, const wchar_t *s2)
 {
   return FSF.LStricmp(s1, s2);
 }
 
-char *strpbrk (const char * string, const char * control)
+wchar_t *wstrpbrk (const wchar_t * string, const wchar_t * control)
 {
-        const unsigned char *str = string;
-        const unsigned char *ctrl = control;
-
-        unsigned char map[32];
-        int count;
-
-        /* Clear out bit map */
-        for (count=0; count<32; count++)
-                map[count] = 0;
-
-        /* Set bits in control map */
-        while (*ctrl)
-        {
-                map[*ctrl >> 3] |= (1 << (*ctrl & 7));
-                ctrl++;
-        }
-
-        /* 1st char in control map stops search */
-        while (*str)
-        {
-                if (map[*str >> 3] & (1 << (*str & 7)))
-                        return((char *)str);
-                str++;
-        }
-        return(NULL);
+  for ( ; *string; string++)
+    for (const wchar_t *wcset = control; *wcset; wcset++)
+      if (*wcset == *string) return((wchar_t *)string);
+  return(NULL);
 }
 
-FILE *fopen(const char *filename, const char *mode)
+FILE *wfopen(const wchar_t *filename, const wchar_t *mode)
 {
    if(!mode || !filename || !*filename)
       return NULL;
    //_D(SysLog("fopen: filename[%s], mode[%s] strpbrk%c=NULL",
    //   filename, mode, strpbrk(mode, "rwa")?'!':'='));
-   if(strpbrk(mode, "rwa")==NULL)
+   if(wstrpbrk(mode, L"rwa")==NULL)
       return NULL;
    DWORD dwDesiredAccess=0, dwCreationDistribution=0;
    BOOL R, W, A;
@@ -322,28 +330,28 @@ w+  Create a new file for update (reading and writing). If a file by that name
 a+  Open for append; open (or create if the file does not exist) for update at
     the end of the file.
 */
-   if(strchr(mode, 'r'))
+   if(wstrchr(mode, L'r'))
    {
      //_D(SysLog("r - GENERIC_READ"));
      dwDesiredAccess|=GENERIC_READ;
      dwCreationDistribution=OPEN_EXISTING;
      R=TRUE;
    }
-   if(strchr(mode, 'w'))
+   if(wstrchr(mode, L'w'))
    {
      //_D(SysLog("w - GENERIC_WRITE"));
      dwDesiredAccess|=GENERIC_WRITE;
      dwCreationDistribution=CREATE_ALWAYS;
      W=TRUE;
    }
-   if(strchr(mode, 'a'))
+   if(wstrchr(mode, L'a'))
    {
      //_D(SysLog("a - GENERIC_WRITE"));
      dwDesiredAccess|=GENERIC_WRITE;
      dwCreationDistribution=CREATE_ALWAYS;
      A=TRUE;
    }
-   if(strchr(mode, '+'))
+   if(wstrchr(mode, L'+'))
    {
      //_D(SysLog("+++"));
      dwDesiredAccess|=GENERIC_WRITE;
@@ -393,31 +401,31 @@ size_t fwrite(const void *ptr, size_t size, size_t n, FILE *stream)
    return (!w || NumberOfBytesWritten!=NumberOfBytesToWrite)?0:n;
 }
 
-inline bool __isDecimal(BYTE B)
+inline bool __isDecimal(wchar_t B)
 {
-  return (B>='0' && B<='9');
+  return (B>=L'0' && B<=L'9');
 }
 
-bool __isHex(BYTE B)
+bool __isHex(wchar_t B)
 {
-  return __isDecimal(B) || (B>='a' && B<='f') || (B>='A' && B<='F');
+  return __isDecimal(B) || (B>=L'a' && B<=L'f') || (B>=L'A' && B<=L'F');
 }
 
-BYTE __CharToHex(BYTE Char)
+BYTE __CharToHex(wchar_t Char)
 {
-  const dec1='A'-10, dec2='a'-10;
+  const BYTE dec1=L'A'-10, dec2=L'a'-10;
   if(!__isHex(Char)) return 0;
-  return Char-((Char<'A')?'0':((Char<'a')?dec1:dec2));
+  return Char-((Char<L'A')?L'0':((Char<L'a')?dec1:dec2));
 }
 
-long strtol(char *s, char **endptr, int radix)
+long wstrtol(const wchar_t *s, wchar_t **endptr, int radix)
 {
    long result=0;
    int size, c=1;
    if(!s) return 0;
-   if(endptr) *endptr=s;
+   if(endptr) *endptr=(wchar_t *)s;
    if(radix!=10 && radix!=16) return 0;
-   char *start=s, *end;
+   const wchar_t *start=s, *end;
    while(0x20==*start || 0x09==*start) ++start; // пропустим пробелы
    while('0'==*start) ++start;                  // пропустим нули
    if('x'==FSF.LLower((BYTE)*start))
@@ -452,7 +460,7 @@ long strtol(char *s, char **endptr, int radix)
       }
    }
 
-   if(endptr) *endptr=end;
+   if(endptr) *endptr=(wchar_t *)end;
    return result;
 /*
 Description

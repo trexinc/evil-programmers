@@ -1,7 +1,21 @@
 /*
-  Copyright (c) Konstantin Stupnik (aka Xecutor) 2000-2001 <skv@aurorisoft.com>
-  You can use, modify, distribute this code or any other part
-  only with permissions of author!
+  [ESC] Editor's settings changer plugin for FAR Manager
+  Copyright (C) 2000 Konstantin Stupnik
+  Copyright (C) 2008 Alex Yaroslavsky
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
   This unit used internally by xmlite.
   Table that hold key-value pairs.
@@ -48,7 +62,7 @@ void tableFree(PTable t)
 /*  PTablePage q,p=t->pFirst->pNext;
   if(t->iFlags&TABLE_FLAG_ALLOCBOTH)
   {
-    pchar n,*v;
+    wchar_t *n,*v;
     tableFirst(t);
     while(tableNext(t,&n,&v))
     {
@@ -65,7 +79,7 @@ void tableFree(PTable t)
   xfree(t);*/
 }
 
-int tableAdd(PTable t,const pchar Name,const pchar Value)
+int tableAdd(PTable t,const wchar_t *Name,const wchar_t *Value)
 {
   PTablePage p;
 
@@ -90,18 +104,18 @@ int tableAdd(PTable t,const pchar Name,const pchar Value)
   if(t->iFlags&TABLE_FLAG_ALLOCNAME)
     p->Values[p->iCount].szName=xstrdup(t->pPool,Name);
   else
-    p->Values[p->iCount].szName=(pchar)Name;
+    p->Values[p->iCount].szName=(wchar_t *)Name;
 
   if(t->iFlags&TABLE_FLAG_ALLOCVALUE)
     p->Values[p->iCount].szValue=xstrdup(t->pPool,Value);
   else
-    p->Values[p->iCount].szValue=(pchar)Value;
+    p->Values[p->iCount].szValue=(wchar_t *)Value;
   p->iCount++;
   t->iCount++;
   return t->iCount;
 }
 
-static PTablePage tableFind(PTablePage p,int* idx,const pchar Name)
+static PTablePage tableFind(PTablePage p,int* idx,const wchar_t *Name)
 {
   for(;;)
   {
@@ -116,7 +130,7 @@ static PTablePage tableFind(PTablePage p,int* idx,const pchar Name)
   }
 }
 
-pchar tableGet(PTable t,const pchar Name)
+const wchar_t *tableGet(PTable t,const wchar_t *Name)
 {
   PTablePage p;
   int idx=0;
@@ -126,7 +140,7 @@ pchar tableGet(PTable t,const pchar Name)
   if(p)return p->Values[idx].szValue;else return NULL;
 }
 
-int tableDel(PTable t,const pchar Name)
+int tableDel(PTable t,const wchar_t *Name)
 {
   PTablePage p=t->pFirst;
   int idx=0;
@@ -148,7 +162,7 @@ int tableDel(PTable t,const pchar Name)
   return res;
 }
 
-int tableSet(PTable t,const pchar Name,const pchar Value)
+int tableSet(PTable t,const wchar_t *Name,const wchar_t *Value)
 {
   PTablePage p=t->pFirst,q;
   int idx0,idx=0,res=0;
@@ -181,7 +195,7 @@ void tableFirst(PTable t)
   t->iIterPos=-1;
 }
 
-int tableNext(PTable t,pchar* Name,pchar* Value)
+int tableNext(PTable t,wchar_t ** Name,wchar_t ** Value)
 {
   if(!t->pIterPage)return 0;
   t->iIterPos++;

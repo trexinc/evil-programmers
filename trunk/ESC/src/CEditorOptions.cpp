@@ -1,3 +1,22 @@
+/*
+    [ESC] Editor's settings changer plugin for FAR Manager
+    Copyright (C) 2001 Ivan Sintyurin
+    Copyright (C) 2008 Alex Yaroslavsky
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
 #ifndef __CEditorOptions_cpp
 #define __CEditorOptions_cpp
 
@@ -42,8 +61,9 @@ int CEditorOptions::ApplyOption(EDITOR_SETPARAMETER_TYPES type)
             )
           {
             ESPar.Type=ESPT_EXPANDTABS;
-            ESPar.Param.iParam=(Data.Options&E_ExpandTabs_On)?TRUE:FALSE;
+            ESPar.Param.iParam=(Data.Options&E_ExpandTabs_On)?EXPAND_ALLTABS:EXPAND_NOTABS;
             RetCode=EditorControl(ECTL_SETPARAM, &ESPar);
+            _D(SysLog(L"ESPT_EXPANDTABS: ON Name:[%s] mask:[%s] Options:[%x]", Data.Name.str, Data.mask.str, Data.Options));
           }
           break;
      case ESPT_AUTOINDENT:
@@ -89,9 +109,9 @@ int CEditorOptions::ApplyOption(EDITOR_SETPARAMETER_TYPES type)
              if(ESPar.Param.iParam && static_cast<DWORD>(EI.TotalLines)<Data.MinLinesNum)
                 ESPar.Param.iParam=FALSE;
              EditorControl(ECTL_SETPARAM, &ESPar);
-             _D(SysLog("_SaveFilePos: %s, TotalLines=%d, MinLinesNum=%d", ESPar.Param.iParam?"on":"off", EI.TotalLines, Data.MinLinesNum));
+             _D(SysLog(L"_SaveFilePos: %s, TotalLines=%d, MinLinesNum=%d", ESPar.Param.iParam?L"on":L"off", EI.TotalLines, Data.MinLinesNum));
           }
-          _D(else SysLog("_SaveFilePos: ignore"));
+          _D(else SysLog(L"_SaveFilePos: ignore"));
           RetCode=TRUE;
           break;
      case ESPT_LOCKMODE:
@@ -104,20 +124,20 @@ int CEditorOptions::ApplyOption(EDITOR_SETPARAMETER_TYPES type)
           break;
      case ESPT_SETWORDDIV:
           ESPar.Type=ESPT_SETWORDDIV;
-          static char WordDiv[256];
+          static wchar_t WordDiv[256];
           if(Data.Options2&E_WordSym_On)
           {
             MakeWordDiv(Data.Options2&E_AlphaNum_On,Data.AdditionalLetters.str,WordDiv);
             ESPar.Param.cParam=WordDiv;
-            _D(SysLog("ESPT_SETWORDDIV: ON [%s]", WordDiv));
+            _D(SysLog(L"ESPT_SETWORDDIV: ON [%s]", WordDiv));
           }
           else
           {
-            _D(SysLog("ESPT_SETWORDDIV: OFF"));
+            _D(SysLog(L"ESPT_SETWORDDIV: OFF"));
             ESPar.Param.cParam=NULL;
           }
           RetCode=EditorControl(ECTL_SETPARAM, &ESPar);
-          _D(SysLog("ESPT_SETWORDDIV: retcode=%d",RetCode));
+          _D(SysLog(L"ESPT_SETWORDDIV: retcode=%d",RetCode));
           break;
   }
 
@@ -136,13 +156,13 @@ void CEditorOptions::ApplyAllOptions()
   ApplyOption(ESPT_SETWORDDIV);
 }
 
-void CEditorOptions::MakeWordDiv(bool alphanum, const char *additional, char *dest)
+void CEditorOptions::MakeWordDiv(bool alphanum, const wchar_t *additional, wchar_t *dest)
 {
   FARSTDLOCALISALPHA alphafunc=alphanum?FSF.LIsAlpha:FSF.LIsAlphanum;
-  const char *other=additional?additional:"";
+  const wchar_t *other=additional?additional:L"";
   for(unsigned int i=1; i<256; ++i)
   {
-    if(!alphafunc(i) && NULL==strchr(other, i))
+    if(!alphafunc(i) && NULL==wstrchr(other, i))
     {
       *dest=i;
       ++dest;
