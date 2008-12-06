@@ -43,8 +43,8 @@ struct PluginStartupInfo Info;
 FARSTANDARDFUNCTIONS FSF;
 HMODULE hEsc = NULL;
 BOOL FirstRun = TRUE;
-int (WINAPI *SetEditorOption)(int EditorID, const char *szName, void *Param);
-int (WINAPI *GetEditorSettings)(int EditorID, const char *szName, void *Param);
+int (WINAPI *SetEditorOption)(int EditorID, const TCHAR *szName, void *Param);
+int (WINAPI *GetEditorSettings)(int EditorID, const TCHAR *szName, void *Param);
 
 struct InitDialogItem
 {
@@ -103,16 +103,18 @@ void WINAPI EXP_NAME(SetStartupInfo)(const struct PluginStartupInfo *psi)
 
 LONG_PTR WINAPI MyDialog(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2)
 {
-  struct FarDialogItem DlgEdit;
   struct FarDialogItemData DlgData;
   static BOOL StatusBar;
   static struct EditorInfo ei;
+  TCHAR temp[52];
 
   switch (Msg)
   {
     case DN_INITDIALOG:
       Info.EditorControl(ECTL_GETINFO,(void *)&ei);
       Info.SendDlgMessage(hDlg,DM_SETFOCUS,1,0);
+      Info.SendDlgMessage(hDlg,DM_SETMAXTEXTLENGTH,1,50);
+      Info.SendDlgMessage(hDlg,DM_SETMAXTEXTLENGTH,2,50);
       StatusBar = FALSE;
       return TRUE;
 
@@ -143,17 +145,17 @@ LONG_PTR WINAPI MyDialog(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2)
       {
         case 3:
         {
-          Info.SendDlgMessage(hDlg,DM_GETDLGITEM,2,(long)&DlgEdit);
+          Info.SendDlgMessage(hDlg,DM_GETTEXTPTR,2,(long)temp);
           int i = 0; //no etry == zero
-          FSF.sscanf(DlgEdit.Data,_T("%d"),&i);
-          FSF.sprintf(DlgEdit.Data,_T("%d"),i);
-          Info.SendDlgMessage(hDlg,DM_SETDLGITEM,2,(long)&DlgEdit);
-          Info.SendDlgMessage(hDlg,DM_GETDLGITEM,1,(long)&DlgEdit);
-          if (SetEditorOption(ei.EditorID,DlgEdit.Data,(void *)&i))
+          FSF.sscanf(temp,_T("%d"),&i);
+          FSF.sprintf(temp,_T("%d"),i);
+          Info.SendDlgMessage(hDlg,DM_SETTEXTPTR,2,(long)temp);
+          Info.SendDlgMessage(hDlg,DM_GETTEXTPTR,1,(long)temp);
+          if (SetEditorOption(ei.EditorID,temp,(void *)&i))
           {
-            Info.SendDlgMessage(hDlg,DM_ADDHISTORY,1,(long)DlgEdit.Data);
-            FSF.sprintf(DlgEdit.Data,_T("%d"),i);
-            Info.SendDlgMessage(hDlg,DM_ADDHISTORY,2,(long)DlgEdit.Data);
+            Info.SendDlgMessage(hDlg,DM_ADDHISTORY,1,(long)temp);
+            FSF.sprintf(temp,_T("%d"),i);
+            Info.SendDlgMessage(hDlg,DM_ADDHISTORY,2,(long)temp);
             DlgData.PtrLength=28;
             DlgData.PtrData=(TCHAR *)GetMsg(MUpdateSuccessfull);
             Info.SendDlgMessage(hDlg,DM_SETTEXT,8,(long)&DlgData);
@@ -171,13 +173,12 @@ LONG_PTR WINAPI MyDialog(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2)
         case 4:
         {
           int i;
-          Info.SendDlgMessage(hDlg,DM_GETDLGITEM,1,(long)&DlgEdit);
-          if (GetEditorSettings(ei.EditorID,DlgEdit.Data,(void *)&i))
+          Info.SendDlgMessage(hDlg,DM_GETTEXTPTR,1,(long)temp);
+          if (GetEditorSettings(ei.EditorID,temp,(void *)&i))
           {
-            Info.SendDlgMessage(hDlg,DM_ADDHISTORY,1,(long)DlgEdit.Data);
-            Info.SendDlgMessage(hDlg,DM_GETDLGITEM,2,(long)&DlgEdit);
-            FSF.sprintf(DlgEdit.Data,_T("%d"),i);
-            Info.SendDlgMessage(hDlg,DM_SETDLGITEM,2,(long)&DlgEdit);
+            Info.SendDlgMessage(hDlg,DM_ADDHISTORY,1,(long)temp);
+            FSF.sprintf(temp,_T("%d"),i);
+            Info.SendDlgMessage(hDlg,DM_SETTEXTPTR,2,(long)temp);
             Info.SendDlgMessage(hDlg,DM_SHOWITEM,2,1);
             DlgData.PtrLength=28;
             DlgData.PtrData=(TCHAR *)GetMsg(MCheckSuccessfull);
@@ -244,11 +245,19 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom, INT_PTR Item)
     }
     if (!GetEditorSettings && hEsc)
     {
-      GetEditorSettings=(int (WINAPI*)(int, const char*, void*))GetProcAddress(hEsc,"GetEditorSettings");
+#ifndef UNICODE
+      GetEditorSettings=(int (WINAPI*)(int, const TCHAR*, void*))GetProcAddress(hEsc,"GetEditorSettings");
+#else
+      GetEditorSettings=(int (WINAPI*)(int, const TCHAR*, void*))GetProcAddress(hEsc,"GetEditorSettingsW");
+#endif
     }
     if (!SetEditorOption && hEsc)
     {
-      SetEditorOption=(int (WINAPI*)(int, const char*, void*))GetProcAddress(hEsc,"SetEditorOption");
+#ifndef UNICODE
+      SetEditorOption=(int (WINAPI*)(int, const TCHAR*, void*))GetProcAddress(hEsc,"SetEditorOption");
+#else
+      SetEditorOption=(int (WINAPI*)(int, const TCHAR*, void*))GetProcAddress(hEsc,"SetEditorOptionW");
+#endif
     }
     if (!SetEditorOption || !GetEditorSettings)
     {
