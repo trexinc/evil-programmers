@@ -1,0 +1,50 @@
+.Language=English,English
+
+"Word Completion"
+"Complete word"
+"&Ok"
+"&Cancel"
+"Word Completion Configuration"
+"Word AutoCompletion Configuration"
+
+
+"Work &inside word"
+"Case &sensitive"
+"Browse &downward"
+"Consider di&gits as letters"
+
+"Add space at word &end"
+
+"Line count for &browsing"
+"&Max variants to find"
+"Min &variant length"
+"Additional &letters"
+
+"Accept variant from men&u"
+"Use &partial completion"
+"Tr&y to find variants after N letters"
+
+"Colo&r"
+"Accept c&haracters"
+"&Accept completion KEY(s)"
+"Delete completion &KEY(s)"
+"Set"
+"Press desired key..."
+
+"Show menu if only &1 variant"
+
+"Sound if &no variant"
+"Ma&x variants in unsorted list"
+"&Asterisk symbol"
+
+"Choose word"
+" %i words found "
+
+"Color"
+"&Foreground"
+"&Background"
+"Text Text Text Text Text Text"
+"Text Text Text Text Text Text"
+"Text Text Text Text Text Text"
+"Set"
+"Cancel"
