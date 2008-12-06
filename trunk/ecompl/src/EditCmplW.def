@@ -1,0 +1,9 @@
+LIBRARY
+EXPORTS
+   SetStartupInfoW=SetStartupInfoW@4
+   GetPluginInfoW=GetPluginInfoW@4
+   OpenPluginW=OpenPluginW@8
+   ConfigureW=ConfigureW@4
+   ProcessEditorEventW=ProcessEditorEventW@8
+   ProcessEditorInputW=ProcessEditorInputW@4
+   ExitFARW=ExitFARW@0

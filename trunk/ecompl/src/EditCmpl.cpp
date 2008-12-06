@@ -50,33 +50,37 @@ static int ShowMenu(int Offset=0);
 
 avl_window_tree *windows=NULL;
 
-const char *GetMsg(int MsgId)
+const TCHAR *GetMsg(int MsgId)
 {
   return Info.GetMsg(Info.ModuleNumber,MsgId);
 }
 
-void WINAPI _export SetStartupInfo(const struct PluginStartupInfo *Info)
+void WINAPI EXP_NAME(SetStartupInfo)(const struct PluginStartupInfo *Info)
 {
   memset(&::Info,0,sizeof(::Info));
   memmove(&::Info,Info,(Info->StructSize>(int)sizeof(::Info))?sizeof(::Info):Info->StructSize);
+#ifndef UNICODE
   if(Info->StructSize>FAR165_INFO_SIZE)
   {
+#endif
     IsOldFAR=FALSE;
     ::FSF=*Info->FSF;
     ::Info.FSF=&::FSF;
     MCmpl=new TMenuCompletion(Info->RootKey);
     ACmpl=new TAutoCompletion(Info->RootKey);
     windows=new avl_window_tree();
+#ifndef UNICODE
   }
+#endif
 }
 
-void WINAPI _export GetPluginInfo(struct PluginInfo *Info)
+void WINAPI EXP_NAME(GetPluginInfo)(struct PluginInfo *Info)
 {
   if(!IsOldFAR)
   {
     Info->StructSize=sizeof(*Info);
     Info->Flags=PF_EDITOR|PF_DISABLEPANELS;
-    static const char *PluginMenuStrings[1];
+    static const TCHAR *PluginMenuStrings[1];
     // Text in Plugins Configuration menu
     PluginMenuStrings[0]=GetMsg(MEditCmpl);
     Info->PluginConfigStrings=PluginMenuStrings;
@@ -87,7 +91,7 @@ void WINAPI _export GetPluginInfo(struct PluginInfo *Info)
   }
 }
 
-HANDLE WINAPI _export OpenPlugin(int OpenFrom,int Item)
+HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom,int Item)
 {
   (void)OpenFrom;
   (void)Item;
@@ -95,30 +99,32 @@ HANDLE WINAPI _export OpenPlugin(int OpenFrom,int Item)
   return INVALID_HANDLE_VALUE;
 }
 
-int WINAPI _export GetMinFarVersion(void)
+#ifndef UNICODE
+int WINAPI EXP_NAME(GetMinFarVersion)(void)
 {
   return MAKEFARVERSION(1,70,1282);
 }
+#endif
 
-int WINAPI _export Configure(int ItemNumber)
+int WINAPI EXP_NAME(Configure)(int ItemNumber)
 {
   if(!IsOldFAR) ShowMenu(2);
   return FALSE;
 }
 
-int WINAPI _export ProcessEditorEvent(int Event,void *Param)
+int WINAPI EXP_NAME(ProcessEditorEvent)(int Event,void *Param)
 {
   if(!IsOldFAR) return ACmpl->ProcessEditorEvent(Event,Param);
   return 0;
 }
 
-int WINAPI _export ProcessEditorInput(const INPUT_RECORD *Rec)
+int WINAPI EXP_NAME(ProcessEditorInput)(const INPUT_RECORD *Rec)
 {
   if(!IsOldFAR) return ACmpl->ProcessEditorInput(Rec);
   return 0;
 }
 
-void WINAPI _export ExitFAR(void)
+void WINAPI EXP_NAME(ExitFAR)(void)
 {
   if(!IsOldFAR)
   {
@@ -131,21 +137,33 @@ void WINAPI _export ExitFAR(void)
 int ShowMenu(int Offset)
 {
   int Msgs[]={MComplete,MComplete,MMenuCfg,MAutoCfg};
-  char Bottom[30];
-  FSF.sprintf(Bottom,"[%d]",windows->count());
+  TCHAR Bottom[30];
+  FSF.sprintf(Bottom,_T("[%d]"),windows->count());
   FarMenuItem Items[sizeof(Msgs)/sizeof(Msgs[0])];
+#ifdef UNICODE
+  TCHAR ItemText[sizeof(Msgs)/sizeof(Msgs[0])][128];
+#endif
   for(unsigned int i=0;i<(sizeof(Msgs)/sizeof(Msgs[0]));i++)
   {
     Items[i].Selected=Items[i].Checked=Items[i].Separator=FALSE;
-    strcpy(Items[i].Text,GetMsg(Msgs[i]));
+#ifdef UNICODE
+    _tcscpy(ItemText[i],GetMsg(Msgs[i]));
+    Items[i].Text=ItemText[i];
+#else
+    _tcscpy(Items[i].Text,GetMsg(Msgs[i]));
+#endif
   }
+#ifdef UNICODE
+  ItemText[1][0]=0;
+#else
   Items[1].Text[0]=0;
+#endif
   Items[1].Separator=TRUE;
   int MenuCode=0,SelectedItem=0;
   do
   {
     Items[SelectedItem].Selected=TRUE;
-    MenuCode=Info.Menu(Info.ModuleNumber,-1,-1,0,FMENU_AUTOHIGHLIGHT|FMENU_WRAPMODE,GetMsg(MEditCmpl),Bottom,"Contents",NULL,NULL,&Items[Offset],sizeof(Msgs)/sizeof(Msgs[0])-Offset);
+    MenuCode=Info.Menu(Info.ModuleNumber,-1,-1,0,FMENU_AUTOHIGHLIGHT|FMENU_WRAPMODE,GetMsg(MEditCmpl),Bottom,_T("Contents"),NULL,NULL,&Items[Offset],sizeof(Msgs)/sizeof(Msgs[0])-Offset);
     Items[SelectedItem].Selected=FALSE;
     SelectedItem=MenuCode;
     if(MenuCode>=0) MenuCode+=Offset;

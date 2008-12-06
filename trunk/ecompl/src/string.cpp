@@ -34,28 +34,28 @@ void string::copy(const string& Value)
 {
   if(enlarge(Value.current_size))
   {
-    memcpy(data,Value.data,Value.current_size);
+    memcpy(data,Value.data,Value.current_size*sizeof(UTCHAR));
     current_size=Value.current_size;
     hash_start=Value.hash_start;
   }
 }
 
-void string::copy(const unsigned char *Value)
+void string::copy(const UTCHAR *Value)
 {
-  int len=strlen((const char *)Value)+1;
+  int len=_tcslen((const TCHAR *)Value)+1;
   if(enlarge(len))
   {
-    memcpy(data,Value,len);
+    memcpy(data,Value,len*sizeof(UTCHAR));
     current_size=len;
     hash_start=0;
   }
 }
 
-void string::copy(const unsigned char *Value,size_t size)
+void string::copy(const UTCHAR *Value,size_t size)
 {
   if(enlarge(size+1))
   {
-    memcpy(data,Value,size);
+    memcpy(data,Value,size*sizeof(UTCHAR));
     data[size]=0;
     current_size=size+1;
     hash_start=0;
@@ -68,12 +68,12 @@ bool string::enlarge(size_t size)
   if(actual_size>=new_actual_size) return true;
   void *new_data;
   if(data)
-    new_data=HeapReAlloc(heap,HEAP_ZERO_MEMORY,data,new_actual_size);
+    new_data=HeapReAlloc(heap,HEAP_ZERO_MEMORY,data,new_actual_size*sizeof(TCHAR));
   else
-    new_data=HeapAlloc(heap,HEAP_ZERO_MEMORY,new_actual_size);
+    new_data=HeapAlloc(heap,HEAP_ZERO_MEMORY,new_actual_size*sizeof(TCHAR));
   if(new_data)
   {
-    data=(unsigned char *)new_data;
+    data=(UTCHAR *)new_data;
     actual_size=new_actual_size;
     return true;
   }
@@ -85,13 +85,13 @@ string::string()
   init();
 }
 
-string::string(const unsigned char *Value)
+string::string(const UTCHAR *Value)
 {
   init();
   copy(Value);
 }
 
-string::string(const unsigned char *Value,size_t size)
+string::string(const UTCHAR *Value,size_t size)
 {
   init();
   copy(Value,size);
@@ -115,25 +115,25 @@ string &string::operator=(const string& Value)
   return *this;
 }
 
-string &string::operator=(const unsigned char *Value)
+string &string::operator=(const UTCHAR *Value)
 {
   copy(Value);
   return *this;
 }
 
-string &string::operator()(const unsigned char *Value,size_t size)
+string &string::operator()(const UTCHAR *Value,size_t size)
 {
   copy(Value,size);
   return *this;
 }
 
-string::operator const unsigned char *() const
+string::operator const UTCHAR *() const
 {
   if(data) return data;
   return default_data;
 }
 
-unsigned char &string::operator[](size_t index)
+UTCHAR &string::operator[](size_t index)
 {
   if(index>=current_size) return default_data[0];
   return data[index];
@@ -147,7 +147,7 @@ size_t string::length(void) const
 #if !defined(__STRING_REVERSE)
 void string::reverse(void)
 {
-  if(data) _strrev((char *)data);
+  if(data) _tcsrev((TCHAR*)data);
 }
 #endif
 
@@ -161,7 +161,7 @@ void string::hash(size_t pos)
   hash_start=pos;
 }
 
-unsigned char *string::get(void)
+UTCHAR *string::get(void)
 {
   if(data) return data;
   return default_data;
@@ -176,7 +176,7 @@ void string::clear(void)
   }
 }
 
-string& string::operator+=(unsigned char Value)
+string& string::operator+=(UTCHAR Value)
 {
   if(enlarge(current_size+(current_size?1:2)))
   {
@@ -189,7 +189,7 @@ string& string::operator+=(unsigned char Value)
 
 int operator==(const string& x,const string& y)
 {
-  if(x.length()==y.length()) return memcmp((const unsigned char *)x,(const unsigned char *)y,x.length());
+  if(x.length()==y.length()) return memcmp((const UTCHAR *)x,(const UTCHAR *)y,x.length());
   else return x.length()-y.length();
 }
 
@@ -199,8 +199,8 @@ string operator+(string& x,string& y)
   string result;
   if(result.enlarge(x.length()+y.length()+1))
   {
-    memcpy(result.data,x.data,x.length());
-    memcpy(result.data+x.length(),y.data,y.length()+1);
+    memcpy(result.data,x.data,x.length()*sizeof(UTCHAR));
+    memcpy(result.data+x.length(),y.data,(y.length()+1)*sizeof(UTCHAR));
     result.current_size=x.length()+y.length()+1;
     result.hash_start=0;
   }

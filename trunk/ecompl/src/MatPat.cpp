@@ -18,9 +18,8 @@
 */
 
 #include "MatPat.h"
-#include <string.h>
 
-bool MatchPattern(unsigned char *raw,unsigned char *pat,unsigned char asterisk)
+bool MatchPattern(UTCHAR* raw,UTCHAR* pat,UTCHAR asterisk)
 {
   int i,slraw;
   if((*pat=='\0')&&(*raw=='\0'))                            /*  if it is end of both   */
@@ -31,7 +30,7 @@ bool MatchPattern(unsigned char *raw,unsigned char *pat,unsigned char asterisk)
   {
     if(*(pat+1)=='\0')                                      /*    if it is end of pat  */
       return true;                                          /*    then match           */
-    for(i=0,slraw=strlen((char *)raw);i<=slraw;i++)         /*    else hunt for match  */
+    for(i=0,slraw=_tcslen((TCHAR*)raw);i<=slraw;i++)        /*    else hunt for match  */
       if((*(raw+i)==*(pat+1))||(*(pat+1)=='?'))             /*         or wild card    */
         if(MatchPattern(raw+i+1,pat+2,asterisk)==true)      /*      if found,match     */
           return true;                                      /*        rest of pat      */

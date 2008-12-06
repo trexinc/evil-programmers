@@ -102,7 +102,7 @@ avl_word_data *avl_word_tree::insert(avl_word_data *data)
     {
       if(FSF.LUpper(data->data[i])!=FSF.LUpper(partial[i])) { reslen=i; break; }
     }
-    partial((const unsigned char *)partial,reslen);
+    partial((const UTCHAR *)partial,reslen);
   }
   else
   {

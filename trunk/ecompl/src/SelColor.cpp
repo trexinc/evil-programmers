@@ -20,6 +20,22 @@
 #include "language.hpp"
 #include "EditCmpl.hpp"
 #include <stdio.h>
+#include <tchar.h>
+
+#ifndef UNICODE
+#define GetCheck(i) DialogItems[i].Selected
+#define GetFlags(i,hDlg) DialogItems[i].Flags
+#define DM_GETDLGITEMSHORT DM_GETDLGITEM
+#define DM_SETDLGITEMSHORT DM_SETDLGITEM
+#else
+#define GetCheck(i) (int)Info.SendDlgMessage(hDlg,DM_GETCHECK,i,0)
+static inline DWORD GetFlags(int i,HANDLE hDlg)
+{
+  FarDialogItem DialogItem;
+  if(Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,i,(LONG_PTR)&DialogItem)) return DialogItem.Flags;
+  return 0;
+}
+#endif
 
 enum
 {
@@ -36,34 +52,41 @@ enum
 
 static long WINAPI ColorDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
 {
-  int color=0; FarDialogItem DialogItem;
+  int color=0;
+  FarDialogItem DialogItem;
   switch(Msg)
   {
     case DN_INITDIALOG:
     case DN_BTNCLICK:
       for(int i=1;i<17;i++)
       {
-        Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,(long)&DialogItem);
-        if(DialogItem.Selected)
+        if(Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,i,(LONG_PTR)&DialogItem))
         {
-          color|=(DialogItem.Flags&0xF0)>>4;
-          break;
+          if(DialogItem.Selected)
+          {
+            color|=(DialogItem.Flags&0xF0)>>4;
+            break;
+          }
         }
       }
       for(int i=18;i<34;i++)
       {
-        Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,(long)&DialogItem);
-        if(DialogItem.Selected)
+        if(Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,i,(LONG_PTR)&DialogItem))
         {
-          color|=(DialogItem.Flags&0xF0);
-          break;
+          if(DialogItem.Selected)
+          {
+            color|=(DialogItem.Flags&0xF0);
+            break;
+          }
         }
       }
       for(int i=36;i<39;i++)
       {
-        Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,(long)&DialogItem);
-        DialogItem.Flags=(DialogItem.Flags&0xffffff00)|color;
-        Info.SendDlgMessage(hDlg,DM_SETDLGITEM,i,(long)&DialogItem);
+        if(Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,i,(LONG_PTR)&DialogItem))
+        {
+          DialogItem.Flags=(DialogItem.Flags&0xffffff00)|color;
+          Info.SendDlgMessage(hDlg,DM_SETDLGITEMSHORT,i,(LONG_PTR)&DialogItem);
+        }
       }
       break;
   }
@@ -72,6 +95,7 @@ static long WINAPI ColorDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
 
 bool SelectColor(int *fg,int *bg)
 {
+  bool result=false;
   //Show dialog
   /*
     000000000011111111112222222222333333333
@@ -105,13 +129,13 @@ bool SelectColor(int *fg,int *bg)
   DialogItems[color_box_fg].Y1=2;
   DialogItems[color_box_fg].X2=18;
   DialogItems[color_box_fg].Y2=7;
-  strcpy(DialogItems[color_box_fg].Data,GetMsg(MColorForeground));
+  INIT_DLG_DATA(DialogItems[color_box_fg],GetMsg(MColorForeground));
   DialogItems[color_box_bg].Type=DI_SINGLEBOX;
   DialogItems[color_box_bg].X1=20;
   DialogItems[color_box_bg].Y1=2;
   DialogItems[color_box_bg].X2=33;
   DialogItems[color_box_bg].Y2=7;
-  strcpy(DialogItems[color_box_bg].Data,GetMsg(MColorBackground));
+  INIT_DLG_DATA(DialogItems[color_box_bg],GetMsg(MColorBackground));
   for(int i=0,shift=1;i<2;i++,shift+=color_box_bg-color_box_fg)
     for(int j=0;j<16;j++)
     {
@@ -127,7 +151,7 @@ bool SelectColor(int *fg,int *bg)
     DialogItems[color_set+i].Y1=12;
     DialogItems[color_set+i].Flags=DIF_CENTERGROUP;
     DialogItems[color_set+i].DefaultButton=!i;
-    strcpy(DialogItems[color_set+i].Data,GetMsg(MColorSet+i));
+    INIT_DLG_DATA(DialogItems[color_set+i],GetMsg(MColorSet+i));
   }
   for(int i=0;i<3;i++)
   {
@@ -135,14 +159,14 @@ bool SelectColor(int *fg,int *bg)
     DialogItems[color_test1+i].X1=5;
     DialogItems[color_test1+i].Y1=i+8;
     DialogItems[color_test1+i].Flags=DIF_SETCOLOR;
-    strcpy(DialogItems[color_test1+i].Data,GetMsg(MColorTest1+i));
+    INIT_DLG_DATA(DialogItems[color_test1+i],GetMsg(MColorTest1+i));
   }
   DialogItems[color_border].Type=DI_DOUBLEBOX;
   DialogItems[color_border].X1=3;
   DialogItems[color_border].Y1=1;
   DialogItems[color_border].X2=35;
   DialogItems[color_border].Y2=13;
-  strcpy(DialogItems[color_border].Data,GetMsg(MColorMain));
+  INIT_DLG_DATA(DialogItems[color_border],GetMsg(MColorMain));
   DialogItems[color_sep].Type=DI_TEXT;
   DialogItems[color_sep].X1=-1;
   DialogItems[color_sep].Y1=11;
@@ -150,22 +174,34 @@ bool SelectColor(int *fg,int *bg)
 
   DialogItems[color_translate[*fg]+1].Focus=DialogItems[color_translate[*fg]+1].Selected=true;
   DialogItems[color_translate[*bg]+18].Selected=true;
-  int DlgCode=Info.DialogEx(Info.ModuleNumber,-1,-1,39,15,NULL,DialogItems,(sizeof(DialogItems)/sizeof(DialogItems[0])),0,0,ColorDialogProc,0);
+  int DlgCode=-1;
+#ifdef UNICODE
+  HANDLE hDlg=Info.DialogInit
+#else
+  DlgCode=Info.DialogEx
+#endif
+  (Info.ModuleNumber,-1,-1,39,15,NULL,DialogItems,(sizeof(DialogItems)/sizeof(DialogItems[0])),0,0,ColorDialogProc,0);
+#ifdef UNICODE
+  if(hDlg!=INVALID_HANDLE_VALUE) DlgCode=Info.DialogRun(hDlg);
+#endif
   if(DlgCode==color_set)
   {
     for(int i=1;i<17;i++)
-      if(DialogItems[i].Selected)
+      if(GetCheck(i))
       {
-        *fg=(DialogItems[i].Flags&0xF0)>>4;
+        *fg=(GetFlags(i,hDlg)&0xF0)>>4;
         break;
       }
     for(int i=18;i<34;i++)
-      if(DialogItems[i].Selected)
+      if(GetCheck(i))
       {
-        *bg=(DialogItems[i].Flags&0xF0)>>4;
+        *bg=(GetFlags(i,hDlg)&0xF0)>>4;
         break;
       }
-    return true;
+    result=true;
   }
-  return false;
+#ifdef UNICODE
+  if(hDlg!=INVALID_HANDLE_VALUE) Info.DialogFree(hDlg);
+#endif
+  return result;
 }

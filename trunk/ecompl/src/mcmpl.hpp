@@ -28,9 +28,13 @@ class TMenuCompletion: public TCompletion
     int SingleVariantInMenu;
     int NotFoundSound;
     int SortListCount;
-    char ShortCuts[80];
+    TCHAR ShortCuts[80];
     int ShortCutsLen;
-    char AcceptChars[256];
+    TCHAR AcceptChars[256];
+#ifdef UNICODE
+    TCHAR AsteriskSymbolText[2];
+    TCHAR SortListCountText[21];
+#endif
   protected:
     bool ShowMenu(string &Selected);
   protected: //options
@@ -41,9 +45,13 @@ class TMenuCompletion: public TCompletion
     int DialogHeight(void);
     long DialogProc(HANDLE hDlg,int Msg,int Param1,long Param2);
     void InitItems(FarDialogItem *DialogItems);
+#ifdef UNICODE
+    void StoreItems(HANDLE hDlg);
+#else
     void StoreItems(FarDialogItem *DialogItems);
+#endif
   public:
-    TMenuCompletion(const char *RegRoot);
+    TMenuCompletion(const TCHAR *RegRoot);
     ~TMenuCompletion();
     bool CompleteWord(void);
 };

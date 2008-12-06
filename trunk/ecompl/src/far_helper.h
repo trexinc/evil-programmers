@@ -1,7 +1,6 @@
 /*
-    MatPat.h
-    Copyright (C) 2000-2001 Igor Lyubimov
-    Copyright (C) 2002-2008 zg
+    far_helper.h
+    Copyright (C) 2008 zg
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,13 +16,19 @@
     along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __MATPAT_H__
-#define __MATPAT_H__
+#ifndef __FAR_HELPER_H__
+#define __FAR_HELPER_H__
 
-#include <windows.h>
-#include <tchar.h>
-#include "far_helper.h"
+#define ArraySize(a) (sizeof(a)/sizeof(a[0]))
 
-bool MatchPattern(UTCHAR* raw,UTCHAR* pat,UTCHAR asterisk);
+#ifdef UNICODE
+typedef unsigned short UTCHAR;
+#define t_FarKeyToName(Key,KeyText,Size) FSF.FarKeyToName(Key,KeyText,Size)
+#define INIT_DLG_DATA(item,str) item.PtrData=str
+#else
+typedef unsigned char UTCHAR;
+#define t_FarKeyToName(Key,KeyText,Size) FSF.FarKeyToName(Key,KeyText,Size-1)
+#define INIT_DLG_DATA(item,str) _tcscpy(item.Data,str)
+#endif
 
 #endif
