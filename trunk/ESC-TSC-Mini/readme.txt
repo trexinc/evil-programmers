@@ -17,12 +17,10 @@ About
 ÄÄÄÄÄ
 
 What this plugin does, it lets you change the settings of ESC for  the  current
-editor session. To use this plugin you'll need FAR version 1.70 build  1282  or
+editor session. To use this plugin you'll need FAR version 1.70 build  2087  or
 newer and the ESC plugin version 1.0 or newer. ESC is an excellent creation  by
-Ivan Sintyurin <spinoza@mail.ru>.
+Ivan Sintyurin <spinoza@mail.ru> which is currently maintained by me.
 To get hold of your own copy of ESC visit:
-http://www.moris.ru/~spinoza - The author's home page
-or
 http://plugring.farmanager.com/ - The PlugRinG
 
 
