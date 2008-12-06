@@ -22,7 +22,13 @@
 #include "EditCmpl.hpp"
 #include "language.hpp"
 
-TAutoCompletion::TAutoCompletion(const char *RegRoot): TCompletion(RegRoot)
+#ifdef UNICODE
+#define _KEY_CHAR UnicodeChar
+#else
+#define _KEY_CHAR AsciiChar
+#endif
+
+TAutoCompletion::TAutoCompletion(const TCHAR *RegRoot): TCompletion(RegRoot)
 {
   WorkInsideWord=false;
   CaseSensitive=true;
@@ -36,8 +42,8 @@ TAutoCompletion::TAutoCompletion(const char *RegRoot): TCompletion(RegRoot)
   DeleteKey=-1;
   Color=0x2F;
   AcceptChars[0]=0;
-  strcat(RegKey,"\\AutoCompletion");
-  strcpy(ConfigHelpTopic,"ConfigAuto");
+  _tcscat(RegKey,_T("\\AutoCompletion"));
+  _tcscpy(ConfigHelpTopic,_T("ConfigAuto"));
   GetOptions();
 }
 
@@ -59,7 +65,7 @@ int TAutoCompletion::ProcessEditorInput(const INPUT_RECORD *Rec)
         if(Window->Active&&Rec->Event.KeyEvent.wVirtualKeyCode!=0&&Rec->Event.KeyEvent.wVirtualScanCode!=0)
         {
           int FarKey=FSF.FarInputRecordToKey(Rec);
-          if(FarKey==AcceptKey||(Rec->Event.KeyEvent.uChar.AsciiChar&&strchr(AcceptChars,Rec->Event.KeyEvent.uChar.AsciiChar)))
+          if(FarKey==AcceptKey||(Rec->Event.KeyEvent.uChar._KEY_CHAR&&_tcschr(AcceptChars,Rec->Event.KeyEvent.uChar._KEY_CHAR)))
           {
             IgnoreThisEvent=AcceptVariant(Window)&&(FarKey==AcceptKey);
           }
@@ -69,8 +75,9 @@ int TAutoCompletion::ProcessEditorInput(const INPUT_RECORD *Rec)
             IgnoreThisEvent=(FarKey==DeleteKey);
           }
         }
-        unsigned char c=Rec->Event.KeyEvent.uChar.AsciiChar;
-        if(IsAlpha(c)&&!(Rec->Event.KeyEvent.dwControlKeyState&(LEFT_ALT_PRESSED|LEFT_CTRL_PRESSED|RIGHT_ALT_PRESSED|RIGHT_CTRL_PRESSED))) Window->On=true;
+        UTCHAR c=Rec->Event.KeyEvent.uChar._KEY_CHAR;
+        DWORD control=Rec->Event.KeyEvent.dwControlKeyState&(LEFT_ALT_PRESSED|LEFT_CTRL_PRESSED|RIGHT_ALT_PRESSED|RIGHT_CTRL_PRESSED);
+        if(IsAlpha(c)&&(control==0||control==(LEFT_CTRL_PRESSED|RIGHT_ALT_PRESSED))) Window->On=true;
       }
     }
     else if((Rec->EventType==MOUSE_EVENT&&Rec->Event.MouseEvent.dwButtonState)||Rec->EventType==FARMACRO_KEY_EVENT)
@@ -131,12 +138,14 @@ bool TAutoCompletion::CheckText(int Pos,int Row,avl_window_data *Window)
   Info.EditorControl(ECTL_GETSTRING,&gs);
   if(gs.StringLength>Pos)
   {
-    string Line((const unsigned char *)gs.StringText,gs.StringLength);
+    string Line((const UTCHAR*)gs.StringText,gs.StringLength);
+#ifndef UNICODE
     EditorConvertText ct;
     ct.TextLength=Line.length();
-    ct.Text=(char *)Line.get();
+    ct.Text=(TCHAR *)Line.get();
     Info.EditorControl(ECTL_EDITORTOOEM,&ct);
-    if(!strncmp((const char *)(const unsigned char *)Line+Pos,(const char *)(const unsigned char *)Window->Inserted,Window->Inserted.length()))
+#endif
+    if(!_tcsncmp((const TCHAR *)(const UTCHAR*)Line+Pos,(const TCHAR *)(const UTCHAR*)Window->Inserted,Window->Inserted.length()))
     {
       //set position to word start
       SetCurPos(Pos-Window->OldLen,Row);
@@ -207,7 +216,7 @@ bool TAutoCompletion::PutVariant(avl_window_data *Window)
       DWORD ThreadID;
       Stop=FALSE;
       handles[0]=CreateThread(NULL,0,SearchThread,this,CREATE_SUSPENDED,&ThreadID);
-      handles[1]=CreateFile("CONIN$",GENERIC_READ|GENERIC_WRITE,FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
+      handles[1]=CreateFile(_T("CONIN$"),GENERIC_READ|GENERIC_WRITE,FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
       if(handles[0]&&handles[1])
       {
         ResumeThread(handles[0]);
@@ -315,25 +324,25 @@ bool TAutoCompletion::CompleteWord(void)
 void TAutoCompletion::GetOptions(void)
 {
   TCompletion::GetOptions();
-  Color=GetRegKey("Color",Color);
-  AcceptKey=GetRegKey("AcceptKey","Tab");
-  DeleteKey=GetRegKey("DeleteKey","");
-  AcceptFromMenu=GetRegKey("AcceptFromMenu",AcceptFromMenu);
-  GetRegKey("AcceptChars",AcceptChars,sizeof(AcceptChars));
+  Color=GetRegKey(_T("Color"),Color);
+  AcceptKey=GetRegKey(_T("AcceptKey"),_T("Tab"));
+  DeleteKey=GetRegKey(_T("DeleteKey"),_T(""));
+  AcceptFromMenu=GetRegKey(_T("AcceptFromMenu"),AcceptFromMenu);
+  GetRegKey(_T("AcceptChars"),AcceptChars,sizeof(AcceptChars));
 }
 
 void TAutoCompletion::SetOptions(void)
 {
   TCompletion::SetOptions();
-  SetRegKey("Color",Color);
-  SetRegKey("AcceptFromMenu",AcceptFromMenu);
-  SetRegKey("AcceptChars",AcceptChars);
+  SetRegKey(_T("Color"),Color);
+  SetRegKey(_T("AcceptFromMenu"),AcceptFromMenu);
+  SetRegKey(_T("AcceptChars"),AcceptChars);
   {
-    char Key[256];
-    if(!FSF.FarKeyToName(AcceptKey,Key,sizeof(Key)-1)) Key[0]=0;
-    SetRegKey("AcceptKey",Key);
-    if(!FSF.FarKeyToName(DeleteKey,Key,sizeof(Key)-1)) Key[0]=0;
-    SetRegKey("DeleteKey",Key);
+    TCHAR Key[256];
+    if(!t_FarKeyToName(AcceptKey,Key,ArraySize(Key))) Key[0]=0;
+    SetRegKey(_T("AcceptKey"),Key);
+    if(!t_FarKeyToName(DeleteKey,Key,ArraySize(Key))) Key[0]=0;
+    SetRegKey(_T("DeleteKey"),Key);
   }
 }
 
@@ -360,8 +369,8 @@ long WINAPI GetKey(HANDLE hDlg,int Msg,int Param1,long Param2)
   }
   else if(Msg==DM_KEY)
   {
-    char *KeyName=(char *)Info.SendDlgMessage(hDlg,DM_GETDLGDATA,0,0);
-    FSF.FarKeyToName(Param2,KeyName,0);
+    TCHAR *KeyName=(TCHAR *)Info.SendDlgMessage(hDlg,DM_GETDLGDATA,0,0);
+    t_FarKeyToName(Param2,KeyName,256);
     Info.SendDlgMessage(hDlg,DM_CLOSE,-1,0);
   }
   return Info.DefDlgProc(hDlg,Msg,Param1,Param2);
@@ -376,20 +385,41 @@ long TAutoCompletion::DialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
     if(Param1==IAcceptKeyCfg||Param1==IDeleteKeyCfg)
     {
       Info.SendDlgMessage(hDlg,DM_SHOWDIALOG,FALSE,0);
-      char KeyName[256];
+      TCHAR KeyName[256];
       Info.SendDlgMessage(hDlg,DM_GETTEXTPTR,IAcceptKey,(long)&KeyName);
       FarDialogItem DialogFrame;
-      strcpy(DialogFrame.Data,GetMsg(MPressDesiredKey));
+      INIT_DLG_DATA(DialogFrame,GetMsg(MPressDesiredKey));
       DialogFrame.Type=DI_DOUBLEBOX;
       DialogFrame.X1=1;
       DialogFrame.Y1=1;
-      DialogFrame.X2=strlen(DialogFrame.Data)+4;
+#ifdef UNICODE
+      DialogFrame.X2=_tcslen(DialogFrame.PtrData)+4;
+#else
+      DialogFrame.X2=_tcslen(DialogFrame.Data)+4;
+#endif
       DialogFrame.Y2=3;
       DialogFrame.Focus=1;
       DialogFrame.Selected=1;
       DialogFrame.Flags=DIF_BOXCOLOR;
       DialogFrame.DefaultButton=1;
-      Info.DialogEx(Info.ModuleNumber,-1,-1,strlen(DialogFrame.Data)+6,5,ConfigHelpTopic,&DialogFrame,1,0,0,GetKey,(DWORD)KeyName);
+#ifdef UNICODE
+      int width=_tcslen(DialogFrame.PtrData)+6;
+#else
+      int width=_tcslen(DialogFrame.Data)+6;
+#endif
+#ifdef UNICODE
+      HANDLE hDlgIn=Info.DialogInit
+#else
+      Info.DialogEx
+#endif
+      (Info.ModuleNumber,-1,-1,width,5,ConfigHelpTopic,&DialogFrame,1,0,0,GetKey,(DWORD)KeyName);
+#ifdef UNICODE
+      if(hDlgIn!=INVALID_HANDLE_VALUE)
+      {
+        Info.DialogRun(hDlgIn);
+        Info.DialogFree(hDlgIn);
+      }
+#endif
       Info.SendDlgMessage(hDlg,DM_SETTEXTPTR,(Param1==IAcceptKeyCfg)?IAcceptKey:IDeleteKey,(long)&KeyName);
       Info.SendDlgMessage(hDlg,DM_SHOWDIALOG,TRUE,0);
       return TRUE;
@@ -449,7 +479,7 @@ void TAutoCompletion::InitItems(FarDialogItem *DialogItems)
     DialogItems[i+CMPL_DIALOG_ITEMS].Selected=0;
     DialogItems[i+CMPL_DIALOG_ITEMS].Flags=0;
     DialogItems[i+CMPL_DIALOG_ITEMS].DefaultButton=0;
-    strcpy(DialogItems[i+CMPL_DIALOG_ITEMS].Data,GetMsg(Msgs[i])); // Надписи на эл-тах диалога
+    INIT_DLG_DATA(DialogItems[i+CMPL_DIALOG_ITEMS],GetMsg(Msgs[i])); // Надписи на эл-тах диалога
   }
 
   Dialog_Color=Color;
@@ -457,36 +487,74 @@ void TAutoCompletion::InitItems(FarDialogItem *DialogItems)
   DialogItems[IAcceptFromMenu].Selected=AcceptFromMenu;
 
   // Что будет в строках ввода
-  FSF.sprintf(DialogItems[IMinPreWordLen].Data,"%X",MinPreWordLen);
-  strcpy(DialogItems[IAcceptChars].Data,AcceptChars);
-  DialogItems[IAcceptChars].X2=DialogWidth()-strlen(GetMsg(MAcceptChars))-4;
+#ifdef UNICODE
+  FSF.sprintf(MinPreWordLenText,_T("%X"),MinPreWordLen);
+  DialogItems[IMinPreWordLen].PtrData=MinPreWordLenText;
+#else
+  FSF.sprintf(DialogItems[IMinPreWordLen].Data,_T("%X"),MinPreWordLen);
+#endif
+  INIT_DLG_DATA(DialogItems[IAcceptChars],AcceptChars);
+
+  DialogItems[IAcceptChars].X2=DialogWidth()-_tcslen(GetMsg(MAcceptChars))-4;
   DialogItems[IAcceptCharsLabel].X1=DialogItems[IAcceptChars].X2+2;
 
-  FSF.FarKeyToName(AcceptKey,DialogItems[IAcceptKey].Data,0);
-  DialogItems[IAcceptKey].X2=DialogWidth()-strlen(GetMsg(MKeyCfg))-9;
-  DialogItems[IAcceptKeyCfg].X1=DialogWidth()-strlen(GetMsg(MKeyCfg))-7;
+#ifdef UNICODE
+  t_FarKeyToName(AcceptKey,AcceptKeyText,ArraySize(AcceptKeyText));
+  DialogItems[IAcceptKey].PtrData=AcceptKeyText;
+#else
+  t_FarKeyToName(AcceptKey,DialogItems[IAcceptKey].Data,ArraySize(DialogItems[IAcceptKey].Data));
+#endif
+  DialogItems[IAcceptKey].X2=DialogWidth()-_tcslen(GetMsg(MKeyCfg))-9;
+  DialogItems[IAcceptKeyCfg].X1=DialogWidth()-_tcslen(GetMsg(MKeyCfg))-7;
   DialogItems[IAcceptKeyCfg].Flags=DIF_NOBRACKETS;
-  FSF.sprintf(DialogItems[IAcceptKeyCfg].Data,"&[ %s ]",GetMsg(MKeyCfg));
+#ifdef UNICODE
+  FSF.sprintf(AcceptKeyCfgText,_T("&[ %s ]"),GetMsg(MKeyCfg));
+  DialogItems[IAcceptKeyCfg].PtrData=AcceptKeyCfgText;
+#else
+  FSF.sprintf(DialogItems[IAcceptKeyCfg].Data,_T("&[ %s ]"),GetMsg(MKeyCfg));
+#endif
 
-  FSF.FarKeyToName(DeleteKey,DialogItems[IDeleteKey].Data,0);
-  DialogItems[IDeleteKey].X2=DialogWidth()-strlen(GetMsg(MKeyCfg))-9;
-  DialogItems[IDeleteKeyCfg].X1=DialogWidth()-strlen(GetMsg(MKeyCfg))-7;
+#ifdef UNICODE
+  t_FarKeyToName(DeleteKey,DeleteKeyText,ArraySize(DeleteKeyText));
+  DialogItems[IDeleteKey].PtrData=DeleteKeyText;
+#else
+  t_FarKeyToName(DeleteKey,DialogItems[IDeleteKey].Data,ArraySize(DialogItems[IDeleteKey].Data));
+#endif
+  DialogItems[IDeleteKey].X2=DialogWidth()-_tcslen(GetMsg(MKeyCfg))-9;
+  DialogItems[IDeleteKeyCfg].X1=DialogWidth()-_tcslen(GetMsg(MKeyCfg))-7;
   DialogItems[IDeleteKeyCfg].Flags=DIF_NOBRACKETS;
-  FSF.sprintf(DialogItems[IDeleteKeyCfg].Data,"[ %s &]",GetMsg(MKeyCfg));
+#ifdef UNICODE
+  FSF.sprintf(DeleteKeyCfgText,_T("[ %s &]"),GetMsg(MKeyCfg));
+  DialogItems[IDeleteKeyCfg].PtrData=DeleteKeyCfgText;
+#else
+  FSF.sprintf(DialogItems[IDeleteKeyCfg].Data,_T("[ %s &]"),GetMsg(MKeyCfg));
+#endif
 
-  strcpy(DialogItems[ICfg].Data,GetMsg(MAutoCfg)); // Заголовок
-  strcpy(DialogItems[IAdditional].Data,GetMsg(MColor));
+  INIT_DLG_DATA(DialogItems[ICfg],GetMsg(MAutoCfg)); // Заголовок
+  INIT_DLG_DATA(DialogItems[IAdditional],GetMsg(MColor));
   DialogItems[IAdditional].Flags=DIF_CENTERGROUP;
   DialogItems[IAdditional].Y1=DialogHeight()-2;
 }
 
+#ifdef UNICODE
+#define GetCheck(i) ((int)Info.SendDlgMessage(hDlg,DM_GETCHECK,i,0))
+#define GetStr(i) ((const wchar_t*)Info.SendDlgMessage(hDlg,DM_GETCONSTTEXTPTR,i,0))
+void TAutoCompletion::StoreItems(HANDLE hDlg)
+#else
+#define GetCheck(i) DialogItems[i].Selected
+#define GetStr(i) DialogItems[i].Data
 void TAutoCompletion::StoreItems(FarDialogItem *DialogItems)
+#endif
 {
+#ifdef UNICODE
+  TCompletion::StoreItems(hDlg);
+#else
   TCompletion::StoreItems(DialogItems);
-  AcceptFromMenu=DialogItems[IAcceptFromMenu].Selected;
-  MinPreWordLen=FSF.atoi(DialogItems[IMinPreWordLen].Data);
+#endif
+  AcceptFromMenu=GetCheck(IAcceptFromMenu);
+  MinPreWordLen=FSF.atoi(GetStr(IMinPreWordLen));
   Color=Dialog_Color;
-  AcceptKey=FSF.FarNameToKey(DialogItems[IAcceptKey].Data);
-  DeleteKey=FSF.FarNameToKey(DialogItems[IDeleteKey].Data);
-  strcpy(AcceptChars,DialogItems[IAcceptChars].Data);
+  AcceptKey=FSF.FarNameToKey(GetStr(IAcceptKey));
+  DeleteKey=FSF.FarNameToKey(GetStr(IDeleteKey));
+  _tcscpy(AcceptChars,GetStr(IAcceptChars));
 }

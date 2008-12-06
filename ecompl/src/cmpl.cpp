@@ -24,7 +24,7 @@
 #include "string.hpp"
 #include "language.hpp"
 
-TCompletion::TCompletion(const char *RegRoot)
+TCompletion::TCompletion(const TCHAR *RegRoot)
 {
   Stop=FALSE;
 
@@ -45,8 +45,8 @@ TCompletion::TCompletion(const char *RegRoot)
 
   AsteriskSymbol=0;
 
-  strcpy(RegKey,RegRoot);
-  strcat(RegKey,"\\EditCompletion");
+  _tcscpy(RegKey,RegRoot);
+  _tcscat(RegKey,_T("\\EditCompletion"));
 
   ConfigHelpTopic[0]=0;
 }
@@ -66,7 +66,9 @@ int TCompletion::GetPreWord(void)
 {
   EditorInfo ei;
   EditorGetString gs;
+#ifndef UNICODE
   EditorConvertText ct;
+#endif
 
   Info.EditorControl(ECTL_GETINFO,&ei);
   if(ei.CurState&ECSTATE_LOCKED) return 0;
@@ -83,10 +85,12 @@ int TCompletion::GetPreWord(void)
   // в начале и в конце строки искать нечего!!!
   if(ei.CurPos>0&&ei.CurPos<=gs.StringLength)
   {
-    string Line((const unsigned char *)gs.StringText,gs.StringLength);
+    string Line((const UTCHAR *)gs.StringText,gs.StringLength);
+#ifndef UNICODE
     ct.TextLength=Line.length();
-    ct.Text=(char *)Line.get();
+    ct.Text=(TCHAR*)Line.get();
     Info.EditorControl(ECTL_EDITORTOOEM,&ct);
+#endif
     WordPos=ei.CurPos;
 
     // Если WorkInsideWord==FALSE, то под курсором не должно быть буквы
@@ -120,12 +124,14 @@ int TCompletion::DoSearch(void)
   gs.StringNumber=-1; // current string
   Info.EditorControl(ECTL_GETSTRING,&gs);
 
-  string Line((const unsigned char *)gs.StringText,gs.StringLength);
+  string Line((const UTCHAR *)gs.StringText,gs.StringLength);
   if(Line.length()==(size_t)gs.StringLength)
   {
+#ifndef UNICODE
     ct.TextLength=Line.length();
-    ct.Text=(char *)Line.get();
+    ct.Text=(TCHAR*)Line.get();
     Info.EditorControl(ECTL_EDITORTOOEM,&ct);
+#endif
     // просматриваем начало текущей строки
     AddWords(Line,ei.CurPos,0);
     // а теперь - конец (без Word)
@@ -148,10 +154,12 @@ int TCompletion::DoSearch(void)
       sp.CurLine=ei.CurLine+(j?i:-i); //вычисляем тек. строку
       Info.EditorControl(ECTL_SETPOSITION,&sp);
       Info.EditorControl(ECTL_GETSTRING,&gs);
-      Line((const unsigned char *)gs.StringText,gs.StringLength);
+      Line((const UTCHAR *)gs.StringText,gs.StringLength);
+#ifndef UNICODE
       ct.TextLength=Line.length();
-      ct.Text=(char *)Line.get();
+      ct.Text=(TCHAR*)Line.get();
       Info.EditorControl(ECTL_EDITORTOOEM,&ct);
+#endif
       AddWords(Line,Line.length(),j);
       if(WordList.count()>=WordsToFindCnt) break;
     }
@@ -165,10 +173,10 @@ int TCompletion::DoSearch(void)
   return WordList.count();
 }
 
-void TCompletion::AddWords(const unsigned char *Line,int Len,int Direction)
+void TCompletion::AddWords(const UTCHAR *Line,int Len,int Direction)
 {
   bool IsInsideWord=false;
-  unsigned char CurChar;
+  UTCHAR CurChar;
   string TmpWord;
   TmpWord.hash(Word.length());
   for(int i=0;i<Len;i++)
@@ -210,13 +218,13 @@ void TCompletion::AddWord(const string &NewWord)
 {
   if(NewWord.length()&&(int)WordList.count()<WordsToFindCnt&&NewWord.length()>Word.length()&&(int)NewWord.length()>=MinWordLen)
   {
-    if(AsteriskSymbol&&strchr((const char *)(const unsigned char *)Word,(int)AsteriskSymbol))
+    if(AsteriskSymbol&&_tcschr((const TCHAR*)(const UTCHAR*)Word,(int)AsteriskSymbol))
     {
       string TmpWord(Word),TmpNewWord(NewWord);
       if(!CaseSensitive)
       {
-        FSF.LUpperBuf((char *)TmpWord.get(),TmpWord.length());
-        FSF.LUpperBuf((char *)TmpNewWord.get(),TmpNewWord.length());
+        FSF.LUpperBuf((TCHAR*)TmpWord.get(),TmpWord.length());
+        FSF.LUpperBuf((TCHAR*)TmpNewWord.get(),TmpNewWord.length());
       }
       if(MatchPattern(TmpNewWord.get(),TmpWord.get(),AsteriskSymbol)) InsertWordIntoList(NewWord);
     }
@@ -224,11 +232,11 @@ void TCompletion::AddWord(const string &NewWord)
     {
       if(CaseSensitive)
       {
-        if(!strncmp((const char *)(const unsigned char *)NewWord,(const char *)(const unsigned char *)Word,Word.length())) InsertWordIntoList(NewWord);
+        if(!_tcsncmp((const TCHAR*)(const UTCHAR*)NewWord,(const TCHAR*)(const UTCHAR*)Word,Word.length())) InsertWordIntoList(NewWord);
       }
       else
       {
-        if(!FSF.LStrnicmp((const char *)(const unsigned char *)NewWord,(const char *)(const unsigned char *)Word,Word.length())) InsertWordIntoList(NewWord);
+        if(!FSF.LStrnicmp((const TCHAR*)(const UTCHAR*)NewWord,(const TCHAR*)(const UTCHAR*)Word,Word.length())) InsertWordIntoList(NewWord);
       }
     }
   }
@@ -251,7 +259,7 @@ bool TCompletion::IsAlpha(unsigned int c)
     else
       ret=FSF.LIsAlpha(c);
     if(!ret)
-      if(strchr(AdditionalLetters,c))
+      if(_tcschr(AdditionalLetters,c))
         ret=true;
   }
   return ret;
@@ -278,7 +286,7 @@ string TCompletion::PutWord(string NewWord)
   Info.EditorControl(ECTL_GETSTRING,&gs);
   if(!ei.Overtype)
   {
-    if(gs.StringLength>WordPos) OverwritedText((const unsigned char *)&gs.StringText[WordPos],MIN(ei.CurPos-WordPos,gs.StringLength-WordPos));
+    if(gs.StringLength>WordPos) OverwritedText((const UTCHAR *)&gs.StringText[WordPos],MIN(ei.CurPos-WordPos,gs.StringLength-WordPos));
     for(int i=WordPos;i<ei.CurPos;i++) Info.EditorControl(ECTL_DELETECHAR,NULL);
     //workaround
     Info.EditorControl(ECTL_GETINFO,&ei);
@@ -295,12 +303,14 @@ string TCompletion::PutWord(string NewWord)
   }
   else
   {
-    if(gs.StringLength>WordPos) OverwritedText((const unsigned char *)&gs.StringText[WordPos],MIN(NewWord.length(),(size_t)(gs.StringLength-WordPos)));
+    if(gs.StringLength>WordPos) OverwritedText((const UTCHAR *)&gs.StringText[WordPos],MIN(NewWord.length(),(size_t)(gs.StringLength-WordPos)));
   }
+#ifndef UNICODE
   //convert OverwritedText into OEM
   ct.TextLength=OverwritedText.length();
-  ct.Text=(char *)OverwritedText.get();
+  ct.Text=(TCHAR*)OverwritedText.get();
   Info.EditorControl(ECTL_EDITORTOOEM,&ct);
+#endif
 
   Info.EditorControl(ECTL_INSERTTEXT,(void *)NewWord.get());
   SetCurPos(OldPos);
@@ -319,7 +329,7 @@ void TCompletion::SetCurPos(int NewPos,int NewRow)
   Info.EditorControl(ECTL_SETPOSITION,&sp);
 }
 
-DWORD TCompletion::GetRegKey(const char *ValueName,DWORD Default)
+DWORD TCompletion::GetRegKey(const TCHAR* ValueName,DWORD Default)
 {
   DWORD result=Default;
   HKEY hKey; DWORD Type; DWORD DataSize=0;
@@ -332,7 +342,7 @@ DWORD TCompletion::GetRegKey(const char *ValueName,DWORD Default)
   return result;
 }
 
-void TCompletion::SetRegKey(const char *ValueName,DWORD Value)
+void TCompletion::SetRegKey(const TCHAR* ValueName,DWORD Value)
 {
   HKEY hKey;
   DWORD Disposition;
@@ -343,7 +353,7 @@ void TCompletion::SetRegKey(const char *ValueName,DWORD Value)
   }
 }
 
-void TCompletion::GetRegKey(const char *ValueName,char *buffer,DWORD size)
+void TCompletion::GetRegKey(const TCHAR* ValueName,TCHAR* buffer,DWORD size)
 {
   HKEY hKey; DWORD Type;
   if((RegOpenKeyEx(HKEY_CURRENT_USER,RegKey,0,KEY_QUERY_VALUE,&hKey))==ERROR_SUCCESS)
@@ -353,18 +363,18 @@ void TCompletion::GetRegKey(const char *ValueName,char *buffer,DWORD size)
   }
 }
 
-void TCompletion::SetRegKey(const char *ValueName,char *buffer)
+void TCompletion::SetRegKey(const TCHAR* ValueName,TCHAR* buffer)
 {
   HKEY hKey;
   DWORD Disposition;
   if((RegCreateKeyEx(HKEY_CURRENT_USER,RegKey,0,NULL,0,KEY_WRITE,NULL,&hKey,&Disposition))==ERROR_SUCCESS)
   {
-    RegSetValueEx(hKey,ValueName,0,REG_SZ,(LPBYTE)buffer,strlen(buffer)+1);
+    RegSetValueEx(hKey,ValueName,0,REG_SZ,(LPBYTE)buffer,(_tcslen(buffer)+1)*sizeof(TCHAR));
     RegCloseKey(hKey);
   }
 }
 
-int TCompletion::GetRegKey(const char *ValueName,const char *Default)
+int TCompletion::GetRegKey(const TCHAR* ValueName,const TCHAR* Default)
 {
   int result=-1;
   Key Key; HKEY hKey; DWORD Type; DWORD DataSize=0;
@@ -375,7 +385,7 @@ int TCompletion::GetRegKey(const char *ValueName,const char *Default)
     if(res!=ERROR_SUCCESS||(Type!=REG_DWORD&&Type!=REG_SZ))
     {
       Type=REG_SZ;
-      strcpy(Key.KeyName,Default);
+      _tcscpy(Key.KeyName,Default);
     }
     if(Type==REG_DWORD) result=Key.KeyCode;
     if(Type==REG_SZ) result=FSF.FarNameToKey(Key.KeyName);
@@ -386,32 +396,32 @@ int TCompletion::GetRegKey(const char *ValueName,const char *Default)
 
 void TCompletion::GetOptions(void)
 {
-  WorkInsideWord=GetRegKey("WorkInsideWord",WorkInsideWord);
-  CaseSensitive=GetRegKey("CaseSensitive",CaseSensitive);
-  BrowseDownward=GetRegKey("BrowseDownward",BrowseDownward);
-  MinPreWordLen=GetRegKey("MinPreWordLen",MinPreWordLen);
-  MinWordLen=GetRegKey("MinWordLen",MinWordLen);
-  BrowseLineCnt=GetRegKey("BrowseLineCnt",BrowseLineCnt);
-  WordsToFindCnt=GetRegKey("WordsToFindCnt",WordsToFindCnt);
-  ConsiderDigitAsChar=GetRegKey("ConsiderDigitAsChar",ConsiderDigitAsChar);
-  PartialCompletion=GetRegKey("PartialCompletion",PartialCompletion);
-  AddTrailingSpace=GetRegKey("AddTrailingSpace",AddTrailingSpace);
-  GetRegKey("AdditionalLetters",AdditionalLetters,sizeof(AdditionalLetters));
+  WorkInsideWord=GetRegKey(_T("WorkInsideWord"),WorkInsideWord);
+  CaseSensitive=GetRegKey(_T("CaseSensitive"),CaseSensitive);
+  BrowseDownward=GetRegKey(_T("BrowseDownward"),BrowseDownward);
+  MinPreWordLen=GetRegKey(_T("MinPreWordLen"),MinPreWordLen);
+  MinWordLen=GetRegKey(_T("MinWordLen"),MinWordLen);
+  BrowseLineCnt=GetRegKey(_T("BrowseLineCnt"),BrowseLineCnt);
+  WordsToFindCnt=GetRegKey(_T("WordsToFindCnt"),WordsToFindCnt);
+  ConsiderDigitAsChar=GetRegKey(_T("ConsiderDigitAsChar"),ConsiderDigitAsChar);
+  PartialCompletion=GetRegKey(_T("PartialCompletion"),PartialCompletion);
+  AddTrailingSpace=GetRegKey(_T("AddTrailingSpace"),AddTrailingSpace);
+  GetRegKey(_T("AdditionalLetters"),AdditionalLetters,sizeof(AdditionalLetters));
 }
 
 void TCompletion::SetOptions(void)
 {
-  SetRegKey("WorkInsideWord",WorkInsideWord);
-  SetRegKey("CaseSensitive",CaseSensitive);
-  SetRegKey("BrowseDownward",BrowseDownward);
-  SetRegKey("BrowseLineCnt",BrowseLineCnt);
-  SetRegKey("MinPreWordLen",MinPreWordLen);
-  SetRegKey("MinWordLen",MinWordLen);
-  SetRegKey("WordsToFindCnt",WordsToFindCnt);
-  SetRegKey("ConsiderDigitAsChar",ConsiderDigitAsChar);
-  SetRegKey("PartialCompletion",PartialCompletion);
-  SetRegKey("AddTrailingSpace",AddTrailingSpace);
-  SetRegKey("AdditionalLetters",AdditionalLetters);
+  SetRegKey(_T("WorkInsideWord"),WorkInsideWord);
+  SetRegKey(_T("CaseSensitive"),CaseSensitive);
+  SetRegKey(_T("BrowseDownward"),BrowseDownward);
+  SetRegKey(_T("BrowseLineCnt"),BrowseLineCnt);
+  SetRegKey(_T("MinPreWordLen"),MinPreWordLen);
+  SetRegKey(_T("MinWordLen"),MinWordLen);
+  SetRegKey(_T("WordsToFindCnt"),WordsToFindCnt);
+  SetRegKey(_T("ConsiderDigitAsChar"),ConsiderDigitAsChar);
+  SetRegKey(_T("PartialCompletion"),PartialCompletion);
+  SetRegKey(_T("AddTrailingSpace"),AddTrailingSpace);
+  SetRegKey(_T("AdditionalLetters"),AdditionalLetters);
 }
 
 void TCompletion::InitItems(FarDialogItem *DialogItems)
@@ -440,7 +450,7 @@ void TCompletion::InitItems(FarDialogItem *DialogItems)
     {DI_CHECKBOX,  3,  3,  0               }, // CaseSensitive
     {DI_CHECKBOX,  3,  4,  0               }, // ConsiderDigitAsChar
     {DI_TEXT,      3,  5,  0               }, //
-    {DI_EDIT,      3,  6,  DialogWidth()-4 },  // AdditionalLetters
+    {DI_EDIT,      3,  6,  DialogWidth()-4 }, // AdditionalLetters
     {DI_CHECKBOX,  3,  7,  0               }, // BrowseDownward
     {DI_TEXT,      8,  8,  0               }, //
     {DI_FIXEDIT,   3,  8,  6               }, // BrowseLineCnt
@@ -462,7 +472,7 @@ void TCompletion::InitItems(FarDialogItem *DialogItems)
     DialogItems[i].Selected=0;
     DialogItems[i].Flags=0;
     DialogItems[i].DefaultButton=0;
-    strcpy(DialogItems[i].Data,GetMsg(Msgs[i])); // Надписи на эл-тах диалога
+    INIT_DLG_DATA(DialogItems[i],GetMsg(Msgs[i])); // Надписи на эл-тах диалога
   }
 
   DialogItems[ICfg].X2=DialogWidth()-2;
@@ -487,24 +497,43 @@ void TCompletion::InitItems(FarDialogItem *DialogItems)
   DialogItems[IAddTrailingSpace].Selected=AddTrailingSpace;
 
   // Что будет в строках ввода
+#ifdef UNICODE
+  FSF.itoa(BrowseLineCnt,BrowseLineCntText,10);
+  DialogItems[IBrowseLineCnt].PtrData=BrowseLineCntText;
+  FSF.itoa(WordsToFindCnt,WordsToFindCntText,10);
+  DialogItems[IWordsToFindCnt].PtrData=WordsToFindCntText;
+  FSF.itoa(MinWordLen,MinWordLenText,10);
+  DialogItems[IMinWordLen].PtrData=MinWordLenText;
+  DialogItems[IAdditionalLetters].PtrData=AdditionalLetters;
+  DialogItems[IAdditionalLetters].MaxLen=sizeof(AdditionalLetters)/sizeof(AdditionalLetters[0])-1;
+#else
   FSF.itoa(BrowseLineCnt,DialogItems[IBrowseLineCnt].Data,10);
   FSF.itoa(WordsToFindCnt,DialogItems[IWordsToFindCnt].Data,10);
   FSF.itoa(MinWordLen,DialogItems[IMinWordLen].Data,10);
   FSF.sprintf(DialogItems[IAdditionalLetters].Data,"%s",AdditionalLetters);
+#endif
 }
 
+#ifdef UNICODE
+#define GetCheck(i) (int)Info.SendDlgMessage(hDlg,DM_GETCHECK,i,0)
+#define GetStr(i) (const wchar_t*)Info.SendDlgMessage(hDlg,DM_GETCONSTTEXTPTR,i,0)
+void TCompletion::StoreItems(HANDLE hDlg)
+#else
+#define GetCheck(i) DialogItems[i].Selected
+#define GetStr(i) DialogItems[i].Data
 void TCompletion::StoreItems(FarDialogItem *DialogItems)
+#endif
 {
-  WorkInsideWord=DialogItems[IWorkInsideWord].Selected;
-  CaseSensitive=DialogItems[ICaseSensitive].Selected;
-  BrowseDownward=DialogItems[IBrowseDownward].Selected;
-  ConsiderDigitAsChar=DialogItems[IConsiderDigitAsChar].Selected;
-  PartialCompletion=DialogItems[IPartialCompletion].Selected;
-  AddTrailingSpace=DialogItems[IAddTrailingSpace].Selected;
-  BrowseLineCnt=FSF.atoi(DialogItems[IBrowseLineCnt].Data);
-  WordsToFindCnt=FSF.atoi(DialogItems[IWordsToFindCnt].Data);
-  MinWordLen=FSF.atoi(DialogItems[IMinWordLen].Data);
-  FSF.sprintf(AdditionalLetters,"%s",DialogItems[IAdditionalLetters].Data);
+  WorkInsideWord=GetCheck(IWorkInsideWord);
+  CaseSensitive=GetCheck(ICaseSensitive);
+  BrowseDownward=GetCheck(IBrowseDownward);
+  ConsiderDigitAsChar=GetCheck(IConsiderDigitAsChar);
+  PartialCompletion=GetCheck(IPartialCompletion);
+  AddTrailingSpace=GetCheck(IAddTrailingSpace);
+  BrowseLineCnt=FSF.atoi(GetStr(IBrowseLineCnt));
+  WordsToFindCnt=FSF.atoi(GetStr(IWordsToFindCnt));
+  MinWordLen=FSF.atoi(GetStr(IMinWordLen));
+  FSF.sprintf(AdditionalLetters,_T("%s"),GetStr(IAdditionalLetters));
 }
 
 long WINAPI ConfigDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
@@ -526,11 +555,28 @@ void TCompletion::ShowDialog()
   if(DialogItems)
   {
     InitItems(DialogItems);
-    if(Info.DialogEx(Info.ModuleNumber,-1,-1,DialogWidth(),DialogHeight(),ConfigHelpTopic,DialogItems,GetItemCount(),0,0,ConfigDialogProc,(DWORD)this)==IOk)
+    int DlgCode=-1;
+#ifdef UNICODE
+    HANDLE hDlg=Info.DialogInit
+#else
+    DlgCode=Info.DialogEx
+#endif
+    (Info.ModuleNumber,-1,-1,DialogWidth(),DialogHeight(),ConfigHelpTopic,DialogItems,GetItemCount(),0,0,ConfigDialogProc,(DWORD)this);
+#ifdef UNICODE
+    if(hDlg!=INVALID_HANDLE_VALUE) DlgCode=Info.DialogRun(hDlg);
+#endif
+    if(DlgCode==IOk)
     {
+#ifdef UNICODE
+      StoreItems(hDlg);
+#else
       StoreItems(DialogItems);
+#endif
       SetOptions();
     }
+#ifdef UNICODE
+    if(hDlg!=INVALID_HANDLE_VALUE) Info.DialogFree(hDlg);
+#endif
     HeapFree(GetProcessHeap(),0,DialogItems);
   }
 }

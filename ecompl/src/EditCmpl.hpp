@@ -20,6 +20,8 @@
 #ifndef __EDITCMPL_HPP__
 #define __EDITCMPL_HPP__
 
+#include <tchar.h>
+
 #define FAR165_INFO_SIZE 336
 
 extern PluginStartupInfo Info;
@@ -28,6 +30,12 @@ extern FARSTANDARDFUNCTIONS FSF;
 #include "avl_windows.hpp"
 extern avl_window_tree *windows;
 
-extern const char *GetMsg(int MsgId);
+extern const TCHAR *GetMsg(int MsgId);
+
+#ifndef UNICODE
+#define EXP_NAME(p) _export p
+#else
+#define EXP_NAME(p) _export p ## W
+#endif
 
 #endif

@@ -31,7 +31,7 @@
 union Key
 {
   int KeyCode;
-  char KeyName[256];
+  TCHAR KeyName[256];
 };
 
 class TCompletion
@@ -49,11 +49,17 @@ class TCompletion
     int  BrowseLineCnt;
     int  WordsToFindCnt;
 
-    char AdditionalLetters[256];
-    char RegKey[256];
-    char ConfigHelpTopic[30];
+#ifdef UNICODE
+    TCHAR BrowseLineCntText[21];
+    TCHAR WordsToFindCntText[21];
+    TCHAR MinWordLenText[21];
+#endif
 
-    unsigned char AsteriskSymbol;
+    TCHAR AdditionalLetters[256];
+    TCHAR RegKey[256];
+    TCHAR ConfigHelpTopic[30];
+
+    UTCHAR AsteriskSymbol;
   protected: //thread flag
     volatile LONG Stop;
   protected: //completion state
@@ -64,21 +70,21 @@ class TCompletion
   protected: //completion functions
     int GetPreWord(void);
     int DoSearch(void);
-    void AddWords(const unsigned char *Line,int Len,int Direction);
+    void AddWords(const UTCHAR *Line,int Len,int Direction);
     void AddWord(const string &NewWord);
     void InsertWordIntoList(const string &NewWord);
-    unsigned char *FindWordStart(const unsigned char *Line,int Len);
+    UTCHAR *FindWordStart(const UTCHAR *Line,int Len);
     string PutWord(string NewWord);
     void SetCurPos(int NewPos,int NewRow=-1);
   protected: //common functions
     bool IsAlpha(unsigned int c);
     avl_window_data *GetLocalData(void);
   protected: //options
-    DWORD GetRegKey(const char *ValueName,DWORD Default);
-    void SetRegKey(const char *ValueName,DWORD Value);
-    void GetRegKey(const char *ValueName,char *buffer,DWORD size);
-    void SetRegKey(const char *ValueName,char *buffer);
-    int GetRegKey(const char *ValueName,const char *Default);
+    DWORD GetRegKey(const TCHAR *ValueName,DWORD Default);
+    void SetRegKey(const TCHAR *ValueName,DWORD Value);
+    void GetRegKey(const TCHAR *ValueName,TCHAR *buffer,DWORD size);
+    void SetRegKey(const TCHAR *ValueName,TCHAR *buffer);
+    int GetRegKey(const TCHAR *ValueName,const TCHAR *Default);
     void GetOptions(void);
     virtual void SetOptions(void);
     virtual int GetItemCount(void)=0;
@@ -86,9 +92,13 @@ class TCompletion
     virtual int DialogHeight(void)=0;
     virtual long DialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)=0;
     virtual void InitItems(FarDialogItem *DialogItems);
+#ifdef UNICODE
+    virtual void StoreItems(HANDLE hDlg);
+#else
     virtual void StoreItems(FarDialogItem *DialogItems);
+#endif
   public:
-    TCompletion(const char *RegRoot);
+    TCompletion(const TCHAR *RegRoot);
     virtual ~TCompletion();
     void ShowDialog();
   friend long WINAPI ConfigDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2);

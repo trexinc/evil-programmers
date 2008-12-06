@@ -25,15 +25,15 @@
 #include "language.hpp"
 #include "../../listboxex/ListBoxEx.hpp"
 
-TMenuCompletion::TMenuCompletion(const char *RegRoot): TCompletion(RegRoot)
+TMenuCompletion::TMenuCompletion(const TCHAR *RegRoot): TCompletion(RegRoot)
 {
   SingleVariantInMenu=FALSE;
   NotFoundSound=TRUE;
   SortListCount=10;
-  strcpy(ShortCuts,"0123456789abcdefghijklmnopqrstuvwxyz");
-  ShortCutsLen=strlen(ShortCuts);
+  _tcscpy(ShortCuts,_T("0123456789abcdefghijklmnopqrstuvwxyz"));
+  ShortCutsLen=_tcslen(ShortCuts);
   AcceptChars[0]=0;
-  strcpy(ConfigHelpTopic,"Config");
+  _tcscpy(ConfigHelpTopic,_T("Config"));
   GetOptions();
 }
 
@@ -81,11 +81,11 @@ struct ListMenuData
 {
   int count;
   MenuAdaptor *MenuData;
-  //char *Top;
-  //char *Bottom;
-  char *ShortCuts;
+  //TCHAR *Top;
+  //TCHAR *Bottom;
+  TCHAR *ShortCuts;
   int ShortCutsLen;
-  char *AcceptChars;
+  TCHAR *AcceptChars;
   unsigned LastHotkey;
   long ClosedKey;
   long CursorPos;
@@ -123,11 +123,11 @@ static long WINAPI ListMenuProc(HANDLE hDlg,int Msg,int Param1,long Param2)
         }
         for(int i=0;i<DlgParams->count;i++)
         {
-          unsigned char buffer[3];
-          sprintf((char *)buffer,"%c ",(i<DlgParams->ShortCutsLen)?DlgParams->ShortCuts[i]:' ');
+          UTCHAR buffer[3];
+          FSF.sprintf((TCHAR*)buffer,_T("%c "),(i<DlgParams->ShortCutsLen)?DlgParams->ShortCuts[i]:' ');
           string item=*DlgParams->MenuData[i].data,prefix(buffer);
           item=prefix+item;
-          Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,2,(long)((const unsigned char *)item));
+          Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,2,(long)((const UTCHAR*)item));
           if(i<DlgParams->ShortCutsLen)
           {
             ListBoxExSetColor color={i,LISTBOXEX_COLORS_ITEM,0,LISTBOXEX_COLOR_DEFAULT+LISTBOXEX_COLOR_HOTKEY};
@@ -154,7 +154,7 @@ static long WINAPI ListMenuProc(HANDLE hDlg,int Msg,int Param1,long Param2)
       break;
     case DN_KEY:
       {
-        if((unsigned)Param2>=KEY_SPACE&&Param2<127L&&strchr(DlgParams->AcceptChars,Param2))
+        if((unsigned)Param2>=KEY_SPACE&&Param2<127L&&_tcschr(DlgParams->AcceptChars,Param2))
         {
           DlgParams->ClosedKey=Param2;
           Info.SendDlgMessage(hDlg,DM_CLOSE,-1,0);
@@ -191,14 +191,14 @@ bool TMenuCompletion::ShowMenu(string &Selected)
     WordList.iterate((void *)menudata,pos,ForEach);
     if(WordList.count()<=SortListCount) FSF.qsort(menudata,WordList.count(),sizeof(*menudata),fcmp);
 
-    char BottomMsg[256];
+    TCHAR BottomMsg[256];
     FSF.sprintf(BottomMsg,GetMsg(MHave),WordList.count());
 
     EditorInfo ei;
     Info.EditorControl(ECTL_GETINFO,&ei);
 
-    size_t MenuWidth=MAX(WordList.get_max_len()+2,strlen(GetMsg(MChooseWord))+1);
-    MenuWidth=MAX(MenuWidth,strlen(BottomMsg));
+    size_t MenuWidth=MAX(WordList.get_max_len()+2,_tcslen(GetMsg(MChooseWord))+1);
+    MenuWidth=MAX(MenuWidth,_tcslen(BottomMsg));
     size_t MenuHeight=1;
     int CoorX=ei.CurPos-ei.LeftPos;
     int CoorY=ei.CurLine-ei.TopScreenLine;
@@ -223,15 +223,26 @@ bool TMenuCompletion::ShowMenu(string &Selected)
       MenuWidth=ei.WindowSizeX-MenuX-MENU_OVERHEAD_WIDTH;
 
     DialogItems[0].X1=0; DialogItems[0].X2=MenuWidth+3; DialogItems[0].Y1=0; DialogItems[0].Y2=MenuHeight+1;
-    strcpy(DialogItems[0].Data,(char *)GetMsg(MChooseWord));
-    DialogItems[1].X1=(MenuWidth+4-strlen(BottomMsg))/2; DialogItems[1].Y1=DialogItems[0].Y2; strcpy(DialogItems[1].Data,BottomMsg);
+    INIT_DLG_DATA(DialogItems[0],GetMsg(MChooseWord));
+    DialogItems[1].X1=(MenuWidth+4-_tcslen(BottomMsg))/2; DialogItems[1].Y1=DialogItems[0].Y2;
+    INIT_DLG_DATA(DialogItems[1],BottomMsg);
     DialogItems[2].X1=DialogItems[0].X1+1; DialogItems[2].Y1=DialogItems[0].Y1+1; DialogItems[2].X2=DialogItems[0].X2-1; DialogItems[2].Y2=DialogItems[0].Y2-1;
     CHAR_INFO *VirtualBuffer=(CHAR_INFO *)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,(DialogItems[2].X2-DialogItems[2].X1+1)*(DialogItems[2].Y2-DialogItems[2].Y1+1)*sizeof(CHAR_INFO));
     if(VirtualBuffer)
     {
       DialogItems[2].VBuf=VirtualBuffer;
-      ListMenuData params={WordList.count(),menudata,/*(char *)GetMsg(MChooseWord),BottomMsg,*/ShortCuts,ShortCutsLen,AcceptChars,0,0,-1};
-      if(Info.DialogEx(Info.ModuleNumber,MenuX,MenuY,MenuX+MenuWidth+3,MenuY+MenuHeight+1,"List",DialogItems,sizeofa(DialogItems),0,0,ListMenuProc,(DWORD)&params)==2)
+      ListMenuData params={WordList.count(),menudata,/*(TCHAR *)GetMsg(MChooseWord),BottomMsg,*/ShortCuts,ShortCutsLen,AcceptChars,0,0,-1};
+      int DlgCode=-1;
+#ifdef UNICODE
+      HANDLE hDlg=Info.DialogInit
+#else
+      DlgCode=Info.DialogEx
+#endif
+      (Info.ModuleNumber,MenuX,MenuY,MenuX+MenuWidth+3,MenuY+MenuHeight+1,_T("List"),DialogItems,sizeofa(DialogItems),0,0,ListMenuProc,(DWORD)&params);
+#ifdef UNICODE
+      if(hDlg!=INVALID_HANDLE_VALUE) DlgCode=Info.DialogRun(hDlg);
+#endif
+      if(DlgCode==2)
       {
         int MenuCode=params.CursorPos;
         if(MenuCode>-1)
@@ -241,6 +252,9 @@ bool TMenuCompletion::ShowMenu(string &Selected)
           if(params.ClosedKey) Selected+=params.ClosedKey;
         }
       }
+#ifdef UNICODE
+      if(hDlg!=INVALID_HANDLE_VALUE) Info.DialogFree(hDlg);
+#endif
       HeapFree(GetProcessHeap(),0,VirtualBuffer);
     }
     HeapFree(GetProcessHeap(),0,menudata);
@@ -251,23 +265,23 @@ bool TMenuCompletion::ShowMenu(string &Selected)
 void TMenuCompletion::GetOptions(void)
 {
   TCompletion::GetOptions();
-  SingleVariantInMenu=GetRegKey("SingleVariantInMenu",SingleVariantInMenu);
-  NotFoundSound=GetRegKey("NotFoundSound",NotFoundSound);
-  SortListCount=GetRegKey("SortListCount",SortListCount);
-  AsteriskSymbol=GetRegKey("AsteriskSymbol",AsteriskSymbol);
-  GetRegKey("AcceptChars",AcceptChars,sizeof(AcceptChars));
-  GetRegKey("ShortCuts",ShortCuts,sizeof(ShortCuts));
+  SingleVariantInMenu=GetRegKey(_T("SingleVariantInMenu"),SingleVariantInMenu);
+  NotFoundSound=GetRegKey(_T("NotFoundSound"),NotFoundSound);
+  SortListCount=GetRegKey(_T("SortListCount"),SortListCount);
+  AsteriskSymbol=GetRegKey(_T("AsteriskSymbol"),AsteriskSymbol);
+  GetRegKey(_T("AcceptChars"),AcceptChars,sizeof(AcceptChars));
+  GetRegKey(_T("ShortCuts"),ShortCuts,sizeof(ShortCuts));
 }
 
 void TMenuCompletion::SetOptions(void)
 {
   TCompletion::SetOptions();
-  SetRegKey("SingleVariantInMenu",SingleVariantInMenu);
-  SetRegKey("NotFoundSound",NotFoundSound);
-  SetRegKey("SortListCount",SortListCount);
-  SetRegKey("AsteriskSymbol",AsteriskSymbol);
-  SetRegKey("AcceptChars",AcceptChars);
-  SetRegKey("ShortCuts",ShortCuts);
+  SetRegKey(_T("SingleVariantInMenu"),SingleVariantInMenu);
+  SetRegKey(_T("NotFoundSound"),NotFoundSound);
+  SetRegKey(_T("SortListCount"),SortListCount);
+  SetRegKey(_T("AsteriskSymbol"),AsteriskSymbol);
+  SetRegKey(_T("AcceptChars"),AcceptChars);
+  SetRegKey(_T("ShortCuts"),ShortCuts);
 }
 
 int TMenuCompletion::GetItemCount(void)
@@ -328,30 +342,49 @@ void TMenuCompletion::InitItems(FarDialogItem *DialogItems)
     DialogItems[i+CMPL_DIALOG_ITEMS].Selected=0;
     DialogItems[i+CMPL_DIALOG_ITEMS].Flags=0;
     DialogItems[i+CMPL_DIALOG_ITEMS].DefaultButton=0;
-    strcpy(DialogItems[i+CMPL_DIALOG_ITEMS].Data,GetMsg(Msgs[i])); // Надписи на эл-тах диалога
+    INIT_DLG_DATA(DialogItems[i+CMPL_DIALOG_ITEMS],GetMsg(Msgs[i])); // Надписи на эл-тах диалога
   }
 
   DialogItems[ISingleVariantInMenu].Selected=SingleVariantInMenu;
   DialogItems[INotFoundSound].Selected=NotFoundSound;
 
   // Что будет в строках ввода
+#ifdef UNICODE
+  FSF.itoa(SortListCount,SortListCountText,10);
+  DialogItems[ISortListCount].PtrData=SortListCountText;
+  AsteriskSymbolText[0]=AsteriskSymbol;
+  AsteriskSymbolText[1]=0;
+  DialogItems[IAsteriskSymbol].PtrData=AsteriskSymbolText;
+#else
   FSF.itoa(SortListCount,DialogItems[ISortListCount].Data,10);
   DialogItems[IAsteriskSymbol].Data[0]=AsteriskSymbol;
   DialogItems[IAsteriskSymbol].Data[1]=0;
-  strcpy(DialogItems[IMenuAcceptChars].Data,AcceptChars);
+#endif
+  INIT_DLG_DATA(DialogItems[IMenuAcceptChars],AcceptChars);
 
-  DialogItems[IMenuAcceptChars].X2=DialogWidth()-strlen(GetMsg(MAcceptChars))-4;
+  DialogItems[IMenuAcceptChars].X2=DialogWidth()-_tcslen(GetMsg(MAcceptChars))-4;
   DialogItems[IMenuAcceptCharsLabel].X1=DialogItems[IMenuAcceptChars].X2+2;
-
-  strcpy(DialogItems[ICfg].Data,GetMsg(MMenuCfg)); // Заголовок
+  INIT_DLG_DATA(DialogItems[ICfg],GetMsg(MMenuCfg)); // Заголовок
 }
 
+#ifdef UNICODE
+#define GetCheck(i) ((int)Info.SendDlgMessage(hDlg,DM_GETCHECK,i,0))
+#define GetStr(i) ((const wchar_t*)Info.SendDlgMessage(hDlg,DM_GETCONSTTEXTPTR,i,0))
+void TMenuCompletion::StoreItems(HANDLE hDlg)
+#else
+#define GetCheck(i) DialogItems[i].Selected
+#define GetStr(i) DialogItems[i].Data
 void TMenuCompletion::StoreItems(FarDialogItem *DialogItems)
+#endif
 {
+#ifdef UNICODE
+  TCompletion::StoreItems(hDlg);
+#else
   TCompletion::StoreItems(DialogItems);
-  SingleVariantInMenu=DialogItems[ISingleVariantInMenu].Selected;
-  NotFoundSound=DialogItems[INotFoundSound].Selected;
-  AsteriskSymbol=DialogItems[IAsteriskSymbol].Data[0];
-  SortListCount=FSF.atoi(DialogItems[ISortListCount].Data);
-  strcpy(AcceptChars,DialogItems[IMenuAcceptChars].Data);
+#endif
+  SingleVariantInMenu=GetCheck(ISingleVariantInMenu);
+  NotFoundSound=GetCheck(INotFoundSound);
+  AsteriskSymbol=GetStr(IAsteriskSymbol)[0];
+  SortListCount=FSF.atoi(GetStr(ISortListCount));
+  _tcscpy(AcceptChars,GetStr(IMenuAcceptChars));
 }
