@@ -1,7 +1,21 @@
 /*
-  Copyright (c) Konstantin Stupnik (aka Xecutor) 2000-2001 <skv@aurorisoft.com>
-  You can use, modify, distribute this code or any other part
-  only with permissions of author!
+  [ESC] Editor's settings changer plugin for FAR Manager
+  Copyright (C) 2000 Konstantin Stupnik
+  Copyright (C) 2008 Alex Yaroslavsky
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
   Non validating XML parser for well-formed canonical XML.
   Can be used to read/write config files stored in XML format.
@@ -53,7 +67,7 @@ void xmlFree(PXMLNode x)
   }
   if(x->tAttrs)
   {
-    pchar k,*v;
+    wchar_t *k,*v;
     tableFirst(x->tAttrs);
     while(tableNext(x->tAttrs,&k,&v))
     {
@@ -66,12 +80,12 @@ void xmlFree(PXMLNode x)
   xfree(x);*/
 }
 
-static int xmlIsSpace(xchar c)
+static int xmlIsSpace(wchar_t c)
 {
   return c==0x20||c==0x0d||c==0x0a||c==0x09;
 }
 
-static xchar wc[256]={
+static wchar_t x_wc[256]={
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,
@@ -90,61 +104,62 @@ static xchar wc[256]={
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 };
 
+#define WC(a) (a>255?0:x_wc[a])
 
-//extern int strtol(pchar,pchar*,int);
-//extern int sprintf(pchar,pchar,...);
+//extern int strtol(wchar_t *,wchar_t **,int);
+//extern int sprintf(wchar_t *,wchar_t *,...);
 
-static xchar* xmlSubst(xchar* str)
+static wchar_t* xmlSubst(wchar_t* str)
 {
-  pchar s=str;
-  pchar dst=str;//xstrchr(str,'&');
+  wchar_t *s=str;
+  wchar_t *dst=str;//xstrchr(str,'&');
 //  if(!dst)return str;
 //  str=dst;
   while(xmlIsSpace(*str))str++;
   for(;*str;str++,dst++)
   {
-    if(*str=='&')
+    if(*str==L'&')
     {
-      if(str[1]=='#')
+      if(str[1]==L'#')
       {
         int symb;
-        if(str[2]=='x')
+        if(str[2]==L'x')
         {
-          symb=strtol(str+3,&str,16);
+          symb=wstrtol(str+3,&str,16);
         }else
         {
-          symb=strtol(str+2,&str,10);
+          symb=wstrtol(str+2,&str,10);
         }
-        *dst=(xchar)symb;
+        *dst=(wchar_t)symb;
         continue;
       }else
-      if(xstrncmp(str+1,"amp;",4))
+      if(xstrncmp(str+1,L"amp;",4))
       {
         *dst=*str;
         str+=4;
         continue;
       }else
-      if(xstrncmp(str+1,"lt;",3))
+      if(xstrncmp(str+1,L"lt;",3))
       {
-        *dst='<';
+        *dst=L'<';
         str+=3;
         continue;
       }else
-      if(xstrncmp(str+1,"gt;",3))
+      if(xstrncmp(str+1,L"gt;",3))
       {
-        *dst='>';
+        *dst=L'>';
         str+=3;
         continue;
       }else
-      if(xstrncmp(str+1,"quot;",5))
+      if(xstrncmp(str+1,L"quot;",5))
       {
-        *dst='"';
+        *dst=L'"';
         str+=5;
         continue;
       }else
-      if(xstrncmp(str+1,"apos;",5))
+      if(xstrncmp(str+1,L"apos;",5))
       {
-        *dst='\'';
+        *dst=L'\'';
         str+=5;
         continue;
       }
@@ -154,7 +169,7 @@ static xchar* xmlSubst(xchar* str)
       str++;
       while(xmlIsSpace(*str))str++;
       if(!*str)break;
-      *dst=' ';
+      *dst=L' ';
       str--;
       continue;
     }
@@ -164,23 +179,23 @@ static xchar* xmlSubst(xchar* str)
   return s;
 }
 
-static int xmlSkipTill(pchar str,int pos,xchar lim)
+static int xmlSkipTill(wchar_t *str,int pos,wchar_t lim)
 {
   while(str[pos] && str[pos]!=lim)pos++;
   if(!str[pos])return -1;
   return pos;
 }
 
-static int xmlSkipSpace(pchar str,int pos)
+static int xmlSkipSpace(wchar_t *str,int pos)
 {
   while(xmlIsSpace(str[pos]))pos++;
   if(!str[pos])return -1;
   return pos;
 }
 
-static int xmlGetWordEnd(pchar str,int pos)
+static int xmlGetWordEnd(wchar_t *str,int pos)
 {
-  while(wc[(xuchar)str[pos]])pos++;
+  while(WC(str[pos]))pos++;
   if(!str[pos])return -1;
   return pos;
 }
@@ -198,15 +213,15 @@ static PXMLNode xmlEndOfList(PXMLNode p)
   return p;
 }*/
 
-static int xmlParseTag(void* Pool,PXMLNode x,PXMLNode* p,pchar src,int i)
+static int xmlParseTag(void* Pool,PXMLNode x,PXMLNode* p,wchar_t *src,int i)
 {
   int st,j,q;
   for(;;)
   {
     i=xmlSkipSpace(src,i);CHK;
-    if(src[i]=='/')
+    if(src[i]==L'/')
     {
-      if(src[i+1]!='>')return 0;
+      if(src[i+1]!=L'>')return 0;
       x->eType=xmlEmpty;
       return i+2;
     }
@@ -217,31 +232,31 @@ static int xmlParseTag(void* Pool,PXMLNode x,PXMLNode* p,pchar src,int i)
     }
     st=i;
     i=xmlGetWordEnd(src,i);CHK;
-    if(src[i]!='=')return 0;
-    if(src[i+1]!='"' && src[i+1]!='\'')return 0;
+    if(src[i]!=L'=')return 0;
+    if(src[i+1]!=L'"' && src[i+1]!=L'\'')return 0;
     q=src[i+1];
     src[i]=0;
     i+=2;
     j=i;
-    i=xmlSkipTill(src,i,(xchar)q);
+    i=xmlSkipTill(src,i,(wchar_t)q);
     if(i==-1)
     {
-      src[j-2]='=';
+      src[j-2]=L'=';
       return 0;
     }
     if(x->tAttrs==NULL)x->tAttrs=tableNew(Pool,TABLE_FLAG_ALLOCNAME);
     tableAdd(x->tAttrs,src+st,xmlSubst(xstrndup(Pool,src+j,i-j)));
-    src[j-2]='=';
+    src[j-2]=L'=';
     i++;
   }
 //  return i;
 }
 
-int xmlParse(void* Pool,PXMLNode x,pchar src,int flags)
+int xmlParse(void* Pool,PXMLNode x,wchar_t *src,int flags)
 {
   int sz=xstrlen(src);
   int i,st,n;
-  xchar str[256];
+  wchar_t str[256];
   PXMLNode stack[256];
   int stackpos=0;
   PXMLNode p=x,c;
@@ -252,11 +267,11 @@ int xmlParse(void* Pool,PXMLNode x,pchar src,int flags)
   for(i=0;i<sz;i++)
   {
     if(xmlIsSpace(src[i]))continue;
-    if(src[i]=='<' && src[i+1]=='!' && src[i+2]=='-' && src[i+3]=='-' && sz-i>4)
+    if(src[i]==L'<' && src[i+1]==L'!' && src[i+2]==L'-' && src[i+3]==L'-' && sz-i>4)
     {
       i+=4;
       st=i;
-      while((src[i]!='-' || src[i+1]!='-' || src[i+2]!='>') && sz-i>3)i++;
+      while((src[i]!=L'-' || src[i+1]!=L'-' || src[i+2]!=L'>') && sz-i>3)i++;
       i+=3;
       if(sz-i<3)return 0;
       c=xmlNewChild(Pool,p,xmlComment);
@@ -266,17 +281,17 @@ int xmlParse(void* Pool,PXMLNode x,pchar src,int flags)
       chlds=c;
       continue;
     }
-    if(src[i]=='<')
+    if(src[i]==L'<')
     {
       i++;
-      if(src[i]=='/')
+      if(src[i]==L'/')
       {
         i++;
         st=i;
         i=xmlGetWordEnd(src,i);
         if(i==-1)return 0;
         i=xmlSkipSpace(src,i);CHK;
-        if(src[i]!='>')return 0;
+        if(src[i]!=L'>')return 0;
         n=i-st;
         if(!xstrncmp(p->szName,src+st,n))return 0;
         //i++;
@@ -286,7 +301,7 @@ int xmlParse(void* Pool,PXMLNode x,pchar src,int flags)
         chlds=stack[stackpos];
         continue;
       }
-      if(wc[(xuchar)src[i]])
+      if(WC(src[i]))
       {
         st=i;
         i=xmlGetWordEnd(src,i);CHK;
@@ -311,7 +326,7 @@ int xmlParse(void* Pool,PXMLNode x,pchar src,int flags)
         }
         i=xmlSkipSpace(src,i);CHK;
         st=i;
-        i=xmlSkipTill(src,i,'<');CHK;
+        i=xmlSkipTill(src,i,L'<');CHK;
         if(i>st)
         {
           p->szCont=xmlSubst(xstrndup(Pool,src+st,i-st));
@@ -319,26 +334,26 @@ int xmlParse(void* Pool,PXMLNode x,pchar src,int flags)
         i--;
         continue;
       }
-      if(src[i]=='!' || src[i]=='?')
+      if(src[i]==L'!' || src[i]==L'?')
       {
         st=i+1;
-        if(src[i+1]=='[')
+        if(src[i+1]==L'[')
         {
-          if(xstrncmp(src+i,"![CDATA[",8))
+          if(xstrncmp(src+i,L"![CDATA[",8))
           {
-            pchar p=src+i+8;
+            const wchar_t *p=src+i+8;
             while((p=xstrchr(p,']')))
             {
-              if(p[1]==']' && p[2]=='>')break;
+              if(p[1]==L']' && p[2]==L'>')break;
             }
             if(p)i=p-src+2;
-          }else i=xmlSkipTill(src,i,'>');
+          }else i=xmlSkipTill(src,i,L'>');
         }else
         {
-          i=xmlSkipTill(src,i,'>');
+          i=xmlSkipTill(src,i,L'>');
         }
         if(i==-1)return 0;
-        c=xmlNewChild(Pool,p,src[st-1]=='!'?xmlExcl:xmlQuest);
+        c=xmlNewChild(Pool,p,src[st-1]==L'!'?xmlExcl:xmlQuest);
         c->szCont=xstrndup(Pool,src+st,i-st);
         if(chlds)chlds->pNext=c;
         else p->pChildren=c;
@@ -348,7 +363,7 @@ int xmlParse(void* Pool,PXMLNode x,pchar src,int flags)
     }else
     {
       st=i;
-      i=xmlSkipTill(src,i,'<');CHK;
+      i=xmlSkipTill(src,i,L'<');CHK;
       c=xmlNewChild(Pool,p,xmlContent);
       c->szCont=xmlSubst(xstrndup(Pool,src+st,i-st));
       if(chlds)chlds->pNext=c;
@@ -360,18 +375,18 @@ int xmlParse(void* Pool,PXMLNode x,pchar src,int flags)
   return 1;
 }
 
-PXMLNode xmlGetItem(PXMLNode x,pchar szPath)
+PXMLNode xmlGetItem(PXMLNode x,const wchar_t *szPath)
 {
-  pchar s;
+  const wchar_t *s;
   if(!x)return NULL;
-  if(*szPath=='/')
+  if(*szPath==L'/')
   {
     while(x->pParent)x=x->pParent;
     szPath++;
   }
   for(;;)
   {
-    s=xstrchr(szPath,'/');
+    s=xstrchr(szPath,L'/');
     if(!s)return hashGet(x->hChildren,szPath);
     //*s=0;
     x=hashGetEx(x->hChildren,szPath,s-szPath);
@@ -381,7 +396,7 @@ PXMLNode xmlGetItem(PXMLNode x,pchar szPath)
   }
 }
 
-pchar xmlGetItemValue(PXMLNode x,pchar szPath,pchar szAttr)
+const wchar_t *xmlGetItemValue(PXMLNode x,const wchar_t *szPath,const wchar_t *szAttr)
 {
   x=xmlGetItem(x,szPath);
   if(!x)return NULL;
@@ -395,27 +410,27 @@ pchar xmlGetItemValue(PXMLNode x,pchar szPath,pchar szAttr)
 
 }
 
-PHashLink xmlEnumNode(PXMLNode x,pchar Key,PHashLink lnk,PXMLNode *val)
+PHashLink xmlEnumNode(PXMLNode x,const wchar_t *Key,PHashLink lnk,PXMLNode *val)
 {
   if(!x)return NULL;
   return hashEnumKey(x->hChildren,Key,lnk,(void*)val);
 }
 
-pchar xmlGetItemAttr(PXMLNode x,pchar Name)
+const wchar_t *xmlGetItemAttr(PXMLNode x, const wchar_t *Name)
 {
   if(!x)return NULL;
   if(!x->tAttrs)return NULL;
   return tableGet(x->tAttrs,Name);
 }
 
-void xmlSetItemAttr(void* Pool,PXMLNode x,pchar Name,pchar Value)
+void xmlSetItemAttr(void* Pool,PXMLNode x,const wchar_t *Name,const wchar_t *Value)
 {
   if(!x)return;
   if(!x->tAttrs)x->tAttrs=tableNew(Pool,TABLE_FLAG_ALLOCNAME);
   tableSet(x->tAttrs,Name,xstrdup(Pool,Value));
 }
 
-void xmlSetItemContent(void *Pool,PXMLNode x,pchar Content)
+void xmlSetItemContent(void *Pool,PXMLNode x,const wchar_t *Content)
 {
   if(!x)return;
   if(xstrlen(x->szCont)>=xstrlen(Content))
@@ -425,7 +440,7 @@ void xmlSetItemContent(void *Pool,PXMLNode x,pchar Content)
   if(x->eType==xmlEmpty)x->eType=xmlLeaf;
 }
 
-static xchar toquot[]=
+static wchar_t x_toquot[]=
 {
 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
@@ -445,32 +460,32 @@ static xchar toquot[]=
 0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1
 };
 
+#define TOQUOT(a) (a>255?1:x_toquot[a])
 
 
-
-#define OUT(s,l) if(l && !out(data,s,l))return 0
+#define OUTSTRL(s,l) if(l && !out(data,s,l))return 0
 #define OUTSTR(s) if(!out(data,s,xstrlen(s)))return 0
 
-static int xmlSaveString(xmlOutStream out,void* data,pchar str)
+static int xmlSaveString(xmlOutStream out,void* data,const wchar_t *str)
 {
   int i,l;
-  char num[8];
+  wchar_t num[8];
   i=0;l=0;
   if(!str)return 1;
   while(str[i])
   {
-    while(str[i] && !toquot[(xuchar)str[i]])i++;
-    OUT(str+l,i-l);
+    while(str[i] && !TOQUOT(str[i]))i++;
+    OUTSTRL(str+l,i-l);
     if(str[i])
     {
-      if     (str[i]=='<' ){OUT("&lt;"  ,4);}
-      else if(str[i]=='&' ){OUT("&amp;" ,5);}
-      else if(str[i]=='"' ){OUT("&quot;",6);}
-      else if(str[i]=='\''){OUT("&apos;",6);}
+      if     (str[i]==L'<' ){OUTSTRL(L"&lt;"  ,4);}
+      else if(str[i]==L'&' ){OUTSTRL(L"&amp;" ,5);}
+      else if(str[i]==L'"' ){OUTSTRL(L"&quot;",6);}
+      else if(str[i]==L'\''){OUTSTRL(L"&apos;",6);}
       else
       {
-        FSF.sprintf(num,"&#x%02x;",(int)((xuchar)str[i]));
-        //sprintf(num,"&#x%02x;",(int)((xuchar)str[i]));
+        FSF.sprintf(num,L"&#x%04x;",(int)(str[i]));
+        //sprintf(num,"&#x%02x;",(int)((unsigned wchar_t)str[i]));
         OUTSTR(num);
       }
       i++;
@@ -482,84 +497,84 @@ static int xmlSaveString(xmlOutStream out,void* data,pchar str)
 
 static int xmlSaveLevel(PXMLNode x,xmlOutStream out,void* data,int level,int levelshift)
 {
-  xchar space[256];
-  pchar k,v;
+  wchar_t space[256];
+  wchar_t *k,*v;
   int shift;
   shift=level*levelshift;
   if(shift)
   {
-    memset(space,' ',shift);
+    wwmemset(space,' ',shift);
   }
   for(;x;x=x->pNext)
   {
     if(x->eType==xmlQuest)
     {
-      OUT("<?",2);
+      OUTSTRL(L"<?",2);
       OUTSTR(x->szCont);
-      OUT(">\n",2);
+      OUTSTRL(L">\n",2);
       continue;
     }
     if(x->eType==xmlExcl)
     {
-      OUT("<!",2);
+      OUTSTRL(L"<!",2);
       OUTSTR(x->szCont);
-      OUT(">\n",2);
+      OUTSTRL(L">\n",2);
       continue;
     }
-    OUT(space,shift);
+    OUTSTRL(space,shift);
     if(x->eType==xmlComment)
     {
-      OUT("<!--",4);
+      OUTSTRL(L"<!--",4);
       OUTSTR(x->szCont);
-      OUT("-->\n",4);
+      OUTSTRL(L"-->\n",4);
       continue;
     }
     if(x->eType==xmlContent)
     {
       OUTSTR(x->szCont);
-      OUT("\n",1);
+      OUTSTRL(L"\n",1);
       continue;
     }
-    OUT("<",1);
+    OUTSTRL(L"<",1);
     OUTSTR(x->szName);
     if(x->tAttrs)
     {
       tableFirst(x->tAttrs);
       while(tableNext(x->tAttrs,&k,&v))
       {
-        OUT(" ",1);
+        OUTSTRL(L" ",1);
         OUTSTR(k);
-        OUT("=\"",2);
+        OUTSTRL(L"=\"",2);
         if(!xmlSaveString(out,data,v))return 0;
-        OUT("\"",1);
+        OUTSTRL(L"\"",1);
       }
     }
-    if(x->eType==xmlEmpty)OUT("/",1);
-    OUT(">",1);
-    if(x->eType==xmlNode || x->eType==xmlEmpty)OUT("\n",1);
+    if(x->eType==xmlEmpty)OUTSTRL(L"/",1);
+    OUTSTRL(L">",1);
+    if(x->eType==xmlNode || x->eType==xmlEmpty)OUTSTRL(L"\n",1);
     if(x->szCont)
     {
       if(x->eType==xmlNode)
       {
-        OUT(space,shift);
-        OUT(space,levelshift);
+        OUTSTRL(space,shift);
+        OUTSTRL(space,levelshift);
       }
       if(!xmlSaveString(out,data,x->szCont))return 0;
-      if(x->eType==xmlNode)OUT("\n",1);
+      if(x->eType==xmlNode)OUTSTRL(L"\n",1);
     }
     if(x->eType==xmlNode)
     {
       if(!xmlSaveLevel(x->pChildren,out,data,level+1,levelshift))return 0;
-      OUT(space,shift);
-      OUT("</",2);
+      OUTSTRL(space,shift);
+      OUTSTRL(L"</",2);
       OUTSTR(x->szName);
-      OUT(">\n",2);
+      OUTSTRL(L">\n",2);
     }else
     if(x->eType==xmlLeaf)
     {
-      OUT("</",2);
+      OUTSTRL(L"</",2);
       OUTSTR(x->szName);
-      OUT(">\n",2);
+      OUTSTRL(L">\n",2);
     }
   }
   return 1;
@@ -577,7 +592,7 @@ static void xmlCloneTree(void* Pool,PXMLNode x,PXMLNode nx)
 
   if(x->tAttrs)
   {
-    pchar k,v;
+    wchar_t *k,*v;
     tableFirst(x->tAttrs);
     nx->tAttrs=tableNew(Pool,TABLE_FLAG_ALLOCNAME);
     while(tableNext(x->tAttrs,&k,&v))
@@ -617,7 +632,7 @@ PXMLNode xmlClone(void* Pool,PXMLNode x)
   return nx;
 }
 
-static PXMLNode xmlCreateChild(void* Pool,PXMLNode x,pchar Name)
+static PXMLNode xmlCreateChild(void* Pool,PXMLNode x,const wchar_t *Name)
 {
   PXMLNode c;
   PHashLink l;
@@ -635,7 +650,7 @@ static PXMLNode xmlCreateChild(void* Pool,PXMLNode x,pchar Name)
   return c;
 }
 
-PXMLNode xmlAddItem(void* Pool,PXMLNode x,pchar szName)
+PXMLNode xmlAddItem(void* Pool,PXMLNode x,const wchar_t *szName)
 {
   PXMLNode c;
   PHashLink l;
@@ -650,37 +665,37 @@ PXMLNode xmlAddItem(void* Pool,PXMLNode x,pchar szName)
 }
 
 
-PXMLNode xmlCreateItem(void* Pool,PXMLNode x,pchar szPath)
+PXMLNode xmlCreateItem(void* Pool,PXMLNode x,const wchar_t *szPath)
 {
-  pchar s;
+  const wchar_t *s;
   if(!x)return NULL;
-  if(*szPath=='/')
+  if(*szPath==L'/')
   {
     while(x->pParent)x=x->pParent;
     szPath++;
   }
   for(;;)
   {
-    s=xstrchr(szPath,'/');
+    s=xstrchr(szPath,L'/');
     if(!s)
     {
       return xmlCreateChild(Pool,x,szPath);
     }
-    *s=0;
+    *((wchar_t *)s)=0;
     x=xmlCreateChild(Pool,x,szPath);
     x->eType=xmlNode;
-    *s='/';
+    *((wchar_t *)s)=L'/';
     szPath=s+1;
   }
 }
 
-int xmlDeleteItem(PXMLNode x,pchar szPath)
+int xmlDeleteItem(PXMLNode x,const wchar_t *szPath)
 {
   PXMLNode t,q,p=xmlGetItem(x,szPath);
-  char *name;
+  const wchar_t *name;
   int ok=0;
   if(!p)return 0;
-  name=strrchr(szPath,'/');
+  name=wstrrchr(szPath,L'/');
   if(!name)name=szPath;
   else name++;
   p=p->pParent;
@@ -689,7 +704,7 @@ int xmlDeleteItem(PXMLNode x,pchar szPath)
   t=NULL;
   while(q)
   {
-    if(!strcmp(q->szName,name))
+    if(!wstrcmp(q->szName,name))
     {
       if(t)
       {
@@ -709,31 +724,31 @@ int xmlDeleteItem(PXMLNode x,pchar szPath)
   return ok;
 }
 
-void xmlNewQuery(pchar queryString,PXMLQuery query)
+void xmlNewQuery(const wchar_t *queryString,PXMLQuery query)
 {
   int i,cnt=1;
-  pchar q;
-  pchar p=strchr(queryString,'.');
+  const wchar_t *q;
+  const wchar_t *p=wstrchr(queryString,L'.');
   while(p)
   {
     cnt++;
   p++;
-    p=strchr(p,'.');
+    p=wstrchr(p,L'.');
   }
-  query->query=(char**)malloc(sizeof(char*)*cnt);
+  query->query=(wchar_t**)malloc(sizeof(wchar_t*)*cnt);
   query->nodes=(PXMLNode*)malloc(sizeof(PXMLNode)*cnt);
   p=queryString;
   for(i=0;i<cnt;i++)
   {
     query->nodes[i]=0;
-    q=strchr(p,'.');
+    q=wstrchr(p,L'.');
     if(!q)
     {
-      query->query[i]=strdup(p);
+      query->query[i]=wstrdup(p);
     }else
     {
-      query->query[i]=(char*)malloc(q-p+1);
-      memcpy(query->query[i],p,q-p);
+      query->query[i]=(wchar_t*)malloc((q-p+1)*sizeof(wchar_t));
+      memcpy(query->query[i],p,(q-p)*sizeof(wchar_t));
       query->query[i][q-p]=0;
       p=q+1;
     }
@@ -764,12 +779,12 @@ void xmlFreeQuery(PXMLQuery query)
   if(query->nodes)free(query->nodes);
 }
 
-static int xmlMatchPattern(pchar pattern,pchar name)
+static int xmlMatchPattern(wchar_t *pattern,wchar_t *name)
 {
   while(*pattern)
   {
 
-    if(*pattern=='*')
+    if(*pattern==L'*')
     {
       if(pattern[1])
       {

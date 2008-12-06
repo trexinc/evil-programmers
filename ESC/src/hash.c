@@ -1,7 +1,21 @@
 /*
-  Copyright (c) Konstantin Stupnik (aka Xecutor) 2000-2001 <skv@aurorisoft.com>
-  You can use, modify, distribute this code or any other part
-  only with permissions of author!
+  [ESC] Editor's settings changer plugin for FAR Manager
+  Copyright (C) 2000 Konstantin Stupnik
+  Copyright (C) 2008 Alex Yaroslavsky
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
   This unit used internally by xmlite.
   Special hashtable implementation.
@@ -16,9 +30,9 @@
  #include <string.h>
 #endif
 
-static unsigned hHashFunc(const pchar Key)
+static unsigned hHashFunc(const wchar_t *Key)
 {
-  pchar  curr = (pchar)Key;
+  wchar_t * curr = (wchar_t *)Key;
   long count = *curr;
   while(*curr)
   {
@@ -28,9 +42,9 @@ static unsigned hHashFunc(const pchar Key)
   return ( (unsigned)( ( ( count * 19L ) + 12451L ) % 8882693L ) );
 }
 
-static unsigned hHashFuncEx(const pchar Key,int keylen)
+static unsigned hHashFuncEx(const wchar_t *Key,int keylen)
 {
-  pchar  curr = (pchar)Key;
+  wchar_t * curr = (wchar_t *)Key;
   long count = *curr;
   while(keylen--)
   {
@@ -41,7 +55,7 @@ static unsigned hHashFuncEx(const pchar Key,int keylen)
 }
 
 
-static PHashLink hlnkNew(void* Pool,const pchar Key,const void* Value)
+static PHashLink hlnkNew(void* Pool,const wchar_t *Key,const void* Value)
 {
   PHashLink p=xalloc(Pool,sizeof(SHashLink));
 
@@ -86,7 +100,7 @@ static void hlFree(PHashList l)
 }
 */
 
-static PHashLink hlAdd(void* Pool,PHashList l,const pchar Key,const void* Value)
+static PHashLink hlAdd(void* Pool,PHashList l,const wchar_t *Key,const void* Value)
 {
   if(l->pHead)
   {
@@ -115,7 +129,7 @@ static PHashLink hlAppend(PHashList l,PHashLink ln)
   return ln;
 }
 
-static PHashLink hlFind(PHashList l,const pchar Key,int keylen)
+static PHashLink hlFind(PHashList l,const wchar_t *Key,int keylen)
 {
   PHashLink tmp=l->pHead;
   while(tmp)
@@ -126,7 +140,7 @@ static PHashLink hlFind(PHashList l,const pchar Key,int keylen)
   return NULL;
 }
 
-static PHashLink hlFindN(PHashList l,const pchar Key,int N)
+static PHashLink hlFindN(PHashList l,const wchar_t *Key,int N)
 {
   PHashLink tmp=l->pHead;
   while(tmp)
@@ -137,7 +151,7 @@ static PHashLink hlFindN(PHashList l,const pchar Key,int N)
   return NULL;
 }
 
-static int hlRemove(PHashList l,const pchar Key)
+static int hlRemove(PHashList l,const wchar_t *Key)
 {
   PHashLink tmp=l->pHead,last=NULL;
   while(tmp)
@@ -163,18 +177,18 @@ static int hlRemove(PHashList l,const pchar Key)
   return 0;
 }
 
-static PHashLink hFindLink(PHash h,const pchar Key)
+static PHashLink hFindLink(PHash h,const wchar_t *Key)
 {
-  return hlFind(&h->pBuckets[hHashFunc(Key) % h->iBucketsNum],Key,strlen(Key));
+  return hlFind(&h->pBuckets[hHashFunc(Key) % h->iBucketsNum],Key,wstrlen(Key));
 }
 
-static PHashLink hFindLinkEx(PHash h,const pchar Key,int keylen,unsigned *Index)
+static PHashLink hFindLinkEx(PHash h,const wchar_t *Key,int keylen,unsigned *Index)
 {
   *Index=hHashFuncEx(Key,keylen) % h->iBucketsNum;
   return hlFind(&h->pBuckets[*Index],Key,keylen);
 }
 
-static PHashLink hFindLinkN(PHash h,const pchar Key,int N)
+static PHashLink hFindLinkN(PHash h,const wchar_t *Key,int N)
 {
   return hlFindN(&h->pBuckets[hHashFunc(Key) % h->iBucketsNum],Key,N);
 }
@@ -207,13 +221,13 @@ void hashFree(PHash h)
 
 
 
-int hashExists(PHash h,const pchar Key)
+int hashExists(PHash h,const wchar_t *Key)
 {
   if(!h)return 0;
   return hFindLink(h,Key)!=NULL;
 }
 
-void hashDelete(PHash h,const pchar Key)
+void hashDelete(PHash h,const wchar_t *Key)
 {
   unsigned Index;
   if(!h)return;
@@ -221,7 +235,7 @@ void hashDelete(PHash h,const pchar Key)
   while(hlRemove(&h->pBuckets[Index],Key))h->iCount--;
 }
 
-void *hashGet(PHash h,const pchar Key)
+void *hashGet(PHash h,const wchar_t *Key)
 {
   PHashLink link;
   if(!h)return NULL;
@@ -229,7 +243,7 @@ void *hashGet(PHash h,const pchar Key)
   return link?link->pValue:NULL;
 }
 
-void* hashGetEx(PHash h,const pchar Key,int keylen)
+void* hashGetEx(PHash h,const wchar_t *Key,int keylen)
 {
   PHashLink link;
   int index;
@@ -238,7 +252,7 @@ void* hashGetEx(PHash h,const pchar Key,int keylen)
   return link?link->pValue:NULL;
 }
 
-void* hashGetN(PHash h,const pchar Key,int N)
+void* hashGetN(PHash h,const wchar_t *Key,int N)
 {
   PHashLink link;
   if(!h)return NULL;
@@ -246,7 +260,7 @@ void* hashGetN(PHash h,const pchar Key,int N)
   return link?link->pValue:NULL;
 }
 
-PHashLink hashEnumKey(PHash h,const pchar Key,PHashLink lnk,void**Value)
+PHashLink hashEnumKey(PHash h,const wchar_t *Key,PHashLink lnk,void**Value)
 {
   if(!h)return NULL;
   if(lnk==(PHashLink)0xffffffff)return NULL;
@@ -269,7 +283,7 @@ PHashLink hashEnumKey(PHash h,const pchar Key,PHashLink lnk,void**Value)
   }
 }
 
-int hashKeyCount(PHash h,const pchar Key)
+int hashKeyCount(PHash h,const wchar_t *Key)
 {
   PHashLink link=hFindLink(h,Key);
   int Cnt=link?1:0;
@@ -304,10 +318,10 @@ static void hashResize(PHash h)
   h->iBucketsNum=n;
 }
 
-PHashLink hashSet(PHash h,const pchar Key,const void* Value)
+PHashLink hashSet(PHash h,const wchar_t *Key,const void* Value)
 {
   unsigned Index;
-  PHashLink link=hFindLinkEx(h,Key,strlen(Key),&Index);
+  PHashLink link=hFindLinkEx(h,Key,wstrlen(Key),&Index);
   if(link)
   {
     link->pValue=(void*)Value;
@@ -324,7 +338,7 @@ PHashLink hashSet(PHash h,const pchar Key,const void* Value)
   }
 }
 
-PHashLink hashAdd(PHash h,const pchar Key,void* Value)
+PHashLink hashAdd(PHash h,const wchar_t *Key,void* Value)
 {
   unsigned Index=hHashFunc(Key) % h->iBucketsNum;
   PHashLink link;
@@ -343,7 +357,7 @@ void hashFirst(PHash h)
   h->pIterLink=NULL;
 };
 
-int hashNext(PHash h,pchar* pKey,void** pValue)
+int hashNext(PHash h,wchar_t ** pKey,void** pValue)
 {
   if(h->iCount==0)return 0;
   if(h->iIterIndex>=h->iBucketsNum)return 0;

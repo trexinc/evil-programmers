@@ -1,17 +1,31 @@
+/*
+    [ESC] Editor's settings changer plugin for FAR Manager
+    Copyright (C) 2001 Ivan Sintyurin
+    Copyright (C) 2008 Alex Yaroslavsky
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
 #ifndef __strcon_cpp
 #define __strcon_cpp
 
 #include "myrtl.hpp"
 #include "strcon.hpp"
 
-strcon::strcon(const char *ptr,int size):str(NULL)
+strcon::strcon(const wchar_t *ptr,int size):str(NULL)
 {
   setStr(ptr,size);
-}
-
-strcon::strcon(const unsigned char *ptr, int size):str(NULL)
-{
-  setStr(reinterpret_cast<const char*>(ptr),size);
 }
 
 strcon::strcon(const strcon &rhs):str(NULL)
@@ -21,7 +35,7 @@ strcon::strcon(const strcon &rhs):str(NULL)
 
 strcon::strcon():str(NULL)
 {
-  setStr("");
+  setStr(L"");
 }
 
 strcon::~strcon()
@@ -31,15 +45,15 @@ strcon::~strcon()
 
 bool strcon::operator==(const strcon &ptr) const
 {
-  return (str && ptr.str)?!strcmp(str,ptr.str):0;
+  return (str && ptr.str)?!wstrcmp(str,ptr.str):0;
 }
 
-bool strcon::operator==(const char * ptr) const
+bool strcon::operator==(const wchar_t * ptr) const
 {
-  return (str && ptr)?!strcmp(str,ptr):0;
+  return (str && ptr)?!wstrcmp(str,ptr):0;
 }
 
-strcon& strcon::operator=(const char *rhs)
+strcon& strcon::operator=(const wchar_t *rhs)
 {
   if(rhs<str || rhs>(str+Len))
     setStr(rhs);
@@ -57,24 +71,24 @@ const strcon& strcon::AddStr(const strcon &s)
   return AddStr(s.str,s.Len);
 }
 
-const strcon& strcon::AddStrings(const char *firstStr, ...)
+const strcon& strcon::AddStrings(const wchar_t *firstStr, ...)
 {
   AddStr(firstStr);
   va_list l;
-  const char *arg;
+  const wchar_t *arg;
   va_start(l, firstStr);
-  while ((arg = va_arg(l,const char*)) != NULL)
+  while ((arg = va_arg(l,const wchar_t*)) != NULL)
     AddStr(arg);
   va_end(l);
   return *this;
 }
 
-const strcon& strcon::AddStr(const char *s, int size)
+const strcon& strcon::AddStr(const wchar_t *s, int size)
 {
   if(s)
   {
     if(size<0)
-      size=lstrlen(s);
+      size=wstrlen(s);
 
     if(s>str && s<(str+Len))
     {
@@ -83,11 +97,11 @@ const strcon& strcon::AddStr(const char *s, int size)
     }
 
     int newLen=size+Len;
-    char *newstr=static_cast<char*>(malloc(1+newLen));
+    wchar_t *newstr=static_cast<wchar_t*>(malloc((1+newLen)*sizeof(wchar_t)));
     if(newstr)
     {
-      memcpy(newstr, str, Len);
-      memcpy(newstr+Len, s, size);
+      memcpy(newstr, str, Len*sizeof(wchar_t));
+      memcpy(newstr+Len, s, size*sizeof(wchar_t));
       newstr[newLen]=0;
       Free();
       str=newstr;
@@ -97,7 +111,7 @@ const strcon& strcon::AddStr(const char *s, int size)
   return *this;
 }
 
-const strcon& strcon::AddChar(char Chr)
+const strcon& strcon::AddChar(wchar_t Chr)
 {
   return AddStr(&Chr,1);
 }
@@ -113,17 +127,17 @@ bool strcon::setLength(unsigned newLen)
   return false;
 }
 
-char *strcon::setStr(const char *s,int size)
+wchar_t *strcon::setStr(const wchar_t *s,int size)
 {
   if(s)
   {
-    unsigned int newLen=lstrlen(s);
+    unsigned int newLen=wstrlen(s);
     if(size>-1 && static_cast<unsigned int>(size)<newLen)
       newLen=size;
-    char *newstr=static_cast<char*>(malloc(1+newLen));
+    wchar_t *newstr=static_cast<wchar_t*>(malloc((1+newLen)*sizeof(wchar_t)));
     if(newstr)
     {
-      memcpy(newstr, s, newLen);
+      memcpy(newstr, s, newLen*sizeof(wchar_t));
       newstr[newLen]=0;
       Free();
       str=newstr;

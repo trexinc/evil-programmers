@@ -1,7 +1,21 @@
 /*
-  Copyright (c) Konstantin Stupnik (aka Xecutor) 2000-2001 <skv@aurorisoft.com>
-  You can use, modify, distribute this code or any other part
-  only with permissions of author!
+  [ESC] Editor's settings changer plugin for FAR Manager
+  Copyright (C) 2000 Konstantin Stupnik
+  Copyright (C) 2008 Alex Yaroslavsky
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
   This unit used internally by xmlite.
   Table that hold key-value pairs.
@@ -24,8 +38,8 @@ extern "C" {
 #define TABLE_FLAG_ALLOCBOTH (TABLE_FLAG_ALLOCNAME|TABLE_FLAG_ALLOCVALUE)
 
 typedef struct tag_Attr{
-  pchar szName;
-  pchar szValue;
+  wchar_t *szName;
+  wchar_t *szValue;
 }SAttr,*PAttr;
 
 typedef struct tag_TablePage{
@@ -50,12 +64,12 @@ typedef struct tag_Table{
 
 PTable tableNew(void* Pool,int);
 void tableFree(PTable t);
-int tableAdd(PTable t,const pchar Key,const pchar Value);
-pchar tableGet(PTable t,const pchar Key);
-int tableDel(PTable t,const pchar Key);
-int tableSet(PTable t,const pchar Key,const pchar Value);
+int tableAdd(PTable t,const wchar_t *Key,const wchar_t *Value);
+const wchar_t *tableGet(PTable t,const wchar_t *Key);
+int tableDel(PTable t,const wchar_t *Key);
+int tableSet(PTable t,const wchar_t *Key,const wchar_t *Value);
 void tableFirst(PTable t);
-int tableNext(PTable t,pchar* Name,pchar* Value);
+int tableNext(PTable t,wchar_t **Name,wchar_t**Value);
 
 #ifdef __cplusplus
 }

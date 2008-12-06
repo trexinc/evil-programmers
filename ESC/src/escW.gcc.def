@@ -1,0 +1,15 @@
+EXPORTS 
+   ConfigureW=ConfigureW@4
+   GetPluginInfoW=GetPluginInfoW@4
+   OpenPluginW=OpenPluginW@8
+   SetStartupInfoW=SetStartupInfoW@4
+   ExitFARW=ExitFARW@0
+   ProcessEditorEventW=ProcessEditorEventW@8
+   ProcessEditorInputW=ProcessEditorInputW@4
+   GetEditorSettingsW=GetEditorSettingsW@12
+   SetEditorOptionW=SetEditorOptionW@12
+   CreateMacroW=CreateMacroW@8
+   CloneMacroW=CloneMacroW@8
+   IsMacroOKW=IsMacroOKW@4
+   DeleteMacroW=DeleteMacroW@4
+   PostMacroW=PostMacroW@8

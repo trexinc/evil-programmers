@@ -1,8 +1,26 @@
+/*
+    [ESC] Editor's settings changer plugin for FAR Manager
+    Copyright (C) 2001 Ivan Sintyurin
+    Copyright (C) 2008 Alex Yaroslavsky
 
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
 struct PluginStartupInfo Info;
 struct FarStandardFunctions FSF;
 
-char PluginRootKey[NM], XMLFilePath[NM];
+wchar_t PluginRootKey[NM], XMLFilePath[NM];
 
 BOOL IsOldFar=TRUE, XMLLoadedOK=FALSE;
 #include "e_options.hpp"
@@ -58,29 +76,29 @@ struct EditorGetString egs;
 struct EditorSetPosition esp;
 struct EditorSetString ess;
 struct CharTableSet CharSet, tmpCharSet;
-char nlsSpace, nlsTab, nlsQuoteSym, nlsMinus;
+wchar_t nlsSpace, nlsTab, nlsQuoteSym, nlsMinus;
 strcon *nlsStopChars=NULL;
-char nlsStop[64];
+wchar_t nlsStop[64];
 
 XMLStrings XMLStr=
 {
-  "/Esc-Settings/Types","name","type","mask","tabsize","expandtabs",
-  "autoindent","eol","cursorbeol","charcodebase","killspace","killemptylines",
-  "wrap","justify","on","off","oct","dec","hex","table","p_end","autowrap",
-  "quoteeol","p_minuses","lockmode","tablename",
-  "smarttab","smartbs","lines","smarthome","skippath","p_quote",
-  "stopchar","inherit","include",
-  "savepos","minlines","addsymbol",
-  "addsym_s","addsym_e","addsym_s_b","addsym_e_b",
-  "start", "end", "start_b", "end_b",
-  "forcekel",
-  "usermacro","macro","enable","sequence","silent","selection","key",
-  "lclick","rclick","mclick","rctrl","lctrl","ralt","lalt","shift",
-  "stream","column","lockfile","stop",
-  "wordsym","alphanum","additional",
-  "overload",
-  "oncreate","onload","auto",
-  "margin","quote","tab","value","smartkey","backspace","home","kill",
+  L"/Esc-Settings/Types",L"name",L"type",L"mask",L"tabsize",L"expandtabs",
+  L"autoindent",L"eol",L"cursorbeol",L"charcodebase",L"killspace",L"killemptylines",
+  L"wrap",L"justify",L"on",L"off",L"oct",L"dec",L"hex",L"table",L"p_end",L"autowrap",
+  L"quoteeol",L"p_minuses",L"lockmode",L"tablename",
+  L"smarttab",L"smartbs",L"lines",L"smarthome",L"skippath",L"p_quote",
+  L"stopchar",L"inherit",L"include",
+  L"savepos",L"minlines",L"addsymbol",
+  L"addsym_s",L"addsym_e",L"addsym_s_b",L"addsym_e_b",
+  L"start", L"end", L"start_b", L"end_b",
+  L"forcekel",
+  L"usermacro",L"macro",L"enable",L"sequence",L"silent",L"selection",L"key",
+  L"lclick",L"rclick",L"mclick",L"rctrl",L"lctrl",L"ralt",L"lalt",L"shift",
+  L"stream",L"column",L"lockfile",L"stop",
+  L"wordsym",L"alphanum",L"additional",
+  L"overload",
+  L"oncreate",L"onload",L"auto",
+  L"margin",L"quote",L"tab",L"value",L"smartkey",L"backspace",L"home",L"kill",
 };
 
 #include "InitDialogItem.hpp"
@@ -88,6 +106,5 @@ XMLStrings XMLStr=
 FARAPIEDITORCONTROL EditorControl;
 FARAPICHARTABLE     CharTable;
 FARAPIMESSAGE       FarMessage;
-FARSTDEXPANDENVIRONMENTSTR ExpandEnvironmentStr;
 FARSTDTRUNCPATHSTR  TruncPathStr;
 int ModuleNumber;

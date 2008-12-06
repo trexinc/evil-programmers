@@ -1,7 +1,21 @@
 /*
-  Copyright (c) Konstantin Stupnik (aka Xecutor) 2000-2001 <skv@aurorisoft.com>
-  You can use, modify, distribute this code or any other part
-  only with permissions of author!
+  [ESC] Editor's settings changer plugin for FAR Manager
+  Copyright (C) 2000 Konstantin Stupnik
+  Copyright (C) 2008 Alex Yaroslavsky
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
   Non validating XML parser for well-formed canonical XML.
   Can be used to read/write config files stored in XML format.
@@ -23,8 +37,8 @@ typedef enum tag_xmlLeafType{
 }xmlNodeType;
 
 typedef struct tag_XMLNode{
-  pchar szName;
-  pchar szCont;
+  wchar_t *szName;
+  wchar_t *szCont;
   struct tag_XMLNode *pNext;
   struct tag_XMLNode *pParent;
   struct tag_XMLNode *pChildren;
@@ -33,30 +47,30 @@ typedef struct tag_XMLNode{
   xmlNodeType eType;
 }SXMLNode, *PXMLNode;
 
-typedef int (*xmlOutStream)(void*,pchar,int);
+typedef int (*xmlOutStream)(void*,const wchar_t*,int);
 
 PXMLNode xmlNew(void* Pool);
 void xmlFree(PXMLNode x);
-int xmlParse(void* Pool,PXMLNode x,pchar src,int flags);
-PXMLNode xmlGetItem(PXMLNode x,pchar szPath);
-PHashLink xmlEnumNode(PXMLNode x,pchar Key,PHashLink lnk,PXMLNode *val);
-pchar xmlGetItemAttr(PXMLNode x,pchar Name);
-void xmlSetItemAttr(void* Pool,PXMLNode x,pchar Name,pchar Value);
-pchar xmlGetItemValue(PXMLNode x,pchar szPath,pchar szAttr);
-void xmlSetItemContent(void *Pool,PXMLNode x,pchar Content);
+int xmlParse(void* Pool,PXMLNode x,wchar_t *src,int flags);
+PXMLNode xmlGetItem(PXMLNode x,const wchar_t *szPath);
+PHashLink xmlEnumNode(PXMLNode x,const wchar_t *Key,PHashLink lnk,PXMLNode *val);
+const wchar_t *xmlGetItemAttr(PXMLNode x,const wchar_t *Name);
+void xmlSetItemAttr(void* Pool,PXMLNode x,const wchar_t *Name,const wchar_t *Value);
+const wchar_t *xmlGetItemValue(PXMLNode x,const wchar_t *szPath,const wchar_t *szAttr);
+void xmlSetItemContent(void *Pool,PXMLNode x,const wchar_t *Content);
 void xmlSaveToStream(PXMLNode x,xmlOutStream out,void* data,int levelshift);
 PXMLNode xmlClone(void* Pool,PXMLNode x);
-PXMLNode xmlCreateItem(void* Pool,PXMLNode x,pchar szPath);
-int xmlDeleteItem(PXMLNode x,pchar szPath);
-PXMLNode xmlAddItem(void* Pool,PXMLNode x,pchar szName);
+PXMLNode xmlCreateItem(void* Pool,PXMLNode x,const wchar_t *szPath);
+int xmlDeleteItem(PXMLNode x,const wchar_t *szPath);
+PXMLNode xmlAddItem(void* Pool,PXMLNode x,const wchar_t *szName);
 
 typedef struct tag_XMLQuery{
-  char **query;
+  wchar_t **query;
   PXMLNode *nodes;
   int count;
 }SXMLQuery,*PXMLQuery;
 
-void xmlNewQuery(pchar queryString,PXMLQuery query);
+void xmlNewQuery(const wchar_t *queryString,PXMLQuery query);
 void xmlResetQuery(PXMLQuery query);
 void xmlFreeQuery(PXMLQuery query);
 PXMLNode xmlQueryNext(PXMLNode node,PXMLQuery query);
