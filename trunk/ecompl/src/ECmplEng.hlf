@@ -1,0 +1,334 @@
+.Language=English,English
+.PluginContents=Completing words in editor
+
+@Contents
+$ #Word completion in editor v3.9 beta#
+
+    ~Thanks~@Thanks@
+
+    ~What is this plugin for?~@Need@
+
+    ~How to use it?~@HowUse@
+
+    ~Found words list~@List@
+
+    ~Automatic words completing~@AutoCmpl@
+
+    ~Configurations for calling the plugin from menu~@Config@
+
+    ~Automatic words completing configurations~@ConfigAuto@
+
+    ~About the author~@Author@
+
+@Thanks
+$ #Thanks#
+
+      #I'd like to thank#
+
+
+ #Eugene Roshal and#   for Far Manager
+ #"Far Team"#
+
+ #Valentin Skirdin#    for many advice
+                     and friendly assistance
+
+ #Ivan Sintyurin#      for the wonderful plugin "Search And Replace",
+                     and for the ideas as well
+
+ #Alexey Yatsenko,#    for a greatest interest for plugin, a big
+ #Stas Mehanoshin and# number of ideas and self-denying testing
+ #Ondrej Brablc#
+
+ #Dmitry Yerokhin#     for correcting the help file and Russian
+                     language module
+
+ #Alex Lyubimov#       for help file translation to English
+
+ #Igor Russkih#        for "Colorer"
+
+
+@Need
+$ #What is this plugin for?#
+Here is the quotation from the documentation of the first
+plugin author Andrey Tretjakov:
+    #So, I've drawn this little thing for#
+    #in order my wife could type faster.#
+    #She had to type 1200 pharmacology questions (240 pages).#
+    #The words there are terrible and monotonous from the#
+    #point of view of a programmer.#
+    #The Clipbpard was of no use, that's why I gave up the#
+    #questions addressed to C++.#
+
+    #As a result:#
+
+    #the plugin is waiting for ctrl-space (control-spacebar) pressing#
+    (now you may set the keys combination by yourself)
+    #and as it appears it scans the previous lines of the text.#
+    #it finds the words in the text, the beginning of which is the#
+    #same with the piece you've already typed. If anything is found#
+    #- the menu with variants appears, or if there's only 1 variant#
+    #- it doesn't appear. If there's nothing - it peeps.#
+
+    #Not the whole text is scanned, but 2000 previous lines.#
+    #That is for fastening, cause I work with 486, :))#
+    #I was the first to need it.#
+
+    #There is ~the configuration~@Config@, in which one can show several parameters#
+
+And here is what the second author Alexey Semenov added to this:
+
+    #After correction and re-compilation the plugin started:#
+     #1. Working!#
+     #2. + Perceive the code-page of the text being edited. (New!)#
+     #3. + Search for the similar words not only in previous lines,#
+          #but in current (till the cursors position). (New!)#
+     #4. +Became almost twice less.#
+
+Well and ~my~@mailto:mr_july@@mail.ru@ deposit in this affair is like this:
+
+    1. The quantity of ~configurations~@Config@ is essentially
+       enlarged.
+    2. The functional capacity is extended.
+    3. The algorithm is essentially remade and optimized.
+    4. The plugin became almost thrice less (~~18kb).
+    5. Help menu is added.
+    6. The plugin "learned" how to AUTOMATICALLY complete words.
+    7. The stencils during the search of variants are supported
+       (refer to ~configurations~@Config@)
+
+
+@HowUse
+$ #How it works#
+  As you've already guessed, the plugin is written for "lazy staff",
+pardon, for people who realize the value of there time.
+
+  So, you are typing a text and discover that you've already met many
+of the words before. And you wonder if it is possible not to type all
+the words over and over again? It really is! It is enough to type
+some first letters and call the plugin. A ~list~@List@ of words will
+appear to your liking, the beginning of which is similar with what
+you've just typed. Your task is just to choose the necessary word
+from the list and... That's all!
+
+                    #How the list is formed?#
+
+  It is simple! The plugin searches for a word with the same
+beginning in the current line, ~N~@Config@ lines higher and lower
+(~option~@Config@). If there are too many variants, only the first
+~K~@Config@ examples will be taken, besides, having reached some
+~"critical"~@Config@ quantity the list will be sorted in ABC order.
+
+  But if you consider this procedure to be too long, so, for you
+specially the ~automatic words completing~@AutoCmpl@ mode is taken
+into account.
+
+@List
+$ #The found words list#
+  One can choose a word, which will be inserted instead of the typed
+part. The choice is made either with the mouse, or cursor keys till
+the necessary word, and then #Enter#. Besides that, there are hot
+keys. One can cancel the choice by Esc. Well, this is, so to say, a
+#STANDARD#, but there is a #SPECIAL POINT# as well.
+
+The #SPECIAL POINT:#
+
+  Having put the cursor on the necessary word, You can press any NOT
+LITERAL symbol #"*()_=+/\.,:;" etc.# and the symbol will be added to
+the chosen word. I'd like to turn your attention to the fact that
+only NOT LITERAL symbols are used this way, and the LETTERS are used
+as hot keys.
+
+@AutoCmpl
+$ #AUTOCOMPLETION of the words#
+  Everything is too simple here. From that very ~list~@HowUse@ a word
+will be put, if the quantity of the words in the list is less or
+equal to the ~set-by-you~@ConfigAuto@. If the word offered by the
+computer, is just what you meant, so, press the hot keys (it is
+TABULATION (Tab)), but they are possible to re-determine. To do this
+you should just enter the names of the keys the way we do it in FAR
+or set them interactively by using the "Set" button.
+
+ If you don't need such an "intellectual" help, just enter
+ #0# in the ~field~@ConfigAuto@ ("Max variants to find").
+
+@Config
+$ #Configurations for calling the plugin from menu#
+
+ To move to ~Automatic words completing configurations~@ConfigAuto@
+
+ #Work inside word#      should the addition work, if there is
+                       a letter under the cursor.
+
+ #Case sensitive#        The most wanted configuration. I keep it
+                       always turned off. So, if I entered
+                       "for", I will have "FOREST", "Fortune",
+                       "force", and even "FoReVeR".
+
+ #Consider digits#       will the digits be considered as letters.
+ #as letters#
+
+ #Additional letters#    I always add "_" (emphasizing), and it is
+                       considered as a letter. What do you consider
+                       to be a letter? Fill in this field.
+
+ #Browse downward#       defines, if it is necessary to search for a
+                       word lower in the text or on the top only.
+
+ #Line count for#        sets the maximum quantity of the lines for
+ #browsing#            variants search (below and on the top).
+
+ #Max variants to#       who needs a list of 1024 variants, I wonder?
+ #find#                  How one can manage to find anything in it?
+                       If you don't agree with me, set a bigger
+                       figures here. But I will open the secret that
+                       there will be no more than 99 variants found.
+                       That's why if you want to get maximum from the
+                       plugin, you should set 99 in this field.
+
+ #Min variant length#    sets the least length of the word, during the
+                       formation of the ~variants list~@List@. This way
+                       we can automatically exclude short words.
+
+ #Use partial#           Only coinciding parts of words will be added.
+ #completion#            That is if there are words in the ~list~@List@
+                       "Beginning", "Beginner", "Began" and
+                       this option is turned one, "Beg" will be
+                       automatically added.
+
+ #Add space at#          adds space after a chosen word.
+ #word end#
+
+ #Show menu if#          if not chosen, having one single variant
+ #only 1 variant#        we stick it (without list).
+
+ #Sound if no#           Peeps if there are no variants.
+ #variant#             What to say more here?
+
+
+ #Max variants in#       sets the maximum quantity of found words
+ #unsorted list#         after which the list will be sorted in
+                       ABC order, again for it to be easier to find
+                       what we exactly need.
+
+ #Asterisk symbol#       Evidently, everybody knows what the symbol
+                        '*' means during the file masks recording.
+                        For instance a*z.htm means HTML-files, names
+                        of which begin with 'a' and finish with 'z'
+                        (everything between them doesn't matter). So,
+                        now EditCompletion understands stencils. And
+                        the "Asterisk symbol" is the symbol that will
+                        be used in the stencil. Example. The
+                        "Asterisk symbol" = '-' We type "p-n" in the
+                        editor and call plugin. There will be words
+                        from the text in the menu beginning with the
+                        letter 'p' and finishing with 'n', for
+                        example, "plugin", "penguin" etc.
+
+ #Ok#                  to save current settings.
+ #Cancel#              to leave the old ones.
+
+ To move to ~Automatic word completing configurations~@ConfigAuto@
+
+
+@ConfigAuto
+$ #Automatic word completing configurations#
+
+ To move to ~Configurations for calling the plugin from menu~@Config@
+
+ #Work inside word#        should the addition work if there's
+                         a letter under the cursors.
+
+ #Case sensitive#          the most wanted configuration. I keep it
+                         always turned off.  So, if I entered
+                         "fo", I will have "FOX", "Fox", "fox",
+                         and even "FoXhOuNd".
+
+ #Consider digits#         will the figures be considered as letters.
+ #as letters#
+
+ #Additional letters#      I always add "_" (emphasizing), and it is
+                         considered as a letter. What do you consider
+                         to be a letter? Fill in this field.
+
+ #Browse downward#         defines, if it is necessary to search for
+                         a word lower in the text or on the top only.
+
+ #Line count#              sets the maximum quantity of the lines for
+ #for browsing#            variants search (below and on the top).
+
+ #Max variants#            Automatic word completion starts working
+ #to find#                 only when the quantity of found variants
+                         is not more, than it is shown here. But I
+                         will open the secret that there will be
+                         no more than 99 variants found.
+
+
+ #Min variant length#      sets the least length of the word, during
+                         the formation of the ~variants list~@List@.
+                         This way we can automatically exclude short
+                         words.
+
+ #Use partial completion#  Only coinciding parts of words will be
+                         added. That is if there are words in
+                         the ~list~@List@ "begin", "beginner",
+                         "beginning" and this option is turned one,
+                         "begin" will be automatically added.
+
+ #Add space#               adds space after a chosen word.
+ #at word end#
+
+ #Accept variant#          to accept autocompletion, having called
+ #from menu#               plugin from plugin menu (by F11). It's
+                         convenient to use if a macros is set for
+                         plugin activation and you want
+                         autocompletion to be possible to
+                         accept with the same key combination.
+
+ #Try to find variants#    allows to start searching for variants for
+ #after N letters#         autocompletion only if there are not less
+                         than N first letters of a word entered.
+
+ #Accept characters#       characters set which will be used for
+                         accepting autocompletion variant. Characters
+                         processed by traditional way.
+
+ #Accept completion#       sets the key combination which will be used
+ #KEY(s)#                for accepting autocompletion variant.
+                         It is "Tab". By the way the keys' names
+                         are written in the common way as always
+                         in Far. For instance: ShiftSpace,
+                         CtrlRight etc.
+
+ #Delete completion#       sets the key combination which will be used
+ #KEY(s)#                for deleting autocompletion variant.
+
+
+ #Set#                     allows to set a key (a key combination)
+                         for accepting/deleting autocompletion in
+                         interactive regime. You need this in order
+                         not to fill in the corresponding field
+                         manually.
+
+ #Ok#                      to save current settings.
+
+ #Cancel#                  to leave the old ones.
+
+ #Color#                   sets the color of the automatically added
+                         part of the word.
+
+ To move to ~Configurations for calling the plugin from the menu~@Config@
+
+@Author
+$ #And who has done this mess?#
+
+The team of authors:
+
+ 1. Andrey Tretjakov, 1999 (#2:5085/40#)     - father-founder.
+
+ 2. Semenov Alexey ~griphon25@@hotmail.com~@mailto:griphon25@@hotmail.com@   - fathers' business follower.
+
+ 3. Igor Lyubimov ~mr_july@@mail.ru~@mailto:mr_july@@mail.ru@          - responsible for everything!
+
+ 4. Vadim Yegorov ~zg@@matrica.apollo.lv~@mailto:zg@@matrica.apollo.lv?subject=EditCompletion%20plugin@     - patch maintainer.
+
+ Please spill all the critics on the author by number 4! :)))
