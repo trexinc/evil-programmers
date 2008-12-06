@@ -1,0 +1,125 @@
+<Esc-Settings>
+  <Types>
+
+    <type name="C/C++" mask="*.[ch],*.[ch]pp,*.cc,*.cxx" inherit="Sources">
+      <smartkey stopchar="(.="/>
+    </type>
+
+    <!--
+    Most programs written in C# are generally oriented to be run under
+    .NET Framework over Windows-kind operation systems, not over DOS-kind
+    or Unix-kind ones. So the best option is to regularly use
+    Windows ANSI codetable through all of these sources.
+    The leading editing system for C# sources is "Microsoft Visual Studio .NET"
+    (MSVS.NET), and its default settings are to use tabsize of 4 columns and
+    not to expand tabs to spaces. For not to occasionally change
+    the sources' formatting while editing ones in FAR manager
+    thus making the sources worse editable in MSVS.NET,
+    the best decision is to always edit C# sources with tabsize of 4 columns
+    and tabs instead of spaces.
+
+    Большинство программ на C# ориентированы на работу в среде .NET Framework
+    под управлением Windows-подобных операционных систем (не DOS-подобных или
+    Unix-подобных). Поэтому наилучшим выбором будет постоянно использовать
+    Windows ANSI кодировку во всех этих исходниках.
+    Основной средой разработки для программ на C# является
+    Microsoft Visual Studio .NET (MSVS.NET), и его настройки по умолчанию
+    подразумевают использование 4-символьного отступа и отсутствие замены
+    символов табуляции на пробелы. Чтобы случайно не испортить форматирование
+    исходников при редактировании их в редакторе FAR Manager-а,
+    таким образом затруднив работу с ними в среде MSVS.NET, лучше всего
+    при редактировании этих исходников постоянно пользоваться отступом в
+    4 символа и символами табуляции вместо пробелов.
+
+    Alexander Myodov, honeyman@uic.nnov.ru, 2:5015/112.29
+    -->
+    <type name="C#" mask="*.cs" inherit="Sources">
+      <tab tabsize="4" expandtabs="off"/>
+      <table value="2"/>
+    </type>
+
+    <type name="Java" mask="*.java" inherit="Sources">
+      <tab tabsize="4"/>
+    </type>
+
+    <type name="Pascal" mask="*.pas,*.dpr,*.pp" inherit="Sources">
+      <tab tabsize="4"/>
+    </type>
+
+    <type name="AWK" mask="*.awk" inherit="Sources"/>
+
+    <type name="FarMail Script" mask="*.fms" inherit="Sources"/>
+
+    <type name="Visual Basic" mask="*.bas,*.vbs,*.vbp,*.frm,*.cls,*.vb" inherit="Sources">
+      <table value="2"/>
+    </type>
+
+    <type name="JScript Script File" mask="*.js" inherit="Sources"/>
+
+    <type name="Batch command file" mask="*.bat,*.cmd" inherit="Sources"/>
+
+    <type name="Assembler" mask="*.asm,*.inc,*.i32" inherit="Sources">
+      <tab tabsize="3" expandtabs="off"/>
+    </type>
+
+    <type name="R-Style macrofile" mask="*.mac" inherit="Sources">
+      <tab tabsize="4"/>
+    </type>
+
+    <!--
+    According to "Perl style guide" (perldoc perlstyle) 4-column indent,
+    all Perl sources should have 4-column indent.
+    So the size of the indent is hard written to 4 columns,
+    even if the behaviour inherited from "Sources" type differs.
+    Moreover even if you change general tab size in "Sources" type to one
+    you prefer, Perl sources still be formatted according to Perl style guide.
+
+    Согласно "Perl style guide" - "Руководству по стилям языка Perl"
+    (perldoc perlstyle), все исходники на Perl должны иметь 4-символьный
+    отступ.
+    Поэтому размер отступа жёстко прописан как 4 символа, даже если это
+    это отличается от значения, полученного при наследовании от типа "Sources".
+    Более того, даже если вы измените размер отступа для всех исходников,
+    отредактировав тип "Sources", исходники на Perl по-прежнему будут
+    форматироваться согласно Perl style guide.
+
+    Alexander Myodov, honeyman@uic.nnov.ru, 2:5015/112.29
+    -->
+    <type name="Perl" mask="*.pl,*.pm,*.cgi,*.pls,*.pod" inherit="Sources">
+      <tab tabsize="4"/>
+    </type>
+
+    <!-- from Ivan Bykov ivan.bykov@mail.ru -->
+    <type name="python" mask="*.py,*.pyw" inherit="Sources">
+      <tab tabsize="4" expandtabs="on"/>
+      <smartkey tab="off" backspace="on" home="on" lines="64"/>
+      <addsymbol value="on"
+        start_b="&quot;&apos;({[&lt;" end_b="&quot;&apos;)}]&gt;"/>
+      <eol value="&#x0a;"/>
+    </type>
+
+    <type name="CSS" mask="*.css" inherit="Sources"/>
+
+    <type name="PHP" mask="*.php,*.php3,*.phtml,*.phtm" inherit="Sources"/>
+
+    <type name="makefile" mask="makefile,makefile.*,*.mak" inherit="Sources">
+      <tab expandtabs="off"/>
+    </type>
+
+    <type name="HHC, HHK, HHP" mask="*.hhc,*.hhk,*.hhp" inherit="Sources">
+      <tab expandtabs="off"/>
+      <eol value="&#x0d;&#x0a;"/>
+    </type>
+
+    <type name="Visual Modeler" mask="*.mdl" inherit="Sources">
+      <table value="2"/>
+      <tab tabsize="4" expandtabs="off"/>
+    </type>
+
+    <type name="Windows registry file" mask="*.reg" inherit="Sources">
+      <tab tabsize="4"/>
+      <eol value="&#x0d;&#x0a;"/>
+    </type>
+
+  </Types>
+</Esc-Settings>

@@ -1,0 +1,45 @@
+<Esc-Settings>
+  <Types>
+
+    <type name="File_Id.Diz" mask="file_id.diz" inherit="Texts">
+      <tab tabsize="4"/>
+      <margin wrap="35"/>
+      <eol value="&#x0d;&#x0a;"/>
+    </type>
+
+    <type name="FAR Help file" mask="*.hlf" inherit="Texts">
+      <margin justify="off"/>
+      <addsymbol
+        start_b="&quot;&apos;({[&lt;#" end_b="&quot;&apos;)}]&gt;#"
+      />
+      <eol value="&#x0d;&#x0a;"/>
+    </type>
+
+    <type name="history.txt" mask="*history*" inherit="Texts">
+      <tab tabsize="4"/>
+      <margin wrap="67"/>
+      <eol value="&#x0d;&#x0a;"/>
+    </type>
+
+    <type name="FAQ" mask="*faq*" inherit="Texts">
+      <margin wrap="78"/>
+      <quote value="on"/>
+      <eol value="&#x0d;&#x0a;"/>
+    </type>
+
+    <type name="text/plain"
+      mask="*.txt,*read*me*,*techinfo*,*whatsn*" inherit="Texts">
+      <margin wrap="79"/>
+    </type>
+
+    <type name="todo" mask="*.todo" inherit="text/plain"/>
+
+    <type name="nt events" mask="[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].err.info,[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].war.info,[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].inf.info,[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].aus.info,[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].auf.info,[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].info"
+      inherit="Texts">
+      <tab tabsize="10"/>
+    </type>
+
+    <type name="watznew.dat" mask="watznew.dat" inherit="Texts"/>
+
+  </Types>
+</Esc-Settings>

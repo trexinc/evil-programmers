@@ -1,0 +1,15 @@
+<Esc-Settings>
+  <Types>
+
+    <type name="Message" mask="*.msg,*.eml,*.nws" inherit="Texts">
+      <margin wrap="72" justify="off"/>
+      <quote value="on" quoteeol="off"/>
+      <kill p_minuses="on"/>
+      <usermacro value="on">
+        <macro key="CtrlD" sequence="CtrlD Enter Home [ Del s k . . . ] Enter Home"
+          auto="off" selection="stream" stop="on" silent="on" enable="on"/>
+      </usermacro>
+    </type>
+
+  </Types>
+</Esc-Settings>
