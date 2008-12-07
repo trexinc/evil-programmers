@@ -47,7 +47,7 @@ KeySequenceStorage::KeySequenceStorage(const KeySequenceStorage& Value)
 
 void KeySequenceStorage::Init()
 {
-  Stop=TRUE;
+  Stop=FALSE;
   Sequence.Sequence=NULL;
   Free();
 }

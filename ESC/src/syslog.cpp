@@ -31,7 +31,7 @@ wchar_t SysLogName[MAX_PATH*2];
 // выводит строку типа "DD.MM.YYYY HH:MM:SS text"
 void SysLog(const wchar_t *fmt, ...)
 {
-  const static wchar_t SYSLOGEABLED[]=L"SYSLOGEABLED";
+  const static wchar_t SYSLOGENABLED[]=L"SYSLOGENABLED";
   static wchar_t temp[4096];
 
   static SYSTEMTIME st;

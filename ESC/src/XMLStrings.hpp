@@ -21,7 +21,7 @@ struct XMLStrings
 {
   const wchar_t *Settings, *Name, *Type, *Mask, *TabSize, *ExpandTabs, *AutoIndent,*eol,
   *CursorBEOL, *CharCodeBase, *KillSpaces, *KillEmptyLines, *Wrap, *Justify,
-  *On, *Off, *Oct, *Dec, *Hex, *Table, *ProcessKeyEnd, *AutoWrap,
+  *On, *Off, *OnlyNew, *Oct, *Dec, *Hex, *Table, *ProcessKeyEnd, *AutoWrap,
   *QuoteEOL, *p_Minuses, *LockMode, *TableName,
   *SmartTab, *SmartBackSpace,*Lines, *SmartHome, *SkipPath, *ProcessQuote,
   *StopChar, *Inherit, *Include,

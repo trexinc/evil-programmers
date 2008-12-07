@@ -272,7 +272,7 @@ int xmlParse(void* Pool,PXMLNode x,wchar_t *src,int flags)
       i+=4;
       st=i;
       while((src[i]!=L'-' || src[i+1]!=L'-' || src[i+2]!=L'>') && sz-i>3)i++;
-      i+=3;
+      i+=2;
       if(sz-i<3)return 0;
       c=xmlNewChild(Pool,p,xmlComment);
       c->szCont=xstrndup(Pool,src+st,i-st-3);
@@ -479,6 +479,7 @@ static int xmlSaveString(xmlOutStream out,void* data,const wchar_t *str)
     if(str[i])
     {
       if     (str[i]==L'<' ){OUTSTRL(L"&lt;"  ,4);}
+      else if(str[i]==L'>' ){OUTSTRL(L"&gt;"  ,4);}
       else if(str[i]==L'&' ){OUTSTRL(L"&amp;" ,5);}
       else if(str[i]==L'"' ){OUTSTRL(L"&quot;",6);}
       else if(str[i]==L'\''){OUTSTRL(L"&apos;",6);}

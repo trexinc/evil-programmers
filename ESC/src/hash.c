@@ -246,7 +246,7 @@ void *hashGet(PHash h,const wchar_t *Key)
 void* hashGetEx(PHash h,const wchar_t *Key,int keylen)
 {
   PHashLink link;
-  int index;
+  unsigned index;
   if(!h)return NULL;
   link=hFindLinkEx(h,Key,keylen,&index);
   return link?link->pValue:NULL;

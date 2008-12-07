@@ -36,9 +36,7 @@ enum E_OPTIONS
 
    E_ExpandTabs_On       = 0x00000010,
    E_ExpandTabs_Off      = 0x00000020,
-
-   E_Wrap_Justify        = 0x00000040,
-   E_Wrap_Percent        = 0x00000080,
+   E_ExpandTabs_OnlyNew  = 0x00000040,
 
    E_CursorBeyondEOL_On  = 0x00000100,
    E_CursorBeyondEOL_Off = 0x00000200,
@@ -86,6 +84,9 @@ enum E2_OPTIONS
    E_WordSym_On          = 0x00000001,
 
    E_AlphaNum_On         = 0x00000020,
+
+   E_Wrap_Justify        = 0x00000040,
+   E_Wrap_Percent        = 0x00000080,
 };
 
 class NODEDATA

@@ -63,8 +63,8 @@ void InitNLS(const EditorInfo &ei, NODEDATA &nodedata)
    nlsMinus=L'-';
    if(nlsStopChars)
      *nlsStopChars=nodedata.StopChar;
-   BOOL ReSet=FALSE;
 /*
+   BOOL ReSet=FALSE;
    if(ei.AnsiMode)
    {
      ReSet=TRUE;
@@ -357,11 +357,11 @@ void SetMarginOpt(CXMLNode &n, NODEDATA &node,
     if(Inherit)
     {
       node.WrapPos=0;
-      node.Options&=~E_Wrap_Percent;
+      node.Options2&=~E_Wrap_Percent;
     }
 
     int len=wstrlen(Attr)-1, newAttr;
-    if(Attr[len]=='%')
+    if(Attr[len]==L'%')
     {
       newAttr=0;
       strcon tmp(Attr);
@@ -369,7 +369,7 @@ void SetMarginOpt(CXMLNode &n, NODEDATA &node,
       {
         tmp.str[len]=0;
         newAttr=FSF.atoi(tmp.str);
-        node.Options|=E_Wrap_Percent;
+        node.Options2|=E_Wrap_Percent;
       }
     }
     else
@@ -385,14 +385,14 @@ void SetMarginOpt(CXMLNode &n, NODEDATA &node,
     if(*Attr)
     {
       if(Inherit)
-        node.Options&=~E_Wrap_Justify;
+        node.Options2&=~E_Wrap_Justify;
 
       if(!wstricmp(Attr, XMLStr.On))
-        node.Options|=E_Wrap_Justify;
+        node.Options2|=E_Wrap_Justify;
     }
   }
   else
-    node.Options&=~E_Wrap_Justify;
+    node.Options2&=~E_Wrap_Justify;
 }
 
 void SetOption(const wchar_t *Attr,DWORD &Options,DWORD Value,
@@ -485,12 +485,15 @@ void SetTabOpt(CXMLNode &n, NODEDATA &node, const int &Inherit)
     {
       node.Options&=~E_ExpandTabs_On;
       node.Options&=~E_ExpandTabs_Off;
+      node.Options&=~E_ExpandTabs_OnlyNew;
     }
 
     if(!wstricmp(Attr, XMLStr.On))
       node.Options|=E_ExpandTabs_On;
     else if(!wstricmp(Attr, XMLStr.Off))
       node.Options|=E_ExpandTabs_Off;
+    else if(!wstricmp(Attr, XMLStr.OnlyNew))
+      node.Options|=E_ExpandTabs_OnlyNew;
 
     _D(SysLog(L"XML EXPANDTABS: Name:[%s] mask:[%s] Attr:[%s] Options:[%x]", node.Name.str, node.mask.str, Attr, node.Options));
   }
@@ -522,12 +525,12 @@ bool InsertMacro(CXMLNode &n,CUserMacros &Macro,
 
 bool AddMacro(CXMLNode &n,NODEDATA &node,int &Error,strcon &unknownKey)
 {
-  bool res=true, silent=true, Stop=true;
+  bool res=true, silent=true, Stop=false;
   DWORD ButtonState=0, Flags=0;
   const wchar_t *Attr;
 
-  if(!wstricmp(n.Attr(XMLStr.Stop),XMLStr.Off))
-    Stop=false;
+  if(!wstricmp(n.Attr(XMLStr.Stop),XMLStr.On))
+    Stop=true;
 
   Attr=n.Attr(XMLStr.Silent);
   if(*Attr && 0!=wstricmp(Attr,XMLStr.On))
@@ -573,6 +576,7 @@ bool AddMacro(CXMLNode &n,NODEDATA &node,int &Error,strcon &unknownKey)
 
     if(0!=ButtonState) // есть мышиный макрос
     {
+      _D(SysLog(L"AddMacro: mouse macro exists"));
       DWORD ControlState=0;
       if(!wstricmp(n.Attr(XMLStr.RCtrl),XMLStr.On))
         ControlState|=ECS_RCtrl_On;
@@ -591,6 +595,7 @@ bool AddMacro(CXMLNode &n,NODEDATA &node,int &Error,strcon &unknownKey)
 
   if(res && *(Attr=n.Attr(XMLStr.Key)))
   {
+    _D(SysLog(L"AddMacro: Key=[%s]", Attr));
     int Key=FSF.FarNameToKey(Attr);
     if(Key==-1)
     {
@@ -668,7 +673,7 @@ int ParseFile(const wchar_t *filename,CRedBlackTree<ESCFileInfo>&FITree,
   _D(SysLog(L"ParseFile: [%s] - start", FileName));
   int rc=0;
   ESCFileInfo fi(const_cast<const wchar_t*>(FileName));
-  if (!FileName || FITree.findNode(fi))
+  if (!*FileName || FITree.findNode(fi))
     rc=1;
   else
   {
@@ -709,7 +714,7 @@ int ParseFile(const wchar_t *filename,CRedBlackTree<ESCFileInfo>&FITree,
     BOOL Error=FALSE;
     {
       i=NULL;
-      int newAttr, SameType;
+      int SameType;
       BOOL Inherit;
       while(!Error && NULL!=(i=p.EnumName(XMLStr.Type, i,n)))
       {
@@ -930,7 +935,7 @@ int ParseFile(const wchar_t *filename,CRedBlackTree<ESCFileInfo>&FITree,
               // закончили отслеживание взаимосвязей
 
               //_D(SysLog(L"ReloadSettings: Name=[%s], tabsize=%d wrap=%d Justify=%s",
-              //   node.Name, node.TabSize, node.WrapPos, node.Options&E_Wrap_Justify?L"on":L"off"));
+              //   node.Name, node.TabSize, node.WrapPos, node.Options2&E_Wrap_Justify?L"on":L"off"));
             }
             else
               Error=TRUE;
@@ -1103,7 +1108,7 @@ wchar_t *TruncFromRigth(wchar_t *Str, unsigned int maxsize, BOOL AddSpaces)
 
 int CalcWrapPos(const NODEDATA &Data, const EditorInfo &ei)
 {
-   if(Data.Options & E_Wrap_Percent)
+   if(Data.Options2 & E_Wrap_Percent)
    {
       int w=ei.WindowSizeX*Data.WrapPos/100;
       return (w>511)?511:w;
@@ -1452,8 +1457,9 @@ BOOL InsertAdditionalSymbol(const EditorInfo &ei,
 // Возвращает номер кодовой таблицы с именем name или -1, если не нашли таблицу
 int FindCodeTable(const wchar_t *Mask)
 {
-  int ret = -1, ct = 0;
+  int ret = -1;
 /*
+  int ct = 0;
   if (*Mask)
     while (-1 < Info.CharTable(ct, reinterpret_cast<wchar_t *>(&tmpCharSet),
                                sizeof(tmpCharSet)))

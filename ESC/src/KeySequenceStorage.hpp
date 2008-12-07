@@ -41,7 +41,7 @@ class KeySequenceStorage
     void Init();
     inline int IsSpace(wchar_t x) { return x==0x20||x==L'\t'||x==L'\r'||x==L'\n';}
   public:
-    KeySequenceStorage(const wchar_t *str=NULL, bool silent=true, DWORD total=1, BOOL Stop=TRUE);
+    KeySequenceStorage(const wchar_t *str=NULL, bool silent=true, DWORD total=1, BOOL Stop=FALSE);
     KeySequenceStorage(const KeySequenceStorage& Value);
     ~KeySequenceStorage() { Free(); }
     const KeySequence& GetSequence(BOOL &stop) const
