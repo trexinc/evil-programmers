@@ -84,7 +84,7 @@ XMLStrings XMLStr=
 {
   L"/Esc-Settings/Types",L"name",L"type",L"mask",L"tabsize",L"expandtabs",
   L"autoindent",L"eol",L"cursorbeol",L"charcodebase",L"killspace",L"killemptylines",
-  L"wrap",L"justify",L"on",L"off",L"oct",L"dec",L"hex",L"table",L"p_end",L"autowrap",
+  L"wrap",L"justify",L"on",L"off",L"onlynew",L"oct",L"dec",L"hex",L"table",L"p_end",L"autowrap",
   L"quoteeol",L"p_minuses",L"lockmode",L"tablename",
   L"smarttab",L"smartbs",L"lines",L"smarthome",L"skippath",L"p_quote",
   L"stopchar",L"inherit",L"include",

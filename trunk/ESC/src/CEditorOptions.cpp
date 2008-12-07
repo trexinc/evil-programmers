@@ -56,14 +56,16 @@ int CEditorOptions::ApplyOption(EDITOR_SETPARAMETER_TYPES type)
           }
           break;
      case ESPT_EXPANDTABS:
-          if((Data.Options&E_ExpandTabs_On) ||
-             (Data.Options&E_ExpandTabs_Off)
-            )
+          if(Data.Options&(E_ExpandTabs_On|E_ExpandTabs_Off|E_ExpandTabs_OnlyNew))
           {
             ESPar.Type=ESPT_EXPANDTABS;
-            ESPar.Param.iParam=(Data.Options&E_ExpandTabs_On)?EXPAND_ALLTABS:EXPAND_NOTABS;
+            if(Data.Options&E_ExpandTabs_On)
+              ESPar.Param.iParam=EXPAND_ALLTABS;
+            else if(Data.Options&E_ExpandTabs_OnlyNew)
+              ESPar.Param.iParam=EXPAND_NEWTABS;
+            else
+              ESPar.Param.iParam=EXPAND_NOTABS;
             RetCode=EditorControl(ECTL_SETPARAM, &ESPar);
-            _D(SysLog(L"ESPT_EXPANDTABS: ON Name:[%s] mask:[%s] Options:[%x]", Data.Name.str, Data.mask.str, Data.Options));
           }
           break;
      case ESPT_AUTOINDENT:
@@ -156,13 +158,17 @@ void CEditorOptions::ApplyAllOptions()
   ApplyOption(ESPT_SETWORDDIV);
 }
 
+//FIXME: надо понять что тут происходит и правильно для юникода сделать
 void CEditorOptions::MakeWordDiv(bool alphanum, const wchar_t *additional, wchar_t *dest)
 {
   FARSTDLOCALISALPHA alphafunc=alphanum?FSF.LIsAlpha:FSF.LIsAlphanum;
   const wchar_t *other=additional?additional:L"";
   for(unsigned int i=1; i<256; ++i)
   {
-    if(!alphafunc(i) && NULL==wstrchr(other, i))
+    if(!alphafunc(i) && NULL==wstrchr(other, i)
+       && i!=0x20) // если убрать 0x20, т.е. разрешить пробелу быть символом-
+                   // разделителем слов, то стандартные CtrlT, CtrlBS и CtrlDel
+                   // не будут удалять сразу все пробелы, а только по одному
     {
       *dest=i;
       ++dest;

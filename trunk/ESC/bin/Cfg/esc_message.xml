@@ -6,7 +6,7 @@
       <quote value="on" quoteeol="off"/>
       <kill p_minuses="on"/>
       <usermacro value="on">
-        <macro key="CtrlD" sequence="CtrlD Enter Home [ Del s k . . . ] Enter Home"
+        <macro key="CtrlD" sequence="CtrlD Enter Home [ s k . . . ] Enter Home"
           auto="off" selection="stream" stop="on" silent="on" enable="on"/>
       </usermacro>
     </type>

@@ -1,7 +1,7 @@
 # awk -f ver.awk> esc.rc
 BEGIN {
   majorVer=2;
-  minorVer=4;
+  minorVer=5;
 
   print "#include <windows.h>"
   print "#define VERSIONINFO_1   1"

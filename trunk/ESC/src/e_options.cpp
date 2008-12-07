@@ -24,9 +24,9 @@
 
 NODEDATA::NODEDATA():
      AddSym_S(L""), AddSym_E(L""), AddSym_S_B(L""), AddSym_E_B(L""),
+     TableName(L""),AdditionalLetters(L""),
      TabSize(0),WrapPos(0),Table(0),MinLinesNum(0),EOL(0),Options(0),Options2(0),Lines(0),
-     AdditionalLetters(L""),
-     TableNum(-1), TableName(L""), LockFile(NULL), StopChar(L"")
+     TableNum(-1), LockFile(NULL), StopChar(L"")
 {
 }
 

@@ -909,7 +909,7 @@ int WINAPI _export ProcessEditorInputW(const INPUT_RECORD *Rec)
     {
       RetCode=0;
       if(nodedata.Lines && (nodedata.Options&E_SmartBackSpace_On) &&
-         (ei.Options&EOPT_EXPANDALLTABS) &&
+         (ei.Options&(EOPT_EXPANDALLTABS|EOPT_EXPANDONLYNEWTABS)) &&
          ei.CurPos && !(KeyEvent.dwControlKeyState & SHIFT_PRESSED) &&
          (ei.BlockType==BTYPE_NONE || !(ei.Options&EOPT_DELREMOVESBLOCKS) ||
           ei.Options&EOPT_PERSISTENTBLOCKS)
@@ -1049,7 +1049,7 @@ int WINAPI _export ProcessEditorInputW(const INPUT_RECORD *Rec)
     int i;
     int nbCount, nbExtra;
     int nWrapPos=CalcWrapPos(nodedata, ei),
-        isJustifyEnabled=(nodedata.Options&E_Wrap_Justify)?1:0;
+        isJustifyEnabled=(nodedata.Options2&E_Wrap_Justify)?1:0;
     div_t SpaceCount;
 
     _D(SysLog(L"PEI: Wrap=%d", !!(nodedata.Options&E_AutoWrap_On)));
@@ -1319,8 +1319,14 @@ GetEditorSettingsW(int EditorID, const wchar_t *szName, void *Param)
   }
   else if(!wstrcmp(szName, XMLStr.ExpandTabs))
   {
-     *static_cast<int *>(Param)=(Data.Options&E_ExpandTabs_On)?1:
-       ((Data.Options&E_ExpandTabs_Off)?0:2);
+     if(Data.Options&E_ExpandTabs_On)
+       *static_cast<int *>(Param)=1;
+     else if(Data.Options&E_ExpandTabs_OnlyNew)
+       *static_cast<int *>(Param)=3;
+     else if(Data.Options&E_ExpandTabs_Off)
+       *static_cast<int *>(Param)=0;
+     else
+       *static_cast<int *>(Param)=2;
   }
   else if(!wstrcmp(szName, XMLStr.CursorBEOL))
   {
@@ -1365,7 +1371,7 @@ GetEditorSettingsW(int EditorID, const wchar_t *szName, void *Param)
   }
   else if(!wstrcmp(szName, XMLStr.Justify))
   {
-     *static_cast<int *>(Param)=(Data.Options&E_Wrap_Justify)?1:0;
+     *static_cast<int *>(Param)=(Data.Options2&E_Wrap_Justify)?1:0;
   }
   else if(!wstrcmp(szName, XMLStr.eol))
   {
@@ -1467,8 +1473,13 @@ SetEditorOptionW(int EditorID, const wchar_t *szName, void *Param)
   {
     Data.Options&=~E_ExpandTabs_On;
     Data.Options&=~E_ExpandTabs_Off;
-    Data.Options|=(param==1)?E_ExpandTabs_On:
-                  ((param==0)?E_ExpandTabs_Off:0);
+    Data.Options&=~E_ExpandTabs_OnlyNew;
+    if(1==param)
+      Data.Options|=E_ExpandTabs_On;
+    else if(0==param)
+      Data.Options|=E_ExpandTabs_Off;
+    else if(3==param)
+      Data.Options|=E_ExpandTabs_OnlyNew;
     Type=ESPT_EXPANDTABS;
   }
   else if(!wstrcmp(szName, XMLStr.CursorBEOL))
@@ -1530,13 +1541,13 @@ SetEditorOptionW(int EditorID, const wchar_t *szName, void *Param)
   }
   else if(!wstrcmp(szName, XMLStr.Wrap))
   {
-    Data.Options&=~E_Wrap_Percent;
+    Data.Options2&=~E_Wrap_Percent;
     Data.WrapPos=param;
   }
   else if(!wstrcmp(szName, XMLStr.Justify))
   {
-    if(param) Data.Options|=E_Wrap_Justify;
-    else      Data.Options&=~E_Wrap_Justify;
+    if(param) Data.Options2|=E_Wrap_Justify;
+    else      Data.Options2&=~E_Wrap_Justify;
   }
   else if(!wstrcmp(szName, XMLStr.eol))
   {

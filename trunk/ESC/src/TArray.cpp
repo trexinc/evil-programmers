@@ -24,7 +24,7 @@
 
 template <class Object>
 TArray<Object>::TArray(unsigned int delta):
-  items(NULL), Count(0), internalCount(0)
+  internalCount(0), Count(0), items(NULL)
 {
   setDelta(delta);
 }
