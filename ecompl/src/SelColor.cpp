@@ -23,12 +23,10 @@
 #include <tchar.h>
 
 #ifndef UNICODE
-#define GetCheck(i) DialogItems[i].Selected
 #define GetFlags(i,hDlg) DialogItems[i].Flags
 #define DM_GETDLGITEMSHORT DM_GETDLGITEM
 #define DM_SETDLGITEMSHORT DM_SETDLGITEM
 #else
-#define GetCheck(i) (int)Info.SendDlgMessage(hDlg,DM_GETCHECK,i,0)
 static inline DWORD GetFlags(int i,HANDLE hDlg)
 {
   FarDialogItem DialogItem;
@@ -174,34 +172,23 @@ bool SelectColor(int *fg,int *bg)
 
   DialogItems[color_translate[*fg]+1].Focus=DialogItems[color_translate[*fg]+1].Selected=true;
   DialogItems[color_translate[*bg]+18].Selected=true;
-  int DlgCode=-1;
-#ifdef UNICODE
-  HANDLE hDlg=Info.DialogInit
-#else
-  DlgCode=Info.DialogEx
-#endif
-  (Info.ModuleNumber,-1,-1,39,15,NULL,DialogItems,(sizeof(DialogItems)/sizeof(DialogItems[0])),0,0,ColorDialogProc,0);
-#ifdef UNICODE
-  if(hDlg!=INVALID_HANDLE_VALUE) DlgCode=Info.DialogRun(hDlg);
-#endif
+  CFarDialog dialog;
+  int DlgCode=dialog.Execute(Info.ModuleNumber,-1,-1,39,15,NULL,DialogItems,(sizeof(DialogItems)/sizeof(DialogItems[0])),0,0,ColorDialogProc,0);
   if(DlgCode==color_set)
   {
     for(int i=1;i<17;i++)
-      if(GetCheck(i))
+      if(Dlg_GetCheck(dialog.Handle(),DialogItems,i))
       {
-        *fg=(GetFlags(i,hDlg)&0xF0)>>4;
+        *fg=(GetFlags(i,dialog.Handle())&0xF0)>>4;
         break;
       }
     for(int i=18;i<34;i++)
-      if(GetCheck(i))
+      if(Dlg_GetCheck(dialog.Handle(),DialogItems,i))
       {
-        *bg=(GetFlags(i,hDlg)&0xF0)>>4;
+        *bg=(GetFlags(i,dialog.Handle())&0xF0)>>4;
         break;
       }
     result=true;
   }
-#ifdef UNICODE
-  if(hDlg!=INVALID_HANDLE_VALUE) Info.DialogFree(hDlg);
-#endif
   return result;
 }

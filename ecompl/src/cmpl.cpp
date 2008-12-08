@@ -17,9 +17,8 @@
     along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "plugin.hpp"
-#include "EditCmpl.hpp"
 #include "MatPat.h"
+#include "EditCmpl.hpp"
 #include "cmpl.hpp"
 #include "string.hpp"
 #include "language.hpp"
@@ -497,43 +496,24 @@ void TCompletion::InitItems(FarDialogItem *DialogItems)
   DialogItems[IAddTrailingSpace].Selected=AddTrailingSpace;
 
   // Что будет в строках ввода
-#ifdef UNICODE
-  FSF.itoa(BrowseLineCnt,BrowseLineCntText,10);
-  DialogItems[IBrowseLineCnt].PtrData=BrowseLineCntText;
-  FSF.itoa(WordsToFindCnt,WordsToFindCntText,10);
-  DialogItems[IWordsToFindCnt].PtrData=WordsToFindCntText;
-  FSF.itoa(MinWordLen,MinWordLenText,10);
-  DialogItems[IMinWordLen].PtrData=MinWordLenText;
-  DialogItems[IAdditionalLetters].PtrData=AdditionalLetters;
-  DialogItems[IAdditionalLetters].MaxLen=sizeof(AdditionalLetters)/sizeof(AdditionalLetters[0])-1;
-#else
-  FSF.itoa(BrowseLineCnt,DialogItems[IBrowseLineCnt].Data,10);
-  FSF.itoa(WordsToFindCnt,DialogItems[IWordsToFindCnt].Data,10);
-  FSF.itoa(MinWordLen,DialogItems[IMinWordLen].Data,10);
-  FSF.sprintf(DialogItems[IAdditionalLetters].Data,"%s",AdditionalLetters);
-#endif
+  DLG_DATA_ITOA(DialogItems[IBrowseLineCnt],BrowseLineCnt);
+  DLG_DATA_ITOA(DialogItems[IWordsToFindCnt],WordsToFindCnt);
+  DLG_DATA_ITOA(DialogItems[IMinWordLen],MinWordLen);
+  INIT_DLG_DATA(DialogItems[IAdditionalLetters],AdditionalLetters);
 }
 
-#ifdef UNICODE
-#define GetCheck(i) (int)Info.SendDlgMessage(hDlg,DM_GETCHECK,i,0)
-#define GetStr(i) (const wchar_t*)Info.SendDlgMessage(hDlg,DM_GETCONSTTEXTPTR,i,0)
-void TCompletion::StoreItems(HANDLE hDlg)
-#else
-#define GetCheck(i) DialogItems[i].Selected
-#define GetStr(i) DialogItems[i].Data
-void TCompletion::StoreItems(FarDialogItem *DialogItems)
-#endif
+void TCompletion::StoreItems(DLG_REFERENCE Dialog)
 {
-  WorkInsideWord=GetCheck(IWorkInsideWord);
-  CaseSensitive=GetCheck(ICaseSensitive);
-  BrowseDownward=GetCheck(IBrowseDownward);
-  ConsiderDigitAsChar=GetCheck(IConsiderDigitAsChar);
-  PartialCompletion=GetCheck(IPartialCompletion);
-  AddTrailingSpace=GetCheck(IAddTrailingSpace);
-  BrowseLineCnt=FSF.atoi(GetStr(IBrowseLineCnt));
-  WordsToFindCnt=FSF.atoi(GetStr(IWordsToFindCnt));
-  MinWordLen=FSF.atoi(GetStr(IMinWordLen));
-  FSF.sprintf(AdditionalLetters,_T("%s"),GetStr(IAdditionalLetters));
+  WorkInsideWord=Dlg_GetCheck(Dialog,Dialog,IWorkInsideWord);
+  CaseSensitive=Dlg_GetCheck(Dialog,Dialog,ICaseSensitive);
+  BrowseDownward=Dlg_GetCheck(Dialog,Dialog,IBrowseDownward);
+  ConsiderDigitAsChar=Dlg_GetCheck(Dialog,Dialog,IConsiderDigitAsChar);
+  PartialCompletion=Dlg_GetCheck(Dialog,Dialog,IPartialCompletion);
+  AddTrailingSpace=Dlg_GetCheck(Dialog,Dialog,IAddTrailingSpace);
+  BrowseLineCnt=FSF.atoi(Dlg_GetStr(Dialog,Dialog,IBrowseLineCnt));
+  WordsToFindCnt=FSF.atoi(Dlg_GetStr(Dialog,Dialog,IWordsToFindCnt));
+  MinWordLen=FSF.atoi(Dlg_GetStr(Dialog,Dialog,IMinWordLen));
+  FSF.sprintf(AdditionalLetters,_T("%s"),Dlg_GetStr(Dialog,Dialog,IAdditionalLetters));
 }
 
 long WINAPI ConfigDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
@@ -555,28 +535,19 @@ void TCompletion::ShowDialog()
   if(DialogItems)
   {
     InitItems(DialogItems);
-    int DlgCode=-1;
-#ifdef UNICODE
-    HANDLE hDlg=Info.DialogInit
-#else
-    DlgCode=Info.DialogEx
-#endif
-    (Info.ModuleNumber,-1,-1,DialogWidth(),DialogHeight(),ConfigHelpTopic,DialogItems,GetItemCount(),0,0,ConfigDialogProc,(DWORD)this);
-#ifdef UNICODE
-    if(hDlg!=INVALID_HANDLE_VALUE) DlgCode=Info.DialogRun(hDlg);
-#endif
+    CFarDialog dialog;
+    int DlgCode=dialog.Execute(Info.ModuleNumber,-1,-1,DialogWidth(),DialogHeight(),ConfigHelpTopic,DialogItems,GetItemCount(),0,0,ConfigDialogProc,(DWORD)this);
     if(DlgCode==IOk)
     {
+    StoreItems(
 #ifdef UNICODE
-      StoreItems(hDlg);
+      dialog.Handle()
 #else
-      StoreItems(DialogItems);
+      DialogItems
 #endif
+      );
       SetOptions();
     }
-#ifdef UNICODE
-    if(hDlg!=INVALID_HANDLE_VALUE) Info.DialogFree(hDlg);
-#endif
     HeapFree(GetProcessHeap(),0,DialogItems);
   }
 }
