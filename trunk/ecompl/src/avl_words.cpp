@@ -18,7 +18,6 @@
 
 #include <windows.h>
 #include "avl_words.hpp"
-#include "plugin.hpp"
 #include "EditCmpl.hpp"
 
 void avl_word_data::init(void)

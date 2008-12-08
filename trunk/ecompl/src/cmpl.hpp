@@ -92,11 +92,7 @@ class TCompletion
     virtual int DialogHeight(void)=0;
     virtual long DialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)=0;
     virtual void InitItems(FarDialogItem *DialogItems);
-#ifdef UNICODE
-    virtual void StoreItems(HANDLE hDlg);
-#else
-    virtual void StoreItems(FarDialogItem *DialogItems);
-#endif
+    virtual void StoreItems(DLG_REFERENCE Dialog);
   public:
     TCompletion(const TCHAR *RegRoot);
     virtual ~TCompletion();

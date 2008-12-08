@@ -32,10 +32,4 @@ extern avl_window_tree *windows;
 
 extern const TCHAR *GetMsg(int MsgId);
 
-#ifndef UNICODE
-#define EXP_NAME(p) _export p
-#else
-#define EXP_NAME(p) _export p ## W
-#endif
-
 #endif
