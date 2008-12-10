@@ -354,12 +354,12 @@ void TMenuCompletion::InitItems(FarDialogItem *DialogItems)
   INIT_DLG_DATA(DialogItems[ICfg],GetMsg(MMenuCfg)); // Заголовок
 }
 
-void TMenuCompletion::StoreItems(DLG_REFERENCE Dialog)
+void TMenuCompletion::StoreItems(CFarDialog& Dialog)
 {
   TCompletion::StoreItems(Dialog);
-  SingleVariantInMenu=Dlg_GetCheck(Dialog,Dialog,ISingleVariantInMenu);
-  NotFoundSound=Dlg_GetCheck(Dialog,Dialog,INotFoundSound);
-  AsteriskSymbol=Dlg_GetStr(Dialog,Dialog,IAsteriskSymbol)[0];
-  SortListCount=FSF.atoi(Dlg_GetStr(Dialog,Dialog,ISortListCount));
-  _tcscpy(AcceptChars,Dlg_GetStr(Dialog,Dialog,IMenuAcceptChars));
+  SingleVariantInMenu=Dialog.Check(ISingleVariantInMenu);
+  NotFoundSound=Dialog.Check(INotFoundSound);
+  AsteriskSymbol=Dialog.Str(IAsteriskSymbol)[0];
+  SortListCount=FSF.atoi(Dialog.Str(ISortListCount));
+  _tcscpy(AcceptChars,Dialog.Str(IMenuAcceptChars));
 }

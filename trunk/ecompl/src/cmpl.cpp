@@ -502,18 +502,18 @@ void TCompletion::InitItems(FarDialogItem *DialogItems)
   INIT_DLG_DATA(DialogItems[IAdditionalLetters],AdditionalLetters);
 }
 
-void TCompletion::StoreItems(DLG_REFERENCE Dialog)
+void TCompletion::StoreItems(CFarDialog& Dialog)
 {
-  WorkInsideWord=Dlg_GetCheck(Dialog,Dialog,IWorkInsideWord);
-  CaseSensitive=Dlg_GetCheck(Dialog,Dialog,ICaseSensitive);
-  BrowseDownward=Dlg_GetCheck(Dialog,Dialog,IBrowseDownward);
-  ConsiderDigitAsChar=Dlg_GetCheck(Dialog,Dialog,IConsiderDigitAsChar);
-  PartialCompletion=Dlg_GetCheck(Dialog,Dialog,IPartialCompletion);
-  AddTrailingSpace=Dlg_GetCheck(Dialog,Dialog,IAddTrailingSpace);
-  BrowseLineCnt=FSF.atoi(Dlg_GetStr(Dialog,Dialog,IBrowseLineCnt));
-  WordsToFindCnt=FSF.atoi(Dlg_GetStr(Dialog,Dialog,IWordsToFindCnt));
-  MinWordLen=FSF.atoi(Dlg_GetStr(Dialog,Dialog,IMinWordLen));
-  FSF.sprintf(AdditionalLetters,_T("%s"),Dlg_GetStr(Dialog,Dialog,IAdditionalLetters));
+  WorkInsideWord=Dialog.Check(IWorkInsideWord);
+  CaseSensitive=Dialog.Check(ICaseSensitive);
+  BrowseDownward=Dialog.Check(IBrowseDownward);
+  ConsiderDigitAsChar=Dialog.Check(IConsiderDigitAsChar);
+  PartialCompletion=Dialog.Check(IPartialCompletion);
+  AddTrailingSpace=Dialog.Check(IAddTrailingSpace);
+  BrowseLineCnt=FSF.atoi(Dialog.Str(IBrowseLineCnt));
+  WordsToFindCnt=FSF.atoi(Dialog.Str(IWordsToFindCnt));
+  MinWordLen=FSF.atoi(Dialog.Str(IMinWordLen));
+  FSF.sprintf(AdditionalLetters,_T("%s"),Dialog.Str(IAdditionalLetters));
 }
 
 long WINAPI ConfigDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
@@ -539,13 +539,7 @@ void TCompletion::ShowDialog()
     int DlgCode=dialog.Execute(Info.ModuleNumber,-1,-1,DialogWidth(),DialogHeight(),ConfigHelpTopic,DialogItems,GetItemCount(),0,0,ConfigDialogProc,(DWORD)this);
     if(DlgCode==IOk)
     {
-    StoreItems(
-#ifdef UNICODE
-      dialog.Handle()
-#else
-      DialogItems
-#endif
-      );
+      StoreItems(dialog);
       SetOptions();
     }
     HeapFree(GetProcessHeap(),0,DialogItems);
