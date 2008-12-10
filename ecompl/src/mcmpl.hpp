@@ -45,7 +45,7 @@ class TMenuCompletion: public TCompletion
     int DialogHeight(void);
     long DialogProc(HANDLE hDlg,int Msg,int Param1,long Param2);
     void InitItems(FarDialogItem *DialogItems);
-    void StoreItems(DLG_REFERENCE Dialog);
+    void StoreItems(CFarDialog& Dialog);
   public:
     TMenuCompletion(const TCHAR *RegRoot);
     ~TMenuCompletion();

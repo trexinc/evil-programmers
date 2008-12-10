@@ -23,16 +23,8 @@
 #include <tchar.h>
 
 #ifndef UNICODE
-#define GetFlags(i,hDlg) DialogItems[i].Flags
 #define DM_GETDLGITEMSHORT DM_GETDLGITEM
 #define DM_SETDLGITEMSHORT DM_SETDLGITEM
-#else
-static inline DWORD GetFlags(int i,HANDLE hDlg)
-{
-  FarDialogItem DialogItem;
-  if(Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,i,(LONG_PTR)&DialogItem)) return DialogItem.Flags;
-  return 0;
-}
 #endif
 
 enum
@@ -177,15 +169,15 @@ bool SelectColor(int *fg,int *bg)
   if(DlgCode==color_set)
   {
     for(int i=1;i<17;i++)
-      if(Dlg_GetCheck(dialog.Handle(),DialogItems,i))
+      if(dialog.Check(i))
       {
-        *fg=(GetFlags(i,dialog.Handle())&0xF0)>>4;
+        *fg=(dialog.Flags(i)&0xF0)>>4;
         break;
       }
     for(int i=18;i<34;i++)
-      if(Dlg_GetCheck(dialog.Handle(),DialogItems,i))
+      if(dialog.Check(i))
       {
-        *bg=(GetFlags(i,dialog.Handle())&0xF0)>>4;
+        *bg=(dialog.Flags(i)&0xF0)>>4;
         break;
       }
     result=true;

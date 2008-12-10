@@ -390,19 +390,8 @@ long TAutoCompletion::DialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
       DialogFrame.Flags=DIF_BOXCOLOR;
       DialogFrame.DefaultButton=1;
       int width=_tcslen(DLG_DATA(DialogFrame))+6;
-#ifdef UNICODE
-      HANDLE hDlgIn=Info.DialogInit
-#else
-      Info.DialogEx
-#endif
-      (Info.ModuleNumber,-1,-1,width,5,ConfigHelpTopic,&DialogFrame,1,0,0,GetKey,(DWORD)KeyName);
-#ifdef UNICODE
-      if(hDlgIn!=INVALID_HANDLE_VALUE)
-      {
-        Info.DialogRun(hDlgIn);
-        Info.DialogFree(hDlgIn);
-      }
-#endif
+      CFarDialog dialog;
+      dialog.Execute(Info.ModuleNumber,-1,-1,width,5,ConfigHelpTopic,&DialogFrame,1,0,0,GetKey,(DWORD)KeyName);
       Info.SendDlgMessage(hDlg,DM_SETTEXTPTR,(Param1==IAcceptKeyCfg)?IAcceptKey:IDeleteKey,(long)&KeyName);
       Info.SendDlgMessage(hDlg,DM_SHOWDIALOG,TRUE,0);
       return TRUE;
@@ -504,13 +493,13 @@ void TAutoCompletion::InitItems(FarDialogItem *DialogItems)
   DialogItems[IAdditional].Y1=DialogHeight()-2;
 }
 
-void TAutoCompletion::StoreItems(DLG_REFERENCE Dialog)
+void TAutoCompletion::StoreItems(CFarDialog& Dialog)
 {
   TCompletion::StoreItems(Dialog);
-  AcceptFromMenu=Dlg_GetCheck(Dialog,Dialog,IAcceptFromMenu);
-  MinPreWordLen=FSF.atoi(Dlg_GetStr(Dialog,Dialog,IMinPreWordLen));
+  AcceptFromMenu=Dialog.Check(IAcceptFromMenu);
+  MinPreWordLen=FSF.atoi(Dialog.Str(IMinPreWordLen));
   Color=Dialog_Color;
-  AcceptKey=FSF.FarNameToKey(Dlg_GetStr(Dialog,Dialog,IAcceptKey));
-  DeleteKey=FSF.FarNameToKey(Dlg_GetStr(Dialog,Dialog,IDeleteKey));
-  _tcscpy(AcceptChars,Dlg_GetStr(Dialog,Dialog,IAcceptChars));
+  AcceptKey=FSF.FarNameToKey(Dialog.Str(IAcceptKey));
+  DeleteKey=FSF.FarNameToKey(Dialog.Str(IDeleteKey));
+  _tcscpy(AcceptChars,Dialog.Str(IAcceptChars));
 }

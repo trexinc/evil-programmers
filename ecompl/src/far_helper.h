@@ -32,22 +32,27 @@ typedef unsigned short UTCHAR;
 #define DLG_DATA_SPRINTF(item,val,mask) FSF.sprintf(val##Text,mask,val); item.PtrData=val##Text
 #define DLG_DATA_FARKEYTONAME(item,val) t_FarKeyToName(val,val##Text,ArraySize(val##Text)); item.PtrData=val##Text
 #define DLG_DATA_ITOA(item,val) FSF.itoa(val,val##Text,10); item.PtrData=val##Text
-#define DLG_REFERENCE HANDLE
-#define Dlg_GetCheck(handle,items,index) ((int)Info.SendDlgMessage(handle,DM_GETCHECK,index,0))
-#define Dlg_GetStr(handle,items,index) ((const wchar_t*)Info.SendDlgMessage(handle,DM_GETCONSTTEXTPTR,index,0))
 class CFarDialog
 {
   private:
     HANDLE iDlg;
   public:
     inline CFarDialog(): iDlg(INVALID_HANDLE_VALUE) {};
-    inline ~CFarDialog() {if(iDlg!=INVALID_HANDLE_VALUE) Info.DialogFree(iDlg);};
+    inline ~CFarDialog() {Info.DialogFree(iDlg);};
     inline int Execute(INT_PTR PluginNumber,int X1,int Y1,int X2,int Y2,const TCHAR* HelpTopic,struct FarDialogItem* Item,int ItemsNumber,DWORD Reserved,DWORD Flags,FARWINDOWPROC DlgProc,LONG_PTR Param)
     {
       iDlg=Info.DialogInit(PluginNumber,X1,Y1,X2,Y2,HelpTopic,Item,ItemsNumber,Reserved,Flags,DlgProc,Param);
-      return (iDlg!=INVALID_HANDLE_VALUE)?Info.DialogRun(iDlg):-1;
+      return Info.DialogRun(iDlg);
     };
     inline HANDLE Handle(void) {return iDlg;};
+    inline int Check(int index) {return (int)Info.SendDlgMessage(iDlg,DM_GETCHECK,index,0);};
+    inline const wchar_t* Str(int index) {return (const wchar_t*)Info.SendDlgMessage(iDlg,DM_GETCONSTTEXTPTR,index,0);};
+    inline DWORD Flags(int index)
+    {
+      FarDialogItem DialogItem;
+      if(Info.SendDlgMessage(iDlg,DM_GETDLGITEMSHORT,index,(LONG_PTR)&DialogItem)) return DialogItem.Flags;
+      return 0;
+    };
 };
 #define EXP_NAME(p) _export p ## W
 #else
@@ -59,18 +64,21 @@ typedef unsigned char UTCHAR;
 #define DLG_DATA_SPRINTF(item,val,mask) FSF.sprintf(item.Data,mask,val)
 #define DLG_DATA_FARKEYTONAME(item,val) t_FarKeyToName(val,item.Data,ArraySize(item.Data));
 #define DLG_DATA_ITOA(item,val) FSF.itoa(val,item.Data,10);
-#define DLG_REFERENCE FarDialogItem*
-#define Dlg_GetCheck(handle,items,index) items[index].Selected
-#define Dlg_GetStr(handle,items,index) items[index].Data
 class CFarDialog
 {
   private:
+    FarDialogItem* iItems;
   public:
     inline CFarDialog() {};
     inline int Execute(INT_PTR PluginNumber,int X1,int Y1,int X2,int Y2,const TCHAR* HelpTopic,struct FarDialogItem* Item,int ItemsNumber,DWORD Reserved,DWORD Flags,FARWINDOWPROC DlgProc,LONG_PTR Param)
     {
+      iItems=Item;
       return Info.DialogEx(PluginNumber,X1,Y1,X2,Y2,HelpTopic,Item,ItemsNumber,Reserved,Flags,DlgProc,Param);
     };
+    inline FarDialogItem* Handle(void) {return iItems;};
+    inline int Check(int index) {return iItems[index].Selected;};
+    inline const char* Str(int index) {return iItems[index].Data;};
+    inline DWORD Flags(int index) {return iItems[index].Flags;};
 };
 #define EXP_NAME(p) _export p
 #endif
