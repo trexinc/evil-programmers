@@ -19,8 +19,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "..\..\plugin.hpp"
-#include "..\..\farkeys.hpp"
+#include "far_helper.h"
+#include "farkeys.hpp"
 #include "umplugin.h"
 #include "memory.h"
 
@@ -188,7 +188,7 @@ static void SetAccessMain(unsigned long param,wchar_t *dir,wchar_t *file,int typ
       }
   if(td->Owner)
   {
-    wchar_t *username; char *username_oem;
+    wchar_t *username; TCHAR *username_oem;
     GetUserNameEx(NULL,td->sid,true,&username,&username_oem);
     AddOwnerInternal(&panel,td->sid);
   }
@@ -259,14 +259,20 @@ long WINAPI ProcessChildsDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
   return Info.DefDlgProc(hDlg,Msg,Param1,Param2);
 }
 
+#ifdef UNICODE
+#define SELECTED_ITEMS(index) (*(PInfo->SelectedItems[index]))
+#else
+#define SELECTED_ITEMS(index) PInfo->SelectedItems[index]
+#endif
+
 void ProcessChilds(PanelInfo *PInfo)
 {
-  int FolderCount=0; char *FolderName="";
+  int FolderCount=0; const TCHAR *FolderName=_T("");
   for(int i=0;i<PInfo->SelectedItemsNumber;i++)
-    if(PInfo->SelectedItems[i].FindData.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)
+    if(SELECTED_ITEMS(i).FindData.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)
     {
       FolderCount++;
-      FolderName=PInfo->SelectedItems[i].FindData.cFileName;
+      FolderName=SELECTED_ITEMS(i).FindData.PANEL_FILENAME;
     }
   if(FolderCount)
   {
@@ -275,7 +281,7 @@ void ProcessChilds(PanelInfo *PInfo)
     if(PInfo->Plugin)
     {
       unsigned long param; wchar_t path[MAX_PATH];
-      int level=parse_dir(PInfo->CurDir,PInfo->SelectedItems[0].FindData.cFileName,NULL,pathtypePlugin,&param,path,NULL);
+      int level=parse_dir(PInfo->PANEL_CURDIR,SELECTED_ITEMS(0).FindData.PANEL_FILENAME,NULL,pathtypePlugin,&param,path,NULL);
       if(level==levelRegRoot)
         registry=true;
       else
@@ -318,30 +324,32 @@ void ProcessChilds(PanelInfo *PInfo)
       0123456789012345678901234567890123456789012345678901234567890123456789012345
     */
     static struct InitDialogItem InitItems[]={
-    /* 0*/  {DI_DOUBLEBOX,3,1,72,14,0,0,0,0,(char *)mA2CTitle},
-    /* 1*/  {DI_TEXT,5,2,0,0,0,0,DIF_SHOWAMPERSAND,0,""},
-    /* 2*/  {DI_SINGLEBOX,5,3,70,7,0,0,DIF_LEFTTEXT,0,(char *)mA2CObjects},
-    /* 3*/  {DI_CHECKBOX,7,4,0,0,0,1,0,0,(char *)mA2CFolders},
-    /* 4*/  {DI_CHECKBOX,7,5,0,0,0,1,0,0,(char *)mA2CFiles},
-    /* 5*/  {DI_CHECKBOX,7,6,0,0,0,1,0,0,(char *)mA2CKeys},
-    /* 6*/  {DI_SINGLEBOX,5,8,70,12,0,0,DIF_LEFTTEXT,0,(char *)mA2CACL},
-    /* 7*/  {DI_CHECKBOX,7, 9,0,0,0,1,0,0,(char *)mA2CRights},
-    /* 8*/  {DI_CHECKBOX,7,10,0,0,0,1,0,0,(char *)mA2CAudit},
-    /* 9*/  {DI_CHECKBOX,7,11,0,0,0,1,0,0,(char *)mA2COwner},
-    /*10*/  {DI_BUTTON,0,13,0,0,0,0,DIF_CENTERGROUP,1,(char *)mPropButtonOk},
-    /*11*/  {DI_BUTTON,0,13,0,0,0,0,DIF_CENTERGROUP,0,(char *)mPropButtonCancel}
+    /* 0*/  {DI_DOUBLEBOX,3,1,72,14,0,0,0,0,(TCHAR *)mA2CTitle},
+    /* 1*/  {DI_TEXT,5,2,0,0,0,0,DIF_SHOWAMPERSAND,0,_T("")},
+    /* 2*/  {DI_SINGLEBOX,5,3,70,7,0,0,DIF_LEFTTEXT,0,(TCHAR *)mA2CObjects},
+    /* 3*/  {DI_CHECKBOX,7,4,0,0,0,1,0,0,(TCHAR *)mA2CFolders},
+    /* 4*/  {DI_CHECKBOX,7,5,0,0,0,1,0,0,(TCHAR *)mA2CFiles},
+    /* 5*/  {DI_CHECKBOX,7,6,0,0,0,1,0,0,(TCHAR *)mA2CKeys},
+    /* 6*/  {DI_SINGLEBOX,5,8,70,12,0,0,DIF_LEFTTEXT,0,(TCHAR *)mA2CACL},
+    /* 7*/  {DI_CHECKBOX,7, 9,0,0,0,1,0,0,(TCHAR *)mA2CRights},
+    /* 8*/  {DI_CHECKBOX,7,10,0,0,0,1,0,0,(TCHAR *)mA2CAudit},
+    /* 9*/  {DI_CHECKBOX,7,11,0,0,0,1,0,0,(TCHAR *)mA2COwner},
+    /*10*/  {DI_BUTTON,0,13,0,0,0,0,DIF_CENTERGROUP,1,(TCHAR *)mPropButtonOk},
+    /*11*/  {DI_BUTTON,0,13,0,0,0,0,DIF_CENTERGROUP,0,(TCHAR *)mPropButtonCancel}
     };
     struct FarDialogItem DialogItems[sizeof(InitItems)/sizeof(InitItems[0])];
     InitDialogItems(InitItems,DialogItems,sizeof(InitItems)/sizeof(InitItems[0]));
+    TCHAR childs_label[512];
     if(FolderCount>1)
-      sprintf(DialogItems[CHILDS_LABEL].Data,GetMsg(mA2CProcessN+NumberType(FolderCount)),FolderCount);
+      FSF.sprintf(childs_label,GetMsg(mA2CProcessN+NumberType(FolderCount)),FolderCount);
     else
     {
-      char Truncated[MAX_PATH];
-      sprintf(Truncated,"%s",FolderName);
+      TCHAR Truncated[MAX_PATH];
+      FSF.sprintf(Truncated,_T("%s"),FolderName);
       FSF.TruncPathStr(Truncated,50);
-      sprintf(DialogItems[CHILDS_LABEL].Data,GetMsg(mA2CProcessOne),Truncated);
+      FSF.sprintf(childs_label,GetMsg(mA2CProcessOne),Truncated);
     }
+    INIT_DLG_DATA(DialogItems[CHILDS_LABEL],childs_label);
     if(registry)
     {
       DialogItems[CHILDS_FOLDERS].Flags|=DIF_DISABLE;
@@ -353,43 +361,44 @@ void ProcessChilds(PanelInfo *PInfo)
       DialogItems[CHILDS_FOLDERS].Focus=TRUE;
       DialogItems[CHILDS_KEYS].Flags|=DIF_DISABLE;
     }
-    int DlgCode=Info.DialogEx(Info.ModuleNumber,-1,-1,76,16,"ProcessChildren",DialogItems,(sizeof(DialogItems)/sizeof(DialogItems[0])),0,0,ProcessChildsDialogProc,0);
+    CFarDialog dialog;
+    int DlgCode=dialog.Execute(Info.ModuleNumber,-1,-1,76,16,_T("ProcessChildren"),DialogItems,(sizeof(DialogItems)/sizeof(DialogItems[0])),0,0,ProcessChildsDialogProc,0);
     if(DlgCode==CHILDS_OK)
     {
       A2CData td; bool process=false,access=false;
       if(registry)
       {
-        td.Obj[0]=DialogItems[CHILDS_KEYS].Selected;
+        td.Obj[0]=dialog.Check(CHILDS_KEYS);
         process=td.Obj[0];
       }
       else
       {
         for(int i=0;i<2;i++)
         {
-          td.Obj[i]=DialogItems[i+CHILDS_FOLDERS].Selected;
+          td.Obj[i]=dialog.Check(i+CHILDS_FOLDERS);
           process=process||td.Obj[i];
         }
       }
       for(int i=0;i<2;i++)
       {
-        td.Perm[i]=DialogItems[i+CHILDS_RIGHTS].Selected;
+        td.Perm[i]=dialog.Check(i+CHILDS_RIGHTS);
         access=access||td.Perm[i];
       }
-      td.Owner=DialogItems[CHILDS_OWNER].Selected;
+      td.Owner=dialog.Check(CHILDS_OWNER);
       access=access||td.Owner;
       if(process)
       {
         UserManager panel;
         memset(&panel,0,sizeof(panel)); //FIXME?
         for(int i=0;i<PInfo->SelectedItemsNumber;i++)
-          if(PInfo->SelectedItems[i].FindData.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)
+          if(SELECTED_ITEMS(i).FindData.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)
           {
             for(int j=0;j<4;j++)
               td.ObjPerm[j]=NULL;
             td.sid=NULL;
             if(registry)
             {
-              panel.level=parse_dir(PInfo->CurDir,PInfo->SelectedItems[i].FindData.cFileName,NULL,pathtypePlugin,&panel.param,panel.hostfile,NULL);
+              panel.level=parse_dir(PInfo->PANEL_CURDIR,SELECTED_ITEMS(i).FindData.PANEL_FILENAME,NULL,pathtypePlugin,&panel.param,panel.hostfile,NULL);
               if(panel.level==levelRegRoot)
               {
                 if(td.Obj[0])
@@ -401,7 +410,7 @@ void ProcessChilds(PanelInfo *PInfo)
                 if(td.Owner&&plain_dirs_owners[panel.level])
                 {
                   wchar_t *owner;
-                  char *owner_oem;
+                  TCHAR *owner_oem;
                   PSID sid;
                   if(plain_dirs_owners[panel.level](&panel,&sid,&owner,&owner_oem))
                   {
@@ -422,9 +431,9 @@ void ProcessChilds(PanelInfo *PInfo)
             else
             {
               wchar_t filename_w[MAX_PATH];
-              if(GetWideName(PInfo->CurDir,&PInfo->SelectedItems[i].FindData,filename_w))
+              if(GetWideName(PInfo->PANEL_CURDIR,&SELECTED_ITEMS(i).FindData,filename_w))
               {
-                panel.level=parse_dir(PInfo->CurDir,PInfo->SelectedItems[i].FindData.cFileName,filename_w,pathtypeReal,&panel.param,panel.hostfile,NULL);
+                panel.level=parse_dir(PInfo->PANEL_CURDIR,SELECTED_ITEMS(i).FindData.PANEL_FILENAME,filename_w,pathtypeReal,&panel.param,panel.hostfile,NULL);
                 if(panel.level==levelRoot)
                 {
                   for(int j=0;j<2;j++)
@@ -439,7 +448,7 @@ void ProcessChilds(PanelInfo *PInfo)
                   if(td.Owner&&plain_dirs_owners[panel.level])
                   {
                     wchar_t *owner;
-                    char *owner_oem;
+                    TCHAR *owner_oem;
                     PSID sid;
                     if(plain_dirs_owners[panel.level](&panel,&sid,&owner,&owner_oem))
                     {

@@ -19,8 +19,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "..\..\plugin.hpp"
-#include "..\..\farkeys.hpp"
+#include "far_helper.h"
+#include "farkeys.hpp"
 #include <lm.h>
 #include "umplugin.h"
 #include "memory.h"
@@ -30,6 +30,8 @@ const int indexComment=4;
 const int updateName=0;
 const int updateComment=1;
 const int updateSize=2;
+
+//FIXME: NetApiBufferFree
 
 long WINAPI ManageGroupDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
 {
@@ -49,7 +51,7 @@ long WINAPI ManageGroupDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
   return Info.DefDlgProc(hDlg,Msg,Param1,Param2);
 }
 
-bool ManageGroup(UserManager *panel,bool type,wchar_t *in_group)
+bool ManageGroup(UserManager *panel,bool type,const wchar_t *in_group)
 {
   bool res=false;
   wchar_t group[512]=L"",*server=(panel->global)?(panel->domain):(panel->computer_ptr);
@@ -69,20 +71,23 @@ bool ManageGroup(UserManager *panel,bool type,wchar_t *in_group)
     0000000000111111111122222222223333333333444444444455555555556666666666777777
     0123456789012345678901234567890123456789012345678901234567890123456789012345
   */
-  static char *NewGroupHistoryName="UserManager\\NewGroup";
-  static char *NewGroupHistoryComment="UserManager\\NewGroupComment";
+  static const TCHAR *NewGroupHistoryName=_T("UserManager\\NewGroup");
+  static const TCHAR *NewGroupHistoryComment=_T("UserManager\\NewGroupComment");
   static struct InitDialogItem InitDlg[]={
-  /* 0*/  {DI_DOUBLEBOX,3,1,72,8,0,0,0,0,(char *)mGroupNewGroup},
-  /* 1*/  {DI_TEXT,5,2,0,0,0,0,0,0,(char *)mGroupName},
-  /* 2*/  {DI_EDIT,5,3,70,0,1,(DWORD)NewGroupHistoryName,DIF_HISTORY,0,""},
-  /* 3*/  {DI_TEXT,5,4,0,0,0,0,0,0,(char *)mGroupComment},
-  /* 4*/  {DI_EDIT,5,5,70,0,1,(DWORD)NewGroupHistoryComment,DIF_HISTORY,0,""},
-  /* 5*/  {DI_TEXT,5,6,0,0,0,0,DIF_BOXCOLOR|DIF_SEPARATOR,0,""},
-  /* 6*/  {DI_BUTTON,0,7,0,0,0,0,DIF_CENTERGROUP,1,(char *)mButtonOk},
-  /* 7*/  {DI_BUTTON,0,7,0,0,0,0,DIF_CENTERGROUP,0,(char *)mButtonCancel},
+  /* 0*/  {DI_DOUBLEBOX,3,1,72,8,0,0,0,0,(TCHAR *)mGroupNewGroup},
+  /* 1*/  {DI_TEXT,5,2,0,0,0,0,0,0,(TCHAR *)mGroupName},
+  /* 2*/  {DI_EDIT,5,3,70,0,1,(DWORD)NewGroupHistoryName,DIF_HISTORY,0,_T("")},
+  /* 3*/  {DI_TEXT,5,4,0,0,0,0,0,0,(TCHAR *)mGroupComment},
+  /* 4*/  {DI_EDIT,5,5,70,0,1,(DWORD)NewGroupHistoryComment,DIF_HISTORY,0,_T("")},
+  /* 5*/  {DI_TEXT,5,6,0,0,0,0,DIF_BOXCOLOR|DIF_SEPARATOR,0,_T("")},
+  /* 6*/  {DI_BUTTON,0,7,0,0,0,0,DIF_CENTERGROUP,1,(TCHAR *)mButtonOk},
+  /* 7*/  {DI_BUTTON,0,7,0,0,0,0,DIF_CENTERGROUP,0,(TCHAR *)mButtonCancel},
   };
   struct FarDialogItem DialogItems[sizeof(InitDlg)/sizeof(InitDlg[0])];
   InitDialogItems(InitDlg,DialogItems,sizeof(InitDlg)/sizeof(InitDlg[0]));
+#ifdef UNICODE
+  TCHAR name[512],comment[512],title[128];
+#endif
   if(type)
   {
     wcscpy(group,in_group);
@@ -91,8 +96,16 @@ bool ManageGroup(UserManager *panel,bool type,wchar_t *in_group)
       GROUP_INFO_1 *info;
       if(NetGroupGetInfo(server,group,1,(LPBYTE *)&info)==NERR_Success)
       {
+#ifdef UNICODE
+        _tcscpy(name,info->grpi1_name);
+        DialogItems[indexName].PtrData=name;
+        _tcscpy(comment,info->grpi1_comment);
+        DialogItems[indexComment].PtrData=comment;
+#else
         WideCharToMultiByte(CP_OEMCP,0,info->grpi1_name,-1,DialogItems[indexName].Data,UNLEN,NULL,NULL);
         WideCharToMultiByte(CP_OEMCP,0,info->grpi1_comment,-1,DialogItems[indexComment].Data,sizeof(DialogItems[indexComment].Data),NULL,NULL);
+#endif
+        NetApiBufferFree(info);
       }
       else return false;
     }
@@ -101,21 +114,39 @@ bool ManageGroup(UserManager *panel,bool type,wchar_t *in_group)
       LOCALGROUP_INFO_1 *info;
       if(NetLocalGroupGetInfo(server,group,1,(LPBYTE *)&info)==NERR_Success)
       {
+#ifdef UNICODE
+        _tcscpy(name,info->lgrpi1_name);
+        DialogItems[indexName].PtrData=name;
+        _tcscpy(comment,info->lgrpi1_comment);
+        DialogItems[indexComment].PtrData=comment;
+#else
         WideCharToMultiByte(CP_OEMCP,0,info->lgrpi1_name,-1,DialogItems[indexName].Data,UNLEN,NULL,NULL);
         WideCharToMultiByte(CP_OEMCP,0,info->lgrpi1_comment,-1,DialogItems[indexComment].Data,sizeof(DialogItems[indexComment].Data),NULL,NULL);
+#endif
+        NetApiBufferFree(info);
       }
       else return false;
     }
-    sprintf(DialogItems[0].Data,GetMsg(mGroupEditGroup),DialogItems[indexName].Data);
+#ifdef UNICODE
+    FSF.sprintf(title,GetMsg(mGroupEditGroup),DialogItems[indexName].PtrData);
+    DialogItems[0].PtrData=title;
+#else
+    FSF.sprintf(DialogItems[0].Data,GetMsg(mGroupEditGroup),DialogItems[indexName].Data);
+#endif
   }
   bool params[updateSize];
-  int DlgCode=Info.DialogEx(Info.ModuleNumber,-1,-1,76,10,"ManageGroup",DialogItems,(sizeof(InitDlg)/sizeof(InitDlg[0])),0,0,ManageGroupDialogProc,(DWORD)params);
+  CFarDialog dialog;
+  int DlgCode=dialog.Execute(Info.ModuleNumber,-1,-1,76,10,_T("ManageGroup"),DialogItems,(sizeof(InitDlg)/sizeof(InitDlg[0])),0,0,ManageGroupDialogProc,(DWORD)params);
   if(DlgCode==6)
   {
     if(params[updateName])
     {
       wchar_t NewGroup[GNLEN];
+#ifdef UNICODE
+      _tcscpy(NewGroup,dialog.Str(indexName));
+#else
       MultiByteToWideChar(CP_OEMCP,0,DialogItems[indexName].Data,-1,NewGroup,sizeof(NewGroup)/sizeof(NewGroup[0]));
+#endif
       if(panel->global)
       {
         GROUP_INFO_0 info;
@@ -151,7 +182,11 @@ bool ManageGroup(UserManager *panel,bool type,wchar_t *in_group)
     if(params[updateComment])
     {
       wchar_t NewGroupComment[MAXCOMMENTSZ];
+#ifdef UNICODE
+      _tcscpy(NewGroupComment,dialog.Str(indexComment));
+#else
       MultiByteToWideChar(CP_OEMCP,0,DialogItems[indexComment].Data,-1,NewGroupComment,sizeof(NewGroupComment)/sizeof(NewGroupComment[0]));
+#endif
       if(panel->global)
       {
         GROUP_INFO_1002 info;

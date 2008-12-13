@@ -19,7 +19,7 @@
 
 #include <stdio.h>
 #include <limits.h>
-#include "..\..\plugin.hpp"
+#include "far_helper.h"
 #include <lm.h>
 #include "umplugin.h"
 #include "memory.h"
@@ -268,7 +268,7 @@ const int *plain_dirs_dir[]=
   NULL,
 };
 
-bool GetFileOwner(UserManager *panel,PSID *sid,wchar_t **owner,char **owner_oem)
+bool GetFileOwner(UserManager *panel,PSID *sid,wchar_t **owner,TCHAR **owner_oem)
 {
   bool res=false;
   DWORD needed; PSECURITY_DESCRIPTOR SD=NULL;
@@ -291,7 +291,7 @@ bool GetFileOwner(UserManager *panel,PSID *sid,wchar_t **owner,char **owner_oem)
   return res;
 }
 
-bool GetRegOwner(UserManager *panel,PSID *sid,wchar_t **owner,char **owner_oem)
+bool GetRegOwner(UserManager *panel,PSID *sid,wchar_t **owner,TCHAR **owner_oem)
 {
   bool res=false;
   DWORD needed=0; PSECURITY_DESCRIPTOR SD=NULL;
@@ -320,7 +320,7 @@ bool GetRegOwner(UserManager *panel,PSID *sid,wchar_t **owner,char **owner_oem)
   return res;
 }
 
-bool GetPrinterOwner(UserManager *panel,PSID *sid,wchar_t **owner,char **owner_oem)
+bool GetPrinterOwner(UserManager *panel,PSID *sid,wchar_t **owner,TCHAR **owner_oem)
 {
   bool res=false;
   HANDLE printer; PRINTER_DEFAULTSW defaults; PRINTER_INFO_3 *data=NULL;
@@ -1719,64 +1719,64 @@ const int panel_modes[]=
   mUserPanelType0,
 };
 
-char *get_plain_panel_title(char *str)
+TCHAR *get_plain_panel_title(TCHAR *str)
 {
-  char *Result=NULL;
+  TCHAR *Result=NULL;
   return Result;
 }
 
-char *get_access_panel_title(char *str)
+TCHAR *get_access_panel_title(TCHAR *str)
 {
-  char *Result=NULL;
-  if((!strncmp(str,"C0",2))&&((!str[2])||(str[2]==',')))
+  TCHAR *Result=NULL;
+  if((!_tcsncmp(str,_T("C0"),2))&&((!str[2])||(str[2]==',')))
   {
-    Result=GetMsg(mTitleAccess);
+    Result=(TCHAR*)GetMsg(mTitleAccess);
   }
-  else if((!strncmp(str,"C1",2))&&((!str[2])||(str[2]==',')))
+  else if((!_tcsncmp(str,_T("C1"),2))&&((!str[2])||(str[2]==',')))
   {
-    Result=GetMsg(mTitleSID);
-  }
-  return Result;
-}
-
-char *get_audit_panel_title(char *str)
-{
-  char *Result=NULL;
-  if((!strncmp(str,"C0",2))&&((!str[2])||(str[2]==',')))
-  {
-    Result=GetMsg(mTitleAudit);
-  }
-  else if((!strncmp(str,"C1",2))&&((!str[2])||(str[2]==',')))
-  {
-    Result=GetMsg(mTitleSID);
+    Result=(TCHAR*)GetMsg(mTitleSID);
   }
   return Result;
 }
 
-char *get_share_panel_title(char *str)
+TCHAR *get_audit_panel_title(TCHAR *str)
 {
-  char *Result=NULL;
-  if((!strncmp(str,"C0",2))&&((!str[2])||(str[2]==',')))
+  TCHAR *Result=NULL;
+  if((!_tcsncmp(str,_T("C0"),2))&&((!str[2])||(str[2]==',')))
   {
-    Result=GetMsg(mTitleMaximum);
+    Result=(TCHAR*)GetMsg(mTitleAudit);
   }
-  else if((!strncmp(str,"C1",2))&&((!str[2])||(str[2]==',')))
+  else if((!_tcsncmp(str,_T("C1"),2))&&((!str[2])||(str[2]==',')))
   {
-    Result=GetMsg(mTitleCurrent);
-  }
-  else if((!strncmp(str,"C2",2))&&((!str[2])||(str[2]==',')))
-  {
-    Result=GetMsg(mTitleLocalPath);
+    Result=(TCHAR*)GetMsg(mTitleSID);
   }
   return Result;
 }
 
-char *get_user_panel_title(char *str)
+TCHAR *get_share_panel_title(TCHAR *str)
 {
-  char *Result=NULL;
-  if((!strncmp(str,"C1",2))&&((!str[2])||(str[2]==',')))
+  TCHAR *Result=NULL;
+  if((!_tcsncmp(str,_T("C0"),2))&&((!str[2])||(str[2]==',')))
   {
-    Result=GetMsg(mTitleSID);
+    Result=(TCHAR*)GetMsg(mTitleMaximum);
+  }
+  else if((!_tcsncmp(str,_T("C1"),2))&&((!str[2])||(str[2]==',')))
+  {
+    Result=(TCHAR*)GetMsg(mTitleCurrent);
+  }
+  else if((!_tcsncmp(str,_T("C2"),2))&&((!str[2])||(str[2]==',')))
+  {
+    Result=(TCHAR*)GetMsg(mTitleLocalPath);
+  }
+  return Result;
+}
+
+TCHAR *get_user_panel_title(TCHAR *str)
+{
+  TCHAR *Result=NULL;
+  if((!_tcsncmp(str,_T("C1"),2))&&((!str[2])||(str[2]==',')))
+  {
+    Result=(TCHAR*)GetMsg(mTitleSID);
   }
   return Result;
 }

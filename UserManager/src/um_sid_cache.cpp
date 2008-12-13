@@ -19,14 +19,15 @@
 
 #include <windows.h>
 #include "memory.h"
+#include <tchar.h>
 
 struct CacheRecord
 {
   PSID sid;
   wchar_t *username;
   wchar_t *username_only;
-  char *username_oem;
-  char *username_only_oem;
+  TCHAR *username_oem;
+  TCHAR *username_only_oem;
   CacheRecord *next;
 };
 
@@ -45,9 +46,9 @@ void free_sid_cache(void)
   }
 };
 
-static void add_sid_cache(wchar_t *computer,PSID sid,bool full,wchar_t **username,char **username_oem)
+static void add_sid_cache(wchar_t *computer,PSID sid,bool full,wchar_t **username,TCHAR **username_oem)
 {
-  *username=L"Account Unknown"; *username_oem="Account Unknown";
+  *username=(wchar_t*)L"Account Unknown"; *username_oem=(TCHAR*)"Account Unknown";
   CacheRecord *new_rec=(CacheRecord *)malloc(sizeof(CacheRecord));
   if(new_rec)
   {
@@ -59,10 +60,10 @@ static void add_sid_cache(wchar_t *computer,PSID sid,bool full,wchar_t **usernam
       if(!LookupAccountSidW(computer,sid,NULL,&name_size,NULL,&domain_size,&type))
         if(GetLastError()==ERROR_INSUFFICIENT_BUFFER)
         {
-          new_rec->username=(wchar_t *)malloc((name_size+domain_size)*(sizeof(wchar_t)+sizeof(char)));
+          new_rec->username=(wchar_t *)malloc((name_size+domain_size)*(sizeof(wchar_t)+sizeof(TCHAR)));
           if(new_rec->username)
           {
-            new_rec->username_oem=(char *)(new_rec->username+domain_size+name_size);
+            new_rec->username_oem=(TCHAR *)(new_rec->username+domain_size+name_size);
             wchar_t *domain_ptr=new_rec->username,*user_ptr=new_rec->username+domain_size;
             if(domain_size==1)
             {
@@ -76,7 +77,11 @@ static void add_sid_cache(wchar_t *computer,PSID sid,bool full,wchar_t **usernam
               new_rec->username_only=user_ptr;
               new_rec->next=sid_cache;
               sid_cache=new_rec;
+#ifdef UNICODE
+              _tcscpy(new_rec->username_oem,new_rec->username);
+#else
               WideCharToMultiByte(CP_OEMCP,0,new_rec->username,-1,new_rec->username_oem,wcslen(new_rec->username)+1,NULL,NULL);
+#endif
               new_rec->username_only_oem=new_rec->username_oem+(new_rec->username_only-new_rec->username);
               if(full)
               {
@@ -99,7 +104,7 @@ static void add_sid_cache(wchar_t *computer,PSID sid,bool full,wchar_t **usernam
   }
 }
 
-static void get_sid_cache(PSID sid,bool full,wchar_t **username,char **username_oem)
+static void get_sid_cache(PSID sid,bool full,wchar_t **username,TCHAR **username_oem)
 {
   *username=NULL; *username_oem=NULL;
   CacheRecord *tmp_rec=sid_cache;
@@ -123,13 +128,15 @@ static void get_sid_cache(PSID sid,bool full,wchar_t **username,char **username_
   }
 }
 
-void GetUserNameEx(wchar_t *computer,PSID sid,bool full,wchar_t **username,char **username_oem)
+void GetUserNameEx(wchar_t *computer,PSID sid,bool full,wchar_t **username,TCHAR **username_oem)
 {
-  *username=L"Account Unknown"; *username_oem="Account Unknown";
+  *username=(wchar_t*)L"Account Unknown"; *username_oem=(TCHAR*)_T("Account Unknown");
   if(IsValidSid(sid))
   {
     get_sid_cache(sid,full,username,username_oem);
     if(!(*username))
+    {
       add_sid_cache(computer,sid,full,username,username_oem);
+    }
   }
 }

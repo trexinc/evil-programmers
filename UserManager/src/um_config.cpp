@@ -18,7 +18,7 @@
 */
 
 #include <stdio.h>
-#include "..\..\plugin.hpp"
+#include "far_helper.h"
 #include "umplugin.h"
 
 static long WINAPI ConfigDialogProc(HANDLE hDlg, int Msg,int Param1,long Param2)
@@ -52,52 +52,64 @@ int Config(void)
   */
 
   static struct InitDialogItem InitItems[]={
-  /* 0*/  {DI_DOUBLEBOX,3,1,72,13,0,0,0,0,(char *)mName},
-  /* 1*/  {DI_CHECKBOX,5,2,0,0,0,0,0,0,(char *)mConfigAddToDisksMenu},
-  /* 2*/  {DI_FIXEDIT,7,3,7,3,1,0,0,0,""},
-  /* 3*/  {DI_TEXT,9,3,0,0,0,0,0,0,(char *)mConfigDisksMenuDigit},
-  /* 4*/  {DI_CHECKBOX,5,4,0,0,0,0,0,0,(char *)mConfigAddToPluginMenu},
-  /* 5*/  {DI_CHECKBOX,5,5,0,0,0,0,0,0,(char *)mConfigAddToConfigMenu},
-  /* 6*/  {DI_TEXT,-1,6,0,0,0,0,DIF_SEPARATOR,0,""},
-  /* 7*/  {DI_CHECKBOX,5,7,0,0,0,0,0,0,(char *)mConfigFullUserName},
-  /* 8*/  {DI_TEXT,-1,8,0,0,0,0,DIF_SEPARATOR,0,""},
-  /* 9*/  {DI_TEXT,5,9,0,0,0,0,0,0,(char *)mConfigPrefix},
-  /*10*/  {DI_FIXEDIT,5,10,19,12,0,(int)"AAAAAAAAAAAAAAA",DIF_MASKEDIT,0,""},
-  /*11*/  {DI_TEXT,-1,11,0,0,0,0,DIF_SEPARATOR,0,""},
-  /*12*/  {DI_BUTTON,0,12,0,0,0,0,DIF_CENTERGROUP,1,(char *)mConfigSave},
-  /*13*/  {DI_BUTTON,0,12,0,0,0,0,DIF_CENTERGROUP,0,(char *)mConfigCancel}
+  /* 0*/  {DI_DOUBLEBOX,3,1,72,13,0,0,0,0,(TCHAR *)mName},
+  /* 1*/  {DI_CHECKBOX,5,2,0,0,0,0,0,0,(TCHAR *)mConfigAddToDisksMenu},
+  /* 2*/  {DI_FIXEDIT,7,3,7,3,1,0,0,0,_T("")},
+  /* 3*/  {DI_TEXT,9,3,0,0,0,0,0,0,(TCHAR *)mConfigDisksMenuDigit},
+  /* 4*/  {DI_CHECKBOX,5,4,0,0,0,0,0,0,(TCHAR *)mConfigAddToPluginMenu},
+  /* 5*/  {DI_CHECKBOX,5,5,0,0,0,0,0,0,(TCHAR *)mConfigAddToConfigMenu},
+  /* 6*/  {DI_TEXT,-1,6,0,0,0,0,DIF_SEPARATOR,0,_T("")},
+  /* 7*/  {DI_CHECKBOX,5,7,0,0,0,0,0,0,(TCHAR *)mConfigFullUserName},
+  /* 8*/  {DI_TEXT,-1,8,0,0,0,0,DIF_SEPARATOR,0,_T("")},
+  /* 9*/  {DI_TEXT,5,9,0,0,0,0,0,0,(TCHAR *)mConfigPrefix},
+  /*10*/  {DI_FIXEDIT,5,10,19,12,0,(int)_T("AAAAAAAAAAAAAAA"),DIF_MASKEDIT,0,_T("")},
+  /*11*/  {DI_TEXT,-1,11,0,0,0,0,DIF_SEPARATOR,0,_T("")},
+  /*12*/  {DI_BUTTON,0,12,0,0,0,0,DIF_CENTERGROUP,1,(TCHAR *)mConfigSave},
+  /*13*/  {DI_BUTTON,0,12,0,0,0,0,DIF_CENTERGROUP,0,(TCHAR *)mConfigCancel}
   };
   struct FarDialogItem DialogItems[sizeof(InitItems)/sizeof(InitItems[0])];
   InitDialogItems(InitItems,DialogItems,sizeof(InitItems)/sizeof(InitItems[0]));
 
+#ifdef UNICODE
+  TCHAR digit[21];
+#endif
+
   DialogItems[1].Selected=Opt.AddToDisksMenu;
   if (Opt.DisksMenuDigit)
-    sprintf(DialogItems[2].Data,"%d",Opt.DisksMenuDigit);
+  {
+#ifdef UNICODE
+    FSF.sprintf(digit,_T("%d"),Opt.DisksMenuDigit);
+    DialogItems[2].PtrData=digit;
+#else
+    FSF.sprintf(DialogItems[2].Data,_T("%d"),Opt.DisksMenuDigit);
+#endif
+  }
   DialogItems[4].Selected=Opt.AddToPluginsMenu;
   DialogItems[5].Selected=Opt.AddToConfigMenu;
   DialogItems[7].Selected=Opt.FullUserNames;
-  strcpy(DialogItems[10].Data,Opt.Prefix);
+  INIT_DLG_DATA(DialogItems[10],Opt.Prefix);
 
-  int DlgCode=Info.DialogEx(Info.ModuleNumber,-1,-1,76,15,"Config",DialogItems,(sizeof(DialogItems)/sizeof(DialogItems[0])),0,0,ConfigDialogProc,0);
+  CFarDialog dialog;
+  int DlgCode=dialog.Execute(Info.ModuleNumber,-1,-1,76,15,_T("Config"),DialogItems,(sizeof(DialogItems)/sizeof(DialogItems[0])),0,0,ConfigDialogProc,0);
   if (DlgCode!=12)
     return FALSE;
-  Opt.AddToDisksMenu=DialogItems[1].Selected;
-  Opt.DisksMenuDigit=FSF.atoi(DialogItems[2].Data);
-  Opt.AddToPluginsMenu=DialogItems[4].Selected;
-  Opt.AddToConfigMenu=DialogItems[5].Selected;
-  Opt.FullUserNames=DialogItems[7].Selected;
-  strcpy(Opt.Prefix,DialogItems[10].Data);
+  Opt.AddToDisksMenu=dialog.Check(1);
+  Opt.DisksMenuDigit=FSF.atoi(dialog.Str(2));
+  Opt.AddToPluginsMenu=dialog.Check(4);
+  Opt.AddToConfigMenu=dialog.Check(5);
+  Opt.FullUserNames=dialog.Check(7);
+  _tcscpy(Opt.Prefix,dialog.Str(10));
   FSF.Trim(Opt.Prefix);
   HKEY hKey;
   DWORD Disposition;
   if((RegCreateKeyEx(HKEY_CURRENT_USER,PluginRootKey,0,NULL,0,KEY_WRITE,NULL,&hKey,&Disposition)) == ERROR_SUCCESS)
   {
-    RegSetValueEx(hKey,"AddToDisksMenu",0,REG_DWORD,(LPBYTE)&Opt.AddToDisksMenu,sizeof(Opt.AddToDisksMenu));
-    RegSetValueEx(hKey,"DisksMenuDigit",0,REG_DWORD,(LPBYTE)&Opt.DisksMenuDigit,sizeof(Opt.DisksMenuDigit));
-    RegSetValueEx(hKey,"AddToPluginsMenu",0,REG_DWORD,(LPBYTE)&Opt.AddToPluginsMenu,sizeof(Opt.AddToPluginsMenu));
-    RegSetValueEx(hKey,"AddToConfigMenu",0,REG_DWORD,(LPBYTE)&Opt.AddToConfigMenu,sizeof(Opt.AddToConfigMenu));
-    RegSetValueEx(hKey,"FullUserNames",0,REG_DWORD,(LPBYTE)&Opt.FullUserNames,sizeof(Opt.FullUserNames));
-    RegSetValueEx(hKey,"Prefix",0,REG_SZ,(LPBYTE)Opt.Prefix,strlen(Opt.Prefix)+1);
+    RegSetValueEx(hKey,_T("AddToDisksMenu"),0,REG_DWORD,(LPBYTE)&Opt.AddToDisksMenu,sizeof(Opt.AddToDisksMenu));
+    RegSetValueEx(hKey,_T("DisksMenuDigit"),0,REG_DWORD,(LPBYTE)&Opt.DisksMenuDigit,sizeof(Opt.DisksMenuDigit));
+    RegSetValueEx(hKey,_T("AddToPluginsMenu"),0,REG_DWORD,(LPBYTE)&Opt.AddToPluginsMenu,sizeof(Opt.AddToPluginsMenu));
+    RegSetValueEx(hKey,_T("AddToConfigMenu"),0,REG_DWORD,(LPBYTE)&Opt.AddToConfigMenu,sizeof(Opt.AddToConfigMenu));
+    RegSetValueEx(hKey,_T("FullUserNames"),0,REG_DWORD,(LPBYTE)&Opt.FullUserNames,sizeof(Opt.FullUserNames));
+    RegSetValueEx(hKey,_T("Prefix"),0,REG_SZ,(LPBYTE)Opt.Prefix,(_tcslen(Opt.Prefix)+1)*sizeof(TCHAR));
     RegCloseKey(hKey);
   }
   return TRUE;

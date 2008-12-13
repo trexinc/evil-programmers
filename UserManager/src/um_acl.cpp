@@ -19,7 +19,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "..\..\plugin.hpp"
+#include "plugin.hpp"
 #include "umplugin.h"
 #include "memory.h"
 
