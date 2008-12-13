@@ -19,14 +19,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "../../plugin.hpp"
+#include "far_helper.h"
 #include <ntsecapi.h>
 #include "umplugin.h"
 #include "memory.h"
 
-char *GetMsg(int MsgId)
+const TCHAR *GetMsg(int MsgId)
 {
-  return((char *)Info.GetMsg(Info.ModuleNumber,MsgId));
+  return Info.GetMsg(Info.ModuleNumber,MsgId);
 }
 
 void InitDialogItems(InitDialogItem *Init,FarDialogItem *Item,int ItemsNumber)
@@ -42,33 +42,44 @@ void InitDialogItems(InitDialogItem *Init,FarDialogItem *Item,int ItemsNumber)
     Item[i].Selected=Init[i].Selected;
     Item[i].Flags=Init[i].Flags;
     Item[i].DefaultButton=Init[i].DefaultButton;
-    if ((unsigned)Init[i].Data<2000)
-      strcpy(Item[i].Data,GetMsg((unsigned int)Init[i].Data));
+#ifdef UNICODE
+    Item[i].MaxLen=0;
+#endif
+    if((unsigned)Init[i].Data<2000)
+#ifdef UNICODE
+      Item[i].PtrData=GetMsg((unsigned int)(DWORD_PTR)Init[i].Data);
+#else
+      strcpy(Item[i].Data,GetMsg((unsigned int)(DWORD_PTR)Init[i].Data));
+#endif
     else
+#ifdef UNICODE
+      Item[i].PtrData=Init[i].Data;
+#else
       strcpy(Item[i].Data,Init[i].Data);
+#endif
   }
 }
 
 void ShowError(DWORD Error)
 {
   if(!Error) SetLastError(Error);
-  const char *MsgItems[]={GetMsg(mError),GetMsg(mButtonOk)};
+  const TCHAR *MsgItems[]={GetMsg(mError),GetMsg(mButtonOk)};
   Info.Message(Info.ModuleNumber,FMSG_ERRORTYPE|FMSG_WARNING,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),1);
 }
 
 void ShowCustomError(int index)
 {
-  const char *MsgItems[]={GetMsg(mError),GetMsg(index),GetMsg(mButtonOk)};
+  const TCHAR *MsgItems[]={GetMsg(mError),GetMsg(index),GetMsg(mButtonOk)};
   Info.Message(Info.ModuleNumber,FMSG_WARNING,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),1);
 }
 
-void GetCurrentPath(int level,char *nonfixed,char *result)
+void GetCurrentPath(int level,TCHAR *nonfixed,TCHAR *result)
 {
-  char buff[MAX_PATH];
-  char *dirs[]=
+  TCHAR buff[MAX_PATH];
+  const TCHAR *dirs[]=
   {
     //files
-    "",
+    _T(""),
     GetMsg(mDirRights),
     GetMsg(mDirNewFolder),
     GetMsg(mDirNewFile),
@@ -76,19 +87,19 @@ void GetCurrentPath(int level,char *nonfixed,char *result)
     GetMsg(mDirNewFolder),
     GetMsg(mDirNewFile),
     //reg
-    "",
+    _T(""),
     GetMsg(mDirRights),
     GetMsg(mDirNewKey),
-    "Pad",
+    _T("Pad"),
     GetMsg(mDirAudit),
     GetMsg(mDirNewKey),
-    "Pad",
+    _T("Pad"),
     //share
     GetMsg(mDirShared),
     NULL,
     GetMsg(mDirRights),
     //printer
-    "",
+    _T(""),
     GetMsg(mDirRights),
     GetMsg(mDirNewContainer),
     GetMsg(mDirNewJob),
@@ -98,24 +109,24 @@ void GetCurrentPath(int level,char *nonfixed,char *result)
     //printer share
     GetMsg(mDirShared),
     //users
-    "",
+    _T(""),
     NULL,
     //rights
-    "",
+    _T(""),
     NULL,
   };
-  strcpy(result,"");
+  _tcscpy(result,_T(""));
   while(level!=up_dirs[level])
   {
-    strcpy(buff,result);
+    _tcscpy(buff,result);
     if(dirs[level])
-      strcpy(result,dirs[level]);
+      _tcscpy(result,dirs[level]);
     else
-      strcpy(result,nonfixed);
+      _tcscpy(result,nonfixed);
     if(buff[0])
     {
-      strcat(result,"\\");
-      strcat(result,buff);
+      _tcscat(result,_T("\\"));
+      _tcscat(result,buff);
     }
     level=up_dirs[level];
   }
@@ -189,7 +200,7 @@ DWORD generic_mask_to_job_mask(DWORD mask)
   return res;
 }
 
-void EnablePrivilege(const char *name)
+void EnablePrivilege(const TCHAR *name)
 {
   TOKEN_PRIVILEGES priv;
   HANDLE token;
@@ -206,7 +217,7 @@ void EnablePrivilege(const char *name)
   }
 }
 
-bool IsPrivilegeEnabled(const char *name)
+bool IsPrivilegeEnabled(const TCHAR *name)
 {
   bool res=false;
   HANDLE token=INVALID_HANDLE_VALUE; LUID li;
@@ -241,27 +252,32 @@ bool IsPrivilegeEnabled(const char *name)
   return res;
 }
 
-bool CheckChDir(HANDLE hPlugin,const char *NewDir,char *RealDir,wchar_t *RealDirW,int *level)
+bool CheckChDir(HANDLE hPlugin,const TCHAR *NewDir,TCHAR *RealDir,wchar_t *RealDirW,int *level)
 {
   bool res=false;
   PanelInfo PInfo;
-  Info.Control(hPlugin,FCTL_GETPANELINFO,&PInfo);
-  for(int i=0;i<PInfo.ItemsNumber;i++)
+  if(Info.Control(hPlugin,FCTL_GETPANELINFO,&PInfo))
   {
-    if((PInfo.PanelItems[i].FindData.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)&&strcmp(PInfo.PanelItems[i].FindData.cFileName,".."))
+    for(int i=0;i<PInfo.ItemsNumber;i++)
     {
-      if(!_stricmp(PInfo.PanelItems[i].FindData.cFileName,NewDir))
+      if((PInfo.PanelItems[i].FindData.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)&&_tcscmp(PInfo.PanelItems[i].FindData.PANEL_FILENAME,_T("..")))
       {
-        if(PInfo.PanelItems[i].Flags&PPIF_USERDATA)
+        if(!_tcsicmp(PInfo.PanelItems[i].FindData.PANEL_FILENAME,NewDir))
         {
-          strcpy(RealDir,PInfo.PanelItems[i].FindData.cFileName);
-          wcscpy(RealDirW,GetWideNameFromUserData(PInfo.PanelItems[i].UserData));
-          *level=GetLevelFromUserData(PInfo.PanelItems[i].UserData);
-          res=true;
-          break;
+          if(PInfo.PanelItems[i].Flags&PPIF_USERDATA)
+          {
+            _tcscpy(RealDir,PInfo.PanelItems[i].FindData.PANEL_FILENAME);
+            wcscpy(RealDirW,GetWideNameFromUserData(PInfo.PanelItems[i].UserData));
+            *level=GetLevelFromUserData(PInfo.PanelItems[i].UserData);
+            res=true;
+            break;
+          }
         }
       }
     }
+#ifdef UNICODE
+    Info.Control(hPlugin,FCTL_FREEPANELINFO,&PInfo);
+#endif
   }
   return res;
 }
@@ -279,6 +295,33 @@ int NumberType(int num)
   return Result;
 }
 
+#ifdef UNICODE
+void FreeSelectedList(HANDLE hPlugin,SSelectionInfo& info)
+{
+  Info.Control(hPlugin,FCTL_FREEPANELINFO,&info.PInfo);
+  info.item=NULL;
+}
+
+void GetSelectedList(HANDLE hPlugin,struct PluginPanelItem ***pPanelItem,int *pItemsNumber,bool selection,SSelectionInfo& info)
+{
+  *pPanelItem=NULL; *pItemsNumber=0;
+  Info.Control(hPlugin,FCTL_GETPANELINFO,&info.PInfo);
+  if(selection)
+  {
+    *pPanelItem=info.PInfo.SelectedItems;
+    *pItemsNumber=info.PInfo.SelectedItemsNumber;
+  }
+  else
+  {
+    if(info.PInfo.ItemsNumber>0)
+    {
+      info.item=&(info.PInfo.PanelItems[info.PInfo.CurrentItem]);
+      *pPanelItem=&(info.item);
+      *pItemsNumber=1;
+    }
+  }
+}
+#else
 void GetSelectedList(HANDLE hPlugin,struct PluginPanelItem **pPanelItem,int *pItemsNumber,bool selection)
 {
   *pPanelItem=NULL; *pItemsNumber=0;
@@ -298,6 +341,7 @@ void GetSelectedList(HANDLE hPlugin,struct PluginPanelItem **pPanelItem,int *pIt
     }
   }
 }
+#endif
 
 PSECURITY_DESCRIPTOR CreateDefaultSD(void)
 {
@@ -343,36 +387,44 @@ PACL CreateDefaultAcl(int level)
   return Acl;
 }
 
-char *get_access_string(int level,int mask)
+TCHAR *get_access_string(int level,int mask)
 {
-  static char access_string[7];
+  static TCHAR access_string[7];
   if((mask&common_full_access[level])==common_full_access[level])
-    strcpy(access_string,"FULL");
+    _tcscpy(access_string,_T("FULL"));
   else
   {
-    char *res[]={" "," "," "," "," "," "};
-    char *full[]={"R","W","X","D","P","O"};
-    strcpy(access_string,"");
+    const TCHAR *res[]={_T(" "),_T(" "),_T(" "),_T(" "),_T(" "),_T(" ")};
+    const TCHAR *full[]={_T("R"),_T("W"),_T("X"),_T("D"),_T("P"),_T("O")};
+    _tcscpy(access_string,_T(""));
     for(int i=0;i<6;i++)
     {
       if((mask&common_rights[level][i])==common_rights[level][i])
         res[i]=full[i];
-      strcat(access_string,res[i]);
+      _tcscat(access_string,res[i]);
     }
   }
   return access_string;
 }
 
-char *get_sid_string(PSID sid)
+TCHAR *get_sid_string(PSID sid)
 {
-  char *res=NULL;
+  TCHAR *res=NULL;
   UNICODE_STRING sid_str;
   memset(&sid_str,0,sizeof(sid_str));
   if(!RtlConvertSidToUnicodeString(&sid_str,sid,TRUE))
   {
-    res=(char *)malloc((sid_str.Length/sizeof(wchar_t)+1)*sizeof(char));
+    size_t length=sid_str.Length/sizeof(wchar_t);
+    res=(TCHAR *)malloc((length+1)*sizeof(TCHAR));
     if(res)
-      WideCharToMultiByte(CP_OEMCP,0,sid_str.Buffer,sid_str.Length/sizeof(wchar_t),res,sid_str.Length/sizeof(wchar_t),NULL,NULL);
+    {
+#ifdef UNICODE
+      _tcsncpy(res,sid_str.Buffer,length);
+      res[length]=0;
+#else
+      WideCharToMultiByte(CP_OEMCP,0,sid_str.Buffer,length,res,sid_str.Length/sizeof(wchar_t),NULL,NULL);
+#endif
+    }
     RtlFreeUnicodeString(&sid_str);
   }
   return res;
@@ -449,17 +501,25 @@ void wcsaddendslash(wchar_t *string)
   return;
 }
 
-int parse_dir(char *root_oem,char *obj_oem,wchar_t *obj,int obj_type,unsigned long *param,wchar_t *host,char *host_oem)
+int parse_dir(TCHAR *root_oem,TCHAR *obj_oem,wchar_t *obj,int obj_type,unsigned long *param,wchar_t *host,TCHAR *host_oem)
 {
   int result=-1;
   HANDLE testHandle;
   wchar_t *real_obj=obj,obj2[MAX_PATH],root[MAX_PATH],path[MAX_PATH];
   if((!real_obj)&&obj_oem)
   {
+#ifdef UNICODE
+    _tcscpy(obj2,obj_oem);
+#else
     MultiByteToWideChar(CP_OEMCP,0,obj_oem,-1,obj2,sizeof(obj2)/sizeof(obj2[0]));
+#endif
     real_obj=obj2;
   }
+#ifdef UNICODE
+  _tcscpy(root,root_oem);
+#else
   MultiByteToWideChar(CP_OEMCP,0,root_oem,-1,root,sizeof(root)/sizeof(root[0]));
+#endif
   wcscpy(path,root);
   if(real_obj)
   {
@@ -506,11 +566,19 @@ parse_dir_plugin:
       }
       goto parse_dir_plugin;
   }
-  if((result>-1)&&host_oem) WideCharToMultiByte(CP_OEMCP,0,host,-1,host_oem,MAX_PATH,NULL,NULL);
+  if((result>-1)&&host_oem)
+  {
+#ifdef UNICODE
+    _tcscpy(host_oem,host);
+#else
+    WideCharToMultiByte(CP_OEMCP,0,host,-1,host_oem,MAX_PATH,NULL,NULL);
+#endif
+  }
   return result;
 }
 
-static const char *GetRealName(const WIN32_FIND_DATAA *src)
+#ifndef UNICODE
+static const TCHAR *GetRealName(const FAR_FIND_DATA *src)
 {
   WIN32_FIND_DATAA find,find_ok; HANDLE hFind; BOOL Res;
   hFind=FindFirstFileA(src->cFileName,&find);
@@ -519,7 +587,7 @@ static const char *GetRealName(const WIN32_FIND_DATAA *src)
     memcpy(&find_ok,&find,sizeof(find));
     Res=FindNextFileA(hFind,&find);
     FindClose(hFind);
-    if((!Res)&&(!_stricmp(src->cAlternateFileName,find_ok.cAlternateFileName)))
+    if((!Res)&&(!_tcsicmp(src->cAlternateFileName,find_ok.cAlternateFileName)))
     {
       return src->cFileName;
     }
@@ -535,14 +603,19 @@ static const char *GetRealName(const WIN32_FIND_DATAA *src)
   }
   return NULL;
 }
+#endif
 
-bool GetWideName(char *root,const WIN32_FIND_DATAA *src,wchar_t *name)
+bool GetWideName(TCHAR *root,const FAR_FIND_DATA *src,wchar_t *name)
 {
+#ifdef UNICODE
+  _tcscpy(name,src->PANEL_FILENAME);
+  return true;
+#else
   bool res=false;
-  const char *real_shotname=GetRealName(src);
+  const TCHAR *real_shotname=GetRealName(src);
   if(real_shotname)
   {
-    char path[MAX_PATH];
+    TCHAR path[MAX_PATH];
     wchar_t path_w[MAX_PATH];
     strcpy(path,root);
     FSF.AddEndSlash(path);
@@ -558,6 +631,7 @@ bool GetWideName(char *root,const WIN32_FIND_DATAA *src,wchar_t *name)
     }
   }
   return res;
+#endif
 }
 
 LSA_HANDLE GetPolicyHandle(wchar_t *computer)

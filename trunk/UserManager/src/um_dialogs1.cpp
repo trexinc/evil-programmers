@@ -20,8 +20,8 @@
 /*FIXME: in future make one universal dialog*/
 #include <stdio.h>
 #include <stdlib.h>
-#include "..\..\plugin.hpp"
-#include "..\..\farkeys.hpp"
+#include "far_helper.h"
+#include "farkeys.hpp"
 #include "umplugin.h"
 #include "memory.h"
 
@@ -51,79 +51,85 @@ static bool EditAdvancedAccess(UserManager *panel,int size,int *messages,unsigne
 {
   bool res=false;
   PanelInfo PInfo;
-  Info.Control((HANDLE)panel,FCTL_GETPANELINFO,&PInfo);
-  if((PInfo.ItemsNumber>0)&&(!(PInfo.PanelItems[PInfo.CurrentItem].FindData.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)))
+  if(Info.Control((HANDLE)panel,FCTL_GETPANELINFO,&PInfo))
   {
-    if(PInfo.PanelItems[PInfo.CurrentItem].Flags&PPIF_USERDATA)
+    if((PInfo.ItemsNumber>0)&&(!(PInfo.PanelItems[PInfo.CurrentItem].FindData.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)))
     {
-      unsigned long mask=GetLevelFromUserData(PInfo.PanelItems[PInfo.CurrentItem].UserData);
-      //Show dialog
-      /*
-        0000000000111111111122222222223333333333444444444455555555556666666666777777
-        0123456789012345678901234567890123456789012345678901234567890123456789012345
-      00                                                                            00
-      01   ÉÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ»   01
-      02   º [ ] Read data/List directory                                       º   02
-      03   º [ ] Write data/Add file                                            º   03
-      04   º [ ] Append data/Add subdirectory                                   º   04
-      05   º [ ] Read extended attributes/Read properties                       º   05
-      06   º [ ] Write extended attributes/Write properties                     º   06
-      07   º [ ] Execute/Traverce???                                            º   07
-      08   º [ ] Delete Child                                                   º   08
-      09   º [ ] Read attributes                                                º   09
-      10   º [ ] Write attributes                                               º   10
-      11   ÇÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¶   11
-      12   º [ ] Delete                                                         º   12
-      13   º [ ] Read owner, group, dacl                                        º   13
-      14   º [ ] Change Permissions                                             º   14
-      15   º [ ] Take Ownership                                                 º   15
-      16   º [ ] Synchronize                                                    º   16
-      17   ÇÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¶   17
-      18   º                 [ OK ]                [ Cancel ]                   º   18
-      19   ÈÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼   19
-      20                                                                            20
-        0000000000111111111122222222223333333333444444444455555555556666666666777777
-        0123456789012345678901234567890123456789012345678901234567890123456789012345
-      */
-      int ItemCount=4+size+((delimiter>=0)?1:0);
-      FarDialogItem *DialogItems=(FarDialogItem *)malloc(sizeof(FarDialogItem)*ItemCount);
-      if(DialogItems)
+      if(PInfo.PanelItems[PInfo.CurrentItem].Flags&PPIF_USERDATA)
       {
-        int button_index=ItemCount-2,check_index=button_index-size;
-        DialogItems[0].Type=DI_DOUBLEBOX; DialogItems[0].X1=3; DialogItems[0].Y1=1; DialogItems[0].X2=72; DialogItems[0].Y2=ItemCount;
-        DialogItems[1].Type=DI_TEXT; DialogItems[1].X1=-1; DialogItems[1].Y1=ItemCount-2; DialogItems[1].Flags=DIF_SEPARATOR;
-        if(delimiter>=0)
-          DialogItems[2].Type=DI_TEXT; DialogItems[2].X1=-1; DialogItems[2].Y1=3+delimiter; DialogItems[2].Flags=DIF_SEPARATOR;
+        unsigned long mask=GetLevelFromUserData(PInfo.PanelItems[PInfo.CurrentItem].UserData);
+        //Show dialog
+        /*
+          0000000000111111111122222222223333333333444444444455555555556666666666777777
+          0123456789012345678901234567890123456789012345678901234567890123456789012345
+        00                                                                            00
+        01   ÉÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ»   01
+        02   º [ ] Read data/List directory                                       º   02
+        03   º [ ] Write data/Add file                                            º   03
+        04   º [ ] Append data/Add subdirectory                                   º   04
+        05   º [ ] Read extended attributes/Read properties                       º   05
+        06   º [ ] Write extended attributes/Write properties                     º   06
+        07   º [ ] Execute/Traverce???                                            º   07
+        08   º [ ] Delete Child                                                   º   08
+        09   º [ ] Read attributes                                                º   09
+        10   º [ ] Write attributes                                               º   10
+        11   ÇÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¶   11
+        12   º [ ] Delete                                                         º   12
+        13   º [ ] Read owner, group, dacl                                        º   13
+        14   º [ ] Change Permissions                                             º   14
+        15   º [ ] Take Ownership                                                 º   15
+        16   º [ ] Synchronize                                                    º   16
+        17   ÇÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¶   17
+        18   º                 [ OK ]                [ Cancel ]                   º   18
+        19   ÈÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼   19
+        20                                                                            20
+          0000000000111111111122222222223333333333444444444455555555556666666666777777
+          0123456789012345678901234567890123456789012345678901234567890123456789012345
+        */
+        int ItemCount=4+size+((delimiter>=0)?1:0);
+        FarDialogItem *DialogItems=(FarDialogItem *)malloc(sizeof(FarDialogItem)*ItemCount);
+        if(DialogItems)
+        {
+          int button_index=ItemCount-2,check_index=button_index-size;
+          DialogItems[0].Type=DI_DOUBLEBOX; DialogItems[0].X1=3; DialogItems[0].Y1=1; DialogItems[0].X2=72; DialogItems[0].Y2=ItemCount;
+          DialogItems[1].Type=DI_TEXT; DialogItems[1].X1=-1; DialogItems[1].Y1=ItemCount-2; DialogItems[1].Flags=DIF_SEPARATOR;
+          if(delimiter>=0)
+            DialogItems[2].Type=DI_TEXT; DialogItems[2].X1=-1; DialogItems[2].Y1=3+delimiter; DialogItems[2].Flags=DIF_SEPARATOR;
 
-        DialogItems[button_index].Type=DI_BUTTON; DialogItems[button_index].Y1=ItemCount-1; DialogItems[button_index].Flags=DIF_CENTERGROUP; DialogItems[button_index].DefaultButton=TRUE; strcpy(DialogItems[button_index].Data,GetMsg(mPropButtonOk));
-        button_index++;
-        DialogItems[button_index].Type=DI_BUTTON; DialogItems[button_index].Y1=ItemCount-1; DialogItems[button_index].Flags=DIF_CENTERGROUP; strcpy(DialogItems[button_index].Data,GetMsg(mPropButtonCancel));
-        button_index--;
-        for(int i=0;i<size;i++)
-        {
-          DialogItems[check_index+i].Type=DI_CHECKBOX;
-          DialogItems[check_index+i].X1=5;
-          DialogItems[check_index+i].Y1=2+i+((i>delimiter&&delimiter>=0)?1:0);
-          if(!i) DialogItems[check_index+i].Focus=TRUE;
-          strcpy(DialogItems[check_index+i].Data,GetMsg(messages[i]));
-          if(mask&access[i]) DialogItems[check_index+i].Selected=TRUE;
-        }
-        int params[2]={check_index,size};
-        int DlgCode=Info.DialogEx(Info.ModuleNumber,-1,-1,76,ItemCount+2,"EditAdvancedAccess",DialogItems,ItemCount,0,0,EditAdvancedAccessDialogProc,(long)params);
-        if(DlgCode==button_index)
-        {
-          mask=0;
+          DialogItems[button_index].Type=DI_BUTTON; DialogItems[button_index].Y1=ItemCount-1; DialogItems[button_index].Flags=DIF_CENTERGROUP; DialogItems[button_index].DefaultButton=TRUE; INIT_DLG_DATA(DialogItems[button_index],GetMsg(mPropButtonOk));
+          button_index++;
+          DialogItems[button_index].Type=DI_BUTTON; DialogItems[button_index].Y1=ItemCount-1; DialogItems[button_index].Flags=DIF_CENTERGROUP; INIT_DLG_DATA(DialogItems[button_index],GetMsg(mPropButtonCancel));
+          button_index--;
           for(int i=0;i<size;i++)
           {
-            if(DialogItems[check_index+i].Selected)
-              mask|=access[i];
+            DialogItems[check_index+i].Type=DI_CHECKBOX;
+            DialogItems[check_index+i].X1=5;
+            DialogItems[check_index+i].Y1=2+i+((i>delimiter&&delimiter>=0)?1:0);
+            if(!i) DialogItems[check_index+i].Focus=TRUE;
+            INIT_DLG_DATA(DialogItems[check_index+i],GetMsg(messages[i]));
+            if(mask&access[i]) DialogItems[check_index+i].Selected=TRUE;
           }
-          if(UpdateAcl(panel,panel->level,GetSidFromUserData(PInfo.PanelItems[PInfo.CurrentItem].UserData),GetItemTypeFromUserData(PInfo.PanelItems[PInfo.CurrentItem].UserData),mask,actionUpdate))
-            res=true;
+          int params[2]={check_index,size};
+          CFarDialog dialog;
+          int DlgCode=dialog.Execute(Info.ModuleNumber,-1,-1,76,ItemCount+2,_T("EditAdvancedAccess"),DialogItems,ItemCount,0,0,EditAdvancedAccessDialogProc,(long)params);
+          if(DlgCode==button_index)
+          {
+            mask=0;
+            for(int i=0;i<size;i++)
+            {
+              if(dialog.Check(check_index+i))
+                mask|=access[i];
+            }
+            if(UpdateAcl(panel,panel->level,GetSidFromUserData(PInfo.PanelItems[PInfo.CurrentItem].UserData),GetItemTypeFromUserData(PInfo.PanelItems[PInfo.CurrentItem].UserData),mask,actionUpdate))
+              res=true;
+          }
+          free(DialogItems);
         }
-        free(DialogItems);
       }
     }
+#ifdef UNICODE
+    Info.Control((HANDLE)panel,FCTL_FREEPANELINFO,&PInfo);
+#endif
   }
   return res;
 }

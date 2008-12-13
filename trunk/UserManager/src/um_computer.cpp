@@ -20,7 +20,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
-#include "..\..\plugin.hpp"
+#include "far_helper.h"
 #include <lm.h>
 #include "umplugin.h"
 #include "memory.h"
@@ -54,33 +54,45 @@ bool GetComputer(UserManager *panel,bool selection)
       000000000011111111112222222222333333333344444444
       012345678901234567890123456789012345678901234567
     */
-    static char *ComputerHistoryName="UserManager\\Computer";
+    static const TCHAR *ComputerHistoryName=_T("UserManager\\Computer");
     static struct InitDialogItem InitDlg[]={
-    /*0*/  {DI_DOUBLEBOX,3,1,44,5,0,0,0,0,(char *)mSelCompTitle},
-    /*1*/  {DI_TEXT,5,2,0,0,0,0,0,0,(char *)mSelCompLabel},
-    /*2*/  {DI_EDIT,5,3,42,0,1,(DWORD)ComputerHistoryName,DIF_HISTORY,0,""},
-    /*3*/  {DI_TEXT,5,4,0,0,0,0,0,0,(char *)mSelCompFootnote},
+    /*0*/  {DI_DOUBLEBOX,3,1,44,5,0,0,0,0,(TCHAR *)mSelCompTitle},
+    /*1*/  {DI_TEXT,5,2,0,0,0,0,0,0,(TCHAR *)mSelCompLabel},
+    /*2*/  {DI_EDIT,5,3,42,0,1,(DWORD)ComputerHistoryName,DIF_HISTORY,0,_T("")},
+    /*3*/  {DI_TEXT,5,4,0,0,0,0,0,0,(TCHAR *)mSelCompFootnote},
     };
     struct FarDialogItem DialogItems[sizeof(InitDlg)/sizeof(InitDlg[0])];
     InitDialogItems(InitDlg,DialogItems,sizeof(InitDlg)/sizeof(InitDlg[0]));
+#ifdef UNICODE
+    DialogItems[2].PtrData=panel->computer_ptr;
+#else
     WideCharToMultiByte(CP_OEMCP,0,panel->computer_ptr,-1,DialogItems[2].Data,MAX_PATH,NULL,NULL);
-    int DlgCode=Info.DialogEx(Info.ModuleNumber,-1,-1,48,7,NULL,DialogItems,(sizeof(InitDlg)/sizeof(InitDlg[0])),0,0,ComputerDialogProc,0);
+#endif
+    CFarDialog dialog;
+    int DlgCode=dialog.Execute(Info.ModuleNumber,-1,-1,48,7,NULL,DialogItems,(sizeof(InitDlg)/sizeof(InitDlg[0])),0,0,ComputerDialogProc,0);
     if(DlgCode!=-1)
     {
-      if(DialogItems[2].Data[0])
+      if(dialog.Str(2)[0])
       {
-        if(strncmp(DialogItems[2].Data,"\\\\",2))
+        TCHAR tmp[512];
+        if(_tcsncmp(dialog.Str(2),_T("\\\\"),2))
         {
-          char tmp[512];
-          strcpy(tmp,"\\\\");
-          strcat(tmp,DialogItems[2].Data);
-          strcpy(DialogItems[2].Data,tmp);
+          _tcscpy(tmp,_T("\\\\"));
+          _tcscat(tmp,dialog.Str(2));
+        }
+        else
+        {
+          _tcscpy(tmp,dialog.Str(2));
         }
         HANDLE hSScr=Info.SaveScreen(0,0,-1,-1);
-        const char *MsgItems[]={"",GetMsg(mOtherConnect)};
+        const TCHAR *MsgItems[]={_T(""),GetMsg(mOtherConnect)};
         Info.Message(Info.ModuleNumber,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),0);
         wchar_t temp_computer_name[MAX_PATH];
-        MultiByteToWideChar(CP_OEMCP,0,DialogItems[2].Data,-1,temp_computer_name,sizeof(temp_computer_name)/sizeof(temp_computer_name[0]));
+#ifdef UNICODE
+        _tcscpy(temp_computer_name,tmp);
+#else
+        MultiByteToWideChar(CP_OEMCP,0,tmp,-1,temp_computer_name,sizeof(temp_computer_name)/sizeof(temp_computer_name[0]));
+#endif
         DWORD count;
         PVOID buffer;
         if(NetQueryDisplayInformation(temp_computer_name,2,0,1,MAX_PREFERRED_LENGTH,&count,&buffer)==NERR_Success)

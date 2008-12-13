@@ -497,9 +497,9 @@ enum
 struct UserManager
 {
   unsigned long flags;
-  char path[MAX_PATH];
-  char nonfixed_oem[MAX_PATH];
-  char hostfile_oem[MAX_PATH];
+  TCHAR path[MAX_PATH];
+  TCHAR nonfixed_oem[MAX_PATH];
+  TCHAR hostfile_oem[MAX_PATH];
   wchar_t nonfixed[MAX_PATH];
   wchar_t hostfile[MAX_PATH];
   wchar_t *computer_ptr;
@@ -513,7 +513,7 @@ struct UserManager
 
 struct RegRoot
 {
-  wchar_t *root;
+  const wchar_t *root;
   HKEY value;
 };
 
@@ -541,7 +541,7 @@ struct InitDialogItem
   int Selected;
   unsigned int Flags;
   int DefaultButton;
-  char *Data;
+  const TCHAR *Data;
 };
 
 struct WellKnownSID
@@ -558,7 +558,7 @@ struct Options
   bool AddToPluginsMenu;
   bool AddToConfigMenu;
   bool FullUserNames;
-  char Prefix[16];
+  TCHAR Prefix[16];
 };
 
 extern struct Options Opt;
@@ -572,8 +572,8 @@ typedef bool (*CheckType)(unsigned char Param,unsigned char Type,unsigned char *
 typedef bool (*PressButton)(UserManager *panel);
 typedef bool (*PressButton2)(UserManager *panel,bool selection);
 typedef bool (*PressButton3)(UserManager *panel,UserManager *anotherpanel,bool selection);
-typedef char * (*ParseColumns)(char *columns);
-typedef bool (*GetOwner)(UserManager *panel,PSID *sid,wchar_t **owner,char **owner_oem);
+typedef TCHAR * (*ParseColumns)(TCHAR *columns);
+typedef bool (*GetOwner)(UserManager *panel,PSID *sid,wchar_t **owner,TCHAR **owner_oem);
 
 #define PERM_NO    0
 #define PERM_YES   1
@@ -631,35 +631,45 @@ extern const bool sort[];
 
 extern PluginStartupInfo Info;
 extern FARSTANDARDFUNCTIONS FSF;
-extern char PluginRootKey[80];
+extern TCHAR PluginRootKey[80];
 
-extern char *GetMsg(int MsgId);
+extern const TCHAR *GetMsg(int MsgId);
 extern void InitDialogItems(InitDialogItem *Init,FarDialogItem *Item,int ItemsNumber);
 extern void ShowError(DWORD Error);
 extern void ShowCustomError(int index);
-extern void GetCurrentPath(int level,char *nonfixed,char *result);
+extern void GetCurrentPath(int level,TCHAR *nonfixed,TCHAR *result);
 extern DWORD generic_mask_to_file_mask(DWORD mask);
 extern DWORD generic_mask_to_reg_mask(DWORD mask);
 extern DWORD generic_mask_to_printer_mask(DWORD mask);
 extern DWORD generic_mask_to_job_mask(DWORD mask);
-extern void EnablePrivilege(const char *name);
-extern bool IsPrivilegeEnabled(const char *name);
-extern bool CheckChDir(HANDLE hPlugin,const char *NewDir,char *RealDir,wchar_t *RealDirW,int *level);
-extern void AddDefaultUserdata(PluginPanelItem *Item,int level,int sortorder,int itemtype,PSID sid,wchar_t *wide_name,char *oem_name);
+extern void EnablePrivilege(const TCHAR *name);
+extern bool IsPrivilegeEnabled(const TCHAR *name);
+extern bool CheckChDir(HANDLE hPlugin,const TCHAR *NewDir,TCHAR *RealDir,wchar_t *RealDirW,int *level);
+extern void AddDefaultUserdata(PluginPanelItem *Item,int level,int sortorder,int itemtype,PSID sid,wchar_t *wide_name,const TCHAR *oem_name,const TCHAR* filename);
 extern int GetLevelFromUserData(DWORD UserData);
 extern int GetSortOrderFromUserData(DWORD UserData);
 extern int GetItemTypeFromUserData(DWORD UserData);
 extern PSID GetSidFromUserData(DWORD UserData);
 extern wchar_t *GetWideNameFromUserData(DWORD UserData);
 extern int NumberType(int num);
+#ifdef UNICODE
+struct SSelectionInfo
+{
+  PanelInfo PInfo;
+  PluginPanelItem* item;
+};
+extern void GetSelectedList(HANDLE hPlugin,struct PluginPanelItem ***pPanelItem,int *pItemsNumber,bool selection,SSelectionInfo& info);
+extern void FreeSelectedList(HANDLE hPlugin,SSelectionInfo& info);
+#else
 extern void GetSelectedList(HANDLE hPlugin,struct PluginPanelItem **pPanelItem,int *pItemsNumber,bool selection);
+#endif
 extern PSECURITY_DESCRIPTOR CreateDefaultSD(void);
 extern PACL CreateDefaultAcl(int level);
-extern char *get_access_string(int level,int mask);
-extern char *get_sid_string(PSID sid);
+extern TCHAR *get_access_string(int level,int mask);
+extern TCHAR *get_sid_string(PSID sid);
 extern void wcsaddendslash(wchar_t *string);
-extern bool GetWideName(char *root,const WIN32_FIND_DATAA *src,wchar_t *name);
-extern int parse_dir(char *root_oem,char *obj_oem,wchar_t *obj,int obj_type,unsigned long *param,wchar_t *host,char *host_oem);
+extern bool GetWideName(TCHAR *root,const FAR_FIND_DATA *src,wchar_t *name);
+extern int parse_dir(TCHAR *root_oem,TCHAR *obj_oem,wchar_t *obj,int obj_type,unsigned long *param,wchar_t *host,TCHAR *host_oem);
 
 extern LONG RegOpenBackupKeyExW(HKEY hKey,LPCWSTR lpSubKey,REGSAM samDesired,PHKEY phkResult);
 
@@ -680,7 +690,7 @@ extern bool AddUserToRight(UserManager *panel,UserManager *anotherpanel,bool sel
 extern bool AddOwnerInternal(UserManager *panel,PSID user);
 
 extern bool ManageUser(UserManager *panel,bool type);
-extern bool ManageGroup(UserManager *panel,bool type,wchar_t *in_group);
+extern bool ManageGroup(UserManager *panel,bool type,const wchar_t *in_group);
 
 extern bool TakeOwnership(UserManager *panel,bool selection);
 extern bool DeleteACE(UserManager *panel,bool selection);
@@ -699,7 +709,7 @@ extern bool GetAcl(UserManager *panel,int level,AclData **data);
 extern void FreeAcl(AclData *data);
 extern bool UpdateAcl(UserManager *panel,int level,PSID user,int type,DWORD mask,int action);
 
-extern void GetUserNameEx(wchar_t *computer,PSID sid,bool full,wchar_t **username,char **username_oem);
+extern void GetUserNameEx(wchar_t *computer,PSID sid,bool full,wchar_t **username,TCHAR **username_oem);
 extern void free_sid_cache(void);
 
 extern void ProcessChilds(PanelInfo *PInfo);

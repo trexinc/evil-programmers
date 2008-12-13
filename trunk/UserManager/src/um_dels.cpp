@@ -19,13 +19,19 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "..\..\plugin.hpp"
+#include "far_helper.h"
 #include <lm.h>
 #include <ntsecapi.h>
 #include "umplugin.h"
 #include "memory.h"
 
 extern LSA_HANDLE GetPolicyHandle(wchar_t *computer);
+
+#ifdef UNICODE
+#define SELECTED_ITEMS(index) (*(PanelItem[index]))
+#else
+#define SELECTED_ITEMS(index) PanelItem[index]
+#endif
 
 bool TakeOwnership(UserManager *panel,bool selection)
 {
@@ -35,12 +41,19 @@ bool TakeOwnership(UserManager *panel,bool selection)
 bool DeleteACE(UserManager *panel,bool selection)
 {
   bool res=false,has_dir=false;
-  PluginPanelItem *PanelItem; int ItemsNumber;
+  int ItemsNumber;
+#ifdef UNICODE
+  PluginPanelItem **PanelItem;
+  SSelectionInfo info;
+  GetSelectedList((HANDLE)panel,&PanelItem,&ItemsNumber,selection,info);
+#else
+  PluginPanelItem *PanelItem;
   GetSelectedList((HANDLE)panel,&PanelItem,&ItemsNumber,selection);
+#endif
   if(ItemsNumber)
   {
     for(int i=0;i<ItemsNumber;i++)
-      if(PanelItem[i].FindData.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)
+      if(SELECTED_ITEMS(i).FindData.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)
       {
         has_dir=true;
         break;
@@ -48,23 +61,23 @@ bool DeleteACE(UserManager *panel,bool selection)
     if(has_dir) ShowCustomError(mDelFolderWarning);
     else
     {
-      char warning[TINY_BUFFER];
+      TCHAR warning[TINY_BUFFER];
       if(ItemsNumber==1)
       {
-        char Truncated[MAX_PATH];
-        strcpy(Truncated,PanelItem[0].FindData.cFileName);
+        TCHAR Truncated[MAX_PATH];
+        _tcscpy(Truncated,SELECTED_ITEMS(0).FindData.PANEL_FILENAME);
         FSF.TruncPathStr(Truncated,50);
-        sprintf(warning,GetMsg(mDelOne),Truncated);
+        FSF.sprintf(warning,GetMsg(mDelOne),Truncated);
       }
       else
-        sprintf(warning,GetMsg(mDelACEN+NumberType(ItemsNumber)),ItemsNumber);
-      const char *MsgItems[]={GetMsg(mButtonDelete),warning,GetMsg(mButtonDelete),GetMsg(mButtonCancel)};
+        FSF.sprintf(warning,GetMsg(mDelACEN+NumberType(ItemsNumber)),ItemsNumber);
+      const TCHAR *MsgItems[]={GetMsg(mButtonDelete),warning,GetMsg(mButtonDelete),GetMsg(mButtonCancel)};
       if(!Info.Message(Info.ModuleNumber,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),2))
         for(int i=0;i<ItemsNumber;i++)
         {
-          if(PanelItem[i].Flags&PPIF_USERDATA)
+          if(SELECTED_ITEMS(i).Flags&PPIF_USERDATA)
           {
-            if(UpdateAcl(panel,panel->level,GetSidFromUserData(PanelItem[i].UserData),GetItemTypeFromUserData(PanelItem[i].UserData),GetLevelFromUserData(PanelItem[i].UserData),actionDelete))
+            if(UpdateAcl(panel,panel->level,GetSidFromUserData(SELECTED_ITEMS(i).UserData),GetItemTypeFromUserData(SELECTED_ITEMS(i).UserData),GetLevelFromUserData(SELECTED_ITEMS(i).UserData),actionDelete))
               res=true;
             else
               break;
@@ -72,27 +85,37 @@ bool DeleteACE(UserManager *panel,bool selection)
         }
     }
   }
+#ifdef UNICODE
+  FreeSelectedList((HANDLE)panel,info);
+#endif
   return res;
 }
 
 bool DeleteShare(UserManager *panel,bool selection)
 {
   bool res=false;
-  PluginPanelItem *PanelItem; int ItemsNumber;
+  int ItemsNumber;
+#ifdef UNICODE
+  PluginPanelItem **PanelItem;
+  SSelectionInfo info;
+  GetSelectedList((HANDLE)panel,&PanelItem,&ItemsNumber,selection,info);
+#else
+  PluginPanelItem *PanelItem;
   GetSelectedList((HANDLE)panel,&PanelItem,&ItemsNumber,selection);
+#endif
   if(ItemsNumber)
   {
-    char warning[TINY_BUFFER];
+    TCHAR warning[TINY_BUFFER];
     if(ItemsNumber==1)
     {
-      char Truncated[MAX_PATH];
-      strcpy(Truncated,PanelItem[0].FindData.cFileName);
+      TCHAR Truncated[MAX_PATH];
+      _tcscpy(Truncated,SELECTED_ITEMS(0).FindData.PANEL_FILENAME);
       FSF.TruncPathStr(Truncated,50);
-      sprintf(warning,GetMsg(mDelOne),Truncated);
+      FSF.sprintf(warning,GetMsg(mDelOne),Truncated);
     }
     else
-      sprintf(warning,GetMsg(mDelShareN+NumberType(ItemsNumber)),ItemsNumber);
-    const char *MsgItems[]={GetMsg(mButtonDelete),warning,GetMsg(mButtonDelete),GetMsg(mButtonCancel)};
+      FSF.sprintf(warning,GetMsg(mDelShareN+NumberType(ItemsNumber)),ItemsNumber);
+    const TCHAR *MsgItems[]={GetMsg(mButtonDelete),warning,GetMsg(mButtonDelete),GetMsg(mButtonCancel)};
     if(!Info.Message(Info.ModuleNumber,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),2))
     {
       res=true;
@@ -124,151 +147,191 @@ bool DeleteShare(UserManager *panel,bool selection)
             ClosePrinter(printer);
           }
         }
-        else if(PanelItem[i].Flags&PPIF_USERDATA)
+        else if(SELECTED_ITEMS(i).Flags&PPIF_USERDATA)
         {
-          NetShareDel(panel->computer_ptr,GetWideNameFromUserData(PanelItem[i].UserData),0);
+          NetShareDel(panel->computer_ptr,GetWideNameFromUserData(SELECTED_ITEMS(i).UserData),0);
         }
     }
   }
+#ifdef UNICODE
+  FreeSelectedList((HANDLE)panel,info);
+#endif
   return res;
 }
 
 bool DeleteGroup(UserManager *panel,bool selection)
 {
   bool res=false;
-  PluginPanelItem *PanelItem; int ItemsNumber;
+  int ItemsNumber;
+#ifdef UNICODE
+  PluginPanelItem **PanelItem;
+  SSelectionInfo info;
+  GetSelectedList((HANDLE)panel,&PanelItem,&ItemsNumber,selection,info);
+#else
+  PluginPanelItem *PanelItem;
   GetSelectedList((HANDLE)panel,&PanelItem,&ItemsNumber,selection);
+#endif
   if(ItemsNumber)
   {
-    char warning[TINY_BUFFER];
+    TCHAR warning[TINY_BUFFER];
     if(ItemsNumber==1)
     {
-      char Truncated[MAX_PATH];
-      strcpy(Truncated,PanelItem[0].FindData.cFileName);
+      TCHAR Truncated[MAX_PATH];
+      _tcscpy(Truncated,SELECTED_ITEMS(0).FindData.PANEL_FILENAME);
       FSF.TruncPathStr(Truncated,50);
-      sprintf(warning,GetMsg(mDelOne),Truncated);
+      FSF.sprintf(warning,GetMsg(mDelOne),Truncated);
     }
     else
-      sprintf(warning,GetMsg(mDelObjectN+NumberType(ItemsNumber)),ItemsNumber);
-    const char *MsgItems[]={GetMsg(mButtonDelete),warning,GetMsg(mButtonDelete),GetMsg(mButtonCancel)};
+      FSF.sprintf(warning,GetMsg(mDelObjectN+NumberType(ItemsNumber)),ItemsNumber);
+    const TCHAR *MsgItems[]={GetMsg(mButtonDelete),warning,GetMsg(mButtonDelete),GetMsg(mButtonCancel)};
     if(!Info.Message(Info.ModuleNumber,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),2))
     {
       res=true;
       for(int i=0;i<ItemsNumber;i++)
       {
-        if(PanelItem[i].Flags&PPIF_USERDATA)
+        if(SELECTED_ITEMS(i).Flags&PPIF_USERDATA)
         {
-          if(PanelItem[i].FindData.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)
+          if(SELECTED_ITEMS(i).FindData.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)
           {
             if(panel->global)
             {
-              NetGroupDel(panel->domain,GetWideNameFromUserData(PanelItem[i].UserData));
+              NetGroupDel(panel->domain,GetWideNameFromUserData(SELECTED_ITEMS(i).UserData));
             }
             else
             {
-              NetLocalGroupDel(panel->computer_ptr,GetWideNameFromUserData(PanelItem[i].UserData));
+              NetLocalGroupDel(panel->computer_ptr,GetWideNameFromUserData(SELECTED_ITEMS(i).UserData));
             }
           }
           else
-            NetUserDel((panel->global)?(panel->domain):(panel->computer_ptr),GetWideNameFromUserData(PanelItem[i].UserData));
+            NetUserDel((panel->global)?(panel->domain):(panel->computer_ptr),GetWideNameFromUserData(SELECTED_ITEMS(i).UserData));
         }
       }
     }
   }
+#ifdef UNICODE
+  FreeSelectedList((HANDLE)panel,info);
+#endif
   return res;
 }
 
 bool RemoveUser(UserManager *panel,bool selection)
 {
   bool res=false;
-  PluginPanelItem *PanelItem; int ItemsNumber;
+  int ItemsNumber;
+#ifdef UNICODE
+  PluginPanelItem **PanelItem;
+  SSelectionInfo info;
+  GetSelectedList((HANDLE)panel,&PanelItem,&ItemsNumber,selection,info);
+#else
+  PluginPanelItem *PanelItem;
   GetSelectedList((HANDLE)panel,&PanelItem,&ItemsNumber,selection);
+#endif
   if(ItemsNumber)
   {
-    char warning[TINY_BUFFER];
+    TCHAR warning[TINY_BUFFER];
     if(ItemsNumber==1)
     {
-      char Truncated[MAX_PATH];
-      strcpy(Truncated,PanelItem[0].FindData.cFileName);
+      TCHAR Truncated[MAX_PATH];
+      _tcscpy(Truncated,SELECTED_ITEMS(0).FindData.PANEL_FILENAME);
       FSF.TruncPathStr(Truncated,50);
-      sprintf(warning,GetMsg(mRemoveOne),Truncated);
+      FSF.sprintf(warning,GetMsg(mRemoveOne),Truncated);
     }
     else
-      sprintf(warning,GetMsg(mRemoveUserN+NumberType(ItemsNumber)),ItemsNumber);
-    const char *MsgItems[]={GetMsg(mButtonRemove),warning,GetMsg(mButtonRemove),GetMsg(mButtonCancel)};
+      FSF.sprintf(warning,GetMsg(mRemoveUserN+NumberType(ItemsNumber)),ItemsNumber);
+    const TCHAR *MsgItems[]={GetMsg(mButtonRemove),warning,GetMsg(mButtonRemove),GetMsg(mButtonCancel)};
     if(!Info.Message(Info.ModuleNumber,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),2))
     {
       res=true;
       for(int i=0;i<ItemsNumber;i++)
       {
-        if(PanelItem[i].Flags&PPIF_USERDATA)
+        if(SELECTED_ITEMS(i).Flags&PPIF_USERDATA)
         {
           if(panel->global)
           {
-            NetGroupDelUser(panel->domain,panel->nonfixed,GetWideNameFromUserData(PanelItem[i].UserData));
+            NetGroupDelUser(panel->domain,panel->nonfixed,GetWideNameFromUserData(SELECTED_ITEMS(i).UserData));
           }
           else
           {
             LOCALGROUP_MEMBERS_INFO_0 new_member;
-            new_member.lgrmi0_sid=GetSidFromUserData(PanelItem[i].UserData);
+            new_member.lgrmi0_sid=GetSidFromUserData(SELECTED_ITEMS(i).UserData);
             NetLocalGroupDelMembers(panel->computer_ptr,panel->nonfixed,0,(LPBYTE)&new_member,1);
           }
         }
       }
     }
   }
+#ifdef UNICODE
+  FreeSelectedList((HANDLE)panel,info);
+#endif
   return res;
 }
 
 bool DeleteUser(UserManager *panel,bool selection)
 {
   bool res=false;
-  PluginPanelItem *PanelItem; int ItemsNumber;
+  int ItemsNumber;
+#ifdef UNICODE
+  PluginPanelItem **PanelItem;
+  SSelectionInfo info;
+  GetSelectedList((HANDLE)panel,&PanelItem,&ItemsNumber,selection,info);
+#else
+  PluginPanelItem *PanelItem;
   GetSelectedList((HANDLE)panel,&PanelItem,&ItemsNumber,selection);
+#endif
   if(ItemsNumber)
   {
-    char warning[TINY_BUFFER];
+    TCHAR warning[TINY_BUFFER];
     if(ItemsNumber==1)
     {
-      char Truncated[MAX_PATH];
-      strcpy(Truncated,PanelItem[0].FindData.cFileName);
+      TCHAR Truncated[MAX_PATH];
+      _tcscpy(Truncated,SELECTED_ITEMS(0).FindData.PANEL_FILENAME);
       FSF.TruncPathStr(Truncated,50);
-      sprintf(warning,GetMsg(mDelOne),Truncated);
+      FSF.sprintf(warning,GetMsg(mDelOne),Truncated);
     }
     else
-      sprintf(warning,GetMsg(mDelUserN+NumberType(ItemsNumber)),ItemsNumber);
-    const char *MsgItems[]={GetMsg(mButtonDelete),warning,GetMsg(mButtonDelete),GetMsg(mButtonCancel)};
+      FSF.sprintf(warning,GetMsg(mDelUserN+NumberType(ItemsNumber)),ItemsNumber);
+    const TCHAR *MsgItems[]={GetMsg(mButtonDelete),warning,GetMsg(mButtonDelete),GetMsg(mButtonCancel)};
     if(!Info.Message(Info.ModuleNumber,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),2))
     {
       res=true;
       for(int i=0;i<ItemsNumber;i++)
       {
-        if(PanelItem[i].Flags&PPIF_USERDATA)
-          NetUserDel((panel->global)?(panel->domain):(panel->computer_ptr),GetWideNameFromUserData(PanelItem[i].UserData));
+        if(SELECTED_ITEMS(i).Flags&PPIF_USERDATA)
+          NetUserDel((panel->global)?(panel->domain):(panel->computer_ptr),GetWideNameFromUserData(SELECTED_ITEMS(i).UserData));
       }
     }
   }
+#ifdef UNICODE
+  FreeSelectedList((HANDLE)panel,info);
+#endif
   return res;
 }
 
 bool DeleteRightUsers(UserManager *panel,bool selection)
 {
   bool res=false;
-  PluginPanelItem *PanelItem; int ItemsNumber;
+  int ItemsNumber;
+#ifdef UNICODE
+  PluginPanelItem **PanelItem;
+  SSelectionInfo info;
+  GetSelectedList((HANDLE)panel,&PanelItem,&ItemsNumber,selection,info);
+#else
+  PluginPanelItem *PanelItem;
   GetSelectedList((HANDLE)panel,&PanelItem,&ItemsNumber,selection);
+#endif
   if(ItemsNumber)
   {
-    char warning[TINY_BUFFER];
+    TCHAR warning[TINY_BUFFER];
     if(ItemsNumber==1)
     {
-      char Truncated[MAX_PATH];
-      strcpy(Truncated,PanelItem[0].FindData.cFileName);
+      TCHAR Truncated[MAX_PATH];
+      _tcscpy(Truncated,SELECTED_ITEMS(0).FindData.PANEL_FILENAME);
       FSF.TruncPathStr(Truncated,50);
-      sprintf(warning,GetMsg(mDelOne),Truncated);
+      FSF.sprintf(warning,GetMsg(mDelOne),Truncated);
     }
     else
-      sprintf(warning,GetMsg(mDelUserN+NumberType(ItemsNumber)),ItemsNumber);
-    const char *MsgItems[]={GetMsg(mButtonDelete),warning,GetMsg(mButtonDelete),GetMsg(mButtonCancel)};
+      FSF.sprintf(warning,GetMsg(mDelUserN+NumberType(ItemsNumber)),ItemsNumber);
+    const TCHAR *MsgItems[]={GetMsg(mButtonDelete),warning,GetMsg(mButtonDelete),GetMsg(mButtonCancel)};
     if(!Info.Message(Info.ModuleNumber,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),2))
     {
       res=true;
@@ -278,18 +341,21 @@ bool DeleteRightUsers(UserManager *panel,bool selection)
       {
         for(int i=0;i<ItemsNumber;i++)
         {
-          if(PanelItem[i].Flags&PPIF_USERDATA)
+          if(SELECTED_ITEMS(i).Flags&PPIF_USERDATA)
           {
             LSA_UNICODE_STRING RightName;
             RightName.Buffer=panel->nonfixed;
             RightName.Length=wcslen(RightName.Buffer)*sizeof(wchar_t);
             RightName.MaximumLength=RightName.Length+sizeof(wchar_t);
-            LsaRemoveAccountRights(PolicyHandle,GetSidFromUserData(PanelItem[i].UserData),FALSE,&RightName,1);
+            LsaRemoveAccountRights(PolicyHandle,GetSidFromUserData(SELECTED_ITEMS(i).UserData),FALSE,&RightName,1);
           }
         }
         LsaClose(PolicyHandle);
       }
     }
   }
+#ifdef UNICODE
+  FreeSelectedList((HANDLE)panel,info);
+#endif
   return res;
 }

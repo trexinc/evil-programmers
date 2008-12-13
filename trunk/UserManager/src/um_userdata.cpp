@@ -17,7 +17,7 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
-#include "..\..\plugin.hpp"
+#include "far_helper.h"
 #include "memory.h"
 
 struct PluginUserData
@@ -30,14 +30,23 @@ struct PluginUserData
   int wide_name_diff;
 };
 
-void AddDefaultUserdata(PluginPanelItem *Item,int level,int sortorder,int itemtype,PSID sid,wchar_t *wide_name,char *oem_name)
+void AddDefaultUserdata(PluginPanelItem *Item,int level,int sortorder,int itemtype,PSID sid,wchar_t *wide_name,const TCHAR *oem_name,const TCHAR* filename)
 {
+#ifdef UNICODE
+  Item->FindData.lpwszFileName=(TCHAR*)malloc((_tcslen(filename)+1)*sizeof(TCHAR));
+  if(Item->FindData.lpwszFileName)
+  {
+    if(Item->FindData.lpwszFileName) _tcscpy(Item->FindData.lpwszFileName,filename);
+  }
+#else
+  _tcscpy(Item->FindData.cFileName,filename);
+#endif
   PluginUserData *user_data;
   int user_data_size=sizeof(PluginUserData),sid_size=0,name_size=0;
   if(sid&&IsValidSid(sid))
     sid_size=GetLengthSid(sid);
   if(wide_name) name_size=wcslen(wide_name)+1;
-  else if(oem_name) name_size=strlen(oem_name)+1;
+  else if(oem_name) name_size=_tcslen(oem_name)+1;
   name_size*=sizeof(wchar_t);
   user_data_size+=sid_size+name_size;
 
@@ -58,7 +67,14 @@ void AddDefaultUserdata(PluginPanelItem *Item,int level,int sortorder,int itemty
       wchar_t *ptr=(wchar_t *)((char *)(user_data+1)+sid_size);
       user_data->wide_name_diff=sizeof(PluginUserData)+sid_size;
       if(wide_name) wcscpy(ptr,wide_name);
-      else MultiByteToWideChar(CP_OEMCP,0,oem_name,-1,ptr,name_size/sizeof(wchar_t));
+      else
+      {
+#ifdef UNICODE
+        _tcscpy(ptr,oem_name);
+#else
+        MultiByteToWideChar(CP_OEMCP,0,oem_name,-1,ptr,name_size/sizeof(wchar_t));
+#endif
+      }
     }
     Item->Flags=PPIF_USERDATA;
     Item->UserData=(DWORD)user_data;

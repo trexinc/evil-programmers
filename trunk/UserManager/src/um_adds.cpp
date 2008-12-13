@@ -19,7 +19,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "..\..\plugin.hpp"
+#include "plugin.hpp"
 #include <lm.h>
 #include <ntsecapi.h>
 #include "umplugin.h"
@@ -27,68 +27,110 @@
 
 extern LSA_HANDLE GetPolicyHandle(wchar_t *computer);
 
+#ifdef UNICODE
+#define SELECTED_ITEMS(index) (*(PanelItem[index]))
+#else
+#define SELECTED_ITEMS(index) PanelItem[index]
+#endif
 bool AddOwner(UserManager *panel,UserManager *anotherpanel,bool selection)
 {
   bool res=false;
-  PluginPanelItem *PanelItem; int ItemsNumber;
+  int ItemsNumber;
+#ifdef UNICODE
+  PluginPanelItem **PanelItem;
+  SSelectionInfo info;
+  GetSelectedList((HANDLE)panel,&PanelItem,&ItemsNumber,selection,info);
+#else
+  PluginPanelItem *PanelItem;
   GetSelectedList((HANDLE)panel,&PanelItem,&ItemsNumber,selection);
+#endif
   if(ItemsNumber==1)
   {
-    if(PanelItem[0].Flags&PPIF_USERDATA)
+    if(SELECTED_ITEMS(0).Flags&PPIF_USERDATA)
     {
-      PSID user=GetSidFromUserData(PanelItem[0].UserData);
+      PSID user=GetSidFromUserData(SELECTED_ITEMS(0).UserData);
       res=AddOwnerInternal(anotherpanel,user);
     }
   }
+#ifdef UNICODE
+  FreeSelectedList((HANDLE)panel,info);
+#endif
   return res;
 }
 
 bool AddACE(UserManager *panel,UserManager *anotherpanel,bool selection)
 {
   bool res=false;
-  PluginPanelItem *PanelItem; int ItemsNumber;
+  int ItemsNumber;
+#ifdef UNICODE
+  PluginPanelItem **PanelItem;
+  SSelectionInfo info;
+  GetSelectedList((HANDLE)panel,&PanelItem,&ItemsNumber,selection,info);
+#else
+  PluginPanelItem *PanelItem;
   GetSelectedList((HANDLE)panel,&PanelItem,&ItemsNumber,selection);
+#endif
   if(ItemsNumber)
   {
     for(int i=0;i<ItemsNumber;i++)
-      if(PanelItem[i].Flags&PPIF_USERDATA)
-        UpdateAcl(anotherpanel,anotherpanel->level,GetSidFromUserData(PanelItem[i].UserData),GetItemTypeFromUserData(PanelItem[i].UserData),default_mask[anotherpanel->level],actionInsert);
+      if(SELECTED_ITEMS(i).Flags&PPIF_USERDATA)
+        UpdateAcl(anotherpanel,anotherpanel->level,GetSidFromUserData(SELECTED_ITEMS(i).UserData),GetItemTypeFromUserData(SELECTED_ITEMS(i).UserData),default_mask[anotherpanel->level],actionInsert);
     res=true;
   }
+#ifdef UNICODE
+  FreeSelectedList((HANDLE)panel,info);
+#endif
   return res;
 }
 
 bool AddUserToGroup(UserManager *panel,UserManager *anotherpanel,bool selection)
 {
   bool res=false;
-  PluginPanelItem *PanelItem; int ItemsNumber;
+  int ItemsNumber;
+#ifdef UNICODE
+  PluginPanelItem **PanelItem;
+  SSelectionInfo info;
+  GetSelectedList((HANDLE)panel,&PanelItem,&ItemsNumber,selection,info);
+#else
+  PluginPanelItem *PanelItem;
   GetSelectedList((HANDLE)panel,&PanelItem,&ItemsNumber,selection);
+#endif
   if(ItemsNumber)
   {
     for(int i=0;i<ItemsNumber;i++)
-      if(PanelItem[i].Flags&PPIF_USERDATA)
+      if(SELECTED_ITEMS(i).Flags&PPIF_USERDATA)
       {
         if(anotherpanel->global)
         {
-          NetGroupAddUser(anotherpanel->domain,anotherpanel->nonfixed,GetWideNameFromUserData(PanelItem[i].UserData));
+          NetGroupAddUser(anotherpanel->domain,anotherpanel->nonfixed,GetWideNameFromUserData(SELECTED_ITEMS(i).UserData));
         }
         else
         {
           LOCALGROUP_MEMBERS_INFO_0 new_member;
-          new_member.lgrmi0_sid=GetSidFromUserData(PanelItem[i].UserData);
+          new_member.lgrmi0_sid=GetSidFromUserData(SELECTED_ITEMS(i).UserData);
           NetLocalGroupAddMembers(panel->computer_ptr,anotherpanel->nonfixed,0,(LPBYTE)&new_member,1);
         }
       }
     res=true;
   }
+#ifdef UNICODE
+  FreeSelectedList((HANDLE)panel,info);
+#endif
   return res;
 }
 
 bool AddUserToRight(UserManager *panel,UserManager *anotherpanel,bool selection)
 {
   bool res=false;
-  PluginPanelItem *PanelItem; int ItemsNumber;
+  int ItemsNumber;
+#ifdef UNICODE
+  PluginPanelItem **PanelItem;
+  SSelectionInfo info;
+  GetSelectedList((HANDLE)panel,&PanelItem,&ItemsNumber,selection,info);
+#else
+  PluginPanelItem *PanelItem;
   GetSelectedList((HANDLE)panel,&PanelItem,&ItemsNumber,selection);
+#endif
   if(ItemsNumber)
   {
     LSA_HANDLE PolicyHandle;
@@ -96,17 +138,20 @@ bool AddUserToRight(UserManager *panel,UserManager *anotherpanel,bool selection)
     if(PolicyHandle)
     {
       for(int i=0;i<ItemsNumber;i++)
-        if(PanelItem[i].Flags&PPIF_USERDATA)
+        if(SELECTED_ITEMS(i).Flags&PPIF_USERDATA)
         {
           LSA_UNICODE_STRING RightName;
           RightName.Buffer=anotherpanel->nonfixed;
           RightName.Length=wcslen(RightName.Buffer)*sizeof(wchar_t);
           RightName.MaximumLength=RightName.Length+sizeof(wchar_t);
-          LsaAddAccountRights(PolicyHandle,GetSidFromUserData(PanelItem[i].UserData),&RightName,1);
+          LsaAddAccountRights(PolicyHandle,GetSidFromUserData(SELECTED_ITEMS(i).UserData),&RightName,1);
         }
       LsaClose(PolicyHandle);
     }
     res=true;
   }
+#ifdef UNICODE
+  FreeSelectedList((HANDLE)panel,info);
+#endif
   return res;
 }
