@@ -48,7 +48,7 @@ void free_sid_cache(void)
 
 static void add_sid_cache(wchar_t *computer,PSID sid,bool full,wchar_t **username,TCHAR **username_oem)
 {
-  *username=(wchar_t*)L"Account Unknown"; *username_oem=(TCHAR*)"Account Unknown";
+  *username=(wchar_t*)L"Account Unknown"; *username_oem=(TCHAR*)_T("Account Unknown");
   CacheRecord *new_rec=(CacheRecord *)malloc(sizeof(CacheRecord));
   if(new_rec)
   {

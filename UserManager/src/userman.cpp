@@ -355,7 +355,7 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom,int Item)
               panel->computer[ptr-(panel->hostfile+2)]=0;
               ptr++;
               wchar_t *file_ptr=wcschr(ptr,'\\');
-  //            if(file_ptr)
+//              if(file_ptr)
               {
                 wchar_t share[MAX_PATH];
                 if(file_ptr)
