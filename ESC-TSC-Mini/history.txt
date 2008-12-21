@@ -1,9 +1,9 @@
 History:
 --------
 
-v1.2 (06/12/08)
+v1.2 (21/12/08)
 ---------------
- + Far 1.8 and [ESC] 2.4 support.
+ + Far 2.0 build 677 and [ESC] 2.5 support.
  * Changes in build system.
  * GCC 4.3.2.
  * Now plugin works only in FAR version greater than 1.70 build 2087.

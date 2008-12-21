@@ -1,9 +1,9 @@
 History:
 --------
 
-v0.4 (02/12/08)
+v0.4 (21/12/08)
 ---------------
- + Far 1.8 support.
+ + Far 2.0 build 677 support.
  * Changes in build system.
 
 v0.3 (25/11/08)

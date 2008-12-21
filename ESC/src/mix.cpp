@@ -42,14 +42,12 @@ extern XMLStrings XMLStr;
 extern struct OPTIONS Opt;
 extern int ModuleNumber;
 extern FARAPIEDITORCONTROL EditorControl;
-extern FARAPICHARTABLE CharTable;
 extern FARAPIMESSAGE FarMessage;
 extern FARSTDTRUNCPATHSTR TruncPathStr;
 extern EditorSetPosition esp;
 extern EditorGetString egs;
 extern EditorSetString ess;
 extern EditorInfo ei;
-extern CharTableSet CharSet, tmpCharSet;
 extern strcon *nlsStopChars;
 
 extern "C" const int maxTabSize=512;
@@ -1341,8 +1339,6 @@ BOOL ProcessKeyEnter(const EditorInfo &ei, EditorSetPosition &esp,
 
   memcpy(buff,egs.StringText,nQuote*sizeof(wchar_t));
   buff[nQuote]=L'\0';
-  struct EditorConvertText ect={buff, nQuote};
-  EditorControl(ECTL_EDITORTOOEM,&ect);
 
   BOOL RetCode=TRUE;
   for(int i=ei.CurPos; i<nQuote; i++ )

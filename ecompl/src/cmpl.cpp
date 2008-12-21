@@ -114,7 +114,9 @@ int TCompletion::DoSearch(void)
   EditorGetString gs;
   EditorInfo ei;
   EditorSetPosition sp;
+#ifndef UNICODE
   EditorConvertText ct;
+#endif
 
   int Line2Browse[2]; // Сколько строк будем просматривать вперед и назад
 
@@ -274,7 +276,11 @@ avl_window_data *TCompletion::GetLocalData(void)
 string TCompletion::PutWord(string NewWord)
 {
   //SEELATER check editor before insert
-  EditorInfo ei; EditorGetString gs; EditorConvertText ct; int OldPos;
+  EditorInfo ei; EditorGetString gs;
+#ifndef UNICODE
+  EditorConvertText ct;
+#endif
+  int OldPos;
   string OverwritedText;
   Info.EditorControl(ECTL_GETINFO,&ei);
   OldPos=ei.CurPos;

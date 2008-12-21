@@ -166,7 +166,6 @@ void WINAPI _export SetStartupInfoW(const struct PluginStartupInfo *Info)
 {
   ::Info=*Info;
   EditorControl=::Info.EditorControl;
-  CharTable=::Info.CharTable;
   ModuleNumber=::Info.ModuleNumber;
   FarMessage=::Info.Message;
   IsOldFar=TRUE;
@@ -198,10 +197,10 @@ void WINAPI _export SetStartupInfoW(const struct PluginStartupInfo *Info)
       (HIBYTE(LOWORD(__FarVer))==1 && LOBYTE(LOWORD(__FarVer))==70 &&
        HIWORD(__FarVer)>=2087));
 #else
-    IsOldFar=!(HIBYTE(LOWORD(__FarVer))>1 ||
-      (HIBYTE(LOWORD(__FarVer))==1 && LOBYTE(LOWORD(__FarVer))>80) ||
-      (HIBYTE(LOWORD(__FarVer))==1 && LOBYTE(LOWORD(__FarVer))==80 &&
-       HIWORD(__FarVer)>=635));
+    IsOldFar=!(HIBYTE(LOWORD(__FarVer))>2 ||
+      (HIBYTE(LOWORD(__FarVer))==2 && LOBYTE(LOWORD(__FarVer))>0) ||
+      (HIBYTE(LOWORD(__FarVer))==2 && LOBYTE(LOWORD(__FarVer))==0 &&
+       HIWORD(__FarVer)>=677));
 #endif
     LoadGlobalConfig();
 
@@ -1043,8 +1042,8 @@ int WINAPI _export ProcessEditorInputW(const INPUT_RECORD *Rec)
       }
     }
 
-    struct EditorConvertText ect, ect2;
     wchar_t* buff, *buff1, *buff2=NULL, *buff3=NULL;
+    int buff2TextLength=0;
     int Blank;
     int i;
     int nbCount, nbExtra;
@@ -1077,16 +1076,15 @@ int WINAPI _export ProcessEditorInputW(const INPUT_RECORD *Rec)
         _D(SysLog(L"PEI: ei.CurTabPos=%d, nWrapPos=%d, egs.StringLength=%d",
            ei.CurPos, nWrapPos, egs.StringLength));
         if( ei.CurTabPos>nWrapPos && ei.CurTabPos==egs.StringLength ){ // must be at the end of string
-          ect.Text=buff1=(wchar_t*)malloc(egs.StringLength*sizeof(wchar_t));
+          buff1=(wchar_t*)malloc(egs.StringLength*sizeof(wchar_t));
           buff=(wchar_t*)malloc(nWrapPos*sizeof(wchar_t));
           if(buff1 && buff){
-            memcpy(ect.Text,egs.StringText,egs.StringLength*sizeof(wchar_t));
-            ect.TextLength=egs.StringLength;
+            memcpy(buff1,egs.StringText,egs.StringLength*sizeof(wchar_t));
 
-            memcpy(buff,ect.Text,nWrapPos*sizeof(wchar_t));
+            memcpy(buff,buff1,nWrapPos*sizeof(wchar_t));
 
             Blank=0;
-            if( ect.TextLength>nWrapPos && ect.Text[nWrapPos]==nlsSpace )
+            if( egs.StringLength>nWrapPos && buff1[nWrapPos]==nlsSpace )
                 Blank=1;
             for( ess.StringLength=nWrapPos-1; ess.StringLength>=0; ess.StringLength-- ){
                 if( !Blank ){
@@ -1099,24 +1097,23 @@ int WINAPI _export ProcessEditorInputW(const INPUT_RECORD *Rec)
                 }
             }
 
-            int nQuote=isWrapQuote?IsQuote(buff,ect.TextLength):0;
+            int nQuote=isWrapQuote?IsQuote(buff,egs.StringLength):0;
 
             if( ess.StringLength>0 ){ // we have found the blank where to crop the string...
 
                 // portion of string that will go to the next line
-                ect.TextLength-=ess.StringLength;
-                ect.Text+=ess.StringLength;
+                egs.StringLength-=ess.StringLength;
+                buff1+=ess.StringLength;
 
                 // skip leading blanks in the rest of the string
-                for( ; ect.TextLength && ect.Text[0]==nlsSpace; ect.TextLength-- )
-                    ect.Text++;
+                for( ; egs.StringLength && buff1[0]==nlsSpace; egs.StringLength-- )
+                    buff1++;
 
                 if( isJustifyEnabled ){
                     // make justify on buff...
 
-                    ect2.Text=buff2=(wchar_t*)malloc(nWrapPos*sizeof(wchar_t));
+                    buff2=(wchar_t*)malloc(nWrapPos*sizeof(wchar_t));
                     if(!buff2) goto EXIT;
-                    ect2.TextLength=0;
 
                     while( ess.StringLength ){ // trim end spaces
                         if( buff[ess.StringLength-1]==nlsSpace ) ess.StringLength--;
@@ -1124,7 +1121,7 @@ int WINAPI _export ProcessEditorInputW(const INPUT_RECORD *Rec)
                     }
                     for( i=0; i<ess.StringLength; i++ ){
                         if( buff[i]!=nlsSpace ) break; // skip leading blanks
-                        else ect2.Text[ect2.TextLength++]=nlsSpace;
+                        else buff2[buff2TextLength++]=nlsSpace;
                     }
                     for( nbCount=Blank=0; i<ess.StringLength; i++ ){
                         if( Blank<=0 ){ // it was also blank before or just beggining
@@ -1141,17 +1138,17 @@ int WINAPI _export ProcessEditorInputW(const INPUT_RECORD *Rec)
                     // now in Blank we have word count and non-blank syms count in nbCount...
 
                     // now let us try to get some words from the resting string portion...
-                    if( ect.TextLength ){ // if something really rested
+                    if( egs.StringLength ){ // if something really rested
                         nbExtra=0;
-                        for( i=0; i<=ect.TextLength; i++ ){
-                            if( i==ect.TextLength || ect.Text[i]==nlsSpace ){
-                                if( ect2.TextLength+Blank+nbCount /* the most comact string len+1 */
+                        for( i=0; i<=egs.StringLength; i++ ){
+                            if( i==egs.StringLength || buff1[i]==nlsSpace ){
+                                if( buff2TextLength+Blank+nbCount /* the most comact string len+1 */
                                     + nbExtra > nWrapPos ) break;
                                 Blank++;
                                 nbCount+=nbExtra;
                                 nbExtra=0;
-                                while( ++i<ect.TextLength ){
-                                    if( ect.Text[i]!=nlsSpace ){
+                                while( ++i<egs.StringLength ){
+                                    if( buff1[i]!=nlsSpace ){
                                         i--;
                                         break;
                                     }
@@ -1162,65 +1159,65 @@ int WINAPI _export ProcessEditorInputW(const INPUT_RECORD *Rec)
                     }
 
                     if( Blank==1 ){
-
-                        ect2.Text=buff;
-                        ect2.TextLength=ess.StringLength;
+                        free(buff2);
+                        buff2=buff;
+                        buff2TextLength=ess.StringLength;
 
                     }else{
 
-                        SpaceCount=div(nWrapPos-nbCount-ect2.TextLength,--Blank);
+                        SpaceCount=div(nWrapPos-nbCount-buff2TextLength,--Blank);
                         SpaceCount.rem=Blank-SpaceCount.rem;
 
                         // now we have minimum space length in SpaceCount.quot
                         // and amount of blank fields with _no_ extra spacing in SpaceCount.rem
 
-                        for( i=ect2.TextLength; i<ess.StringLength; ){
+                        for( i=buff2TextLength; i<ess.StringLength; ){
                             if( buff[i]==nlsSpace ){
-                                wwmemset( ect2.Text+ect2.TextLength, nlsSpace, SpaceCount.quot );
-                                ect2.TextLength+=SpaceCount.quot;
+                                wwmemset( buff2+buff2TextLength, nlsSpace, SpaceCount.quot );
+                                buff2TextLength+=SpaceCount.quot;
                                 if( SpaceCount.rem ) SpaceCount.rem--;
-                                else ect2.Text[ect2.TextLength++]=nlsSpace;
+                                else buff2[buff2TextLength++]=nlsSpace;
                                 Blank--;
                                 while( i++ < ess.StringLength )
                                     if( buff[i]!=nlsSpace ) break;
                             }else
-                                ect2.Text[ect2.TextLength++]=buff[i++];
+                                buff2[buff2TextLength++]=buff[i++];
                         }
 
                         // fill up to nWrapPos with the initial part of the resting string...
                         if( Blank ){
-                            wwmemset( ect2.Text+ect2.TextLength, nlsSpace, SpaceCount.quot);
-                            ect2.TextLength+=SpaceCount.quot;
+                            wwmemset( buff2+buff2TextLength, nlsSpace, SpaceCount.quot);
+                            buff2TextLength+=SpaceCount.quot;
                             if( SpaceCount.rem ) SpaceCount.rem--;
-                            else ect2.Text[ect2.TextLength++]=nlsSpace;
+                            else buff2[buff2TextLength++]=nlsSpace;
                             Blank--;
-                            for( i=0; i<ect.TextLength; ){
-                                if( ect.Text[i]==nlsSpace ){
+                            for( i=0; i<egs.StringLength; ){
+                                if( buff1[i]==nlsSpace ){
                                     if( Blank ){
-                                        wwmemset( ect2.Text+ect2.TextLength, nlsSpace, SpaceCount.quot );
-                                        ect2.TextLength+=SpaceCount.quot;
+                                        wwmemset( buff2+buff2TextLength, nlsSpace, SpaceCount.quot );
+                                        buff2TextLength+=SpaceCount.quot;
                                         if( SpaceCount.rem ) SpaceCount.rem--;
-                                        else ect2.Text[ect2.TextLength++]=nlsSpace;
+                                        else buff2[buff2TextLength++]=nlsSpace;
                                     }
-                                    while( i < ect.TextLength )
-                                        if( ect.Text[i]!=nlsSpace ) break;
+                                    while( i < egs.StringLength )
+                                        if( buff1[i]!=nlsSpace ) break;
                                         else i++;
                                     if( Blank-- == 0 ) break;
                                 }else
-                                    ect2.Text[ect2.TextLength++]=ect.Text[i++];
+                                    buff2[buff2TextLength++]=buff1[i++];
                             }
-                            ect.Text+=i;
-                            ect.TextLength-=i;
+                            buff1+=i;
+                            egs.StringLength-=i;
                         }
                     }
 
                 }else{
-                    ect2.Text=buff;
-                    ect2.TextLength=ess.StringLength;
+                    buff2=buff;
+                    buff2TextLength=ess.StringLength;
                 }
 
-                ess.StringText=ect2.Text;
-                ess.StringLength=ect2.TextLength;
+                ess.StringText=buff2;
+                ess.StringLength=buff2TextLength;
                 ess.StringNumber=-1;
                 ess.StringEOL=const_cast<wchar_t*>(egs.StringEOL);
                 EditorControl(ECTL_SETSTRING,&ess);
@@ -1228,7 +1225,7 @@ int WINAPI _export ProcessEditorInputW(const INPUT_RECORD *Rec)
                 // may be here we need to pack the tabs back, if tabs are enabled...
                 // this time for the current line we will forget now forever...
 
-                if( ect.TextLength || KeyEvent.wVirtualKeyCode==VK_SPACE || KeyEvent.wVirtualKeyCode==VK_TAB ){
+                if( egs.StringLength || KeyEvent.wVirtualKeyCode==VK_SPACE || KeyEvent.wVirtualKeyCode==VK_TAB ){
                     EditorControl(ECTL_INSERTSTRING,0);
 
                     if( (ei.Options&EOPT_AUTOINDENT) && nQuote==0 ){
@@ -1236,18 +1233,18 @@ int WINAPI _export ProcessEditorInputW(const INPUT_RECORD *Rec)
                         for( i=0; i<ess.StringLength; i++ )
                             if( ess.StringText[i]!=nlsSpace ) break;
 
-                        ess.StringLength=ect.TextLength+i;
+                        ess.StringLength=egs.StringLength+i;
                         ess.StringText=buff3=(wchar_t*)malloc((ess.StringLength+1)*sizeof(wchar_t));
                         if( ess.StringText==NULL ){
-                            ess.StringLength=ect.TextLength;
-                            ess.StringText=ect.Text;
+                            ess.StringLength=egs.StringLength;
+                            ess.StringText=buff1;
                         }else{
                             wwmemset((wchar_t *)ess.StringText,nlsSpace,i);
-                            memcpy((wchar_t *)ess.StringText+i,ect.Text,ect.TextLength*sizeof(wchar_t));
+                            memcpy((wchar_t *)ess.StringText+i,buff1,egs.StringLength*sizeof(wchar_t));
                         }
                     }else{
-                        ess.StringLength=ect.TextLength;
-                        ess.StringText=ect.Text;
+                        ess.StringLength=egs.StringLength;
+                        ess.StringText=buff1;
                     }
 
                     EditorControl(ECTL_SETSTRING,&ess);
@@ -1262,9 +1259,6 @@ int WINAPI _export ProcessEditorInputW(const INPUT_RECORD *Rec)
                         EditorControl(ECTL_SETPOSITION,&esp);
 
                         buff[nQuote]=L'\0';
-                        ect.Text=buff;
-                        ect.TextLength=nQuote;
-                        EditorControl(ECTL_EDITORTOOEM,&ect);
                         EditorControl(ECTL_INSERTTEXT,buff);
                     }
 
@@ -1284,7 +1278,7 @@ int WINAPI _export ProcessEditorInputW(const INPUT_RECORD *Rec)
           }
 EXIT:
           if(buff3) free(buff3);
-          if(buff2) free(buff2);
+          if(buff2 && buff2 != buff) free(buff2);
           if(buff)  free(buff);
           if(buff1) free(buff1);
         }

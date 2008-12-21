@@ -75,7 +75,6 @@ struct EditorInfo ei;
 struct EditorGetString egs;
 struct EditorSetPosition esp;
 struct EditorSetString ess;
-struct CharTableSet CharSet, tmpCharSet;
 wchar_t nlsSpace, nlsTab, nlsQuoteSym, nlsMinus;
 strcon *nlsStopChars=NULL;
 wchar_t nlsStop[64];
@@ -104,7 +103,6 @@ XMLStrings XMLStr=
 #include "InitDialogItem.hpp"
 
 FARAPIEDITORCONTROL EditorControl;
-FARAPICHARTABLE     CharTable;
 FARAPIMESSAGE       FarMessage;
 FARSTDTRUNCPATHSTR  TruncPathStr;
 int ModuleNumber;

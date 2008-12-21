@@ -709,8 +709,12 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
               long FirstKey=upper_key(Param2),SecondKey=FirstKey;
               if(FSF.LIsAlpha((unsigned long)FirstKey))
               {
-                unsigned char xlat_str[1]={(unsigned long)FirstKey}; //FIXME
-                FSF.XLat((char*)xlat_str,0,1,NULL,0);
+                TCHAR xlat_str[1]={(unsigned long)FirstKey}; //FIXME
+#ifndef UNICODE
+                FSF.XLat(xlat_str,0,1,NULL,0);
+#else
+                FSF.XLat(xlat_str,0,1,0);
+#endif
                 SecondKey=upper_key(xlat_str[0]);
               }
               for(long i=0;i<data->ItemCount;i++)
