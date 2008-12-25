@@ -30,6 +30,7 @@ struct UndoItem
 static UndoItem *Top=NULL,*Stack=NULL;
 static HANDLE CurrDialog=INVALID_HANDLE_VALUE;
 static int CurrItem=-1;
+static int inside_undo=0;
 
 static void free_stack(void)
 {
@@ -88,9 +89,11 @@ static void pop_stack(void)
 
 static void restore_state(UndoItem *Data,HANDLE hDlg,int item)
 {
+  inside_undo++;
   Info.SendDlgMessage(hDlg,DM_SETTEXTPTR,item,(long)Data->data);
   Info.SendDlgMessage(hDlg,DM_SETCURSORPOS,item,(LONG_PTR)&Data->pos);
   Info.SendDlgMessage(hDlg,DM_EDITUNCHANGEDFLAG,item,Data->unchanged);
+  inside_undo--;
 }
 
 void FinishUndo(void)
@@ -131,6 +134,7 @@ void DoUndo(HANDLE aDlg)
 
 void FilterUndo(HANDLE aDlg,int aMsg,int aParam1,LONG_PTR aParam2)
 {
+  if(inside_undo) return;
   if(aMsg==DN_GOTFOCUS||aMsg==DN_INITDIALOG||(aMsg==DN_EDITCHANGE&&!Stack))
   {
     free_stack();

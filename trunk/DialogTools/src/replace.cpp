@@ -106,15 +106,6 @@ void DoReplace(HANDLE aDlg)
         newbuffer[j]='\0';
         Pos.X=j;
         Info.SendDlgMessage(aDlg,DM_SETTEXTPTR,itemID,(LONG_PTR)newbuffer);
-#ifdef UNICODE
-        FarDialogItem* pDialogItem;
-        pDialogItem=(FarDialogItem*)(LONG_PTR)Info.SendDlgMessage(aDlg,DM_GETDLGITEM,itemID,0);
-        Info.SendDlgMessage(aDlg,DN_EDITCHANGE,itemID,(LONG_PTR)pDialogItem);
-        Info.SendDlgMessage(aDlg,DM_FREEDLGITEM,0,(LONG_PTR)pDialogItem);
-#else
-        Info.SendDlgMessage(aDlg,DM_GETDLGITEM,itemID,(LONG_PTR)&DialogItem);
-        Info.SendDlgMessage(aDlg,DN_EDITCHANGE,itemID,(LONG_PTR)&DialogItem);
-#endif
         Info.SendDlgMessage(aDlg,DM_SETCURSORPOS,itemID,(LONG_PTR)&Pos);
         HeapFree(GetProcessHeap(),0,newbuffer);
       }
