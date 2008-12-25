@@ -370,17 +370,29 @@ static void load_syntax_from_file(char *dirname,char *filename,char *whole_chars
             Rules *new_rules=(Rules *)realloc(rules,(rules_count+1)*sizeof(Rules));
             if(!new_rules) goto line_end;
             rules=new_rules;
-            rules[rules_count].name=(char *)malloc(strlen(argv[1])+1);
+            rules[rules_count].name=(TCHAR*)malloc((strlen(argv[1])+1)*sizeof(TCHAR));
             if(!rules[rules_count].name) goto line_end;
+#ifdef UNICODE
+            MultiByteToWideChar(CP_OEMCP,0,argv[1],-1,rules[rules_count].name,strlen(argv[1])+1);
+#else
             strcpy(rules[rules_count].name,argv[1]);
-            rules[rules_count].mask=(char *)malloc(strlen(argv[2])+1);
+#endif
+            rules[rules_count].mask=(TCHAR*)malloc((strlen(argv[2])+1)*sizeof(TCHAR));
             if(!rules[rules_count].mask) goto line_end;
+#ifdef UNICODE
+            MultiByteToWideChar(CP_OEMCP,0,argv[2],-1,rules[rules_count].mask,strlen(argv[2])+1);
+#else
             strcpy(rules[rules_count].mask,argv[2]);
+#endif
             if(argc>3)
             {
-              rules[rules_count].start=(char *)malloc(strlen(argv[3])+1);
+              rules[rules_count].start=(TCHAR*)malloc((strlen(argv[3])+1)*sizeof(TCHAR));
               if(!rules[rules_count].start) goto line_end;
+#ifdef UNICODE
+              MultiByteToWideChar(CP_OEMCP,0,argv[3],-1,rules[rules_count].start,strlen(argv[3])+1);
+#else
               strcpy(rules[rules_count].start,argv[3]);
+#endif
             }
             rules[rules_count].contexts=NULL;
             rules[rules_count].contexts_count=0;
@@ -693,7 +705,14 @@ void WINAPI _export Colorize(int index,struct ColorizeParams *params)
     context_start=0;
     if(lno==params->topline) lColorize=1;
     if(lColorize&&(!startcol)) Info.pAddColor(lno,-1,1,0,0);
+#ifdef UNICODE
+    const wchar_t* lineW=Info.pGetLine(lno,&linelen);
+    line=(char*)malloc(linelen);
+    if(!line) return;
+    WideCharToMultiByte(CP_OEMCP,0,lineW,linelen,(char*)line,linelen,NULL,NULL);
+#else
     line=Info.pGetLine(lno,&linelen);
+#endif
     int pos=startcol,pos_next;
     while(pos<=linelen)
     {
@@ -768,10 +787,18 @@ void WINAPI _export Colorize(int index,struct ColorizeParams *params)
       }
       if(params->callback)
         if(params->callback(0,lno,pos,params->param))
-            return;
+        {
+#ifdef UNICODE
+          free((void*)line);
+#endif
+          return;
+        }
       pos++;
     }
     if(lColorize) Info.pAddColor(lno,context_start,linelen-context_start,rules[index].contexts[state[0]].fg,rules[index].contexts[state[0]].bg);
+#ifdef UNICODE
+    free((void*)line); line=NULL;
+#endif
   }
 }
 
@@ -790,18 +817,35 @@ int WINAPI _export GetParams(int index,int command,const char **param)
   switch(command)
   {
     case PAR_GET_NAME:
-      if((index>=rules_count)||(index<0)) *param="";
-      else *param=rules[index].name;
+      if((index>=rules_count)||(index<0)) *param=(const char*)_T("");
+      else *param=(const char*)rules[index].name;
       return true;
     case PAR_GET_PARAMS:
       return PAR_MASK_CACHE|PAR_SHOW_IN_LIST;
     case PAR_GET_MASK:
-      if((index>=rules_count)||(index<0)) *param="";
-      else *param=rules[index].mask;
+      if((index>=rules_count)||(index<0)) *param=(const char*)_T("");
+      else *param=(const char*)rules[index].mask;
       return true;
     case PAR_CHECK_FILESTART:
       if((index<rules_count)&&(index>=0)&&rules[index].start)
+      {
+#ifdef UNICODE
+        char* filestart=NULL;
+        int res=0;
+        size_t filestart_len=wcslen((const wchar_t*)*param),start_len=wcslen(rules[index].start);
+        filestart=(char*)malloc(filestart_len+start_len+2);
+        if(filestart)
+        {
+          WideCharToMultiByte(CP_OEMCP,0,(const wchar_t*)*param,filestart_len+1,filestart,filestart_len+1,NULL,NULL);
+          WideCharToMultiByte(CP_OEMCP,0,rules[index].start,start_len+1,(filestart+filestart_len+1),start_len+1,NULL,NULL);
+          res=syntax_strcmp(filestart,filestart_len,0,(filestart+filestart_len+1),NULL,NULL,true,false);
+          free(filestart);
+        }
+        return res;
+#else
         return syntax_strcmp(*param,strlen(*param),0,rules[index].start,NULL,NULL,true,false);
+#endif
+      }
       break;
   }
   return false;
