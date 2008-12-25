@@ -47,9 +47,9 @@ struct Context
 
 struct Rules
 {
-  char *name;
-  char *mask;
-  char *start;
+  TCHAR *name;
+  TCHAR *mask;
+  TCHAR *start;
   struct Context *contexts;
   int contexts_count;
 };

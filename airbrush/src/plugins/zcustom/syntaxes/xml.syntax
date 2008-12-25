@@ -1,4 +1,4 @@
-file XML \*.xml,\*.xsd,\*.xsl,\*.xslt,\*.dtd \\?xml\sversion
+file XML \*.xml,\*.xsd,\*.xsl,\*.xslt,\*.dtd <?xml\sversion
 
 context default
     keyword &*; white cyan
