@@ -1,4 +1,4 @@
-#include "../../bootstrap/abversion.h"
+#include "abversion.h"
 #include "winver.h"
 1 VERSIONINFO
  FILEVERSION VER_MAJOR,VER_MINOR,VER_BUILD,0
