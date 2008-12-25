@@ -92,7 +92,7 @@ colorize_clear:
   "sizeof"|"static"|"struct"|"switch"|"typedef"|"union"|"unsigned"|"void"|"volatile"|"while"|
   "asm"|"catch"|"class"|"friend"|"delete"|"inline"|"new"|"operator"|"private"|"protected"|"public"|
   "this"|"throw"|"template"|"try"|"virtual"|"bool"|"const_cast"|"dynamic_cast"|"explicit"|"false"|
-  "mutable"|"namespace"|"reinterpret_cast"|"static_cast"|"true"|"typeid"|"typename"|"using"|"wchar_t"
+  "mutable"|"namespace"|"reinterpret_cast"|"static_cast"|"true"|"typeid"|"typename"|"using"|"wchar_t"|"__int64"|"size_t"
   { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_KEYWORD1],colors[HC_KEYWORD1+1]); goto colorize_clear; }
   L(L|D)*
   { goto colorize_clear; }
