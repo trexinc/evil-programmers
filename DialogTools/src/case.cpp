@@ -141,15 +141,6 @@ void DoCase(HANDLE aDlg)
           ChangeCase(buffer, Start, End, MenuCode);
         }
         Info.SendDlgMessage(aDlg,DM_SETTEXTPTR,itemID,(LONG_PTR)buffer);
-#ifdef UNICODE
-        FarDialogItem* pDialogItem;
-        pDialogItem=(FarDialogItem*)(LONG_PTR)Info.SendDlgMessage(aDlg,DM_GETDLGITEM,itemID,0);
-        Info.SendDlgMessage(aDlg,DN_EDITCHANGE,itemID,(LONG_PTR)pDialogItem);
-        Info.SendDlgMessage(aDlg,DM_FREEDLGITEM,0,(LONG_PTR)pDialogItem);
-#else
-        Info.SendDlgMessage(aDlg,DM_GETDLGITEM,itemID,(LONG_PTR)&DialogItem);
-        Info.SendDlgMessage(aDlg,DN_EDITCHANGE,itemID,(LONG_PTR)&DialogItem);
-#endif
         Info.SendDlgMessage(aDlg,DM_SETCURSORPOS,itemID,(LONG_PTR)&Pos);
         Info.SendDlgMessage(aDlg,DM_SETSELECTION,itemID,(LONG_PTR)&es);
         HeapFree(GetProcessHeap(),0,buffer);
