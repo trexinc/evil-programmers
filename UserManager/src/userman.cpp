@@ -890,6 +890,9 @@ void WINAPI EXP_NAME(FreeFindData)(HANDLE hPlugin,struct PluginPanelItem *PanelI
         if(PanelItem[i].CustomColumnData[j]!=default_column_data)
           free(PanelItem[i].CustomColumnData[j]);
     free(PanelItem[i].CustomColumnData);
+#ifdef UNICODE
+    free(PanelItem[I].FindData.lpwszFileName);
+#endif
   }
   free(PanelItem);
   UserManager *panel=(UserManager *)hPlugin;
