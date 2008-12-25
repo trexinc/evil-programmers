@@ -232,17 +232,13 @@ HANDLE WINAPI _export OpenPluginW(int /*OpenFrom*/,int /*Item*/)
             if(ESETStorage->IsEmpty())
                InitSetsTree(ei);
             memset(fmi, 0, FMISize);
-            wchar_t Buf[120], Mask[120], fmt1[32], fmt2[32];
 
-            int MaxNameSize=0, len, MaxMaskSize=0,
-                RealPos=-1; // где ставить галку, если "-1", то нигде
+            int RealPos=-1; // где ставить галку, если "-1", то нигде
             NODEDATA *nd;
             int LastAcceptableType=-1;
             for(int f=TotalNodes-1;f>=0;--f)
             {
               nd=NodeData->getItem(f);
-              len=nd->Name.getLength();
-              if(MaxNameSize<len) MaxNameSize=len;
               if(RealPos==-1 && CmpWithFileMask(nd->mask.str, ei.FileName, nd->Options&E_SkipPath_On))
               {
                 LastAcceptableType=f;
@@ -253,46 +249,52 @@ HANDLE WINAPI _export OpenPluginW(int /*OpenFrom*/,int /*Item*/)
             if(RealPos<0)
               RealPos=LastAcceptableType;
 
+            wchar_t fmt1[32], fmt2[32];
+
             if(Opt.ShowFileMaskInMenu)
             {
-               if(!MaxNameSize) MaxNameSize=15;
-               else
-               {
-                  len=((ei.WindowSizeX>110)?100:ei.WindowSizeX)/2-8;
-                  if(MaxNameSize>len) MaxNameSize=len;
-               }
-               len=(ei.WindowSizeX>110)?100:(ei.WindowSizeX-18);
-               MaxMaskSize=len-MaxNameSize;
-               FSF.sprintf(fmt1, L"&%%c. %%%ds \x2502 %%s", MaxNameSize);
-               FSF.sprintf(fmt2, L"   %%%ds \x2502 %%s", MaxNameSize);
+               wstrcpy(fmt1, L"&%c. %*s \x2502 %s");
+               wstrcpy(fmt2, L"   %*s \x2502 %s");
             }
             else
             {
-               int m=ei.WindowSizeX-16;
-               if(MaxNameSize>110) MaxNameSize=110;
-               if(!MaxNameSize || MaxNameSize>m) MaxNameSize=m;
-               FSF.sprintf(fmt1, L"&%%c. %%%ds", MaxNameSize);
-               FSF.sprintf(fmt2, L"   %%%ds", MaxNameSize);
+               wstrcpy(fmt1, L"&%c. %s");
+               wstrcpy(fmt2, L"   %s");
             }
 
-            if(Opt.ShowFileMaskInMenu) for (DWORD f = 0; f < TotalNodes; ++f)
+            if(Opt.ShowFileMaskInMenu)
             {
-                nd=NodeData->getItem(f);
-                wstrncpy(Buf, nd->Name.str, sizeof(Buf)/sizeof(wchar_t)-1);
-                wstrncpy(Mask, nd->mask.str, sizeof(Mask)/sizeof(wchar_t)-1);
-                TruncFromRigth(Buf, MaxNameSize, TRUE);
-                TruncFromRigth(Mask, MaxMaskSize, FALSE);
-//FIXME                if(f<10) FSF.sprintf(fmi[f].Text,fmt1,L'0'+f,Buf,Mask);
-//                else if(f<36) FSF.sprintf(fmi[f].Text,fmt1,55+f,Buf,Mask) ;//55='A'-10
-//                else FSF.sprintf(fmi[f].Text,fmt2, Buf, Mask);
+              int maxlen=0;
+              for (DWORD f = 0; f < TotalNodes; ++f)
+              {
+                int len = NodeData->getItem(f)->Name.getLength();
+                if (len > maxlen)
+                  maxlen = len;
+
+              }
+              for (DWORD f = 0; f < TotalNodes; ++f)
+              {
+                  nd=NodeData->getItem(f);
+                  size_t len = nd->Name.getLength() + nd->mask.getLength() + 50;
+                  wchar_t *buf = (wchar_t *)malloc(len*sizeof(wchar_t));
+                  if (!buf) continue;
+                  if(f<10) FSF.sprintf(buf, fmt1,L'0'+f,maxlen,nd->Name.str,nd->mask.str);
+                  else if(f<36) FSF.sprintf(buf, fmt1,L'A'-10+f,maxlen,nd->Name.str,nd->mask.str);
+                  else FSF.sprintf(buf, fmt2, maxlen, nd->Name.str, nd->mask.str);
+
+                  fmi[f].Text = buf;
+              }
             }
             else for (DWORD f = 0; f < TotalNodes; ++f)
             {
-                wstrncpy(Buf, NodeData->getItem(f)->Name.str, sizeof(Buf)/sizeof(wchar_t)-1);
-                TruncFromRigth(Buf, MaxNameSize, TRUE);
-//FIXME                if(f<10) FSF.sprintf(fmi[f].Text,fmt1,L'0'+f,Buf);
-//                else if(f<36) FSF.sprintf(fmi[f].Text,fmt1,55+f,Buf) ;//55='A'-10
-//                else FSF.sprintf(fmi[f].Text,fmt2, Buf);
+                size_t len = NodeData->getItem(f)->Name.getLength() + 50;
+                wchar_t *buf = (wchar_t *)malloc(len*sizeof(wchar_t));
+                if (!buf) continue;
+                if(f<10) FSF.sprintf(buf, fmt1,L'0'+f,NodeData->getItem(f)->Name.str);
+                else if(f<36) FSF.sprintf(buf, fmt1,L'A'-10+f,NodeData->getItem(f)->Name.str);
+                else FSF.sprintf(buf, fmt2, NodeData->getItem(f)->Name.str);
+
+                fmi[f].Text = buf;
             }
 
             EditorSettingsStorage ESS(ei.EditorID);
@@ -324,6 +326,8 @@ HANDLE WINAPI _export OpenPluginW(int /*OpenFrom*/,int /*Item*/)
                if(Item)
                  ApplyEditorOptions(Item->data.Data,ei.FileName);
             }
+            for (DWORD f = 0; f < TotalNodes; ++f)
+              free((void *)fmi[f].Text);
             free(fmi);
         }
     }
@@ -347,7 +351,7 @@ void WINAPI _export ExitFARW(void)
     HeapDestroy(heapNew_ESC);
 }
 
-long WINAPI ConfigDlgProc (HANDLE hDlg, int Msg, int Param1, long Param2)
+LONG_PTR WINAPI ConfigDlgProc (HANDLE hDlg, int Msg, int Param1, LONG_PTR Param2)
 {
   switch (Msg)
     {
@@ -421,35 +425,45 @@ int WINAPI ConfigureW(int /*ItemNumber*/)
     DialogItems[6].Flags|=DIF_DISABLE;
   }
 
+  //показ диалога
   for(;;)
   {
-    //показ диалога FIXME
-//    ExitCode = Info.DialogEx (ModuleNumber, -1, -1, 75, 11,
-//                              NULL, DialogItems, 10, 0, 0, ConfigDlgProc, 0);
-    if(8==ExitCode)
-      {
-         Opt.TurnOnPluginModule=DialogItems[1].Selected;
-         Opt.ReloadSettingsAutomatically=DialogItems[2].Selected;
-         Opt.ShowFileMaskInMenu=DialogItems[3].Selected;
-         SaveGlobalConfig();
-         if(!Opt.TurnOnPluginModule)
-           FreeMem();
-         else if(Opt.TurnOnPluginModule!=oldTurnOnPluginModule)
-           ReloadSettings(TRUE);
-         break;
-      }
-    else if(5==ExitCode)
-         TestCfgFiles();
-    else if(6==ExitCode)
-      {
-         ReloadSettings(TRUE);
-         if(XMLLoadedOK)
-           FarAllInOneMessage(GetMsg(MReloaded), 0);
-      }
-    else
-         break;
+    HANDLE hDlg = Info.DialogInit (ModuleNumber, -1, -1, 75, 11,
+                                    NULL, DialogItems, 10, 0, 0, ConfigDlgProc, 0);
+    ExitCode = Info.DialogRun(hDlg);
 
+    if(8==ExitCode)
+    {
+        Opt.TurnOnPluginModule=(int)Info.SendDlgMessage(hDlg,DM_GETCHECK,1,0);
+        Opt.ReloadSettingsAutomatically=(int)Info.SendDlgMessage(hDlg,DM_GETCHECK,2,0);
+        Opt.ShowFileMaskInMenu=(int)Info.SendDlgMessage(hDlg,DM_GETCHECK,3,0);
+        SaveGlobalConfig();
+        if(!Opt.TurnOnPluginModule)
+          FreeMem();
+        else if(Opt.TurnOnPluginModule!=oldTurnOnPluginModule)
+          ReloadSettings(TRUE);
+        break;
+    }
+    else if(5==ExitCode)
+    {
+        TestCfgFiles();
+    }
+    else if(6==ExitCode)
+    {
+        ReloadSettings(TRUE);
+        if(XMLLoadedOK)
+          FarAllInOneMessage(GetMsg(MReloaded), 0);
+    }
+    else
+    {
+        Info.DialogFree(hDlg);
+        break;
+    }
+
+    Info.DialogFree(hDlg);
   }
+
+
   return TRUE;
 }
 
