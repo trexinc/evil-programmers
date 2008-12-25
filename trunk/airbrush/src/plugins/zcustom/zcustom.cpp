@@ -20,7 +20,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <tchar.h>
-#include "../../bootstrap/abplugin.h"
+#include "abplugin.h"
 #include "../../memory.h"
 #include "abzcustom.h"
 
