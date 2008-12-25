@@ -891,7 +891,7 @@ void WINAPI EXP_NAME(FreeFindData)(HANDLE hPlugin,struct PluginPanelItem *PanelI
           free(PanelItem[i].CustomColumnData[j]);
     free(PanelItem[i].CustomColumnData);
 #ifdef UNICODE
-    free(PanelItem[I].FindData.lpwszFileName);
+    free(PanelItem[i].FindData.lpwszFileName);
 #endif
   }
   free(PanelItem);
