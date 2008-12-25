@@ -1,0 +1,19 @@
+
+EXPORTS 
+   ClosePlugin=ClosePlugin@4
+   GetFindData=GetFindData@16
+   GetOpenPluginInfo=GetOpenPluginInfo@8
+   GetPluginInfo=GetPluginInfo@4
+   OpenPlugin=OpenPlugin@8
+   OpenFilePlugin=OpenFilePlugin@12
+   SetStartupInfo=SetStartupInfo@4
+   FreeFindData=FreeFindData@12
+   SetDirectory=SetDirectory@12
+   GetFiles=GetFiles@24
+   ProcessKey=ProcessKey@12
+   DeleteFiles=DeleteFiles@16
+   Configure=Configure@4
+   Compare=Compare@16
+   GetMinFarVersion=GetMinFarVersion@0
+   ExitFAR=ExitFAR@0
+   ProcessEvent=ProcessEvent@12
