@@ -1,4 +1,22 @@
-CFLAGS=-c -mcpu=pentiumpro -Os -Wall -fomit-frame-pointer -fstrict-aliasing
+ifdef WIDE
+CCWIDE = -D UNICODE -D _UNICODE
+DIRSURF = W
+endif
+ifndef COMMON
+COMMON = ../../common
+endif
+
+ifdef WIDE
+COMINC = $(COMMON)/unicode
+else
+COMINC = $(COMMON)/ascii
+endif
+
+OBJDIR=o$(DIRSURF)
+BINDIR=bin$(DIRSURF)
+BOOTSTRAPDIR=bootstrap$(DIRSURF)
+
+CFLAGS=-c -mtune=pentium4 -Os -Wall -fomit-frame-pointer -fstrict-aliasing -fno-exceptions -fno-rtti -fno-threadsafe-statics $(CCWIDE) -I $(COMINC)
 LFLAGS=-s
 LIBS=-lntdll
 
@@ -7,14 +25,15 @@ CC=gcc
 DLLTOOL=dlltool
 M4=m4
 CP=cp
+MKDIR=mkdir -p
 
-DEF=ntevent.def
-OBJS=../o/ntevent.o ../o/el_sid_cache.o ../o/el_category_cache.o ../o/ntevent.res.o
-TARGET=../bin/ntevent.dll
+DEF=ntevent$(DIRSURF).def
+OBJS=../$(OBJDIR)/ntevent.o ../$(OBJDIR)/el_sid_cache.o ../$(OBJDIR)/el_category_cache.o ../$(OBJDIR)/ntevent.res.o
+TARGET=../$(BINDIR)/ntevent.dll
 
-DOCTARGET=../bin/ntevent.hlf ../bin/nteventr.hlf ../file_id.diz ../bin/ntevent.lng ../bin/nteventr.lng
+DOCTARGET=../$(BINDIR)/ntevent.hlf ../$(BINDIR)/nteventr.hlf ../file_id.diz ../$(BINDIR)/ntevent.lng ../$(BINDIR)/nteventr.lng
 
-all: $(TARGET) $(DOCTARGET)
+all: dirs $(TARGET) $(DOCTARGET)
 
 $(TARGET): $(OBJS)
 	$(CC) $(LFLAGS) -mdll -nostartfiles -o $@ -Xlinker --base-file -Xlinker $@.base $^ $(LIBS)
@@ -23,38 +42,44 @@ $(TARGET): $(OBJS)
 	$(RM) $@.base
 	$(RM) $@.exp
 
-../o/ntevent.o: ntevent.cpp el_utils.cpp evplugin.h el_config.cpp
+../$(OBJDIR)/ntevent.o: ntevent.cpp el_utils.cpp evplugin.h el_config.cpp
 	$(CC) $(CFLAGS) $< -o $@
 
-../o/el_sid_cache.o: el_sid_cache.cpp
+../$(OBJDIR)/el_sid_cache.o: el_sid_cache.cpp
 	$(CC) $(CFLAGS) $< -o $@
 
-../o/el_category_cache.o: el_category_cache.cpp evplugin.h
+../$(OBJDIR)/el_category_cache.o: el_category_cache.cpp evplugin.h
 	$(CC) $(CFLAGS) $< -o $@
 
-../o/ntevent.res.o: ntevent.rc ./bootstrap/evversion.h
+../$(OBJDIR)/ntevent.res.o: ntevent.rc ./$(BOOTSTRAPDIR)/evversion.h
 	windres -i $< -o $@
 
-./bootstrap/evversion.h: evversion.m4 ev_ver.m4
+./$(BOOTSTRAPDIR)/evversion.h: evversion.m4 ev_ver.m4
 	$(M4) $< > $@
 
-../bin/ntevent.hlf: ntevent_hlf.m4 ev_ver.m4
+../$(BINDIR)/ntevent.hlf: ntevent_hlf.m4 ev_ver.m4
 	$(M4) $< > $@
 
-../bin/nteventr.hlf: nteventr_hlf.m4 ev_ver.m4
+../$(BINDIR)/nteventr.hlf: nteventr_hlf.m4 ev_ver.m4
 	$(M4) $< > $@
 
 ../file_id.diz: file_id_diz.m4 ev_ver.m4
 	$(M4) $< > $@
 
 clear:
-	$(RM) ../o/*
-	$(RM) ../bin/*
-	$(RM) ./bootstrap/*
+	$(RM) ../$(OBJDIR)/*
+	$(RM) ../$(BINDIR)/*
+	$(RM) ./$(BOOTSTRAPDIR)/*
 	$(RM) ../file_id.diz
 
-../bin/ntevent.lng: ntevent.lng
+../$(BINDIR)/ntevent.lng: ntevent.lng
 	$(CP) $< $@
 
-../bin/nteventr.lng: nteventr.lng
+../$(BINDIR)/nteventr.lng: nteventr.lng
 	$(CP) $< $@
+
+.PHONY: dirs
+dirs:
+	@$(MKDIR) ../$(OBJDIR)
+	@$(MKDIR) ../$(BINDIR)
+	@$(MKDIR) ./$(BOOTSTRAPDIR)
