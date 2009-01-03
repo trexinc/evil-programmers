@@ -52,7 +52,7 @@ $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) $< -o $@
 
 ../$(OBJDIR)/ntevent.res.o: ntevent.rc ./$(BOOTSTRAPDIR)/evversion.h
-	windres -i $< -o $@
+	windres -I ./$(BOOTSTRAPDIR) -i $< -o $@
 
 ./$(BOOTSTRAPDIR)/evversion.h: evversion.m4 ev_ver.m4
 	$(M4) $< > $@
