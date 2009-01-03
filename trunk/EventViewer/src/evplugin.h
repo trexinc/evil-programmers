@@ -209,28 +209,28 @@ enum {
 
 #define FAR165_INFO_SIZE 336
 #define EVENT_START_TIME 116444736000000000ULL
-#define EVENTLOG_KEY "SYSTEM\\CurrentControlSet\\Services\\EventLog"
+#define EVENTLOG_KEY _T("SYSTEM\\CurrentControlSet\\Services\\EventLog")
 #define SMALL_BUFFER 16*1024
 #define BIG_BUFFER  128*1024
 #define CUSTOM_COLUMN_COUNT 6
 
 struct EventViewer
 {
-  char path[MAX_PATH];
-  char computer[MAX_PATH];
-  char computer_oem[MAX_PATH];
-  char *computer_ptr;
+  TCHAR path[MAX_PATH];
+  TCHAR computer[MAX_PATH];
+  TCHAR computer_oem[MAX_PATH];
+  TCHAR *computer_ptr;
   int level;
   int redraw;
 };
 
 struct MsgPath
 {
-  char path[MAX_PATH];
+  TCHAR path[MAX_PATH];
 };
 
 extern void free_sid_cache(void);
-extern char *GetUserName(char *computer,EVENTLOGRECORD *rec);
+extern TCHAR *GetUserName(TCHAR *computer,EVENTLOGRECORD *rec);
 
 extern void free_category_cache(void);
-extern char *GetCategory(EVENTLOGRECORD *rec);
+extern const TCHAR *GetCategory(EVENTLOGRECORD *rec);

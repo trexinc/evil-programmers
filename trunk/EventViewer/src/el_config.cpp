@@ -58,78 +58,98 @@ static int Config()
   */
 
   static struct InitDialogItem InitItems[]={
-  /* 0*/  {DI_DOUBLEBOX,3,1,72,18,0,0,0,0,(char *)mName},
-  /* 1*/  {DI_CHECKBOX,5,2,0,0,0,0,0,0,(char *)mConfigAddToDisksMenu},
-  /* 2*/  {DI_FIXEDIT,7,3,7,3,1,0,0,0,""},
-  /* 3*/  {DI_TEXT,9,3,0,0,0,0,0,0,(char *)mConfigDisksMenuDigit},
-  /* 4*/  {DI_CHECKBOX,5,4,0,0,0,0,0,0,(char *)mConfigAddToPluginMenu},
-  /* 5*/  {DI_TEXT,-1,5,0,0,0,0,DIF_SEPARATOR,0,""},
-  /* 6*/  {DI_CHECKBOX,5,6,0,0,0,0,0,0,(char *)mConfigBrowseEvtFiles},
-  /* 7*/  {DI_CHECKBOX,5,7,0,0,0,0,0,0,(char *)mConfigStripExtension},
-  /* 7*/  {DI_CHECKBOX,5,8,0,0,0,0,0,0,(char *)mConfigRestore},
-  /* 8*/  {DI_TEXT,-1,9,0,0,0,0,DIF_SEPARATOR,0,""},
-  /* 9*/  {DI_RADIOBUTTON,5,10,0,0,0,0,DIF_GROUP,0,(char *)mConfigScan1},
-  /*10*/  {DI_RADIOBUTTON,5,11,0,0,0,0,0,0,(char *)mConfigScan2},
-  /*10*/  {DI_CHECKBOX,39,10,0,0,0,0,0,0,(char *)mConfigShowHeader},
-  /*10*/  {DI_CHECKBOX,39,11,0,0,0,0,0,0,(char *)mConfigShowDescription},
-  /*10*/  {DI_CHECKBOX,39,12,0,0,0,0,0,0,(char *)mConfigShowData},
-  /*11*/  {DI_TEXT,-1,13,0,0,0,0,DIF_SEPARATOR,0,""},
-  /* 3*/  {DI_VTEXT,37,9,0,0,0,0,0,0,"Â³³³Á"},
-  /*12*/  {DI_TEXT,5,14,0,0,0,0,0,0,(char *)mConfigPrefix},
-  /*13*/  {DI_FIXEDIT,5,15,19,12,0,(int)"AAAAAAAAAAAAAAA",DIF_MASKEDIT,0,""},
-  /*14*/  {DI_TEXT,-1,16,0,0,0,0,DIF_SEPARATOR,0,""},
-  /*15*/  {DI_BUTTON,0,17,0,0,0,0,DIF_CENTERGROUP,1,(char *)mConfigSave},
-  /*16*/  {DI_BUTTON,0,17,0,0,0,0,DIF_CENTERGROUP,0,(char *)mConfigCancel}
+  /* 0*/  {DI_DOUBLEBOX,3,1,72,18,0,0,0,0,(TCHAR *)mName},
+  /* 1*/  {DI_CHECKBOX,5,2,0,0,0,0,0,0,(TCHAR *)mConfigAddToDisksMenu},
+  /* 2*/  {DI_FIXEDIT,7,3,7,3,1,0,0,0,_T("")},
+  /* 3*/  {DI_TEXT,9,3,0,0,0,0,0,0,(TCHAR *)mConfigDisksMenuDigit},
+  /* 4*/  {DI_CHECKBOX,5,4,0,0,0,0,0,0,(TCHAR *)mConfigAddToPluginMenu},
+  /* 5*/  {DI_TEXT,-1,5,0,0,0,0,DIF_SEPARATOR,0,_T("")},
+  /* 6*/  {DI_CHECKBOX,5,6,0,0,0,0,0,0,(TCHAR *)mConfigBrowseEvtFiles},
+  /* 7*/  {DI_CHECKBOX,5,7,0,0,0,0,0,0,(TCHAR *)mConfigStripExtension},
+  /* 7*/  {DI_CHECKBOX,5,8,0,0,0,0,0,0,(TCHAR *)mConfigRestore},
+  /* 8*/  {DI_TEXT,-1,9,0,0,0,0,DIF_SEPARATOR,0,_T("")},
+  /* 9*/  {DI_RADIOBUTTON,5,10,0,0,0,0,DIF_GROUP,0,(TCHAR *)mConfigScan1},
+  /*10*/  {DI_RADIOBUTTON,5,11,0,0,0,0,0,0,(TCHAR *)mConfigScan2},
+  /*10*/  {DI_CHECKBOX,39,10,0,0,0,0,0,0,(TCHAR *)mConfigShowHeader},
+  /*10*/  {DI_CHECKBOX,39,11,0,0,0,0,0,0,(TCHAR *)mConfigShowDescription},
+  /*10*/  {DI_CHECKBOX,39,12,0,0,0,0,0,0,(TCHAR *)mConfigShowData},
+  /*11*/  {DI_TEXT,-1,13,0,0,0,0,DIF_SEPARATOR,0,_T("")},
+#ifdef UNICODE
+  /* 3*/  {DI_VTEXT,37,9,0,0,0,0,0,0,_T("xxxxx")},
+#else
+  /* 3*/  {DI_VTEXT,37,9,0,0,0,0,0,0,_T("Â³³³Á")},
+#endif
+  /*12*/  {DI_TEXT,5,14,0,0,0,0,0,0,(TCHAR *)mConfigPrefix},
+  /*13*/  {DI_FIXEDIT,5,15,19,12,0,(int)_T("AAAAAAAAAAAAAAA"),DIF_MASKEDIT,0,_T("")},
+  /*14*/  {DI_TEXT,-1,16,0,0,0,0,DIF_SEPARATOR,0,_T("")},
+  /*15*/  {DI_BUTTON,0,17,0,0,0,0,DIF_CENTERGROUP,1,(TCHAR *)mConfigSave},
+  /*16*/  {DI_BUTTON,0,17,0,0,0,0,DIF_CENTERGROUP,0,(TCHAR *)mConfigCancel}
   };
-  struct FarDialogItem DialogItems[sizeof(InitItems)/sizeof(InitItems[0])];
-  InitDialogItems(InitItems,DialogItems,sizeof(InitItems)/sizeof(InitItems[0]));
+  struct FarDialogItem DialogItems[ArraySize(InitItems)];
+  InitDialogItems(InitItems,DialogItems,ArraySize(InitItems));
+#ifdef UNICODE
+  TCHAR DisksMenuDigitText[21],PrefixText[21];
+#endif
 
   DialogItems[CONFIG_ADDDISK].Selected=Opt.AddToDisksMenu;
   if (Opt.DisksMenuDigit)
-    sprintf(DialogItems[CONFIG_DISKHOTKEY].Data,"%d",Opt.DisksMenuDigit);
+  {
+#ifdef UNICODE
+    FSF.sprintf(DisksMenuDigitText,_T("%d"),Opt.DisksMenuDigit);
+    DialogItems[CONFIG_DISKHOTKEY].PtrData=DisksMenuDigitText;
+#else
+    FSF.sprintf(DialogItems[CONFIG_DISKHOTKEY].Data,_T("%d"),Opt.DisksMenuDigit);
+#endif
+  }
   DialogItems[CONFIG_ADDMENU].Selected=Opt.AddToPluginsMenu;
   DialogItems[CONFIG_BROWSEEVT].Selected=Opt.BrowseEvtFiles;
   DialogItems[CONFIG_STRIPEXT].Selected=Opt.StripExt;
   DialogItems[CONFIG_RESTORE].Selected=Opt.Restore;
   DialogItems[CONFIG_FORWARD+Opt.ScanType].Selected=1;
-  sprintf(DialogItems[CONFIG_PREFIX].Data,"%s",Opt.Prefix);
+#ifdef UNICODE
+  FSF.sprintf(PrefixText,_T("%s"),Opt.Prefix);
+  DialogItems[CONFIG_PREFIX].PtrData=PrefixText;
+#else
+  FSF.sprintf(DialogItems[CONFIG_PREFIX].Data,_T("%s"),Opt.Prefix);
+#endif
   DialogItems[CONFIG_SHOWHEADER].Selected=QVOpt.ShowHeader;
   DialogItems[CONFIG_SHOWDESC].Selected=QVOpt.ShowDescription;
   DialogItems[CONFIG_SHOWDATA].Selected=QVOpt.ShowData;
 
-  int DlgCode=Info.DialogEx(Info.ModuleNumber,-1,-1,76,20,"Config",DialogItems,(sizeof(DialogItems)/sizeof(DialogItems[0])),0,0,ConfigDialogProc,0);
+  CFarDialog dialog;
+  int DlgCode=dialog.Execute(Info.ModuleNumber,-1,-1,76,20,_T("Config"),DialogItems,ArraySize(DialogItems),0,0,ConfigDialogProc,0);
   if (DlgCode!=CONFIG_SAVE)
     return(FALSE);
-  Opt.AddToDisksMenu=DialogItems[CONFIG_ADDDISK].Selected;
-  Opt.DisksMenuDigit=FSF.atoi(DialogItems[CONFIG_DISKHOTKEY].Data);
-  Opt.AddToPluginsMenu=DialogItems[CONFIG_ADDMENU].Selected;
-  Opt.BrowseEvtFiles=DialogItems[CONFIG_BROWSEEVT].Selected;
-  Opt.StripExt=DialogItems[CONFIG_STRIPEXT].Selected;
-  Opt.Restore=DialogItems[CONFIG_RESTORE].Selected;
-  QVOpt.ShowHeader=DialogItems[CONFIG_SHOWHEADER].Selected;
-  QVOpt.ShowDescription=DialogItems[CONFIG_SHOWDESC].Selected;
-  QVOpt.ShowData=DialogItems[CONFIG_SHOWDATA].Selected;
-  strcpy(Opt.Prefix,DialogItems[CONFIG_PREFIX].Data);
+  Opt.AddToDisksMenu=dialog.Check(CONFIG_ADDDISK);
+  Opt.DisksMenuDigit=FSF.atoi(dialog.Str(CONFIG_DISKHOTKEY));
+  Opt.AddToPluginsMenu=dialog.Check(CONFIG_ADDMENU);
+  Opt.BrowseEvtFiles=dialog.Check(CONFIG_BROWSEEVT);
+  Opt.StripExt=dialog.Check(CONFIG_STRIPEXT);
+  Opt.Restore=dialog.Check(CONFIG_RESTORE);
+  QVOpt.ShowHeader=dialog.Check(CONFIG_SHOWHEADER);
+  QVOpt.ShowDescription=dialog.Check(CONFIG_SHOWDESC);
+  QVOpt.ShowData=dialog.Check(CONFIG_SHOWDATA);
+  _tcscpy(Opt.Prefix,dialog.Str(CONFIG_PREFIX));
   FSF.Trim(Opt.Prefix);
   int i=CONFIG_FORWARD;
   Opt.ScanType=0;
-  while(!DialogItems[i].Selected) {i++; Opt.ScanType++;}
+  while(!dialog.Check(i)) {i++; Opt.ScanType++;}
   HKEY hKey;
   DWORD Disposition;
   if((RegCreateKeyEx(HKEY_CURRENT_USER,PluginRootKey,0,NULL,0,KEY_WRITE,NULL,&hKey,&Disposition))==ERROR_SUCCESS)
   {
-    RegSetValueEx(hKey,"AddToDisksMenu",0,REG_DWORD,(LPBYTE)&Opt.AddToDisksMenu,sizeof(Opt.AddToDisksMenu));
-    RegSetValueEx(hKey,"DisksMenuDigit",0,REG_DWORD,(LPBYTE)&Opt.DisksMenuDigit,sizeof(Opt.DisksMenuDigit));
-    RegSetValueEx(hKey,"AddToPluginsMenu",0,REG_DWORD,(LPBYTE)&Opt.AddToPluginsMenu,sizeof(Opt.AddToPluginsMenu));
-    RegSetValueEx(hKey,"BrowseEvtFiles",0,REG_DWORD,(LPBYTE)&Opt.BrowseEvtFiles,sizeof(Opt.BrowseEvtFiles));
-    RegSetValueEx(hKey,"StripExt",0,REG_DWORD,(LPBYTE)&Opt.StripExt,sizeof(Opt.StripExt));
-    RegSetValueEx(hKey,"ScanType",0,REG_DWORD,(LPBYTE)&Opt.ScanType,sizeof(Opt.ScanType));
-    RegSetValueEx(hKey,"Prefix",0,REG_SZ,(LPBYTE)Opt.Prefix,strlen(Opt.Prefix)+1);
+    RegSetValueEx(hKey,_T("AddToDisksMenu"),0,REG_DWORD,(LPBYTE)&Opt.AddToDisksMenu,sizeof(Opt.AddToDisksMenu));
+    RegSetValueEx(hKey,_T("DisksMenuDigit"),0,REG_DWORD,(LPBYTE)&Opt.DisksMenuDigit,sizeof(Opt.DisksMenuDigit));
+    RegSetValueEx(hKey,_T("AddToPluginsMenu"),0,REG_DWORD,(LPBYTE)&Opt.AddToPluginsMenu,sizeof(Opt.AddToPluginsMenu));
+    RegSetValueEx(hKey,_T("BrowseEvtFiles"),0,REG_DWORD,(LPBYTE)&Opt.BrowseEvtFiles,sizeof(Opt.BrowseEvtFiles));
+    RegSetValueEx(hKey,_T("StripExt"),0,REG_DWORD,(LPBYTE)&Opt.StripExt,sizeof(Opt.StripExt));
+    RegSetValueEx(hKey,_T("ScanType"),0,REG_DWORD,(LPBYTE)&Opt.ScanType,sizeof(Opt.ScanType));
+    RegSetValueEx(hKey,_T("Prefix"),0,REG_SZ,(LPBYTE)Opt.Prefix,(_tcslen(Opt.Prefix)+1)*sizeof(TCHAR));
 
-    RegSetValueEx(hKey,"Restore",0,REG_DWORD,(LPBYTE)&Opt.Restore,sizeof(Opt.Restore));
-    RegSetValueEx(hKey,"ShowHeader",0,REG_DWORD,(LPBYTE)&QVOpt.ShowHeader,sizeof(QVOpt.ShowHeader));
-    RegSetValueEx(hKey,"ShowDescription",0,REG_DWORD,(LPBYTE)&QVOpt.ShowDescription,sizeof(QVOpt.ShowDescription));
-    RegSetValueEx(hKey,"ShowData",0,REG_DWORD,(LPBYTE)&QVOpt.ShowData,sizeof(QVOpt.ShowData));
+    RegSetValueEx(hKey,_T("Restore"),0,REG_DWORD,(LPBYTE)&Opt.Restore,sizeof(Opt.Restore));
+    RegSetValueEx(hKey,_T("ShowHeader"),0,REG_DWORD,(LPBYTE)&QVOpt.ShowHeader,sizeof(QVOpt.ShowHeader));
+    RegSetValueEx(hKey,_T("ShowDescription"),0,REG_DWORD,(LPBYTE)&QVOpt.ShowDescription,sizeof(QVOpt.ShowDescription));
+    RegSetValueEx(hKey,_T("ShowData"),0,REG_DWORD,(LPBYTE)&QVOpt.ShowData,sizeof(QVOpt.ShowData));
     RegCloseKey(hKey);
   }
   return(TRUE);
