@@ -972,16 +972,16 @@ retry_append:
         {
 //        WriteFile(file,(void *)(PanelItem[i].UserData),*((DWORD *)(PanelItem[i].UserData)),&transferred,NULL);
           TCHAR buff[SMALL_BUFFER];
+#ifdef UNICODE
+          FSF.sprintf(buff,_T("%c"),0xfeff);
+          WriteFile(file,buff,_tcslen(buff)*sizeof(TCHAR),&transferred,NULL);
+#endif
           if(QVOpt.ShowHeader||!(OpMode&OPM_QUICKVIEW))
           {
             FILETIME localtime;
             SYSTEMTIME time;
             FileTimeToLocalFileTime(&(PanelItem[i].FindData.ftCreationTime),&localtime);
             FileTimeToSystemTime(&localtime,&time);
-#ifdef UNICODE
-            FSF.sprintf(buff,_T("%c"),0xfeff);
-            WriteFile(file,buff,_tcslen(buff)*sizeof(TCHAR),&transferred,NULL);
-#endif
             FSF.sprintf(buff,_T("%s: %02d.%02d.%04d\r\n%s: %02d:%02d:%02d\r\n"),GetMsg(mFileDate),time.wDay,time.wMonth,time.wYear,GetMsg(mFileTime),time.wHour,time.wMinute,time.wSecond);
             WriteFile(file,buff,_tcslen(buff)*sizeof(TCHAR),&transferred,NULL);
             FSF.sprintf(buff,_T("%s: %s\r\n%s: %s\r\n%s: %ld\r\n"),GetMsg(mFileUser),(PanelItem[i].CustomColumnData?PanelItem[i].CustomColumnData[4]:NULL),GetMsg(mFileComputer),(PanelItem[i].CustomColumnData?PanelItem[i].CustomColumnData[3]:NULL),GetMsg(mFileEventID),curr_rec->EventID&0xffff);
