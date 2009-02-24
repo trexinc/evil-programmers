@@ -1042,9 +1042,11 @@ retry_append:
         {
           FSF.sprintf(copyname,_T("%.55s "),filename);
           FSF.sprintf(progress,_T("%3d%% "),(i+1)*100/ItemsNumber);
-          memset(progress+5,'°',50); progress[55]=0;
+          for(int j=0;j<50;j++)
+            progress[5+j]=BOX1;
+          progress[55]=0;
           for(int j=0;j<((i+1)*50/ItemsNumber);j++)
-            progress[5+j]='Û';
+            progress[5+j]=BOX2;
           Info.Message(Info.ModuleNumber,firsttime?(firsttime=false,FMSG_LEFTALIGN):(FMSG_KEEPBACKGROUND|FMSG_LEFTALIGN),NULL,Items,ArraySize(Items),0);
 
           INPUT_RECORD *InputRec;
