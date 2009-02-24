@@ -65,6 +65,8 @@ typedef wchar_t UTCHAR;
 #define ControlShort(a,b,c) Control(a,b,0,c)
 #define ControlShort2(a,b,c) Control(a,b,c,0)
 #define FCTL_GETPANELSHORTINFO FCTL_GETPANELINFO
+#define BOX1 0x2591
+#define BOX2 0x2588
 #else
 #define DM_GETDLGITEMSHORT DM_GETDLGITEM
 #define DM_SETDLGITEMSHORT DM_SETDLGITEM
@@ -96,6 +98,8 @@ typedef unsigned char UTCHAR;
 #define SECOND_PARAM void*
 #define ControlShort(a,b,c) Control(a,b,c)
 #define ControlShort2(a,b,c) Control(a,b,&c)
+#define BOX1 '°'
+#define BOX2 'Û'
 #endif
 
 #ifdef UNICODE
