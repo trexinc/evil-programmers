@@ -61,6 +61,10 @@ class CFarDialog
 #define t_OemToChar(s,d) wcscpy(d,s)
 typedef wchar_t UTCHAR;
 #define PANEL_FILENAME lpwszFileName
+#define SECOND_PARAM LONG_PTR
+#define ControlShort(a,b,c) Control(a,b,0,c)
+#define ControlShort2(a,b,c) Control(a,b,c,0)
+#define FCTL_GETPANELSHORTINFO FCTL_GETPANELINFO
 #else
 #define DM_GETDLGITEMSHORT DM_GETDLGITEM
 #define DM_SETDLGITEMSHORT DM_SETDLGITEM
@@ -89,6 +93,67 @@ class CFarDialog
 #define t_OemToChar(s,d) OemToChar(s,d)
 typedef unsigned char UTCHAR;
 #define PANEL_FILENAME cFileName
+#define SECOND_PARAM void*
+#define ControlShort(a,b,c) Control(a,b,c)
+#define ControlShort2(a,b,c) Control(a,b,&c)
+#endif
+
+#ifdef UNICODE
+void Realloc(TCHAR*& aData,int& aLength,int aNewLength);
+void Realloc(PluginPanelItem*& aData,int& aSize,int aNewSize);
+
+class CFarPanel
+{
+  private:
+    HANDLE iPlugin;
+    PanelInfo iInfo;
+    int iResult;
+    TCHAR* iCurDir;
+    int iCurDirSize;
+    PluginPanelItem* iItem;
+    int iItemSize;
+  private:
+    CFarPanel();
+  public:
+    inline CFarPanel(HANDLE aPlugin,int aCommand): iPlugin(aPlugin),iCurDir(NULL),iCurDirSize(0),iItem(NULL),iItemSize(0) {iResult=Info.Control(aPlugin,aCommand,0,(LONG_PTR)&iInfo);};
+    ~CFarPanel();
+    inline bool IsOk(void) {return iResult;}
+    inline int PanelType(void) {return iInfo.PanelType;};
+    inline int Plugin(void) {return iInfo.Plugin;};
+    inline int ItemsNumber(void) {return iInfo.ItemsNumber;};
+    inline int SelectedItemsNumber(void) {return iInfo.SelectedItemsNumber;};
+    inline int CurrentItem(void) {return iInfo.CurrentItem;};
+    inline DWORD Flags(void) {return iInfo.Flags;};
+    TCHAR* CurDir(void);
+    PluginPanelItem& operator[](size_t index);
+    PluginPanelItem& Selected(size_t index);
+    inline void RemoveSelection(size_t index) {Info.Control(iPlugin,FCTL_SETSELECTION,index,0);};
+    inline void CommitSelection(void) {};
+};
+#else
+class CFarPanel
+{
+  private:
+    HANDLE iPlugin;
+    PanelInfo iInfo;
+    int iResult;
+  private:
+    CFarPanel();
+  public:
+    inline CFarPanel(HANDLE aPlugin,int aCommand): iPlugin(aPlugin) {iResult=Info.Control(aPlugin,aCommand,(void*)&iInfo);};
+    inline bool IsOk(void) {return iResult;};
+    inline int PanelType(void) {return iInfo.PanelType;};
+    inline int Plugin(void) {return iInfo.Plugin;};
+    inline int ItemsNumber(void) {return iInfo.ItemsNumber;};
+    inline int SelectedItemsNumber(void) {return iInfo.SelectedItemsNumber;};
+    inline int CurrentItem(void) {return iInfo.CurrentItem;};
+    inline DWORD Flags(void) {return iInfo.Flags;};
+    inline TCHAR* CurDir(void) {return iInfo.CurDir;};
+    inline PluginPanelItem& operator[](size_t index) {return iInfo.PanelItems[index];};
+    inline PluginPanelItem& Selected(size_t index) {return iInfo.SelectedItems[index];};
+    inline void RemoveSelection(size_t index) {iInfo.PanelItems[index].Flags&=~PPIF_SELECTED;};
+    inline void CommitSelection(void) {Info.Control(iPlugin,FCTL_SETSELECTION,&iInfo);};
+};
 #endif
 
 #endif
