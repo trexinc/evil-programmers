@@ -30,11 +30,12 @@ M4=m4
 MKDIR=mkdir -p
 
 DEF=userman$(DIRSURF).def
+OBJS0=../$(OBJDIR)/far_helper.o
 OBJS1=../$(OBJDIR)/userman.o ../$(OBJDIR)/um_utils.o ../$(OBJDIR)/um_dialogs0.o ../$(OBJDIR)/um_dialogs1.o ../$(OBJDIR)/um_dialogs2.o ../$(OBJDIR)/um_computer.o ../$(OBJDIR)/um_adds.o ../$(OBJDIR)/um_adds_internal.o ../$(OBJDIR)/um_dels.o ../$(OBJDIR)/um_manage_user.o ../$(OBJDIR)/um_manage_group.o ../$(OBJDIR)/um_acl.o ../$(OBJDIR)/um_childs.o ../$(OBJDIR)/um_arrays.o ../$(OBJDIR)/um_config.o
 OBJS2=../$(OBJDIR)/um_userdata.o ../$(OBJDIR)/um_sid_cache.o ../$(OBJDIR)/um_current_user.o
 OBJS3=../$(OBJDIR)/userman.res.o
 
-OBJS=$(OBJS1) $(OBJS2) $(OBJS3)
+OBJS=$(OBJS0) $(OBJS1) $(OBJS2) $(OBJS3)
 TARGET=../$(BINDIR)/userman.dll
 MAP = $(patsubst %.dll,%.map,$(TARGET))
 
@@ -49,10 +50,13 @@ $(TARGET): $(OBJS)
 	$(RM) $@.base
 	$(RM) $@.exp
 
-$(OBJS1): ../$(OBJDIR)/%.o: %.cpp umplugin.h
+$(OBJS0): ../$(OBJDIR)/%.o: %.cpp far_helper.h
 	$(CC) $(CFLAGS) $< -o $@
 
-$(OBJS2): ../$(OBJDIR)/%.o: %.cpp
+$(OBJS1): ../$(OBJDIR)/%.o: %.cpp umplugin.h far_helper.h
+	$(CC) $(CFLAGS) $< -o $@
+
+$(OBJS2): ../$(OBJDIR)/%.o: %.cpp far_helper.h
 	$(CC) $(CFLAGS) $< -o $@
 
 ../$(OBJDIR)/userman.res.o: userman.rc ./$(BOOTSTRAPDIR)/umversion.h

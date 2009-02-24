@@ -540,15 +540,15 @@ static long WINAPI ManageGroupUserDialogProc(HANDLE hDlg,int Msg,int Param1,long
 bool ManageUser(UserManager *panel,bool type)
 {
   bool res=false;
-  PanelInfo PInfo;
-  if(Info.Control((HANDLE)panel,FCTL_GETPANELINFO,&PInfo))
+  CFarPanel pInfo((HANDLE)panel,FCTL_GETPANELINFO);
+  if(pInfo.IsOk())
   {
-    if(PInfo.ItemsNumber>0)
+    if(pInfo.ItemsNumber()>0)
     {
-      if(PInfo.PanelItems[PInfo.CurrentItem].FindData.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY&&type)
+      if(pInfo[pInfo.CurrentItem()].FindData.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY&&type)
       {
-        if(PInfo.PanelItems[PInfo.CurrentItem].UserData) //don't call on ".." entry
-          res=ManageGroup(panel,true,GetWideNameFromUserData(PInfo.PanelItems[PInfo.CurrentItem].UserData));
+        if(pInfo[pInfo.CurrentItem()].UserData) //don't call on ".." entry
+          res=ManageGroup(panel,true,GetWideNameFromUserData(pInfo[pInfo.CurrentItem()].UserData));
       }
       else
       {
@@ -623,7 +623,7 @@ bool ManageUser(UserManager *panel,bool type)
         TCHAR title[128];
         if(type) //read properties
         {
-          wcscpy(username,GetWideNameFromUserData(PInfo.PanelItems[PInfo.CurrentItem].UserData));
+          wcscpy(username,GetWideNameFromUserData(pInfo[pInfo.CurrentItem()].UserData));
           if(NetUserGetInfo(server,username,3,(LPBYTE *)&info)==NERR_Success)
           {
 #ifdef UNICODE
@@ -755,9 +755,6 @@ bool ManageUser(UserManager *panel,bool type)
         if(info) NetApiBufferFree(info);
       }
     }
-#ifdef UNICODE
-    Info.Control((HANDLE)panel,FCTL_FREEPANELINFO,&PInfo);
-#endif
   }
   return res;
 }

@@ -50,14 +50,14 @@ static long WINAPI EditAdvancedAccessDialogProc(HANDLE hDlg,int Msg,int Param1,l
 static bool EditAdvancedAccess(UserManager *panel,int size,int *messages,unsigned int *access,int delimiter)
 {
   bool res=false;
-  PanelInfo PInfo;
-  if(Info.Control((HANDLE)panel,FCTL_GETPANELINFO,&PInfo))
+  CFarPanel pInfo((HANDLE)panel,FCTL_GETPANELINFO);
+  if(pInfo.IsOk())
   {
-    if((PInfo.ItemsNumber>0)&&(!(PInfo.PanelItems[PInfo.CurrentItem].FindData.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)))
+    if((pInfo.ItemsNumber()>0)&&(!(pInfo[pInfo.CurrentItem()].FindData.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)))
     {
-      if(PInfo.PanelItems[PInfo.CurrentItem].Flags&PPIF_USERDATA)
+      if(pInfo[pInfo.CurrentItem()].Flags&PPIF_USERDATA)
       {
-        unsigned long mask=GetLevelFromUserData(PInfo.PanelItems[PInfo.CurrentItem].UserData);
+        unsigned long mask=GetLevelFromUserData(pInfo[pInfo.CurrentItem()].UserData);
         //Show dialog
         /*
           0000000000111111111122222222223333333333444444444455555555556666666666777777
@@ -120,16 +120,13 @@ static bool EditAdvancedAccess(UserManager *panel,int size,int *messages,unsigne
               if(dialog.Check(check_index+i))
                 mask|=access[i];
             }
-            if(UpdateAcl(panel,panel->level,GetSidFromUserData(PInfo.PanelItems[PInfo.CurrentItem].UserData),GetItemTypeFromUserData(PInfo.PanelItems[PInfo.CurrentItem].UserData),mask,actionUpdate))
+            if(UpdateAcl(panel,panel->level,GetSidFromUserData(pInfo[pInfo.CurrentItem()].UserData),GetItemTypeFromUserData(pInfo[pInfo.CurrentItem()].UserData),mask,actionUpdate))
               res=true;
           }
           free(DialogItems);
         }
       }
     }
-#ifdef UNICODE
-    Info.Control((HANDLE)panel,FCTL_FREEPANELINFO,&PInfo);
-#endif
   }
   return res;
 }

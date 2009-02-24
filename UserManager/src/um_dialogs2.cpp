@@ -59,15 +59,15 @@ long WINAPI EditShareDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
 bool EditShareProperties(UserManager *panel)
 {
   bool res=false;
-  PanelInfo PInfo;
-  if(Info.Control((HANDLE)panel,FCTL_GETPANELINFO,&PInfo))
+  CFarPanel pInfo((HANDLE)panel,FCTL_GETPANELINFO);
+  if(pInfo.IsOk())
   {
-    if((PInfo.ItemsNumber>0)&&(_tcscmp(_T(".."),PInfo.PanelItems[PInfo.CurrentItem].FindData.PANEL_FILENAME)))
+    if((pInfo.ItemsNumber()>0)&&(_tcscmp(_T(".."),pInfo[pInfo.CurrentItem()].FindData.PANEL_FILENAME)))
     {
-      if(PInfo.PanelItems[PInfo.CurrentItem].Flags&PPIF_USERDATA)
+      if(pInfo[pInfo.CurrentItem()].Flags&PPIF_USERDATA)
       {
         SHARE_INFO_502 *info;
-        if(NetShareGetInfo(panel->computer_ptr,GetWideNameFromUserData(PInfo.PanelItems[PInfo.CurrentItem].UserData),502,(LPBYTE *)&info)==NERR_Success)
+        if(NetShareGetInfo(panel->computer_ptr,GetWideNameFromUserData(pInfo[pInfo.CurrentItem()].UserData),502,(LPBYTE *)&info)==NERR_Success)
         {
           //Show dialog
           /*
@@ -154,16 +154,13 @@ bool EditShareProperties(UserManager *panel)
               info->shi502_max_uses=0xffffffff;
             else
               info->shi502_max_uses=FSF.atoi(dialog.Str(8));
-            if(NetShareSetInfo(panel->computer_ptr,GetWideNameFromUserData(PInfo.PanelItems[PInfo.CurrentItem].UserData),502,(LPBYTE)info,NULL)==NERR_Success)
+            if(NetShareSetInfo(panel->computer_ptr,GetWideNameFromUserData(pInfo[pInfo.CurrentItem()].UserData),502,(LPBYTE)info,NULL)==NERR_Success)
               res=true;
           }
           NetApiBufferFree(info);
         }
       }
     }
-#ifdef UNICODE
-    Info.Control((HANDLE)panel,FCTL_FREEPANELINFO,&PInfo);
-#endif
   }
   return res;
 }

@@ -652,17 +652,6 @@ extern int GetItemTypeFromUserData(DWORD UserData);
 extern PSID GetSidFromUserData(DWORD UserData);
 extern wchar_t *GetWideNameFromUserData(DWORD UserData);
 extern int NumberType(int num);
-#ifdef UNICODE
-struct SSelectionInfo
-{
-  PanelInfo PInfo;
-  PluginPanelItem* item;
-};
-extern void GetSelectedList(HANDLE hPlugin,struct PluginPanelItem ***pPanelItem,int *pItemsNumber,bool selection,SSelectionInfo& info);
-extern void FreeSelectedList(HANDLE hPlugin,SSelectionInfo& info);
-#else
-extern void GetSelectedList(HANDLE hPlugin,struct PluginPanelItem **pPanelItem,int *pItemsNumber,bool selection);
-#endif
 extern PSECURITY_DESCRIPTOR CreateDefaultSD(void);
 extern PACL CreateDefaultAcl(int level);
 extern TCHAR *get_access_string(int level,int mask);
@@ -712,7 +701,7 @@ extern bool UpdateAcl(UserManager *panel,int level,PSID user,int type,DWORD mask
 extern void GetUserNameEx(wchar_t *computer,PSID sid,bool full,wchar_t **username,TCHAR **username_oem);
 extern void free_sid_cache(void);
 
-extern void ProcessChilds(PanelInfo *PInfo);
+extern void ProcessChilds(CFarPanel& pInfo);
 
 extern int Config(void);
 
