@@ -650,7 +650,7 @@ static BOOL GetDestDir(TCHAR *dir,int move)
   struct FarDialogItem DialogItems[ArraySize(InitDlg)];
   InitDialogItems(InitDlg,DialogItems,ArraySize(InitDlg));
   PanelInfo PInfo;
-  Info.Control(INVALID_HANDLE_VALUE,FCTL_GETPANELINFO,&PInfo); //FIXME
+  Info.ControlShort(INVALID_HANDLE_VALUE,FCTL_GETPANELINFO,(SECOND_PARAM)&PInfo); //FIXME
   INIT_DLG_DATA(DialogItems[0],GetMsg(mCpyDlgCopyTitle+move));
 #ifdef UNICODE
   TCHAR CopyText[512];
@@ -1140,12 +1140,11 @@ int WINAPI EXP_NAME(DeleteFiles)(HANDLE hPlugin,struct PluginPanelItem *PanelIte
             }
             else
             {
-              PanelInfo PInfo;
-              Info.Control(hPlugin,FCTL_GETPANELINFO,&PInfo);
-              for(int j=0;j<PInfo.ItemsNumber;j++)
-                if(!FSF.LStricmp(PInfo.PanelItems[j].FindData.PANEL_FILENAME,PanelItem[i].FindData.PANEL_FILENAME))
-                  PInfo.PanelItems[j].Flags&=~PPIF_SELECTED;
-              Info.Control(hPlugin,FCTL_SETSELECTION,&PInfo);
+              CFarPanel pInfo(hPlugin,FCTL_GETPANELINFO);
+              for(int j=0;j<pInfo.ItemsNumber();j++)
+                if(!FSF.LStricmp(pInfo[j].FindData.PANEL_FILENAME,PanelItem[i].FindData.PANEL_FILENAME))
+                  pInfo.RemoveSelection(j);
+              pInfo.CommitSelection();
             }
             CloseEventLog(evt);
           } else if(!(OpMode&(OPM_SILENT)))
@@ -1154,7 +1153,7 @@ int WINAPI EXP_NAME(DeleteFiles)(HANDLE hPlugin,struct PluginPanelItem *PanelIte
         else if((MsgCode==2)||(MsgCode==-1))
           break;
       }
-      Info.Control(hPlugin,FCTL_REDRAWPANEL,NULL);
+      Info.ControlShort(hPlugin,FCTL_REDRAWPANEL,NULL);
       return TRUE;
     }
   }
@@ -1430,9 +1429,8 @@ int WINAPI EXP_NAME(ProcessKey)(HANDLE hPlugin,int Key,unsigned int ControlState
   {
     if(panel->level>0)
     {
-      PanelInfo PInfo;
-      Info.Control(hPlugin,FCTL_GETPANELINFO,&PInfo);
-      if(PInfo.ItemsNumber&&(PInfo.PanelItems[PInfo.CurrentItem].Flags&PPIF_USERDATA))
+      CFarPanel pInfo(hPlugin,FCTL_GETPANELINFO);
+      if(pInfo.ItemsNumber()&&(pInfo[pInfo.CurrentItem()].Flags&PPIF_USERDATA))
       {
         TCHAR temp[MAX_PATH],tempfile[MAX_PATH];
         if(GetTempPath(MAX_PATH,temp)&&GetTempFileName(temp,_T("evt"),0,tempfile))
@@ -1441,7 +1439,7 @@ int WINAPI EXP_NAME(ProcessKey)(HANDLE hPlugin,int Key,unsigned int ControlState
           if(hdata!=INVALID_HANDLE_VALUE)
           {
             DWORD dWritten;
-            EVENTLOGRECORD *curr_rec=(EVENTLOGRECORD *)(PInfo.PanelItems[PInfo.CurrentItem].UserData);
+            EVENTLOGRECORD *curr_rec=(EVENTLOGRECORD *)(pInfo[pInfo.CurrentItem()].UserData);
             if(curr_rec->DataLength)
               WriteFile(hdata,(unsigned char*)curr_rec+curr_rec->DataOffset,curr_rec->DataLength,&dWritten,NULL);
             CloseHandle(hdata);
@@ -1523,8 +1521,8 @@ int WINAPI EXP_NAME(ProcessKey)(HANDLE hPlugin,int Key,unsigned int ControlState
             _tcscpy(panel->computer_oem,dialog.Str(2));
 #endif
             panel->computer_ptr=panel->computer;
-            Info.Control(hPlugin,FCTL_UPDATEPANEL,NULL);
-            Info.Control(hPlugin,FCTL_REDRAWPANEL,NULL);
+            Info.ControlShort(hPlugin,FCTL_UPDATEPANEL,NULL);
+            Info.ControlShort(hPlugin,FCTL_REDRAWPANEL,NULL);
           }
           else
           {
@@ -1537,8 +1535,8 @@ int WINAPI EXP_NAME(ProcessKey)(HANDLE hPlugin,int Key,unsigned int ControlState
           _tcscpy(panel->computer,_T(""));
           _tcscpy(panel->computer_oem,_T(""));
           panel->computer_ptr=NULL;
-          Info.Control(hPlugin,FCTL_UPDATEPANEL,NULL);
-          Info.Control(hPlugin,FCTL_REDRAWPANEL,NULL);
+          Info.ControlShort(hPlugin,FCTL_UPDATEPANEL,NULL);
+          Info.ControlShort(hPlugin,FCTL_REDRAWPANEL,NULL);
         }
       }
     }
@@ -1549,8 +1547,8 @@ int WINAPI EXP_NAME(ProcessKey)(HANDLE hPlugin,int Key,unsigned int ControlState
     _tcscpy(panel->computer,_T(""));
     _tcscpy(panel->computer_oem,_T(""));
     panel->computer_ptr=NULL;
-    Info.Control(hPlugin,FCTL_UPDATEPANEL,NULL);
-    Info.Control(hPlugin,FCTL_REDRAWPANEL,NULL);
+    Info.ControlShort(hPlugin,FCTL_UPDATEPANEL,NULL);
+    Info.ControlShort(hPlugin,FCTL_REDRAWPANEL,NULL);
     return TRUE;
   }
   if((ControlState==0)&&(Key==VK_F7)) //skip F7
@@ -1580,19 +1578,19 @@ int WINAPI EXP_NAME(ProcessEvent)(HANDLE hPlugin,int Event,void *Param)
   {
     panel->redraw=FALSE;
     if(State.ViewMode!=-1)
-      Info.Control(hPlugin,FCTL_SETVIEWMODE,&State.ViewMode);
+      Info.ControlShort2(hPlugin,FCTL_SETVIEWMODE,State.ViewMode);
     if(State.SortMode!=-1)
-      Info.Control(hPlugin,FCTL_SETSORTMODE,&State.SortMode);
+      Info.ControlShort2(hPlugin,FCTL_SETSORTMODE,State.SortMode);
     if(State.SortOrder!=-1)
-      Info.Control(hPlugin,FCTL_SETSORTORDER,&State.SortOrder);
+      Info.ControlShort2(hPlugin,FCTL_SETSORTORDER,State.SortOrder);
     PanelRedrawInfo ri={State.Current,State.Top};
-    Info.Control(hPlugin,FCTL_REDRAWPANEL,&ri);
+    Info.ControlShort(hPlugin,FCTL_REDRAWPANEL,(SECOND_PARAM)&ri);
     return TRUE;
   }
   else if(Event==FE_CLOSE&&panel->level<2)
   {
     PanelInfo PInfo;
-    Info.Control(hPlugin,FCTL_GETPANELSHORTINFO,&PInfo);
+    Info.ControlShort(hPlugin,FCTL_GETPANELSHORTINFO,(SECOND_PARAM)&PInfo);
     State.Current=PInfo.CurrentItem;
     State.Top=PInfo.TopPanelItem;
     State.ViewMode=PInfo.ViewMode;

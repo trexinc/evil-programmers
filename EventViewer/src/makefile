@@ -28,7 +28,7 @@ CP=cp
 MKDIR=mkdir -p
 
 DEF=ntevent$(DIRSURF).def
-OBJS=../$(OBJDIR)/ntevent.o ../$(OBJDIR)/el_sid_cache.o ../$(OBJDIR)/el_category_cache.o ../$(OBJDIR)/ntevent.res.o
+OBJS=../$(OBJDIR)/ntevent.o ../$(OBJDIR)/el_sid_cache.o ../$(OBJDIR)/el_category_cache.o ../$(OBJDIR)/far_helper.o ../$(OBJDIR)/ntevent.res.o
 TARGET=../$(BINDIR)/ntevent.dll
 
 DOCTARGET=../$(BINDIR)/ntevent.hlf ../$(BINDIR)/nteventr.hlf ../file_id.diz ../$(BINDIR)/ntevent.lng ../$(BINDIR)/nteventr.lng
@@ -42,13 +42,16 @@ $(TARGET): $(OBJS)
 	$(RM) $@.base
 	$(RM) $@.exp
 
-../$(OBJDIR)/ntevent.o: ntevent.cpp el_utils.cpp evplugin.h el_config.cpp
+../$(OBJDIR)/far_helper.o: far_helper.cpp far_helper.h
+	$(CC) $(CFLAGS) $< -o $@
+
+../$(OBJDIR)/ntevent.o: ntevent.cpp el_utils.cpp evplugin.h el_config.cpp far_helper.h
 	$(CC) $(CFLAGS) $< -o $@
 
 ../$(OBJDIR)/el_sid_cache.o: el_sid_cache.cpp
 	$(CC) $(CFLAGS) $< -o $@
 
-../$(OBJDIR)/el_category_cache.o: el_category_cache.cpp evplugin.h
+../$(OBJDIR)/el_category_cache.o: el_category_cache.cpp evplugin.h far_helper.h
 	$(CC) $(CFLAGS) $< -o $@
 
 ../$(OBJDIR)/ntevent.res.o: ntevent.rc ./$(BOOTSTRAPDIR)/evversion.h
