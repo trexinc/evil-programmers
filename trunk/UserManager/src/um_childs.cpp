@@ -259,29 +259,23 @@ long WINAPI ProcessChildsDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
   return Info.DefDlgProc(hDlg,Msg,Param1,Param2);
 }
 
-#ifdef UNICODE
-#define SELECTED_ITEMS(index) (*(PInfo->SelectedItems[index]))
-#else
-#define SELECTED_ITEMS(index) PInfo->SelectedItems[index]
-#endif
-
-void ProcessChilds(PanelInfo *PInfo)
+void ProcessChilds(CFarPanel& pInfo)
 {
   int FolderCount=0; const TCHAR *FolderName=_T("");
-  for(int i=0;i<PInfo->SelectedItemsNumber;i++)
-    if(SELECTED_ITEMS(i).FindData.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)
+  for(int i=0;i<pInfo.SelectedItemsNumber();i++)
+    if(pInfo.Selected(i).FindData.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)
     {
       FolderCount++;
-      FolderName=SELECTED_ITEMS(i).FindData.PANEL_FILENAME;
+      FolderName=pInfo.Selected(i).FindData.PANEL_FILENAME;
     }
   if(FolderCount)
   {
     bool registry=false;
     //detect registry
-    if(PInfo->Plugin)
+    if(pInfo.Plugin())
     {
       unsigned long param; wchar_t path[MAX_PATH];
-      int level=parse_dir(PInfo->PANEL_CURDIR,SELECTED_ITEMS(0).FindData.PANEL_FILENAME,NULL,pathtypePlugin,&param,path,NULL);
+      int level=parse_dir(pInfo.CurDir(),pInfo.Selected(0).FindData.PANEL_FILENAME,NULL,pathtypePlugin,&param,path,NULL);
       if(level==levelRegRoot)
         registry=true;
       else
@@ -390,15 +384,15 @@ void ProcessChilds(PanelInfo *PInfo)
       {
         UserManager panel;
         memset(&panel,0,sizeof(panel)); //FIXME?
-        for(int i=0;i<PInfo->SelectedItemsNumber;i++)
-          if(SELECTED_ITEMS(i).FindData.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)
+        for(int i=0;i<pInfo.SelectedItemsNumber();i++)
+          if(pInfo.Selected(i).FindData.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)
           {
             for(int j=0;j<4;j++)
               td.ObjPerm[j]=NULL;
             td.sid=NULL;
             if(registry)
             {
-              panel.level=parse_dir(PInfo->PANEL_CURDIR,SELECTED_ITEMS(i).FindData.PANEL_FILENAME,NULL,pathtypePlugin,&panel.param,panel.hostfile,NULL);
+              panel.level=parse_dir(pInfo.CurDir(),pInfo.Selected(i).FindData.PANEL_FILENAME,NULL,pathtypePlugin,&panel.param,panel.hostfile,NULL);
               if(panel.level==levelRegRoot)
               {
                 if(td.Obj[0])
@@ -431,9 +425,9 @@ void ProcessChilds(PanelInfo *PInfo)
             else
             {
               wchar_t filename_w[MAX_PATH];
-              if(GetWideName(PInfo->PANEL_CURDIR,&SELECTED_ITEMS(i).FindData,filename_w))
+              if(GetWideName(pInfo.CurDir(),&pInfo.Selected(i).FindData,filename_w))
               {
-                panel.level=parse_dir(PInfo->PANEL_CURDIR,SELECTED_ITEMS(i).FindData.PANEL_FILENAME,filename_w,pathtypeReal,&panel.param,panel.hostfile,NULL);
+                panel.level=parse_dir(pInfo.CurDir(),pInfo.Selected(i).FindData.PANEL_FILENAME,filename_w,pathtypeReal,&panel.param,panel.hostfile,NULL);
                 if(panel.level==levelRoot)
                 {
                   for(int j=0;j<2;j++)

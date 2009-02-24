@@ -18,6 +18,7 @@
 */
 
 #include "plugin.hpp"
+#include "far_helper.h"
 #include "umplugin.h"
 #include "memory.h"
 

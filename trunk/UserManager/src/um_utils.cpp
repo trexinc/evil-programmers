@@ -255,29 +255,26 @@ bool IsPrivilegeEnabled(const TCHAR *name)
 bool CheckChDir(HANDLE hPlugin,const TCHAR *NewDir,TCHAR *RealDir,wchar_t *RealDirW,int *level)
 {
   bool res=false;
-  PanelInfo PInfo;
-  if(Info.Control(hPlugin,FCTL_GETPANELINFO,&PInfo))
+  CFarPanel pInfo(hPlugin,FCTL_GETPANELINFO);
+  if(pInfo.IsOk())
   {
-    for(int i=0;i<PInfo.ItemsNumber;i++)
+    for(int i=0;i<pInfo.ItemsNumber();i++)
     {
-      if((PInfo.PanelItems[i].FindData.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)&&_tcscmp(PInfo.PanelItems[i].FindData.PANEL_FILENAME,_T("..")))
+      if((pInfo[i].FindData.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)&&_tcscmp(pInfo[i].FindData.PANEL_FILENAME,_T("..")))
       {
-        if(!_tcsicmp(PInfo.PanelItems[i].FindData.PANEL_FILENAME,NewDir))
+        if(!_tcsicmp(pInfo[i].FindData.PANEL_FILENAME,NewDir))
         {
-          if(PInfo.PanelItems[i].Flags&PPIF_USERDATA)
+          if(pInfo[i].Flags&PPIF_USERDATA)
           {
-            _tcscpy(RealDir,PInfo.PanelItems[i].FindData.PANEL_FILENAME);
-            wcscpy(RealDirW,GetWideNameFromUserData(PInfo.PanelItems[i].UserData));
-            *level=GetLevelFromUserData(PInfo.PanelItems[i].UserData);
+            _tcscpy(RealDir,pInfo[i].FindData.PANEL_FILENAME);
+            wcscpy(RealDirW,GetWideNameFromUserData(pInfo[i].UserData));
+            *level=GetLevelFromUserData(pInfo[i].UserData);
             res=true;
             break;
           }
         }
       }
     }
-#ifdef UNICODE
-    Info.Control(hPlugin,FCTL_FREEPANELINFO,&PInfo);
-#endif
   }
   return res;
 }
@@ -294,54 +291,6 @@ int NumberType(int num)
   }
   return Result;
 }
-
-#ifdef UNICODE
-void FreeSelectedList(HANDLE hPlugin,SSelectionInfo& info)
-{
-  Info.Control(hPlugin,FCTL_FREEPANELINFO,&info.PInfo);
-  info.item=NULL;
-}
-
-void GetSelectedList(HANDLE hPlugin,struct PluginPanelItem ***pPanelItem,int *pItemsNumber,bool selection,SSelectionInfo& info)
-{
-  *pPanelItem=NULL; *pItemsNumber=0;
-  Info.Control(hPlugin,FCTL_GETPANELINFO,&info.PInfo);
-  if(selection)
-  {
-    *pPanelItem=info.PInfo.SelectedItems;
-    *pItemsNumber=info.PInfo.SelectedItemsNumber;
-  }
-  else
-  {
-    if(info.PInfo.ItemsNumber>0)
-    {
-      info.item=&(info.PInfo.PanelItems[info.PInfo.CurrentItem]);
-      *pPanelItem=&(info.item);
-      *pItemsNumber=1;
-    }
-  }
-}
-#else
-void GetSelectedList(HANDLE hPlugin,struct PluginPanelItem **pPanelItem,int *pItemsNumber,bool selection)
-{
-  *pPanelItem=NULL; *pItemsNumber=0;
-  PanelInfo PInfo;
-  Info.Control(hPlugin,FCTL_GETPANELINFO,&PInfo);
-  if(selection)
-  {
-    *pPanelItem=PInfo.SelectedItems;
-    *pItemsNumber=PInfo.SelectedItemsNumber;
-  }
-  else
-  {
-    if(PInfo.ItemsNumber>0)
-    {
-      *pPanelItem=&(PInfo.PanelItems[PInfo.CurrentItem]);
-      *pItemsNumber=1;
-    }
-  }
-}
-#endif
 
 PSECURITY_DESCRIPTOR CreateDefaultSD(void)
 {

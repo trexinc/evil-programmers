@@ -19,6 +19,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "far_helper.h"
 #include "plugin.hpp"
 #include "umplugin.h"
 #include "memory.h"
