@@ -65,6 +65,8 @@ struct Options
   int ShowScrollbar;
   int ShowCrossOnTop;
   int ShowTabSymbol;
+  int ShowBookmarks;
+  int ShowStackBookmarks;
   int ColorOfRightBorder;
   int ColorOfEOLNormal;
   int ColorOfEOLCR;
@@ -78,6 +80,8 @@ struct Options
   int ColorOfCursor;
   int ColorOfScrollbar;
   int ColorOfScrollbarPositionMarker;
+  int ColorOfBookmarks;
+  int ColorOfStackBookmarks;
   //int HotkeyOfCross;
 } Opt;
 
@@ -177,6 +181,9 @@ void InitDialogItems(const struct InitDialogItem *Init, struct FarDialogItem *It
     PItem->Selected=0;
     PItem->Flags=PInit->Flags;
     PItem->DefaultButton=0;
+#ifdef UNICODE
+    PItem->MaxLen=0;
+#endif
     if (PInit->Data>=0)
     {
 #ifndef UNICODE
@@ -229,6 +236,8 @@ void ReadRegistry()
 
   GetRegKey(_T("ShowCrossOnTop"),&Opt.ShowCrossOnTop,0);
   GetRegKey(_T("ShowTabSymbol"),&Opt.ShowTabSymbol,0);
+  GetRegKey(_T("ShowBookmarks"),&Opt.ShowBookmarks,1);
+  GetRegKey(_T("ShowStackBookmarks"),&Opt.ShowStackBookmarks,1);
 
   GetRegKey(_T("ColorOfRightBorder"),&Opt.ColorOfRightBorder,0|5<<4);
   GetRegKey(_T("ColorOfEOLNormal"),&Opt.ColorOfEOLNormal,0|8<<4);
@@ -243,6 +252,8 @@ void ReadRegistry()
   GetRegKey(_T("ColorOfCursor"),&Opt.ColorOfCursor,0|12<<4);
   GetRegKey(_T("ColorOfScrollbar"),&Opt.ColorOfScrollbar,0|11<<4);
   GetRegKey(_T("ColorOfScrollbarPositionMarker"),&Opt.ColorOfScrollbarPositionMarker,0|9<<4);
+  GetRegKey(_T("ColorOfBookmarks"),&Opt.ColorOfBookmarks,0|2<<4);
+  GetRegKey(_T("ColorOfStackBookmarks"),&Opt.ColorOfStackBookmarks,0|6<<4);
   //GetRegKey(_T("HotkeyOfCross"),&Opt.HotkeyOfCross,);
 }
 
@@ -271,6 +282,8 @@ void WriteRegistry()
 
   SetRegKey(_T("ShowCrossOnTop"),Opt.ShowCrossOnTop);
   SetRegKey(_T("ShowTabSymbol"),Opt.ShowTabSymbol);
+  SetRegKey(_T("ShowBookmarks"),Opt.ShowBookmarks);
+  SetRegKey(_T("ShowStackBookmarks"),Opt.ShowStackBookmarks);
 
   SetRegKey(_T("ColorOfRightBorder"),Opt.ColorOfRightBorder);
   SetRegKey(_T("ColorOfEOLNormal"),Opt.ColorOfEOLNormal);
@@ -285,6 +298,8 @@ void WriteRegistry()
   SetRegKey(_T("ColorOfCursor"),Opt.ColorOfCursor);
   SetRegKey(_T("ColorOfScrollbar"),Opt.ColorOfScrollbar);
   SetRegKey(_T("ColorOfScrollbarPositionMarker"),Opt.ColorOfScrollbarPositionMarker);
+  SetRegKey(_T("ColorOfBookmarks"),Opt.ColorOfBookmarks);
+  SetRegKey(_T("ColorOfStackBookmarks"),Opt.ColorOfStackBookmarks);
 }
 
 void WINAPI EXP_NAME(SetStartupInfo)(const struct PluginStartupInfo *psi)
@@ -328,6 +343,9 @@ void ConfigColor(struct Options *Opt)
     DLG_CURSORCOLOR,
     DLG_SCROLLBARCOLOR,
     DLG_SCROLLBARMARKERCOLOR,
+    DLG_BOOKMARKSCOLOR,
+    DLG_STACKBOOKMARKSCOLOR,
+
     DLG_SEP1,
 
     DLG_OK,
@@ -336,7 +354,7 @@ void ConfigColor(struct Options *Opt)
 
   static const struct InitDialogItem PreDialogItems[] =
   {
-    {DI_DOUBLEBOX   ,3  ,1  ,40 ,17 ,0               ,MColorTitle},
+    {DI_DOUBLEBOX   ,3  ,1  ,40 ,19 ,0               ,MColorTitle},
 
     {DI_BUTTON      ,0  ,2  ,0  ,0  ,DIF_CENTERGROUP ,MRightBorderColor},
     {DI_BUTTON      ,0  ,3  ,0  ,0  ,DIF_CENTERGROUP ,MEOLNormalColor},
@@ -351,11 +369,13 @@ void ConfigColor(struct Options *Opt)
     {DI_BUTTON      ,0  ,12 ,0  ,0  ,DIF_CENTERGROUP ,MCursorColor},
     {DI_BUTTON      ,0  ,13 ,0  ,0  ,DIF_CENTERGROUP ,MScrollbarColor},
     {DI_BUTTON      ,0  ,14 ,0  ,0  ,DIF_CENTERGROUP ,MScrollbarPositionMarkerColor},
+    {DI_BUTTON      ,0  ,15 ,0  ,0  ,DIF_CENTERGROUP ,MBookmarksColor},
+    {DI_BUTTON      ,0  ,16 ,0  ,0  ,DIF_CENTERGROUP ,MStackBookmarksColor},
 
-    {DI_TEXT        ,-1 ,15 ,0  ,0  ,DIF_SEPARATOR   ,-1},
+    {DI_TEXT        ,-1 ,17 ,0  ,0  ,DIF_SEPARATOR   ,-1},
 
-    {DI_BUTTON      ,0  ,16 ,0  ,0  ,DIF_CENTERGROUP ,MOk},
-    {DI_BUTTON      ,0  ,16 ,0  ,0  ,DIF_CENTERGROUP ,MCancel},
+    {DI_BUTTON      ,0  ,18 ,0  ,0  ,DIF_CENTERGROUP ,MOk},
+    {DI_BUTTON      ,0  ,18 ,0  ,0  ,DIF_CENTERGROUP ,MCancel},
   };
   struct FarDialogItem DialogItems[sizeofa(PreDialogItems)];
 
@@ -371,9 +391,9 @@ void ConfigColor(struct Options *Opt)
   while (1)
   {
 #ifndef UNICODE
-    ExitCode = Info.Dialog(Info.ModuleNumber,-1,-1,44,19,NULL,DialogItems,sizeofa(DialogItems));
+    ExitCode = Info.Dialog(Info.ModuleNumber,-1,-1,44,21,NULL,DialogItems,sizeofa(DialogItems));
 #else
-    HANDLE hDlg = Info.DialogInit(Info.ModuleNumber,-1,-1,44,19,NULL,DialogItems,sizeofa(DialogItems),0,0,NULL,NULL);
+    HANDLE hDlg = Info.DialogInit(Info.ModuleNumber,-1,-1,44,21,NULL,DialogItems,sizeofa(DialogItems),0,0,NULL,NULL);
     if (hDlg == INVALID_HANDLE_VALUE)
       break;
 
@@ -428,6 +448,12 @@ void ConfigColor(struct Options *Opt)
         break;
       case DLG_SCROLLBARMARKERCOLOR:
         SetColor(&TmpOpt.ColorOfScrollbarPositionMarker);
+        break;
+      case DLG_BOOKMARKSCOLOR:
+        SetColor(&TmpOpt.ColorOfBookmarks);
+        break;
+      case DLG_STACKBOOKMARKSCOLOR:
+        SetColor(&TmpOpt.ColorOfStackBookmarks);
         break;
     }
 
@@ -494,6 +520,9 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom, INT_PTR Item)
     DLG_SCROLLBARCHK,
     DLG_SCROLLBARCMB,
 
+    DLG_BOOKMARKSCHK,
+    DLG_STACKBOOKMARKSCHK,
+
     DLG_SEP2,
 
     DLG_OK,
@@ -503,7 +532,7 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom, INT_PTR Item)
 
   static const struct InitDialogItem PreDialogItems[] =
   {
-    {DI_DOUBLEBOX   ,3  ,1  ,62 ,22 ,0          ,MTitle},
+    {DI_DOUBLEBOX   ,3  ,1  ,62 ,24 ,0          ,MTitle},
 
     {DI_CHECKBOX    ,5  ,2  ,0  ,0  ,0          ,MOnOffSwitch},
     {DI_CHECKBOX    ,5  ,3  ,0  ,0  ,0          ,MOtherColoringPlugins},
@@ -536,11 +565,14 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom, INT_PTR Item)
     {DI_CHECKBOX    ,5  ,18 ,0  ,0  ,0          ,MScrollbar},
     {DI_COMBOBOX    ,8  ,19 ,60 ,0  ,DIF_DROPDOWNLIST|DIF_LISTAUTOHIGHLIGHT|DIF_LISTNOAMPERSAND, -1},
 
-    {DI_TEXT        ,-1 ,20 ,0  ,0  ,DIF_SEPARATOR   ,-1},
+    {DI_CHECKBOX    ,5  ,20 ,0  ,0  ,0          ,MBookmarks},
+    {DI_CHECKBOX    ,5  ,21 ,0  ,0  ,0          ,MStackBookmarks},
 
-    {DI_BUTTON      ,0  ,21 ,0  ,0  ,DIF_CENTERGROUP ,MOk},
-    {DI_BUTTON      ,0  ,21 ,0  ,0  ,DIF_CENTERGROUP ,MCancel},
-    {DI_BUTTON      ,0  ,21 ,0  ,0  ,DIF_CENTERGROUP ,MSetColor},
+    {DI_TEXT        ,-1 ,22 ,0  ,0  ,DIF_SEPARATOR   ,-1},
+
+    {DI_BUTTON      ,0  ,23 ,0  ,0  ,DIF_CENTERGROUP ,MOk},
+    {DI_BUTTON      ,0  ,23 ,0  ,0  ,DIF_CENTERGROUP ,MCancel},
+    {DI_BUTTON      ,0  ,23 ,0  ,0  ,DIF_CENTERGROUP ,MSetColor},
   };
   struct FarDialogItem DialogItems[sizeofa(PreDialogItems)];
 
@@ -563,6 +595,9 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom, INT_PTR Item)
 
   DialogItems[DLG_CROSSONTOPCHK].Selected    = Opt.ShowCrossOnTop;
   DialogItems[DLG_TABSHOWSYMBOLCHK].Selected = Opt.ShowTabSymbol;
+
+  DialogItems[DLG_BOOKMARKSCHK].Selected      = Opt.ShowBookmarks;
+  DialogItems[DLG_STACKBOOKMARKSCHK].Selected = Opt.ShowStackBookmarks;
 
   struct FarListItem RBListItems[RB_MAX];
   struct FarList RBList = {sizeofa(RBListItems),RBListItems};
@@ -604,9 +639,9 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom, INT_PTR Item)
     DialogItems[DLG_SCROLLBARCMB].ListItems=&ScrollbarList;
 
 #ifndef UNICODE
-    ExitCode = Info.Dialog(Info.ModuleNumber,-1,-1,66,24,NULL,DialogItems,sizeofa(DialogItems));
+    ExitCode = Info.Dialog(Info.ModuleNumber,-1,-1,66,26,NULL,DialogItems,sizeofa(DialogItems));
 #else
-    HANDLE hDlg = Info.DialogInit(Info.ModuleNumber,-1,-1,66,24,NULL,DialogItems,sizeofa(DialogItems),0,0,NULL,NULL);
+    HANDLE hDlg = Info.DialogInit(Info.ModuleNumber,-1,-1,66,26,NULL,DialogItems,sizeofa(DialogItems),0,0,NULL,NULL);
     if (hDlg == INVALID_HANDLE_VALUE)
       break;
 
@@ -654,6 +689,10 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom, INT_PTR Item)
       Opt.ShowLineNumbersOn=GetCheck(DLG_LINENUMBERSCHK);
 
       Opt.ShowScrollbarOn=GetCheck(DLG_SCROLLBARCHK);
+
+      Opt.ShowBookmarks=GetCheck(DLG_BOOKMARKSCHK);
+
+      Opt.ShowStackBookmarks=GetCheck(DLG_STACKBOOKMARKSCHK);
 
 #ifdef UNICODE
       Info.DialogFree(hDlg);
@@ -888,6 +927,35 @@ void VisualizeScrollbar(int ShowScrollbar, int MarkerPosition, int MarkerPositio
   }
 }
 
+void VisualizeBookmarks(bool bStack)
+{
+  int iBookmarkCount=0;
+  if (bStack)
+  {
+    iBookmarkCount=Info.EditorControl(ECTL_GETSTACKBOOKMARKS,0);
+  }
+  else
+  {
+    EditorInfo ei;
+    Info.EditorControl(ECTL_GETINFO,&ei);
+    iBookmarkCount=ei.BookMarkCount;
+  }
+  if (iBookmarkCount)
+  {
+    EditorBookMarks bm = {new long[iBookmarkCount],new long[iBookmarkCount],0,0};
+    if (Info.EditorControl(bStack?ECTL_GETSTACKBOOKMARKS:ECTL_GETBOOKMARKS,&bm))
+    {
+      for (int i=0;i<iBookmarkCount;i++)
+      {
+        EditorColor ec={bm.Line[i],0,bm.Cursor[i],bm.Cursor[i],bStack?Opt.ColorOfStackBookmarks:Opt.ColorOfBookmarks};
+        Info.EditorControl(ECTL_ADDCOLOR,&ec);
+      }
+    }
+    delete[] bm.Line;
+    delete[] bm.Cursor;
+  }
+}
+
 int WINAPI EXP_NAME(ProcessEditorEvent)(int Event, void *Param)
 {
   int RightBorder=0;
@@ -1035,6 +1103,12 @@ int WINAPI EXP_NAME(ProcessEditorEvent)(int Event, void *Param)
           c.Y = i-ei.TopScreenLine+1;
           WriteConsoleOutputCharacter(GetStdHandle(STD_OUTPUT_HANDLE),tmp,lstrlen(tmp),c,&w);
         }
+
+        if (Opt.ShowBookmarks)
+          VisualizeBookmarks(false);
+
+        if (Opt.ShowStackBookmarks)
+          VisualizeBookmarks(true);
       }
 
       //restore position

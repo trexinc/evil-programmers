@@ -65,6 +65,9 @@ enum
   MScrollbarVariableNoBack,
   MScrollbarFillbarNoBack,
 
+  MBookmarks,
+  MStackBookmarks,
+
   MRightBorderColor,
   MEOLNormalColor,
   MEOLCRColor,
@@ -78,6 +81,8 @@ enum
   MCursorColor,
   MScrollbarColor,
   MScrollbarPositionMarkerColor,
+  MBookmarksColor,
+  MStackBookmarksColor,
 
   MColorTitle,
   MColorForeground,
