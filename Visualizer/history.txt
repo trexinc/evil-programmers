@@ -1,6 +1,11 @@
 History:
 --------
 
+v0.5 (14/03/09)
+---------------
+ + Bookmarks visualization, from Drkns.
+ ! In Far 2.0, dialogs could contain cut off text.
+
 v0.4 (21/12/08)
 ---------------
  + Far 2.0 build 677 support.

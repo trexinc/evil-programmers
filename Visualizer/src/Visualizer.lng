@@ -41,6 +41,9 @@
 "Show only variable size position marker"
 "Show only the filler in the fillbar"
 
+"Bookmar&ks"
+"St&ack bookmarks"
+
 "Right &border"
 "&End of line"
 "CR - \\&r"
@@ -54,6 +57,8 @@
 "C&ursor"
 "&Scrollbar"
 "Scrollbar position &marker"
+"Bookmar&k"
+"St&ack bookmark"
 
 "Color"
 "&Foreground"
