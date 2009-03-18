@@ -267,6 +267,7 @@ void InitDialogItems(struct InitDialogItem *Init,
       Item[I].Selected = Init[I].Selected;
       Item[I].Flags = Init[I].Flags;
       Item[I].DefaultButton = Init[I].DefaultButton;
+      Item[I].MaxLen = 0;
       if ((unsigned int) Init[I].Data < 2000)
         Item[I].PtrData = GetMsg((unsigned int) Init[I].Data);
       else

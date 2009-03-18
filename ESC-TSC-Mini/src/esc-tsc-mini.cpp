@@ -75,6 +75,9 @@ void InitDialogItems(const struct InitDialogItem *Init, struct FarDialogItem *It
     PItem->Selected=PInit->Selected;
     PItem->Flags=PInit->Flags;
     PItem->DefaultButton=0;
+#ifdef UNICODE
+    PItem->MaxLen=0;
+#endif
     if (PInit->Data>=0)
     {
 #ifndef UNICODE
