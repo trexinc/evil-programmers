@@ -27,7 +27,7 @@ context default
 
     keyword wholeright $/[0-9]+/ brightred
 
-    keyword wholeright $+ brightgreen
+    keyword wholeright $/[a-zA-Z0-9-._]+/ brightgreen
 
     keyword $ brightgreen
 
@@ -182,7 +182,7 @@ context " " green
     keyword $_ brightred
     keyword wholeright $/[0-9]+/ brightred
 
-    keyword wholeright $/[^\"\s]+/ brightgreen
+    keyword wholeright $/[a-zA-Z0-9-._]+/ brightgreen
 
     keyword $ brightgreen
 
@@ -207,7 +207,7 @@ context exclusive ` ` white black
 
     keyword wholeright $/[0-9]+/ brightred
 
-    keyword wholeright $/[^\`\s]+/ brightgreen
+    keyword wholeright $/[a-zA-Z0-9-._]+/ brightgreen
 
     keyword $ brightgreen
 
