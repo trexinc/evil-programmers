@@ -154,10 +154,10 @@ static void ShowDiskMenu(BOOL type)
           bool restore=false;
           { //set directory to far folder
             TCHAR buffer1[MAX_PATH],buffer2[MAX_PATH],*filename;
-            if(GetModuleFileName(NULL,buffer1,sizeof(buffer1)))
+            if(GetModuleFileName(NULL,buffer1,ArraySize(buffer1)))
             {
-              DWORD res=GetFullPathName(buffer1,sizeof(buffer2),buffer2,&filename);
-              if(res&&(res<sizeof(buffer2))&&filename)
+              DWORD res=GetFullPathName(buffer1,ArraySize(buffer2),buffer2,&filename);
+              if(res&&(res<ArraySize(buffer2))&&filename)
               {
                 if(filename>buffer2) *(filename-1)=0;
                 if(Info.ControlShort(INVALID_HANDLE_VALUE,FCTL_SETPANELDIR,(SECOND_PARAM)buffer2)) restore=true;

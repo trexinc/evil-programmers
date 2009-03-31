@@ -17,7 +17,7 @@
 */
 
 #include <stdio.h>
-#include "plugin.hpp"
+#include "far_helper.h"
 #include "farkeys.hpp"
 #include "bcplugin.h"
 #include "memory.h"
@@ -64,7 +64,7 @@ static bool add_macro(int index,const TCHAR *KeyIn,const TCHAR *Path)
     if(ValueBuffer[0])
     {
       int SeqSize=(int)_tcslen(ValueBuffer)+1; TCHAR *Seq;
-      Seq=(TCHAR *)malloc(SeqSize);
+      Seq=(TCHAR *)malloc(SeqSize*sizeof(TCHAR));
       if(Seq)
       {
         Seq[0]=0;
@@ -103,7 +103,7 @@ void load_macros_2(const TCHAR *registry)
       LONG Result;
       for(j=0;;j++)
       {
-        Result=RegEnumKey(hKey,j,NameBuffer,sizeof(NameBuffer));
+        Result=RegEnumKey(hKey,j,NameBuffer,ArraySize(NameBuffer));
         if(Result==ERROR_NO_MORE_ITEMS)
           break;
         if(Result==ERROR_SUCCESS)

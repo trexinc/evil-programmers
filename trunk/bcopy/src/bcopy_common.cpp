@@ -68,13 +68,13 @@ void UNCPath(TCHAR *path)
   {
     if((_tcslen(path)>2)&&(path[1]==':'))
     {
-      device[0]=path[0]; size=sizeof(buff);
+      device[0]=path[0]; size=ArraySize(buff);
       if(WNetGetConnection(device,buff,&size)==NO_ERROR)
       {
         t_CharToOem(buff,oem_buff);
         MY_COMBINE_PATH
       }
-      else if(QueryDosDevice(device,buff,sizeof(buff)))
+      else if(QueryDosDevice(device,buff,ArraySize(buff)))
         if(!_tcsncmp(buff,_T("\\??\\"),4))
         {
           t_CharToOem(buff+4,oem_buff);
@@ -84,9 +84,9 @@ void UNCPath(TCHAR *path)
   }
   //extract symlinks only for local disk
   if((_tcslen(path)>2)&&(path[1]==':'))
-    if((unsigned int)FSF.ConvertNameToReal(path,NULL,0)<sizeof(buff))
+    if((unsigned int)FSF.ConvertNameToReal(path,NULL,0)<ArraySize(buff))
     {
-      FSF.ConvertNameToReal(path,buff,sizeof(buff));
+      FSF.ConvertNameToReal(path,buff,ArraySize(buff));
       _tcscpy(path,buff);
     }
   for(unsigned int i=0;i<_tcslen(path);i++) if(path[i]=='/') path[i]='\\';

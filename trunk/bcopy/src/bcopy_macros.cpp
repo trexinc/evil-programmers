@@ -156,7 +156,9 @@ void free_macros(void)
 bool run_macro(int index,DWORD Key) //FIXME: remove after far release
 {
   bool result=false;
+#ifndef UNICODE
   if(FarBuild>=1700)
+#endif
   {
     result=run_macro_2(index,Key);
   }
