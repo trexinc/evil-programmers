@@ -3,15 +3,20 @@
   int i;
 
   files=(FileRec *)(send+3);
-  for(i=0;i<PInfo.SelectedItemsNumber;i++)
+  for(i=0;i<pInfo.SelectedItemsNumber();i++)
   {
-    if(PInfo.Plugin)
+    if(pInfo.Plugin())
     {
-      MultiByteToWideChar(CP_OEMCP,0,PInfo.SelectedItems[i].FindData.cFileName,-1,files[i].name,MAX_PATH);
-      if(PInfo.SelectedItems[i].FindData.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)
+#ifdef UNICODE
+      _tcsncpy(files[i].name,pInfo.Selected(i).FindData.PANEL_FILENAME,MAX_PATH-1);
+      files[i].name[MAX_PATH-1]=0;
+#else
+      MultiByteToWideChar(CP_OEMCP,0,pInfo.Selected(i).FindData.PANEL_FILENAME,-1,files[i].name,MAX_PATH);
+#endif
+      if(pInfo.Selected(i).FindData.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)
       {
         files[i].type=FILETYPE_FOLDER;
-        if(PInfo.SelectedItems[i].FindData.dwFileAttributes&FILE_ATTRIBUTE_REPARSE_POINT)
+        if(pInfo.Selected(i).FindData.dwFileAttributes&FILE_ATTRIBUTE_REPARSE_POINT)
           files[i].type|=FILETYPE_JUNCTION;
         wchar_t TestSrcW[MAX_PATH];
         wcscpy(TestSrcW,files[i].name);
@@ -22,14 +27,19 @@
         files[i].type=FILETYPE_FILE;
       continue;
     }
-    const char *RealFileName=GetRealName(&(PInfo.SelectedItems[i].FindData));
-    char FileNameA[MAX_PATH]; wchar_t FileNameW[MAX_PATH]; WIN32_FIND_DATAW find;
+    const TCHAR *RealFileName=GetRealName(&(pInfo.Selected(i).FindData));
+    TCHAR FileNameA[MAX_PATH]; wchar_t FileNameW[MAX_PATH]; WIN32_FIND_DATAW find;
     files[i].type=FILETYPE_UNKNOWN;
     if(RealFileName)
     {
-      strcpy(FileNameA,SrcA);
-      strcat(FileNameA,RealFileName);
+      _tcscpy(FileNameA,SrcA);
+      _tcscat(FileNameA,RealFileName);
+#ifdef UNICODE
+      _tcsncpy(FileNameW,FileNameA,MAX_PATH-1);
+      FileNameW[MAX_PATH-1]=0;
+#else
       MultiByteToWideChar(CP_OEMCP,0,FileNameA,-1,FileNameW,MAX_PATH);
+#endif
       HANDLE hFind=FindFirstFileW(FileNameW,&find);
       if(hFind!=INVALID_HANDLE_VALUE)
       {
@@ -77,14 +87,14 @@
       wcscat(move_source,files[0].name);
       if(!MoveFileExW(move_source,DEST_W,0))
       {
-        const char *MsgItems[]={GetMsg(mError),GetMsg(mOk)};
+        const TCHAR *MsgItems[]={GetMsg(mError),GetMsg(mOk)};
         Info.Message(Info.ModuleNumber,FMSG_WARNING|FMSG_ERRORTYPE,NULL,MsgItems,sizeofa(MsgItems),1);
         ON_ERROR
       }
       else
       {
-        Info.Control(INVALID_HANDLE_VALUE,FCTL_UPDATEPANEL,NULL);
-        Info.Control(INVALID_HANDLE_VALUE,FCTL_REDRAWPANEL,NULL);
+        Info.ControlShort(INVALID_HANDLE_VALUE,FCTL_UPDATEPANEL,NULL);
+        Info.ControlShort(INVALID_HANDLE_VALUE,FCTL_REDRAWPANEL,NULL);
       }
     }
   }
@@ -160,10 +170,10 @@
 
     SendToPipe(send,sendsize,&RetData);
     //clear selection
-    for(int j=0;j<PInfo.ItemsNumber;j++)
-      PInfo.PanelItems[j].Flags&=~PPIF_SELECTED;
-    Info.Control(INVALID_HANDLE_VALUE,FCTL_SETSELECTION,&PInfo);
-    Info.Control(INVALID_HANDLE_VALUE,FCTL_REDRAWPANEL,NULL);
+    for(int j=0;j<pInfo.ItemsNumber();j++)
+      pInfo.RemoveSelection(j);
+    pInfo.CommitSelection();
+    Info.ControlShort(INVALID_HANDLE_VALUE,FCTL_REDRAWPANEL,NULL);
     //show info dialog
     if(PlgOpt.AutoShowInfo)
       ShowInfoDialog(&RetData);

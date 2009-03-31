@@ -220,8 +220,8 @@ enum {
 
 struct CopyDialogData
 {
-  char CopyMessage[512];
-  char MoveMessage[512];
+  TCHAR CopyMessage[512];
+  TCHAR MoveMessage[512];
   BOOL SrcRO;
   BOOL DstRO;
   BOOL Macro;
@@ -240,7 +240,7 @@ struct InitDialogItem
   DWORD_PTR Selected;
   unsigned int Flags;
   int DefaultButton;
-  const char *Data;
+  const TCHAR *Data;
 };
 
 struct Options
@@ -286,9 +286,9 @@ extern PluginStartupInfo Info;
 extern FARSTANDARDFUNCTIONS FSF;
 
 extern void InitDialogItems(InitDialogItem *Init,FarDialogItem *Item,int ItemsNumber);
-extern const char *GetMsg(int MsgId);
-extern void UNCPath(char *path);
-extern void NormalizeName(int width,int msg,char *filename,char *dest);
+extern const TCHAR *GetMsg(int MsgId);
+extern void UNCPath(TCHAR *path);
+extern void NormalizeName(int width,int msg,TCHAR *filename,TCHAR *dest);
 extern void NormalizeNameW(int width,int msg,wchar_t *filename,wchar_t *dest);
 extern wchar_t *TruncPathStrW(wchar_t *Str,int MaxLength);
 extern void ShowError(int Message,bool SysError);
@@ -309,11 +309,11 @@ extern void WINAPI _export ShowInfoMenu(void);
 extern bool SelectColor(int *fg,int *bg);
 extern void ShowName(const wchar_t *Name);
 
-extern void load_macros(const char *registry);
+extern void load_macros(const TCHAR *registry);
 extern void free_macros(void);
 extern bool run_macro(int index,DWORD Key);
 
-extern void load_macros_2(const char *registry);
+extern void load_macros_2(const TCHAR *registry);
 extern void free_macros_2(void);
 extern bool run_macro_2(int index,DWORD Key);
 

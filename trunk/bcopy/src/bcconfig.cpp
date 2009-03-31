@@ -68,11 +68,6 @@ enum
   CONFIGDLG3_SEP,
   CONFIGDLG3_SAVE,
   CONFIGDLG3_CANCEL
-/*
-  ,
-  CONFIGDLG3_SETPWD,
-  CONFIGDLG3_CLEARPWD
-*/
 };
 
 static LONG_PTR WINAPI Config2DialogProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2);
@@ -87,13 +82,21 @@ struct ComboPos
 static int Config()
 {
   FarMenuItem MenuItems[3];
+#ifdef UNICODE
+  TCHAR ItemText[3][128];
+#endif
   memset(MenuItems,0,sizeof(MenuItems));
   int Msgs[]={mConfigMenu1,mConfigMenu2,mConfigMenu3};
 
   for(unsigned int i=0;i<sizeofa(MenuItems);i++)
   {
     MenuItems[i].Checked=MenuItems[i].Separator=0;
-    strcpy(MenuItems[i].Text,GetMsg(Msgs[i]));
+#ifdef UNICODE
+    _tcscpy(ItemText[i],GetMsg(Msgs[i]));
+    MenuItems[i].Text=ItemText[i];
+#else
+    _tcscpy(MenuItems[i].Text,GetMsg(Msgs[i])); // Text in menu
+#endif
   };
   int MenuCode=0;
   while(TRUE)
@@ -102,7 +105,7 @@ static int Config()
       MenuItems[i].Selected=0;
     MenuItems[MenuCode].Selected=TRUE;
     // Show menu
-    MenuCode=Info.Menu(Info.ModuleNumber,-1,-1,0,FMENU_WRAPMODE,GetMsg(mName),NULL,"Config",NULL,NULL,MenuItems,sizeofa(MenuItems));
+    MenuCode=Info.Menu(Info.ModuleNumber,-1,-1,0,FMENU_WRAPMODE,GetMsg(mName),NULL,_T("Config"),NULL,NULL,MenuItems,sizeofa(MenuItems));
     if(MenuCode==-1)
       break;
     else if(MenuCode==0)
@@ -138,45 +141,50 @@ static int Config()
       */
 
       static struct InitDialogItem InitItems[]={
-      /* 0*/  {DI_DOUBLEBOX,3,1,72,23,0,0,0,0,(char *)mName},
-      /* 1*/  {DI_CHECKBOX,5,2,0,0,1,0,0,0,(char *)mConfigHistory},
-      /* 2*/  {DI_CHECKBOX,5,3,0,0,0,0,0,0,(char *)mConfigFullInfo},
+      /* 0*/  {DI_DOUBLEBOX,3,1,72,23,0,0,0,0,(TCHAR *)mName},
+      /* 1*/  {DI_CHECKBOX,5,2,0,0,1,0,0,0,(TCHAR *)mConfigHistory},
+      /* 2*/  {DI_CHECKBOX,5,3,0,0,0,0,0,0,(TCHAR *)mConfigFullInfo},
 
-      /* 3*/  {DI_TEXT,-1,4,0,0,0,0,DIF_SEPARATOR,0,""},
-      /* 4*/  {DI_RADIOBUTTON,5,5,0,0,0,0,DIF_GROUP,0,(char *)mCpyDlgOpt1},
-      /* 5*/  {DI_RADIOBUTTON,5,6,0,0,0,0,0,0,(char *)mCpyDlgOpt2},
-      /* 6*/  {DI_RADIOBUTTON,5,7,0,0,0,0,0,0,(char *)mCpyDlgOpt3},
-      /* 7*/  {DI_RADIOBUTTON,5,8,0,0,0,0,0,0,(char *)mCpyDlgOpt4},
-      /* 8*/  {DI_RADIOBUTTON,5,9,0,0,0,0,0,0,(char *)mCpyDlgAsk},
-      /* 9*/  {DI_CHECKBOX,5,11,0,0,0,0,0,0,(char *)mCpyDlgChkAccess},
-      /*10*/  {DI_CHECKBOX,5,12,0,0,0,0,0,0,(char *)mCpyDlgChk2},
-      /*11*/  {DI_CHECKBOX,5,13,0,0,0,0,0,0,(char *)mCpyDlgChk3},
-      /*12*/  {DI_CHECKBOX,5,14,0,0,0,0,DIF_3STATE,0,(char *)mCpyDlgChk4},
-      /*13*/  {DI_CHECKBOX,5,15,0,0,0,0,DIF_3STATE,0,(char *)mCpyDlgChkLink},
+      /* 3*/  {DI_TEXT,-1,4,0,0,0,0,DIF_SEPARATOR,0,_T("")},
+      /* 4*/  {DI_RADIOBUTTON,5,5,0,0,0,0,DIF_GROUP,0,(TCHAR *)mCpyDlgOpt1},
+      /* 5*/  {DI_RADIOBUTTON,5,6,0,0,0,0,0,0,(TCHAR *)mCpyDlgOpt2},
+      /* 6*/  {DI_RADIOBUTTON,5,7,0,0,0,0,0,0,(TCHAR *)mCpyDlgOpt3},
+      /* 7*/  {DI_RADIOBUTTON,5,8,0,0,0,0,0,0,(TCHAR *)mCpyDlgOpt4},
+      /* 8*/  {DI_RADIOBUTTON,5,9,0,0,0,0,0,0,(TCHAR *)mCpyDlgAsk},
+      /* 9*/  {DI_CHECKBOX,5,11,0,0,0,0,0,0,(TCHAR *)mCpyDlgChkAccess},
+      /*10*/  {DI_CHECKBOX,5,12,0,0,0,0,0,0,(TCHAR *)mCpyDlgChk2},
+      /*11*/  {DI_CHECKBOX,5,13,0,0,0,0,0,0,(TCHAR *)mCpyDlgChk3},
+      /*12*/  {DI_CHECKBOX,5,14,0,0,0,0,DIF_3STATE,0,(TCHAR *)mCpyDlgChk4},
+      /*13*/  {DI_CHECKBOX,5,15,0,0,0,0,DIF_3STATE,0,(TCHAR *)mCpyDlgChkLink},
 
-      /*14*/  {DI_TEXT,-1,16,0,0,0,0,DIF_SEPARATOR,0,""},
-      /*15*/  {DI_CHECKBOX,5,17,0,0,0,0,0,0,(char *)mDelDlgChk1},
-      /*16*/  {DI_CHECKBOX,5,18,0,0,0,0,DIF_3STATE,0,(char *)mConfigDelAbort},
+      /*14*/  {DI_TEXT,-1,16,0,0,0,0,DIF_SEPARATOR,0,_T("")},
+      /*15*/  {DI_CHECKBOX,5,17,0,0,0,0,0,0,(TCHAR *)mDelDlgChk1},
+      /*16*/  {DI_CHECKBOX,5,18,0,0,0,0,DIF_3STATE,0,(TCHAR *)mConfigDelAbort},
 
-      /*17*/  {DI_TEXT,-1,19,0,0,0,0,DIF_SEPARATOR,0,""},
-      /*18*/  {DI_CHECKBOX,5,20,0,0,0,0,DIF_3STATE,0,(char *)mConfigWpeAbort},
-      /*19*/  {DI_TEXT,-1,21,0,0,0,0,DIF_SEPARATOR,0,""},
-      /*20*/  {DI_BUTTON,0,22,0,0,0,0,DIF_CENTERGROUP,1,(char *)mConfigSave},
-      /*21*/  {DI_BUTTON,0,22,0,0,0,0,DIF_CENTERGROUP,0,(char *)mConfigCancel}
+      /*17*/  {DI_TEXT,-1,19,0,0,0,0,DIF_SEPARATOR,0,_T("")},
+      /*18*/  {DI_CHECKBOX,5,20,0,0,0,0,DIF_3STATE,0,(TCHAR *)mConfigWpeAbort},
+      /*19*/  {DI_TEXT,-1,21,0,0,0,0,DIF_SEPARATOR,0,_T("")},
+      /*20*/  {DI_BUTTON,0,22,0,0,0,0,DIF_CENTERGROUP,1,(TCHAR *)mConfigSave},
+      /*21*/  {DI_BUTTON,0,22,0,0,0,0,DIF_CENTERGROUP,0,(TCHAR *)mConfigCancel}
       };
 
       struct FarDialogItem DialogItems[sizeofa(InitItems)];
       InitDialogItems(InitItems,DialogItems,sizeofa(InitItems));
 
-      strcpy(DialogItems[CONFIGDLG_SEPCOPY].Data," ");
-      strcat(DialogItems[CONFIGDLG_SEPCOPY].Data,GetMsg(mCpyDlgCopyTitle));
-      strcat(DialogItems[CONFIGDLG_SEPCOPY].Data," ");
-      strcpy(DialogItems[CONFIGDLG_SEPDEL].Data," ");
-      strcat(DialogItems[CONFIGDLG_SEPDEL].Data,GetMsg(mDelDlgTitle));
-      strcat(DialogItems[CONFIGDLG_SEPDEL].Data," ");
-      strcpy(DialogItems[CONFIGDLG_SEPWIPE].Data," ");
-      strcat(DialogItems[CONFIGDLG_SEPWIPE].Data,GetMsg(mWpeDlgTitle));
-      strcat(DialogItems[CONFIGDLG_SEPWIPE].Data," ");
+      TCHAR sepcopy[512],sepdel[512],sepwipe[512];
+
+      _tcscpy(sepcopy,_T(" "));
+      _tcscat(sepcopy,GetMsg(mCpyDlgCopyTitle));
+      _tcscat(sepcopy,_T(" "));
+      INIT_DLG_DATA(DialogItems[CONFIGDLG_SEPCOPY],sepcopy);
+      _tcscpy(sepdel,_T(" "));
+      _tcscat(sepdel,GetMsg(mDelDlgTitle));
+      _tcscat(sepdel,_T(" "));
+      INIT_DLG_DATA(DialogItems[CONFIGDLG_SEPDEL],sepdel);
+      _tcscpy(sepwipe,_T(" "));
+      _tcscat(sepwipe,GetMsg(mWpeDlgTitle));
+      _tcscat(sepwipe,_T(" "));
+      INIT_DLG_DATA(DialogItems[CONFIGDLG_SEPWIPE],sepwipe);
       DialogItems[CONFIGDLG_HISTORY].Selected=Opt.CopyHistory;
       DialogItems[CONFIGDLG_FULLINFO].Selected=Opt.CopyFullInfo;
       DialogItems[CONFIGDLG_OVERWRITE+Opt.CopyType].Selected=1;
@@ -191,40 +199,41 @@ static int Config()
 
       DialogItems[CONFIGDLG_WIPEABORT].Selected=Opt.WipeAbort;
 
-      int DlgCode=Info.DialogEx(Info.ModuleNumber,-1,-1,76,25,"Config1",DialogItems,sizeofa(DialogItems),0,0,Config1DialogProc,0);
+      CFarDialog dialog;
+      int DlgCode=dialog.Execute(Info.ModuleNumber,-1,-1,76,25,_T("Config1"),DialogItems,sizeofa(DialogItems),0,0,Config1DialogProc,0);
       if(DlgCode==CONFIGDLG_SAVE)
       {
         Opt.CopyType=0;
         int i=CONFIGDLG_OVERWRITE;
-        while(!DialogItems[i].Selected) {i++; Opt.CopyType++;}
-        Opt.CopyHistory=DialogItems[CONFIGDLG_HISTORY].Selected;
-        Opt.CopyFullInfo=DialogItems[CONFIGDLG_FULLINFO].Selected;
-        Opt.CopyAccess=DialogItems[CONFIGDLG_ACCESS].Selected;
-        Opt.CopyROSrc=DialogItems[CONFIGDLG_ROSRC].Selected;
-        Opt.CopyRODest=DialogItems[CONFIGDLG_RODST].Selected;
-        Opt.CopyAbort=DialogItems[CONFIGDLG_ABORT].Selected;
-        Opt.CopyLink=DialogItems[CONFIGDLG_LINK].Selected;
+        while(!dialog.Check(i)) {i++; Opt.CopyType++;}
+        Opt.CopyHistory=dialog.Check(CONFIGDLG_HISTORY);
+        Opt.CopyFullInfo=dialog.Check(CONFIGDLG_FULLINFO);
+        Opt.CopyAccess=dialog.Check(CONFIGDLG_ACCESS);
+        Opt.CopyROSrc=dialog.Check(CONFIGDLG_ROSRC);
+        Opt.CopyRODest=dialog.Check(CONFIGDLG_RODST);
+        Opt.CopyAbort=dialog.Check(CONFIGDLG_ABORT);
+        Opt.CopyLink=dialog.Check(CONFIGDLG_LINK);
 
-        Opt.DeleteRO=DialogItems[CONFIGDLG_DELRO].Selected;
-        Opt.DeleteAbort=DialogItems[CONFIGDLG_DELABORT].Selected;
+        Opt.DeleteRO=dialog.Check(CONFIGDLG_DELRO);
+        Opt.DeleteAbort=dialog.Check(CONFIGDLG_DELABORT);
 
-        Opt.WipeAbort=DialogItems[CONFIGDLG_WIPEABORT].Selected;
+        Opt.WipeAbort=dialog.Check(CONFIGDLG_WIPEABORT);
 
         HKEY hKey;
         DWORD Disposition;
         if((RegCreateKeyEx(HKEY_CURRENT_USER,PluginRootKey,0,NULL,0,KEY_WRITE,NULL,&hKey,&Disposition))==ERROR_SUCCESS)
         {
-          RegSetValueEx(hKey,"CopyType",0,REG_DWORD,(LPBYTE)&Opt.CopyType,sizeof(Opt.CopyType));
-          RegSetValueEx(hKey,"CopyHistory",0,REG_DWORD,(LPBYTE)&Opt.CopyHistory,sizeof(Opt.CopyHistory));
-          RegSetValueEx(hKey,"CopyROSrc",0,REG_DWORD,(LPBYTE)&Opt.CopyROSrc,sizeof(Opt.CopyROSrc));
-          RegSetValueEx(hKey,"CopyRODest",0,REG_DWORD,(LPBYTE)&Opt.CopyRODest,sizeof(Opt.CopyRODest));
-          RegSetValueEx(hKey,"CopyAbort",0,REG_DWORD,(LPBYTE)&Opt.CopyAbort,sizeof(Opt.CopyAbort));
-          RegSetValueEx(hKey,"CopyLink",0,REG_DWORD,(LPBYTE)&Opt.CopyLink,sizeof(Opt.CopyLink));
-          RegSetValueEx(hKey,"CopyFullInfo",0,REG_DWORD,(LPBYTE)&Opt.CopyFullInfo,sizeof(Opt.CopyFullInfo));
-          RegSetValueEx(hKey,"CopyAccess",0,REG_DWORD,(LPBYTE)&Opt.CopyAccess,sizeof(Opt.CopyAccess));
-          RegSetValueEx(hKey,"DeleteRO",0,REG_DWORD,(LPBYTE)&Opt.DeleteRO,sizeof(Opt.DeleteRO));
-          RegSetValueEx(hKey,"DeleteAbort",0,REG_DWORD,(LPBYTE)&Opt.DeleteAbort,sizeof(Opt.DeleteAbort));
-          RegSetValueEx(hKey,"WipeAbort",0,REG_DWORD,(LPBYTE)&Opt.WipeAbort,sizeof(Opt.WipeAbort));
+          RegSetValueEx(hKey,_T("CopyType"),0,REG_DWORD,(LPBYTE)&Opt.CopyType,sizeof(Opt.CopyType));
+          RegSetValueEx(hKey,_T("CopyHistory"),0,REG_DWORD,(LPBYTE)&Opt.CopyHistory,sizeof(Opt.CopyHistory));
+          RegSetValueEx(hKey,_T("CopyROSrc"),0,REG_DWORD,(LPBYTE)&Opt.CopyROSrc,sizeof(Opt.CopyROSrc));
+          RegSetValueEx(hKey,_T("CopyRODest"),0,REG_DWORD,(LPBYTE)&Opt.CopyRODest,sizeof(Opt.CopyRODest));
+          RegSetValueEx(hKey,_T("CopyAbort"),0,REG_DWORD,(LPBYTE)&Opt.CopyAbort,sizeof(Opt.CopyAbort));
+          RegSetValueEx(hKey,_T("CopyLink"),0,REG_DWORD,(LPBYTE)&Opt.CopyLink,sizeof(Opt.CopyLink));
+          RegSetValueEx(hKey,_T("CopyFullInfo"),0,REG_DWORD,(LPBYTE)&Opt.CopyFullInfo,sizeof(Opt.CopyFullInfo));
+          RegSetValueEx(hKey,_T("CopyAccess"),0,REG_DWORD,(LPBYTE)&Opt.CopyAccess,sizeof(Opt.CopyAccess));
+          RegSetValueEx(hKey,_T("DeleteRO"),0,REG_DWORD,(LPBYTE)&Opt.DeleteRO,sizeof(Opt.DeleteRO));
+          RegSetValueEx(hKey,_T("DeleteAbort"),0,REG_DWORD,(LPBYTE)&Opt.DeleteAbort,sizeof(Opt.DeleteAbort));
+          RegSetValueEx(hKey,_T("WipeAbort"),0,REG_DWORD,(LPBYTE)&Opt.WipeAbort,sizeof(Opt.WipeAbort));
           RegCloseKey(hKey);
         }
       }
@@ -262,29 +271,29 @@ static int Config()
         0123456789012345678901234567890123456789012345678901234567890123456789012345
       */
       static struct InitDialogItem InitItems[]={
-      /* 0*/  {DI_DOUBLEBOX,3,1,72,22,0,0,0,0,(char *)mName},
-      /* 1*/  {DI_CHECKBOX,5,2,0,0,1,0,0,0,(char *)mConfigAutostart},
-      /* 2*/  {DI_TEXT,-1,3,0,0,0,0,DIF_SEPARATOR,0,""},
-      /* 3*/  {DI_CHECKBOX,5,4,0,0,0,0,0,0,(char *)mConfigConfigMenu},
-      /* 4*/  {DI_CHECKBOX,5,5,0,0,0,0,0,0,(char *)mConfigViewerMenu},
-      /* 5*/  {DI_CHECKBOX,5,6,0,0,0,0,0,0,(char *)mConfigEditorMenu},
-      /* 5*/  {DI_CHECKBOX,5,7,0,0,0,0,0,0,(char *)mConfigDialogMenu},
-      /* 6*/  {DI_TEXT,-1,8,0,0,0,0,DIF_SEPARATOR,0,""},
-      /* 7*/  {DI_CHECKBOX,5,9,0,0,0,0,0,0,(char *)mConfigInfoEmpty},
-      /* 8*/  {DI_CHECKBOX,5,10,0,0,0,0,0,0,(char *)mConfigInfoOnly},
-      /* 9*/  {DI_TEXT,-1,11,0,0,0,0,DIF_SEPARATOR,0,""},
-      /*10*/  {DI_CHECKBOX,5,12,0,0,0,0,0,0,(char *)mComfigAutoShowInfo},
-      /*11*/  {DI_CHECKBOX,5,13,0,0,0,0,0,0,(char *)mConfigExpandVars},
-      /*12*/  {DI_CHECKBOX,5,14,0,0,0,0,0,0,(char *)mConfigPassive},
-      /*13*/  {DI_CHECKBOX,5,15,0,0,0,0,0,0,(char *)mConfigFormatSize},
-      /*14*/  {DI_CHECKBOX,5,16,0,0,0,0,0,0,(char *)mConfigCurrentTime},
-      /*15*/  {DI_CHECKBOX,5,17,0,0,0,0,0,0,(char *)mConfigConfirmAbort},
-      /*16*/  {DI_CHECKBOX,5,18,0,0,0,0,0,0,(char *)mConfigAutoRefresh},
-      /*17*/  {DI_CHECKBOX,5,19,0,0,0,0,0,0,(char *)mConfigResolveDestination},
-      /*18*/  {DI_TEXT,-1,20,0,0,0,0,DIF_SEPARATOR,0,""},
-      /*19*/  {DI_BUTTON,0,21,0,0,0,0,DIF_CENTERGROUP,1,(char *)mConfigSave},
-      /*20*/  {DI_BUTTON,0,21,0,0,0,0,DIF_CENTERGROUP,0,(char *)mConfigCancel},
-      /*21*/  {DI_BUTTON,0,21,0,0,0,0,DIF_CENTERGROUP|DIF_BTNNOCLOSE,0,(char *)mColorMain}
+      /* 0*/  {DI_DOUBLEBOX,3,1,72,22,0,0,0,0,(TCHAR *)mName},
+      /* 1*/  {DI_CHECKBOX,5,2,0,0,1,0,0,0,(TCHAR *)mConfigAutostart},
+      /* 2*/  {DI_TEXT,-1,3,0,0,0,0,DIF_SEPARATOR,0,_T("")},
+      /* 3*/  {DI_CHECKBOX,5,4,0,0,0,0,0,0,(TCHAR *)mConfigConfigMenu},
+      /* 4*/  {DI_CHECKBOX,5,5,0,0,0,0,0,0,(TCHAR *)mConfigViewerMenu},
+      /* 5*/  {DI_CHECKBOX,5,6,0,0,0,0,0,0,(TCHAR *)mConfigEditorMenu},
+      /* 5*/  {DI_CHECKBOX,5,7,0,0,0,0,0,0,(TCHAR *)mConfigDialogMenu},
+      /* 6*/  {DI_TEXT,-1,8,0,0,0,0,DIF_SEPARATOR,0,_T("")},
+      /* 7*/  {DI_CHECKBOX,5,9,0,0,0,0,0,0,(TCHAR *)mConfigInfoEmpty},
+      /* 8*/  {DI_CHECKBOX,5,10,0,0,0,0,0,0,(TCHAR *)mConfigInfoOnly},
+      /* 9*/  {DI_TEXT,-1,11,0,0,0,0,DIF_SEPARATOR,0,_T("")},
+      /*10*/  {DI_CHECKBOX,5,12,0,0,0,0,0,0,(TCHAR *)mComfigAutoShowInfo},
+      /*11*/  {DI_CHECKBOX,5,13,0,0,0,0,0,0,(TCHAR *)mConfigExpandVars},
+      /*12*/  {DI_CHECKBOX,5,14,0,0,0,0,0,0,(TCHAR *)mConfigPassive},
+      /*13*/  {DI_CHECKBOX,5,15,0,0,0,0,0,0,(TCHAR *)mConfigFormatSize},
+      /*14*/  {DI_CHECKBOX,5,16,0,0,0,0,0,0,(TCHAR *)mConfigCurrentTime},
+      /*15*/  {DI_CHECKBOX,5,17,0,0,0,0,0,0,(TCHAR *)mConfigConfirmAbort},
+      /*16*/  {DI_CHECKBOX,5,18,0,0,0,0,0,0,(TCHAR *)mConfigAutoRefresh},
+      /*17*/  {DI_CHECKBOX,5,19,0,0,0,0,0,0,(TCHAR *)mConfigResolveDestination},
+      /*18*/  {DI_TEXT,-1,20,0,0,0,0,DIF_SEPARATOR,0,_T("")},
+      /*19*/  {DI_BUTTON,0,21,0,0,0,0,DIF_CENTERGROUP,1,(TCHAR *)mConfigSave},
+      /*20*/  {DI_BUTTON,0,21,0,0,0,0,DIF_CENTERGROUP,0,(TCHAR *)mConfigCancel},
+      /*21*/  {DI_BUTTON,0,21,0,0,0,0,DIF_CENTERGROUP|DIF_BTNNOCLOSE,0,(TCHAR *)mColorMain}
       };
       struct FarDialogItem DialogItems[sizeofa(InitItems)];
       InitDialogItems(InitItems,DialogItems,sizeofa(InitItems));
@@ -303,51 +312,54 @@ static int Config()
       DialogItems[CONFIGDLG2_CONFIRMABORT].Selected=PlgOpt.ConfirmAbort;
       DialogItems[CONFIGDLG2_AUTOREFRESH].Selected=PlgOpt.AutoRefresh;
       DialogItems[CONFIGDLG2_RESOLVEDESTINATION].Selected=PlgOpt.ResolveDestination;
-      strcpy(DialogItems[CONFIGDLG2_SEP2].Data," ");
-      strcat(DialogItems[CONFIGDLG2_SEP2].Data,GetMsg(mConfigInfo));
-      strcat(DialogItems[CONFIGDLG2_SEP2].Data," ");
+      TCHAR sepinfo[512];
+      _tcscpy(sepinfo,_T(" "));
+      _tcscat(sepinfo,GetMsg(mConfigInfo));
+      _tcscat(sepinfo,_T(" "));
+      INIT_DLG_DATA(DialogItems[CONFIGDLG2_SEP2],sepinfo);
 
-      int DlgCode=Info.DialogEx(Info.ModuleNumber,-1,-1,76,24,"Config2",DialogItems,sizeofa(DialogItems),0,0,Config2DialogProc,0);
+      CFarDialog dialog;
+      int DlgCode=dialog.Execute(Info.ModuleNumber,-1,-1,76,24,_T("Config2"),DialogItems,sizeofa(DialogItems),0,0,Config2DialogProc,0);
       if(DlgCode==CONFIGDLG2_SAVE)
       {
-        PlgOpt.AutoStart=DialogItems[CONFIGDLG2_AUTOSTART].Selected;
+        PlgOpt.AutoStart=dialog.Check(CONFIGDLG2_AUTOSTART);
         PlgOpt.ShowMenu=0;
-        if(DialogItems[CONFIGDLG2_CONFIGMENU].Selected)
+        if(dialog.Check(CONFIGDLG2_CONFIGMENU))
           PlgOpt.ShowMenu|=SHOW_IN_CONFIG;
-        if(DialogItems[CONFIGDLG2_VIEWERMENU].Selected)
+        if(dialog.Check(CONFIGDLG2_VIEWERMENU))
           PlgOpt.ShowMenu|=SHOW_IN_VIEWER;
-        if(DialogItems[CONFIGDLG2_EDITORMENU].Selected)
+        if(dialog.Check(CONFIGDLG2_EDITORMENU))
           PlgOpt.ShowMenu|=SHOW_IN_EDITOR;
-        if(DialogItems[CONFIGDLG2_DIALOGMENU].Selected)
+        if(dialog.Check(CONFIGDLG2_DIALOGMENU))
           PlgOpt.ShowMenu|=SHOW_IN_DIALOG;
         PlgOpt.InfoMenu=0;
-        if(DialogItems[CONFIGDLG2_INFOEMPTY].Selected)
+        if(dialog.Check(CONFIGDLG2_INFOEMPTY))
           PlgOpt.InfoMenu|=INFO_MENU_ALT_0;
-        if(DialogItems[CONFIGDLG2_INFOONLY].Selected)
+        if(dialog.Check(CONFIGDLG2_INFOONLY))
           PlgOpt.InfoMenu|=INFO_MENU_ALT_1;
-        PlgOpt.AutoShowInfo=DialogItems[CONFIGDLG2_AUTOSHOWINFO].Selected;
-        PlgOpt.ExpandVars=DialogItems[CONFIGDLG2_EXPANDVARS].Selected;
-        PlgOpt.CheckPassive=DialogItems[CONFIGDLG2_PASSIVE].Selected;
-        PlgOpt.FormatSize=DialogItems[CONFIGDLG2_FORMATSIZE].Selected;
-        PlgOpt.CurrentTime=DialogItems[CONFIGDLG2_CURRENTTIME].Selected;
-        PlgOpt.ConfirmAbort=DialogItems[CONFIGDLG2_CONFIRMABORT].Selected;
-        PlgOpt.AutoRefresh=DialogItems[CONFIGDLG2_AUTOREFRESH].Selected;
-        PlgOpt.ResolveDestination=DialogItems[CONFIGDLG2_RESOLVEDESTINATION].Selected;
+        PlgOpt.AutoShowInfo=dialog.Check(CONFIGDLG2_AUTOSHOWINFO);
+        PlgOpt.ExpandVars=dialog.Check(CONFIGDLG2_EXPANDVARS);
+        PlgOpt.CheckPassive=dialog.Check(CONFIGDLG2_PASSIVE);
+        PlgOpt.FormatSize=dialog.Check(CONFIGDLG2_FORMATSIZE);
+        PlgOpt.CurrentTime=dialog.Check(CONFIGDLG2_CURRENTTIME);
+        PlgOpt.ConfirmAbort=dialog.Check(CONFIGDLG2_CONFIRMABORT);
+        PlgOpt.AutoRefresh=dialog.Check(CONFIGDLG2_AUTOREFRESH);
+        PlgOpt.ResolveDestination=dialog.Check(CONFIGDLG2_RESOLVEDESTINATION);
         HKEY hKey;
         DWORD Disposition;
         if((RegCreateKeyEx(HKEY_CURRENT_USER,PluginRootKey,0,NULL,0,KEY_WRITE,NULL,&hKey,&Disposition))==ERROR_SUCCESS)
         {
-          RegSetValueEx(hKey,"TechAutoStart",0,REG_DWORD,(LPBYTE)&PlgOpt.AutoStart,sizeof(PlgOpt.AutoStart));
-          RegSetValueEx(hKey,"TechShowMenu",0,REG_DWORD,(LPBYTE)&PlgOpt.ShowMenu,sizeof(PlgOpt.ShowMenu));
-          RegSetValueEx(hKey,"TechInfoMenu",0,REG_DWORD,(LPBYTE)&PlgOpt.InfoMenu,sizeof(PlgOpt.InfoMenu));
-          RegSetValueEx(hKey,"TechExpandVars",0,REG_DWORD,(LPBYTE)&PlgOpt.ExpandVars,sizeof(PlgOpt.ExpandVars));
-          RegSetValueEx(hKey,"TechCheckPassive",0,REG_DWORD,(LPBYTE)&PlgOpt.CheckPassive,sizeof(PlgOpt.CheckPassive));
-          RegSetValueEx(hKey,"TechFormatSize",0,REG_DWORD,(LPBYTE)&PlgOpt.FormatSize,sizeof(PlgOpt.FormatSize));
-          RegSetValueEx(hKey,"TechAutoShowInfo",0,REG_DWORD,(LPBYTE)&PlgOpt.AutoShowInfo,sizeof(PlgOpt.AutoShowInfo));
-          RegSetValueEx(hKey,"TechConfirmAbort",0,REG_DWORD,(LPBYTE)&PlgOpt.ConfirmAbort,sizeof(PlgOpt.ConfirmAbort));
-          RegSetValueEx(hKey,"TechCurrentTime",0,REG_DWORD,(LPBYTE)&PlgOpt.CurrentTime,sizeof(PlgOpt.CurrentTime));
-          RegSetValueEx(hKey,"TechAutoRefresh",0,REG_DWORD,(LPBYTE)&PlgOpt.AutoRefresh,sizeof(PlgOpt.AutoRefresh));
-          RegSetValueEx(hKey,"TechResolveDestination",0,REG_DWORD,(LPBYTE)&PlgOpt.ResolveDestination,sizeof(PlgOpt.ResolveDestination));
+          RegSetValueEx(hKey,_T("TechAutoStart"),0,REG_DWORD,(LPBYTE)&PlgOpt.AutoStart,sizeof(PlgOpt.AutoStart));
+          RegSetValueEx(hKey,_T("TechShowMenu"),0,REG_DWORD,(LPBYTE)&PlgOpt.ShowMenu,sizeof(PlgOpt.ShowMenu));
+          RegSetValueEx(hKey,_T("TechInfoMenu"),0,REG_DWORD,(LPBYTE)&PlgOpt.InfoMenu,sizeof(PlgOpt.InfoMenu));
+          RegSetValueEx(hKey,_T("TechExpandVars"),0,REG_DWORD,(LPBYTE)&PlgOpt.ExpandVars,sizeof(PlgOpt.ExpandVars));
+          RegSetValueEx(hKey,_T("TechCheckPassive"),0,REG_DWORD,(LPBYTE)&PlgOpt.CheckPassive,sizeof(PlgOpt.CheckPassive));
+          RegSetValueEx(hKey,_T("TechFormatSize"),0,REG_DWORD,(LPBYTE)&PlgOpt.FormatSize,sizeof(PlgOpt.FormatSize));
+          RegSetValueEx(hKey,_T("TechAutoShowInfo"),0,REG_DWORD,(LPBYTE)&PlgOpt.AutoShowInfo,sizeof(PlgOpt.AutoShowInfo));
+          RegSetValueEx(hKey,_T("TechConfirmAbort"),0,REG_DWORD,(LPBYTE)&PlgOpt.ConfirmAbort,sizeof(PlgOpt.ConfirmAbort));
+          RegSetValueEx(hKey,_T("TechCurrentTime"),0,REG_DWORD,(LPBYTE)&PlgOpt.CurrentTime,sizeof(PlgOpt.CurrentTime));
+          RegSetValueEx(hKey,_T("TechAutoRefresh"),0,REG_DWORD,(LPBYTE)&PlgOpt.AutoRefresh,sizeof(PlgOpt.AutoRefresh));
+          RegSetValueEx(hKey,_T("TechResolveDestination"),0,REG_DWORD,(LPBYTE)&PlgOpt.ResolveDestination,sizeof(PlgOpt.ResolveDestination));
           RegCloseKey(hKey);
         }
       }
@@ -371,23 +383,21 @@ static int Config()
         01234567890123456789012345678901234567890123456789012345678901234567890123456
       */
       static struct InitDialogItem InitItems[]={
-      /*00*/  {DI_DOUBLEBOX,3,1,73,10,0,0,0,0,(char *)mName},
-      /*01*/  {DI_TEXT,5,2,0,0,0,0,0,0,(char *)mConfigMaxErrors},
-      /*02*/  {DI_FIXEDIT,0,2,0,0,1,(DWORD_PTR)"#####9",DIF_MASKEDIT,0,"20"},
-      /*03*/  {DI_TEXT,5,3,0,0,0,0,0,0,(char *)mConfigThreadCount},
-      /*04*/  {DI_FIXEDIT,0,3,0,0,0,(DWORD_PTR)"#9",DIF_MASKEDIT,0," 4"},
-      /*05*/  {DI_TEXT,5,4,0,0,0,0,0,0,(char *)mConfigQueueSize},
-      /*06*/  {DI_FIXEDIT,0,4,0,0,0,(DWORD_PTR)"#####9",DIF_MASKEDIT,0," 4"},
-      /*07*/  {DI_TEXT,5,5,0,0,0,0,0,0,(char *)mConfigWork},
-      /*08*/  {DI_COMBOBOX,0,5,71,0,0,0,DIF_DROPDOWNLIST,0,""},
-      /*09*/  {DI_TEXT,5,6,0,0,0,0,0,0,(char *)mConfigHear},
-      /*10*/  {DI_COMBOBOX,0,6,71,0,0,0,DIF_DROPDOWNLIST,0,""},
-      /*11*/  {DI_CHECKBOX,5,7,0,0,0,0,0,0,(char *)mConfigAllowNetwork},
-      /*12*/  {DI_TEXT,-1,8,0,0,0,0,DIF_SEPARATOR,0,""},
-      /*13*/  {DI_BUTTON,0,9,0,0,0,0,DIF_CENTERGROUP,1,(char *)mConfigSave},
-      /*14*/  {DI_BUTTON,0,9,0,0,0,0,DIF_CENTERGROUP,0,(char *)mConfigCancel},
-//      /*15*/  {DI_BUTTON,0,9,0,0,0,0,DIF_CENTERGROUP|DIF_BTNNOCLOSE,0,(char *)mConfigSetPassword},
-//      /*16*/  {DI_BUTTON,0,9,0,0,0,0,DIF_CENTERGROUP|DIF_BTNNOCLOSE,0,(char *)mConfigClearPassword},
+      /*00*/  {DI_DOUBLEBOX,3,1,73,10,0,0,0,0,(TCHAR *)mName},
+      /*01*/  {DI_TEXT,5,2,0,0,0,0,0,0,(TCHAR *)mConfigMaxErrors},
+      /*02*/  {DI_FIXEDIT,0,2,0,0,1,(DWORD_PTR)_T("#####9"),DIF_MASKEDIT,0,_T("20")},
+      /*03*/  {DI_TEXT,5,3,0,0,0,0,0,0,(TCHAR *)mConfigThreadCount},
+      /*04*/  {DI_FIXEDIT,0,3,0,0,0,(DWORD_PTR)_T("#9"),DIF_MASKEDIT,0,_T(" 4")},
+      /*05*/  {DI_TEXT,5,4,0,0,0,0,0,0,(TCHAR *)mConfigQueueSize},
+      /*06*/  {DI_FIXEDIT,0,4,0,0,0,(DWORD_PTR)_T("#####9"),DIF_MASKEDIT,0,_T(" 4")},
+      /*07*/  {DI_TEXT,5,5,0,0,0,0,0,0,(TCHAR *)mConfigWork},
+      /*08*/  {DI_COMBOBOX,0,5,71,0,0,0,DIF_DROPDOWNLIST,0,_T("")},
+      /*09*/  {DI_TEXT,5,6,0,0,0,0,0,0,(TCHAR *)mConfigHear},
+      /*10*/  {DI_COMBOBOX,0,6,71,0,0,0,DIF_DROPDOWNLIST,0,_T("")},
+      /*11*/  {DI_CHECKBOX,5,7,0,0,0,0,0,0,(TCHAR *)mConfigAllowNetwork},
+      /*12*/  {DI_TEXT,-1,8,0,0,0,0,DIF_SEPARATOR,0,_T("")},
+      /*13*/  {DI_BUTTON,0,9,0,0,0,0,DIF_CENTERGROUP,1,(TCHAR *)mConfigSave},
+      /*14*/  {DI_BUTTON,0,9,0,0,0,0,DIF_CENTERGROUP,0,(TCHAR *)mConfigCancel},
       };
       struct FarDialogItem DialogItems[sizeofa(InitItems)];
       InitDialogItems(InitItems,DialogItems,sizeofa(InitItems));
@@ -396,7 +406,7 @@ static int Config()
         int labels[]={CONFIGDLG3_LMAXERROR,CONFIGDLG3_LTHREAD,CONFIGDLG3_LQUEUESIZE,CONFIGDLG3_LWORKPR,CONFIGDLG3_LHEARPR};
         for(unsigned int i=0;i<sizeofa(labels);i++)
         {
-          unsigned int cur_len=(unsigned int)strlen(DialogItems[labels[i]].Data);
+          unsigned int cur_len=(unsigned int)_tcslen(DLG_DATA(DialogItems[labels[i]]));
           if(max<cur_len) max=cur_len;
         }
       }
@@ -407,6 +417,9 @@ static int Config()
       DialogItems[CONFIGDLG3_EHEARPR].X1=DialogItems[CONFIGDLG3_LHEARPR].X1+max;
 
       FarListItem Priority[7];
+#ifdef UNICODE
+      TCHAR PriorityText[ArraySize(Priority)][128];
+#endif
       FarList Priorities={sizeofa(Priority),Priority};
       int PriorityValues[]={THREAD_PRIORITY_IDLE,THREAD_PRIORITY_LOWEST,THREAD_PRIORITY_BELOW_NORMAL,THREAD_PRIORITY_NORMAL,THREAD_PRIORITY_ABOVE_NORMAL,THREAD_PRIORITY_HIGHEST,THREAD_PRIORITY_TIME_CRITICAL};
       int WorkPriority=THREAD_PRIORITY_IDLE,HearPriority=THREAD_PRIORITY_HIGHEST;
@@ -414,60 +427,70 @@ static int Config()
       for(unsigned int i=0;i<sizeofa(Priority);i++)
       {
         Priority[i].Flags=0;
-        strcpy(Priority[i].Text,GetMsg(mPriorityIdle+i));
+#ifdef UNICODE
+        _tcscpy(PriorityText[i],GetMsg(mPriorityIdle+i));
+        Priority[i].Text=PriorityText[i];
+#else
+        _tcscpy(Priority[i].Text,GetMsg(mPriorityIdle+i));
+#endif
       }
       DialogItems[CONFIGDLG3_EWORKPR].ListItems=&Priorities;
       DialogItems[CONFIGDLG3_EHEARPR].ListItems=&Priorities;
-      strcpy(DialogItems[CONFIGDLG3_EWORKPR].Data,GetMsg(mPriorityIdle));
-      strcpy(DialogItems[CONFIGDLG3_EHEARPR].Data,GetMsg(mPriorityHighest));
+      INIT_DLG_DATA(DialogItems[CONFIGDLG3_EWORKPR],GetMsg(mPriorityIdle));
+      INIT_DLG_DATA(DialogItems[CONFIGDLG3_EHEARPR],GetMsg(mPriorityHighest));
 
       HKEY hKey; DWORD Type,DataSize; DWORD Value; DWORD Disposition;
-      if((RegOpenKeyEx(HKEY_LOCAL_MACHINE,"SYSTEM\\CurrentControlSet\\Services\\"SVC_NAME"\\Parameters",0,KEY_QUERY_VALUE,&hKey))==ERROR_SUCCESS)
+      TCHAR dataerrors[7],datathreads[7],dataqueues[7];
+      if((RegOpenKeyEx(HKEY_LOCAL_MACHINE,_T("SYSTEM\\CurrentControlSet\\Services\\"SVC_NAME"\\Parameters"),0,KEY_QUERY_VALUE,&hKey))==ERROR_SUCCESS)
       {
         DataSize=sizeof(Value); Value=20;
-        RegQueryValueEx(hKey,"MaxError",0,&Type,(LPBYTE)&Value,&DataSize);
-        sprintf(DialogItems[CONFIGDLG3_EMAXERROR].Data,"%6ld",Value);
+        RegQueryValueEx(hKey,_T("MaxError"),0,&Type,(LPBYTE)&Value,&DataSize);
+        _stprintf(dataerrors,_T("%6ld"),Value);
+        INIT_DLG_DATA(DialogItems[CONFIGDLG3_EMAXERROR],dataerrors);
         DataSize=sizeof(Value); Value=4;
-        RegQueryValueEx(hKey,"ThreadCount",0,&Type,(LPBYTE)&Value,&DataSize);
+        RegQueryValueEx(hKey,_T("ThreadCount"),0,&Type,(LPBYTE)&Value,&DataSize);
         if((Value>16)||(Value<1)) Value=4;
-        sprintf(DialogItems[CONFIGDLG3_ETHREAD].Data,"%2ld",Value);
+        _stprintf(datathreads,_T("%2ld"),Value);
+        INIT_DLG_DATA(DialogItems[CONFIGDLG3_ETHREAD],datathreads);
         DataSize=sizeof(Value); Value=4;
-        RegQueryValueEx(hKey,"QueueSize",0,&Type,(LPBYTE)&Value,&DataSize);
-        sprintf(DialogItems[CONFIGDLG3_EQUEUESIZE].Data,"%6ld",Value);
+        RegQueryValueEx(hKey,_T("QueueSize"),0,&Type,(LPBYTE)&Value,&DataSize);
+        _stprintf(dataqueues,_T("%6ld"),Value);
+        INIT_DLG_DATA(DialogItems[CONFIGDLG3_EQUEUESIZE],dataqueues);
         DataSize=sizeof(Value); Value=0;
-        RegQueryValueEx(hKey,"AllowNetwork",0,&Type,(LPBYTE)&Value,&DataSize);
+        RegQueryValueEx(hKey,_T("AllowNetwork"),0,&Type,(LPBYTE)&Value,&DataSize);
         DialogItems[CONFIGDLG3_NETWORK].Selected=Value;
         DataSize=sizeof(WorkPriority);
-        RegQueryValueEx(hKey,"WorkPriority",0,&Type,(LPBYTE)&WorkPriority,&DataSize);
+        RegQueryValueEx(hKey,_T("WorkPriority"),0,&Type,(LPBYTE)&WorkPriority,&DataSize);
         DataSize=sizeof(HearPriority);
-        RegQueryValueEx(hKey,"HearPriority",0,&Type,(LPBYTE)&HearPriority,&DataSize);
+        RegQueryValueEx(hKey,_T("HearPriority"),0,&Type,(LPBYTE)&HearPriority,&DataSize);
       }
       for(unsigned int i=0;i<sizeofa(PriorityValues);i++)
       {
         if(WorkPriority==PriorityValues[i]) data.WorkPos=i;
         if(HearPriority==PriorityValues[i]) data.HearPos=i;
       }
-      int DlgCode=Info.DialogEx(Info.ModuleNumber,-1,-1,77,12,"Config3",DialogItems,sizeofa(DialogItems),0,0,Config3DialogProc,(LONG_PTR)&data);
+      CFarDialog dialog;
+      int DlgCode=dialog.Execute(Info.ModuleNumber,-1,-1,77,12,_T("Config3"),DialogItems,sizeofa(DialogItems),0,0,Config3DialogProc,(LONG_PTR)&data);
       if(DlgCode==CONFIGDLG3_SAVE)
       {
-        if((RegCreateKeyEx(HKEY_LOCAL_MACHINE,"SYSTEM\\CurrentControlSet\\Services\\"SVC_NAME"\\Parameters",0,NULL,0,KEY_WRITE,NULL,&hKey,&Disposition))==ERROR_SUCCESS)
+        if((RegCreateKeyEx(HKEY_LOCAL_MACHINE,_T("SYSTEM\\CurrentControlSet\\Services\\"SVC_NAME"\\Parameters"),0,NULL,0,KEY_WRITE,NULL,&hKey,&Disposition))==ERROR_SUCCESS)
         {
-          Value=atoi(DialogItems[CONFIGDLG3_EMAXERROR].Data);
-          RegSetValueEx(hKey,"MaxError",0,REG_DWORD,(LPBYTE)&Value,sizeof(Value));
-          Value=atoi(DialogItems[CONFIGDLG3_ETHREAD].Data); if((Value<1)||(Value>16)) Value=4;
-          RegSetValueEx(hKey,"ThreadCount",0,REG_DWORD,(LPBYTE)&Value,sizeof(Value));
-          Value=atoi(DialogItems[CONFIGDLG3_EQUEUESIZE].Data);
-          RegSetValueEx(hKey,"QueueSize",0,REG_DWORD,(LPBYTE)&Value,sizeof(Value));
-          Value=DialogItems[CONFIGDLG3_NETWORK].Selected;
-          RegSetValueEx(hKey,"AllowNetwork",0,REG_DWORD,(LPBYTE)&Value,sizeof(Value));
-          WorkPriority=PriorityValues[DialogItems[CONFIGDLG3_EWORKPR].ListPos];
-          HearPriority=PriorityValues[DialogItems[CONFIGDLG3_EHEARPR].ListPos];
-          RegSetValueEx(hKey,"WorkPriority",0,REG_DWORD,(LPBYTE)&WorkPriority,sizeof(WorkPriority));
-          RegSetValueEx(hKey,"HearPriority",0,REG_DWORD,(LPBYTE)&HearPriority,sizeof(HearPriority));
+          Value=_ttoi(dialog.Str(CONFIGDLG3_EMAXERROR));
+          RegSetValueEx(hKey,_T("MaxError"),0,REG_DWORD,(LPBYTE)&Value,sizeof(Value));
+          Value=_ttoi(dialog.Str(CONFIGDLG3_ETHREAD)); if((Value<1)||(Value>16)) Value=4;
+          RegSetValueEx(hKey,_T("ThreadCount"),0,REG_DWORD,(LPBYTE)&Value,sizeof(Value));
+          Value=_ttoi(dialog.Str(CONFIGDLG3_EQUEUESIZE));
+          RegSetValueEx(hKey,_T("QueueSize"),0,REG_DWORD,(LPBYTE)&Value,sizeof(Value));
+          Value=dialog.Check(CONFIGDLG3_NETWORK);
+          RegSetValueEx(hKey,_T("AllowNetwork"),0,REG_DWORD,(LPBYTE)&Value,sizeof(Value));
+          WorkPriority=PriorityValues[dialog.ListPos(CONFIGDLG3_EWORKPR)];
+          HearPriority=PriorityValues[dialog.ListPos(CONFIGDLG3_EHEARPR)];
+          RegSetValueEx(hKey,_T("WorkPriority"),0,REG_DWORD,(LPBYTE)&WorkPriority,sizeof(WorkPriority));
+          RegSetValueEx(hKey,_T("HearPriority"),0,REG_DWORD,(LPBYTE)&HearPriority,sizeof(HearPriority));
           RegCloseKey(hKey);
         }
         {
-          const char *MsgItems[]={"",GetMsg(mActualize),GetMsg(mOk)};
+          const TCHAR *MsgItems[]={_T(""),GetMsg(mActualize),GetMsg(mOk)};
           Info.Message(Info.ModuleNumber,0,NULL,MsgItems,sizeofa(MsgItems),1);
         }
       }
@@ -491,7 +514,7 @@ static LONG_PTR WINAPI Config2DialogProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR
           DWORD Disposition;
           if((RegCreateKeyEx(HKEY_CURRENT_USER,PluginRootKey,0,NULL,0,KEY_WRITE,NULL,&hKey,&Disposition))==ERROR_SUCCESS)
           {
-            RegSetValueEx(hKey,"TechErrorColor",0,REG_DWORD,(LPBYTE)&PlgOpt.ErrorColor,sizeof(PlgOpt.ErrorColor));
+            RegSetValueEx(hKey,_T("TechErrorColor"),0,REG_DWORD,(LPBYTE)&PlgOpt.ErrorColor,sizeof(PlgOpt.ErrorColor));
             RegCloseKey(hKey);
           }
         }
@@ -513,70 +536,6 @@ static LONG_PTR WINAPI Config3DialogProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR
         Info.SendDlgMessage(hDlg,DM_LISTSETCURPOS,CONFIGDLG3_EHEARPR,(LONG_PTR)&pos);
       }
       break;
-/*
-    case DN_BTNCLICK:
-      if((Param1==CONFIGDLG3_SETPWD)||(Param1==CONFIGDLG3_CLEARPWD))
-      {
-        if(!CheckPipeEx())
-        {
-          ShowError(mErrorNoPipe,false);
-          break;
-        }
-        char send[256+sizeof(DWORD)*3];
-        DWORD *send_ptr=(DWORD *)send,send_size=sizeof(DWORD)*2;
-        send_ptr[0]=OPERATION_PWD;
-        if(Param1==CONFIGDLG3_SETPWD) //set password
-        {
-          send_ptr[1]=PWDFLAG_SET;
-          FarDialogItem DialogItems[5]; int i=0;
-          memset(DialogItems,0,sizeof(DialogItems));
-          DialogItems[i].X1=3; DialogItems[i].X2=36; DialogItems[i].Y1=1; DialogItems[i].Y2=5;       //0
-          DialogItems[i].Type=DI_DOUBLEBOX; strcpy(DialogItems[i].Data,GetMsg(mPwdTitle)); i++;
-          DialogItems[i].X1=5; DialogItems[i].X2=34; DialogItems[i].Y1=2; DialogItems[i].Focus=1;    //1
-          DialogItems[i].Type=DI_PSWEDIT; i++;
-          DialogItems[i].X1=-1; DialogItems[i].Y1=3; DialogItems[i].Flags=DIF_SEPARATOR;             //2
-          DialogItems[i].Type=DI_TEXT; i++;
-          DialogItems[i].Y1=4; DialogItems[i].Flags=DIF_CENTERGROUP; DialogItems[i].DefaultButton=1; //3
-          DialogItems[i].Type=DI_BUTTON; strcpy(DialogItems[i].Data,GetMsg(mPwdSet)); i++;
-          DialogItems[i].Y1=4; DialogItems[i].Flags=DIF_CENTERGROUP;                                 //4
-          DialogItems[i].Type=DI_BUTTON; strcpy(DialogItems[i].Data,GetMsg(mPwdCancel)); i++;
-          int DlgCode=Info.DialogEx(Info.ModuleNumber,-1,-1,40,7,"Config4",DialogItems,sizeofa(DialogItems),0,0,PwdDialogProc,0);
-          if(DlgCode!=3) break;
-          send_ptr[2]=strlen(DialogItems[1].Data)+1;
-          send_size=send_ptr[2]+sizeof(DWORD)*3;
-          strcpy(send+sizeof(DWORD)*3,DialogItems[1].Data);
-        }
-        else if(Param1==CONFIGDLG3_CLEARPWD) //set password
-        {
-          send_ptr[1]=PWDFLAG_CLEAR;
-        }
-        DWORD dwBytesRead,dwBytesWritten;
-        HANDLE hPipe=CreateFile(PIPE_NAME,GENERIC_READ|GENERIC_WRITE,0,NULL,OPEN_EXISTING,0,NULL);
-        DWORD error=0; BOOL Succ=FALSE;
-        if(hPipe!=INVALID_HANDLE_VALUE)
-        {
-          if(WriteFile(hPipe,send_ptr,send_size,&dwBytesWritten,NULL))
-            if(ReadFile(hPipe,&error,sizeof(error),&dwBytesRead,NULL))
-              if(!error)
-                Succ=TRUE;
-          CloseHandle(hPipe);
-        }
-        if(Succ)
-        {
-          const char *MsgItems[]={"",GetMsg(mPwdCleared),GetMsg(mOk)};
-          if(Param1==CONFIGDLG3_SETPWD)
-            MsgItems[1]=GetMsg(mPwdSeted);
-          Info.Message(Info.ModuleNumber,0,NULL,MsgItems,sizeofa(MsgItems),1);
-        }
-        else
-        {
-          if(error) SetLastError(error);
-          const char *MsgItems[]={GetMsg(mError),GetMsg(mOk)};
-          Info.Message(Info.ModuleNumber,FMSG_ERRORTYPE|FMSG_WARNING,NULL,MsgItems,sizeofa(MsgItems),1);
-        }
-      }
-      break;
-*/
   }
   return Info.DefDlgProc(hDlg,Msg,Param1,Param2);
 }

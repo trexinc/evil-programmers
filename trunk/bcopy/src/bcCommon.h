@@ -1,11 +1,13 @@
 #define __TEXTW(s) L##s
 #define TEXTW(s) __TEXTW(s)
 #define SVC_NAME "FARBCopy"
+#define SVC_NAMEP _T("FARBCopy")
 #define ACCESS_NAME SVC_NAME".access"
 #define ACCESS_NAMEW TEXTW(SVC_NAME)L".access"
 #define SVC_NAMEW TEXTW(SVC_NAME)
 #define PIPE_NAME "\\\\.\\pipe\\"SVC_NAME
 #define PIPE_NAMEW L"\\\\.\\pipe\\"SVC_NAMEW
+#define PIPE_NAMEP _T(PIPE_NAME)
 #define NOTIFY_NAMEW L"bcn.dll"
 
 #define sizeofa(array) (sizeof(array)/sizeof(array[0]))
