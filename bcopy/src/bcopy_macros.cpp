@@ -1,10 +1,11 @@
 #include <stdio.h>
-#include "../../plugin.hpp"
-#include "../../farkeys.hpp"
+#include "plugin.hpp"
+#include "farkeys.hpp"
 #include "bcplugin.h"
 #include "memory.h"
+#include <tchar.h>
 
-static const char *MacroNames[MACRO_COUNT]={"Copy","Move","Delete","Attributes","Wipe","Overwrite","Retry","Info","Link","InfoMenu"};
+static const TCHAR *MacroNames[MACRO_COUNT]={_T("Copy"),_T("Move"),_T("Delete"),_T("Attributes"),_T("Wipe"),_T("Overwrite"),_T("Retry"),_T("Info"),_T("Link"),_T("InfoMenu")};
 
 struct MacroEntry
 {
@@ -23,7 +24,7 @@ static DWORD UpperKey(DWORD Key)
   return result;
 }
 
-static bool add_macro(int index,const char *KeyIn,const char *SeqIn)
+static bool add_macro(int index,const TCHAR *KeyIn,const TCHAR *SeqIn)
 {
   if(!KeyIn||!*KeyIn) return false;
   if(!SeqIn||!*SeqIn) return false;
@@ -32,12 +33,12 @@ static bool add_macro(int index,const char *KeyIn,const char *SeqIn)
   //parse
   bool res=true;
   LONG *keys=NULL;
-  char *buffer=NULL;
+  TCHAR *buffer=NULL;
   unsigned long maxlen=0,key_count=0;
 
   for(unsigned long last=0;last<2;last++)
   {
-    const char *ptr=SeqIn; unsigned long curlen,count=0;
+    const TCHAR *ptr=SeqIn; unsigned long curlen,count=0;
     while(*ptr)
     {
       while(*ptr==' '||*ptr=='\t') ptr++;
@@ -67,7 +68,7 @@ static bool add_macro(int index,const char *KeyIn,const char *SeqIn)
     {
       key_count=count;
       keys=(LONG *)malloc(sizeof(DWORD)*key_count);
-      buffer=(char *)malloc(sizeof(DWORD)*(maxlen+1));
+      buffer=(TCHAR *)malloc(sizeof(DWORD)*(maxlen+1));
       if(!(keys&&buffer)) res=false;
     }
     if(!res) break;
@@ -92,18 +93,18 @@ static bool add_macro(int index,const char *KeyIn,const char *SeqIn)
 
 static unsigned long FarBuild=0;
 
-void load_macros(const char *registry)
+void load_macros(const TCHAR *registry)
 {
-  HKEY hKey=NULL; char path[1024],curr_path[1024];
-  strcpy(path,registry);
-  strcat(path,"\\Macros\\");
+  HKEY hKey=NULL; TCHAR path[1024],curr_path[1024];
+  _tcscpy(path,registry);
+  _tcscat(path,_T("\\Macros\\"));
   for(int i=0;i<MACRO_COUNT;i++)
   {
-    strcpy(curr_path,path);
-    strcat(curr_path,MacroNames[i]);
+    _tcscpy(curr_path,path);
+    _tcscat(curr_path,MacroNames[i]);
     if(RegOpenKeyEx(HKEY_CURRENT_USER,curr_path,0,KEY_READ,&hKey)==ERROR_SUCCESS)
     {
-      char NameBuffer[1024],ValueBuffer[1024];
+      TCHAR NameBuffer[1024],ValueBuffer[1024];
       DWORD j,NameSize,ValueSize;
       LONG Result;
       for(j=0;;j++)

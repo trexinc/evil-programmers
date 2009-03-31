@@ -1,14 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include "../../plugin.hpp"
-#include "../../farkeys.hpp"
+#include "far_helper.h"
+#include "farkeys.hpp"
 #include "memory.h"
 #include "bcplugin.h"
 
 PluginStartupInfo Info;
 FARSTANDARDFUNCTIONS FSF;
-char PluginRootKey[80];
+TCHAR PluginRootKey[80];
 BOOL IsOldFAR=TRUE;
 
 Options Opt={4,FALSE,TRUE,TRUE,0,TRUE,FALSE,1,TRUE,0,0};
@@ -42,18 +42,20 @@ enum
 #include "bcplugdialogproc.cpp"
 #include "bcconfig.cpp"
 
-void WINAPI _export SetStartupInfo(const struct PluginStartupInfo *Info)
+void WINAPI EXP_NAME(SetStartupInfo)(const struct PluginStartupInfo *Info)
 {
   memset(&::Info,0,sizeof(::Info));
   memmove(&::Info,Info,(Info->StructSize>(int)sizeof(::Info))?sizeof(::Info):Info->StructSize);
+#ifndef UNICODE
   if(Info->StructSize>FAR165_INFO_SIZE)
+#endif
   {
     IsOldFAR=FALSE;
     ::FSF=*Info->FSF;
     ::Info.FSF=&::FSF;
 
-    strcpy(PluginRootKey,Info->RootKey);
-    strcat(PluginRootKey,"\\BCopy");
+    _tcscpy(PluginRootKey,Info->RootKey);
+    _tcscat(PluginRootKey,_T("\\BCopy"));
 
     HKEY hKey;
     DWORD Type,DataSize=0;
@@ -61,63 +63,63 @@ void WINAPI _export SetStartupInfo(const struct PluginStartupInfo *Info)
     {
       //tech options
       DataSize=sizeof(PlgOpt.AutoStart);
-      RegQueryValueEx(hKey,"TechAutoStart",0,&Type,(LPBYTE)&PlgOpt.AutoStart,&DataSize);
+      RegQueryValueEx(hKey,_T("TechAutoStart"),0,&Type,(LPBYTE)&PlgOpt.AutoStart,&DataSize);
       DataSize=sizeof(PlgOpt.ShowMenu);
-      RegQueryValueEx(hKey,"TechShowMenu",0,&Type,(LPBYTE)&PlgOpt.ShowMenu,&DataSize);
+      RegQueryValueEx(hKey,_T("TechShowMenu"),0,&Type,(LPBYTE)&PlgOpt.ShowMenu,&DataSize);
       DataSize=sizeof(PlgOpt.InfoMenu);
-      RegQueryValueEx(hKey,"TechInfoMenu",0,&Type,(LPBYTE)&PlgOpt.InfoMenu,&DataSize);
+      RegQueryValueEx(hKey,_T("TechInfoMenu"),0,&Type,(LPBYTE)&PlgOpt.InfoMenu,&DataSize);
       DataSize=sizeof(PlgOpt.ExpandVars);
-      RegQueryValueEx(hKey,"TechExpandVars",0,&Type,(LPBYTE)&PlgOpt.ExpandVars,&DataSize);
+      RegQueryValueEx(hKey,_T("TechExpandVars"),0,&Type,(LPBYTE)&PlgOpt.ExpandVars,&DataSize);
       DataSize=sizeof(PlgOpt.CheckPassive);
-      RegQueryValueEx(hKey,"TechCheckPassive",0,&Type,(LPBYTE)&PlgOpt.CheckPassive,&DataSize);
+      RegQueryValueEx(hKey,_T("TechCheckPassive"),0,&Type,(LPBYTE)&PlgOpt.CheckPassive,&DataSize);
       DataSize=sizeof(PlgOpt.FormatSize);
-      RegQueryValueEx(hKey,"TechFormatSize",0,&Type,(LPBYTE)&PlgOpt.FormatSize,&DataSize);
+      RegQueryValueEx(hKey,_T("TechFormatSize"),0,&Type,(LPBYTE)&PlgOpt.FormatSize,&DataSize);
       DataSize=sizeof(PlgOpt.AutoShowInfo);
-      RegQueryValueEx(hKey,"TechAutoShowInfo",0,&Type,(LPBYTE)&PlgOpt.AutoShowInfo,&DataSize);
+      RegQueryValueEx(hKey,_T("TechAutoShowInfo"),0,&Type,(LPBYTE)&PlgOpt.AutoShowInfo,&DataSize);
       DataSize=sizeof(PlgOpt.ConfirmAbort);
-      RegQueryValueEx(hKey,"TechConfirmAbort",0,&Type,(LPBYTE)&PlgOpt.ConfirmAbort,&DataSize);
+      RegQueryValueEx(hKey,_T("TechConfirmAbort"),0,&Type,(LPBYTE)&PlgOpt.ConfirmAbort,&DataSize);
       DataSize=sizeof(PlgOpt.CurrentTime);
-      RegQueryValueEx(hKey,"TechCurrentTime",0,&Type,(LPBYTE)&PlgOpt.CurrentTime,&DataSize);
+      RegQueryValueEx(hKey,_T("TechCurrentTime"),0,&Type,(LPBYTE)&PlgOpt.CurrentTime,&DataSize);
       DataSize=sizeof(PlgOpt.ErrorColor);
-      RegQueryValueEx(hKey,"TechErrorColor",0,&Type,(LPBYTE)&PlgOpt.ErrorColor,&DataSize);
+      RegQueryValueEx(hKey,_T("TechErrorColor"),0,&Type,(LPBYTE)&PlgOpt.ErrorColor,&DataSize);
       DataSize=sizeof(PlgOpt.AutoRefresh);
-      RegQueryValueEx(hKey,"TechAutoRefresh",0,&Type,(LPBYTE)&PlgOpt.AutoRefresh,&DataSize);
+      RegQueryValueEx(hKey,_T("TechAutoRefresh"),0,&Type,(LPBYTE)&PlgOpt.AutoRefresh,&DataSize);
       DataSize=sizeof(PlgOpt.ForceEject);
-      RegQueryValueEx(hKey,"TechForceEject",0,&Type,(LPBYTE)&PlgOpt.ForceEject,&DataSize);
+      RegQueryValueEx(hKey,_T("TechForceEject"),0,&Type,(LPBYTE)&PlgOpt.ForceEject,&DataSize);
       DataSize=sizeof(PlgOpt.IgnoreButton);
-      RegQueryValueEx(hKey,"TechIgnoreButton",0,&Type,(LPBYTE)&PlgOpt.IgnoreButton,&DataSize);
+      RegQueryValueEx(hKey,_T("TechIgnoreButton"),0,&Type,(LPBYTE)&PlgOpt.IgnoreButton,&DataSize);
       DataSize=sizeof(PlgOpt.ResolveDestination);
-      RegQueryValueEx(hKey,"TechResolveDestination",0,&Type,(LPBYTE)&PlgOpt.ResolveDestination,&DataSize);
+      RegQueryValueEx(hKey,_T("TechResolveDestination"),0,&Type,(LPBYTE)&PlgOpt.ResolveDestination,&DataSize);
       DataSize=sizeof(PlgOpt.ShowUnicode);
-      RegQueryValueEx(hKey,"TechShowUnicode",0,&Type,(LPBYTE)&PlgOpt.ShowUnicode,&DataSize);
+      RegQueryValueEx(hKey,_T("TechShowUnicode"),0,&Type,(LPBYTE)&PlgOpt.ShowUnicode,&DataSize);
       DataSize=sizeof(PlgOpt.RefreshInterval);
-      RegQueryValueEx(hKey,"TechRefreshInterval",0,&Type,(LPBYTE)&PlgOpt.RefreshInterval,&DataSize);
+      RegQueryValueEx(hKey,_T("TechRefreshInterval"),0,&Type,(LPBYTE)&PlgOpt.RefreshInterval,&DataSize);
       DataSize=sizeof(PlgOpt.Preload);
-      RegQueryValueEx(hKey,"TechPreload",0,&Type,(LPBYTE)&PlgOpt.Preload,&DataSize);
+      RegQueryValueEx(hKey,_T("TechPreload"),0,&Type,(LPBYTE)&PlgOpt.Preload,&DataSize);
       //copy options
       DataSize=sizeof(Opt.CopyType);
-      RegQueryValueEx(hKey,"CopyType",0,&Type,(LPBYTE)&Opt.CopyType,&DataSize);
+      RegQueryValueEx(hKey,_T("CopyType"),0,&Type,(LPBYTE)&Opt.CopyType,&DataSize);
       DataSize=sizeof(Opt.CopyHistory);
-      RegQueryValueEx(hKey,"CopyHistory",0,&Type,(LPBYTE)&Opt.CopyHistory,&DataSize);
+      RegQueryValueEx(hKey,_T("CopyHistory"),0,&Type,(LPBYTE)&Opt.CopyHistory,&DataSize);
       DataSize=sizeof(Opt.CopyROSrc);
-      RegQueryValueEx(hKey,"CopyROSrc",0,&Type,(LPBYTE)&Opt.CopyROSrc,&DataSize);
+      RegQueryValueEx(hKey,_T("CopyROSrc"),0,&Type,(LPBYTE)&Opt.CopyROSrc,&DataSize);
       DataSize=sizeof(Opt.CopyRODest);
-      RegQueryValueEx(hKey,"CopyRODest",0,&Type,(LPBYTE)&Opt.CopyRODest,&DataSize);
+      RegQueryValueEx(hKey,_T("CopyRODest"),0,&Type,(LPBYTE)&Opt.CopyRODest,&DataSize);
       DataSize=sizeof(Opt.CopyAbort);
-      RegQueryValueEx(hKey,"CopyAbort",0,&Type,(LPBYTE)&Opt.CopyAbort,&DataSize);
+      RegQueryValueEx(hKey,_T("CopyAbort"),0,&Type,(LPBYTE)&Opt.CopyAbort,&DataSize);
       DataSize=sizeof(Opt.CopyFullInfo);
-      RegQueryValueEx(hKey,"CopyFullInfo",0,&Type,(LPBYTE)&Opt.CopyFullInfo,&DataSize);
+      RegQueryValueEx(hKey,_T("CopyFullInfo"),0,&Type,(LPBYTE)&Opt.CopyFullInfo,&DataSize);
       DataSize=sizeof(Opt.CopyAccess);
-      RegQueryValueEx(hKey,"CopyAccess",0,&Type,(LPBYTE)&Opt.CopyAccess,&DataSize);
+      RegQueryValueEx(hKey,_T("CopyAccess"),0,&Type,(LPBYTE)&Opt.CopyAccess,&DataSize);
       DataSize=sizeof(Opt.CopyLink);
-      RegQueryValueEx(hKey,"CopyLink",0,&Type,(LPBYTE)&Opt.CopyLink,&DataSize);
+      RegQueryValueEx(hKey,_T("CopyLink"),0,&Type,(LPBYTE)&Opt.CopyLink,&DataSize);
       //delete options
       DataSize=sizeof(Opt.DeleteRO);
-      RegQueryValueEx(hKey,"DeleteRO",0,&Type,(LPBYTE)&Opt.DeleteRO,&DataSize);
+      RegQueryValueEx(hKey,_T("DeleteRO"),0,&Type,(LPBYTE)&Opt.DeleteRO,&DataSize);
       DataSize=sizeof(Opt.DeleteAbort);
-      RegQueryValueEx(hKey,"DeleteAbort",0,&Type,(LPBYTE)&Opt.DeleteAbort,&DataSize);
+      RegQueryValueEx(hKey,_T("DeleteAbort"),0,&Type,(LPBYTE)&Opt.DeleteAbort,&DataSize);
       DataSize=sizeof(Opt.WipeAbort);
-      RegQueryValueEx(hKey,"WipeAbort",0,&Type,(LPBYTE)&Opt.WipeAbort,&DataSize);
+      RegQueryValueEx(hKey,_T("WipeAbort"),0,&Type,(LPBYTE)&Opt.WipeAbort,&DataSize);
       RegCloseKey(hKey);
     }
     if((Opt.CopyType>4)||(Opt.CopyType<0))
@@ -127,7 +129,7 @@ void WINAPI _export SetStartupInfo(const struct PluginStartupInfo *Info)
   }
 }
 
-void WINAPI _export GetPluginInfo(struct PluginInfo *Info)
+void WINAPI EXP_NAME(GetPluginInfo)(struct PluginInfo *Info)
 {
   if(!IsOldFAR)
   {
@@ -142,7 +144,7 @@ void WINAPI _export GetPluginInfo(struct PluginInfo *Info)
     if(PlgOpt.Preload)
       Info->Flags|=PF_PRELOAD;
     Info->DiskMenuStringsNumber=0;
-    static const char *PluginMenuStrings[1];
+    static const TCHAR *PluginMenuStrings[1];
     PluginMenuStrings[0]=GetMsg(mName);
     Info->PluginMenuStrings=PluginMenuStrings;
     Info->PluginMenuStringsNumber=sizeofa(PluginMenuStrings);
@@ -153,14 +155,16 @@ void WINAPI _export GetPluginInfo(struct PluginInfo *Info)
   }
 }
 
-int WINAPI _export GetMinFarVersion(void)
+#ifndef UNICODE
+int WINAPI EXP_NAME(GetMinFarVersion)(void)
 {
   return MAKEFARVERSION(1,70,1527);
 }
+#endif
 
 static void SendToPipe(DWORD *send,DWORD sendsize,SmallInfoRec *RetData)
 {
-  HANDLE hPipe=CreateFile(PIPE_NAME,GENERIC_READ|GENERIC_WRITE,0,NULL,OPEN_EXISTING,0,NULL);
+  HANDLE hPipe=CreateFile(PIPE_NAMEP,GENERIC_READ|GENERIC_WRITE,0,NULL,OPEN_EXISTING,0,NULL);
   if(hPipe!=INVALID_HANDLE_VALUE)
   {
     DWORD transfered;
@@ -177,7 +181,7 @@ static void SendToPipe(DWORD *send,DWORD sendsize,SmallInfoRec *RetData)
 
 static BOOL CheckPipe(void)
 {
-  HANDLE hPipe=CreateFile(PIPE_NAME,GENERIC_READ|GENERIC_WRITE,0,NULL,OPEN_EXISTING,0,NULL);
+  HANDLE hPipe=CreateFile(PIPE_NAMEP,GENERIC_READ|GENERIC_WRITE,0,NULL,OPEN_EXISTING,0,NULL);
   if(hPipe!=INVALID_HANDLE_VALUE)
   {
     CloseHandle(hPipe);
@@ -200,7 +204,7 @@ static BOOL CheckPipeEx(void)
       SCManagerHandle=OpenSCManager(NULL,NULL,STANDARD_RIGHTS_READ);
       if(SCManagerHandle>0)
       {
-        ServiceControlHandle=OpenService(SCManagerHandle,SVC_NAME,SERVICE_QUERY_STATUS|SERVICE_START);
+        ServiceControlHandle=OpenService(SCManagerHandle,SVC_NAMEP,SERVICE_QUERY_STATUS|SERVICE_START);
         if(ServiceControlHandle>0)
         {
           if(StartService(ServiceControlHandle,0,NULL))
@@ -242,7 +246,13 @@ static int NumberType(int num)
   return Result;
 }
 
-static const char *GetRealName(const FAR_FIND_DATA *src)
+#ifdef UNICODE
+static const TCHAR *GetRealName(const FAR_FIND_DATA *src)
+{
+  return src->lpwszFileName;
+}
+#else
+static const TCHAR *GetRealName(const FAR_FIND_DATA *src)
 {
   WIN32_FIND_DATAA find,find_ok; HANDLE hFind; BOOL Res;
   hFind=FindFirstFileA(src->cFileName,&find);
@@ -251,7 +261,7 @@ static const char *GetRealName(const FAR_FIND_DATA *src)
     memcpy(&find_ok,&find,sizeof(find));
     Res=FindNextFileA(hFind,&find);
     FindClose(hFind);
-    if((!Res)&&(!_stricmp(src->cAlternateFileName,find_ok.cAlternateFileName)))
+    if((!Res)&&(!_tcsicmp(src->cAlternateFileName,find_ok.cAlternateFileName)))
     {
       return src->cFileName;
     }
@@ -268,11 +278,11 @@ static const char *GetRealName(const FAR_FIND_DATA *src)
   return NULL;
 }
 
-static bool GetWideNameDirect(const char *Root,const char *src,wchar_t *dest)
+static bool GetWideNameDirect(const TCHAR *Root,const TCHAR *src,wchar_t *dest)
 {
-  char FileNameA[MAX_PATH]; wchar_t FileNameW[MAX_PATH]; WIN32_FIND_DATAW find;
-  strcpy(FileNameA,Root);
-  strcat(FileNameA,src);
+  TCHAR FileNameA[MAX_PATH]; wchar_t FileNameW[MAX_PATH]; WIN32_FIND_DATAW find;
+  _tcscpy(FileNameA,Root);
+  _tcscat(FileNameA,src);
   MultiByteToWideChar(CP_OEMCP,0,FileNameA,-1,FileNameW,MAX_PATH);
   HANDLE hFind=FindFirstFileW(FileNameW,&find);
   if(hFind!=INVALID_HANDLE_VALUE)
@@ -283,12 +293,13 @@ static bool GetWideNameDirect(const char *Root,const char *src,wchar_t *dest)
   return true;
 }
 
-static bool GetWideName(const char *Root,const FAR_FIND_DATA *src,wchar_t *dest)
+static bool GetWideName(const TCHAR *Root,const FAR_FIND_DATA *src,wchar_t *dest)
 {
-  const char *RealFileName=GetRealName(src);
+  const TCHAR *RealFileName=GetRealName(src);
   if(!RealFileName) return false;
   return GetWideNameDirect(Root,RealFileName,dest);
 }
+#endif
 
 static BOOL CheckPaths(wchar_t *Src,wchar_t *Dest,BOOL Trim)
 {
@@ -298,33 +309,36 @@ static BOOL CheckPaths(wchar_t *Src,wchar_t *Dest,BOOL Trim)
     return !_wcsicmp(Src,Dest);
 }
 
-static bool CheckSystemFile(char *name)
+static bool CheckSystemFile(TCHAR *name)
 {
-  if(name[strlen(name)-1]=='\\') return false;
-  HANDLE handle=CreateFileA(name,0,FILE_SHARE_DELETE|FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
+  if(name[_tcslen(name)-1]=='\\') return false;
+  HANDLE handle=CreateFile(name,0,FILE_SHARE_DELETE|FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
   if(handle!=INVALID_HANDLE_VALUE)
   {
     CloseHandle(handle);
-    char path[MAX_PATH];
-    strcpy(path,name);
-    strcat(path,"\\");
+    TCHAR path[MAX_PATH];
+    _tcscpy(path,name);
+    _tcscat(path,_T("\\"));
     if(GetDriveType(path)<2) return true;
   }
   return false;
 }
 
-HANDLE WINAPI _export OpenPlugin(int OpenFrom,int Item)
+HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom,int Item)
 {
   (void)Item;
   int MenuCode=-1;
   FarMenuItem MenuItems[mMenuInfo-mMenuCopy+1];
+#ifdef UNICODE
+  TCHAR ItemText[3][128];
+#endif
   unsigned int MenuItemsSize=mMenuInfo-mMenuCopy+1;
   memset(MenuItems,0,sizeof(MenuItems));
   int Msgs[]={mMenuCopy,mMenuMove,mMenuDelete,mMenuAttr,mMenuWipe,mMenuRun,mMenuSep1,mMenuView,mMenuEdit,mMenuName,mMenuSep2,mMenuEject,mMenuReject,mMenuRefreshSCSI,mMenuSep3,mMenuConfig,mMenuInfo};
   if(OpenFrom==OPEN_DIALOG)
   {
-  	ShowInfoMenu();
-  	return INVALID_HANDLE_VALUE;
+    ShowInfoMenu();
+    return INVALID_HANDLE_VALUE;
   }
   else if(OpenFrom!=OPEN_PLUGINSMENU)
   {
@@ -334,19 +348,24 @@ HANDLE WINAPI _export OpenPlugin(int OpenFrom,int Item)
   for(unsigned int i=0;i<MenuItemsSize;i++)
   {
     MenuItems[i].Selected=MenuItems[i].Checked=MenuItems[i].Separator=0;
-    strcpy(MenuItems[i].Text,GetMsg(Msgs[i]));
+#ifdef UNICODE
+    _tcscpy(ItemText[i],GetMsg(Msgs[i]));
+    MenuItems[i].Text=ItemText[i];
+#else
+    _tcscpy(MenuItems[i].Text,GetMsg(Msgs[i]));
+#endif
     if(MenuItems[i].Text[0]=='-') MenuItems[i].Separator=TRUE;
   };
 
   // First item is selected
   MenuItems[0].Selected=TRUE;
   // Show menu
-  MenuCode=Info.Menu(Info.ModuleNumber,-1,-1,0,FMENU_WRAPMODE,GetMsg(mName),NULL,"Contents",NULL,NULL,MenuItems,MenuItemsSize);
+  MenuCode=Info.Menu(Info.ModuleNumber,-1,-1,0,FMENU_WRAPMODE,GetMsg(mName),NULL,_T("Contents"),NULL,NULL,MenuItems,MenuItemsSize);
   if((OpenFrom!=OPEN_PLUGINSMENU)&&(MenuCode>=0))
     MenuCode+=mMenuName-mMenuCopy;
   //prepare source dir
-  PanelInfo PInfo;
-  if(!Info.Control(INVALID_HANDLE_VALUE,FCTL_GETPANELINFO,&PInfo))
+  CFarPanel pInfo(INVALID_HANDLE_VALUE,FCTL_GETPANELINFO);
+  if(!pInfo.IsOk())
   {
     ShowError(mErrorList,false);
     return INVALID_HANDLE_VALUE;
@@ -355,18 +374,23 @@ HANDLE WINAPI _export OpenPlugin(int OpenFrom,int Item)
   if((MenuCode<(mMenuSep2-mMenuCopy))&&(MenuCode>=0))
   {
     bool NoDots=true;
-    if(PInfo.SelectedItemsNumber==1&&!strcmp(PInfo.SelectedItems[0].FindData.cFileName,"..")) NoDots=false;
-    if(NoDots&&(PInfo.SelectedItemsNumber>0||MenuCode==(mMenuName-mMenuCopy))&&(!PInfo.Plugin||(PInfo.Flags&PFLAGS_REALNAMES)))
+    if(pInfo.SelectedItemsNumber()==1&&!_tcscmp(pInfo.Selected(0).FindData.PANEL_FILENAME,_T(".."))) NoDots=false;
+    if(NoDots&&(pInfo.SelectedItemsNumber()>0||MenuCode==(mMenuName-mMenuCopy))&&(!pInfo.Plugin()||(pInfo.Flags()&PFLAGS_REALNAMES)))
     {
       bool bcopy_flags[BCOPY_FLAG_COUNT];
       for(int i=0;i<BCOPY_FLAG_COUNT;i++) bcopy_flags[i]=false;
-      char SrcA[MAX_PATH]; wchar_t SrcW[MAX_PATH];
-      if(!PInfo.Plugin)
+      TCHAR SrcA[MAX_PATH]; wchar_t SrcW[MAX_PATH];
+      if(!pInfo.Plugin())
       {
-        strcpy(SrcA,PInfo.CurDir);
+        _tcscpy(SrcA,pInfo.CurDir());
         if(MenuCode!=5) UNCPath(SrcA); //FIXME: named const
         FSF.AddEndSlash(SrcA);
+#ifdef UNICODE
+        _tcsncpy(SrcW,SrcA,MAX_PATH-1);
+        SrcW[MAX_PATH-1]=0;
+#else
         MultiByteToWideChar(CP_OEMCP,0,SrcA,-1,SrcW,MAX_PATH);
+#endif
       }
       else
       {
@@ -375,7 +399,7 @@ HANDLE WINAPI _export OpenPlugin(int OpenFrom,int Item)
       }
 
       DWORD *send=NULL;
-      DWORD sendsize=sizeof(DWORD)*3+sizeof(FileRec)*(PInfo.SelectedItemsNumber+2);
+      DWORD sendsize=sizeof(DWORD)*3+sizeof(FileRec)*(pInfo.SelectedItemsNumber()+2);
       if(MenuCode<5)
       {
         send=(DWORD *)malloc(sendsize);
@@ -389,17 +413,16 @@ HANDLE WINAPI _export OpenPlugin(int OpenFrom,int Item)
         {
           if(!send) break;
           if(!CheckPipeEx()) break;
-          PanelInfo PAnotherInfo;
-          Info.Control(INVALID_HANDLE_VALUE,FCTL_GETANOTHERPANELSHORTINFO,&PAnotherInfo);
-          if(PlgOpt.CheckPassive&&PAnotherInfo.Plugin)
+          CFarPanel pAnotherInfo(PANEL_PASSIVE,FCTL_GETANOTHERPANELSHORTINFO);
+          if(PlgOpt.CheckPassive&&pAnotherInfo.Plugin())
             break;
 
-          char DestA[MAX_PATH]; wchar_t DestW[MAX_PATH];
-          if(PAnotherInfo.Plugin)
-            strcpy(DestA,"");
+          TCHAR DestA[MAX_PATH]; wchar_t DestW[MAX_PATH];
+          if(pAnotherInfo.Plugin())
+            _tcscpy(DestA,_T(""));
           else
           {
-            strcpy(DestA,PAnotherInfo.CurDir);
+            _tcscpy(DestA,pAnotherInfo.CurDir());
             //Display "virtual" path for user
             if(PlgOpt.ResolveDestination) UNCPath(DestA);
             FSF.AddEndSlash(DestA);
@@ -431,27 +454,27 @@ HANDLE WINAPI _export OpenPlugin(int OpenFrom,int Item)
             0000000000111111111122222222223333333333444444444455555555556666666666777777
             0123456789012345678901234567890123456789012345678901234567890123456789012345
           */
-          const char *CopyHistoryName="Copy";
-          static const char *BCopyCopyHistoryName="BCopyCopy";
+          const TCHAR *CopyHistoryName=_T("Copy");
+          static const TCHAR *BCopyCopyHistoryName=_T("BCopyCopy");
           static struct InitDialogItem InitDlg[]={
-          /* 0*/  {DI_DOUBLEBOX,3,1,72,19,0,0,0,0,(char *)mCpyDlgCopyTitle},
-          /* 1*/  {DI_TEXT,5,2,0,0,0,0,DIF_SHOWAMPERSAND,0,""},
-          /* 2*/  {DI_EDIT,5,3,70,0,1,(DWORD_PTR)BCopyCopyHistoryName,DIF_HISTORY,0,""},
-          /* 3*/  {DI_TEXT,5,4,0,0,0,0,DIF_BOXCOLOR|DIF_SEPARATOR,0,""},
-          /* 4*/  {DI_RADIOBUTTON,5,5,0,0,0,0,DIF_GROUP,0,(char *)mCpyDlgOpt1},
-          /* 5*/  {DI_RADIOBUTTON,5,6,0,0,0,0,0,0,(char *)mCpyDlgOpt2},
-          /* 6*/  {DI_RADIOBUTTON,5,7,0,0,0,0,0,0,(char *)mCpyDlgOpt3},
-          /* 7*/  {DI_RADIOBUTTON,5,8,0,0,0,0,0,0,(char *)mCpyDlgOpt4},
-          /* 8*/  {DI_RADIOBUTTON,5,9,0,0,0,0,0,0,(char *)mCpyDlgAsk},
-          /* 9*/  {DI_CHECKBOX,5,11,0,0,0,0,0,0,(char *)mCpyDlgChk1},
-          /*10*/  {DI_CHECKBOX,5,12,0,0,0,0,0,0,(char *)mCpyDlgChkAccess},
-          /*11*/  {DI_CHECKBOX,5,13,0,0,0,0,DIF_DISABLE,0,(char *)mCpyDlgChk2},
-          /*12*/  {DI_CHECKBOX,5,14,0,0,0,0,DIF_DISABLE,0,(char *)mCpyDlgChk3},
-          /*13*/  {DI_CHECKBOX,5,15,0,0,0,0,DIF_3STATE,0,(char *)mCpyDlgChk4},
-          /*14*/  {DI_CHECKBOX,5,16,0,0,0,0,DIF_3STATE,0,(char *)mCpyDlgChkLink},
-          /*15*/  {DI_TEXT,5,17,0,0,0,0,DIF_BOXCOLOR|DIF_SEPARATOR,0,""},
-          /*16*/  {DI_BUTTON,0,18,0,0,0,0,DIF_CENTERGROUP,1,(char *)mCpyDlgOkCopy},
-          /*17*/  {DI_BUTTON,0,18,0,0,0,0,DIF_CENTERGROUP,0,(char *)mCpyDlgCancel},
+          /* 0*/  {DI_DOUBLEBOX,3,1,72,19,0,0,0,0,(TCHAR *)mCpyDlgCopyTitle},
+          /* 1*/  {DI_TEXT,5,2,0,0,0,0,DIF_SHOWAMPERSAND,0,_T("")},
+          /* 2*/  {DI_EDIT,5,3,70,0,1,(DWORD_PTR)BCopyCopyHistoryName,DIF_HISTORY,0,_T("")},
+          /* 3*/  {DI_TEXT,5,4,0,0,0,0,DIF_BOXCOLOR|DIF_SEPARATOR,0,_T("")},
+          /* 4*/  {DI_RADIOBUTTON,5,5,0,0,0,0,DIF_GROUP,0,(TCHAR *)mCpyDlgOpt1},
+          /* 5*/  {DI_RADIOBUTTON,5,6,0,0,0,0,0,0,(TCHAR *)mCpyDlgOpt2},
+          /* 6*/  {DI_RADIOBUTTON,5,7,0,0,0,0,0,0,(TCHAR *)mCpyDlgOpt3},
+          /* 7*/  {DI_RADIOBUTTON,5,8,0,0,0,0,0,0,(TCHAR *)mCpyDlgOpt4},
+          /* 8*/  {DI_RADIOBUTTON,5,9,0,0,0,0,0,0,(TCHAR *)mCpyDlgAsk},
+          /* 9*/  {DI_CHECKBOX,5,11,0,0,0,0,0,0,(TCHAR *)mCpyDlgChk1},
+          /*10*/  {DI_CHECKBOX,5,12,0,0,0,0,0,0,(TCHAR *)mCpyDlgChkAccess},
+          /*11*/  {DI_CHECKBOX,5,13,0,0,0,0,DIF_DISABLE,0,(TCHAR *)mCpyDlgChk2},
+          /*12*/  {DI_CHECKBOX,5,14,0,0,0,0,DIF_DISABLE,0,(TCHAR *)mCpyDlgChk3},
+          /*13*/  {DI_CHECKBOX,5,15,0,0,0,0,DIF_3STATE,0,(TCHAR *)mCpyDlgChk4},
+          /*14*/  {DI_CHECKBOX,5,16,0,0,0,0,DIF_3STATE,0,(TCHAR *)mCpyDlgChkLink},
+          /*15*/  {DI_TEXT,5,17,0,0,0,0,DIF_BOXCOLOR|DIF_SEPARATOR,0,_T("")},
+          /*16*/  {DI_BUTTON,0,18,0,0,0,0,DIF_CENTERGROUP,1,(TCHAR *)mCpyDlgOkCopy},
+          /*17*/  {DI_BUTTON,0,18,0,0,0,0,DIF_CENTERGROUP,0,(TCHAR *)mCpyDlgCancel},
           };
 
           struct FarDialogItem DialogItems[sizeofa(InitDlg)];
@@ -469,40 +492,47 @@ HANDLE WINAPI _export OpenPlugin(int OpenFrom,int Item)
           dialog_data.SrcRO=Opt.CopyROSrc;
           dialog_data.DstRO=Opt.CopyRODest;
           dialog_data.Macro=TRUE;
-          if(PInfo.SelectedItemsNumber>1)
+          if(pInfo.SelectedItemsNumber()>1)
           {
-            sprintf(dialog_data.CopyMessage,GetMsg(mCpyDlgCopyToN+NumberType(PInfo.SelectedItemsNumber)),PInfo.SelectedItemsNumber);
-            sprintf(dialog_data.MoveMessage,GetMsg(mCpyDlgMoveToN+NumberType(PInfo.SelectedItemsNumber)),PInfo.SelectedItemsNumber);
+            _stprintf(dialog_data.CopyMessage,GetMsg(mCpyDlgCopyToN+NumberType(pInfo.SelectedItemsNumber())),pInfo.SelectedItemsNumber());
+            _stprintf(dialog_data.MoveMessage,GetMsg(mCpyDlgMoveToN+NumberType(pInfo.SelectedItemsNumber())),pInfo.SelectedItemsNumber());
           }
           else
           {
-            NormalizeName(InitDlg[0].X2-InitDlg[0].X1-3,mCpyDlgCopyTo1,PInfo.SelectedItems[0].FindData.cFileName,dialog_data.CopyMessage);
-            NormalizeName(InitDlg[0].X2-InitDlg[0].X1-3,mCpyDlgMoveTo1,PInfo.SelectedItems[0].FindData.cFileName,dialog_data.MoveMessage);
+            NormalizeName(InitDlg[0].X2-InitDlg[0].X1-3,mCpyDlgCopyTo1,pInfo.Selected(0).FindData.PANEL_FILENAME,dialog_data.CopyMessage);
+            NormalizeName(InitDlg[0].X2-InitDlg[0].X1-3,mCpyDlgMoveTo1,pInfo.Selected(0).FindData.PANEL_FILENAME,dialog_data.MoveMessage);
           }
-          strcpy(DialogItems[COPYDLG_LTO].Data,dialog_data.CopyMessage);
-          strcpy(DialogItems[COPYDLG_ETO].Data,DestA);
-          int DlgCode=Info.DialogEx(Info.ModuleNumber,-1,-1,76,21,"Copy",DialogItems,sizeofa(InitDlg),0,0,CopyDialogProc,(LONG_PTR)&dialog_data);
+          INIT_DLG_DATA(DialogItems[COPYDLG_LTO],dialog_data.CopyMessage);
+          INIT_DLG_DATA(DialogItems[COPYDLG_ETO],DestA);
+          CFarDialog dialog;
+          int DlgCode=dialog.Execute(Info.ModuleNumber,-1,-1,76,21,_T("Copy"),DialogItems,sizeofa(InitDlg),0,0,CopyDialogProc,(LONG_PTR)&dialog_data);
           if(DlgCode==COPYDLG_OK)
           {
-            FSF.Unquote(DialogItems[COPYDLG_ETO].Data);
+            TCHAR eto[MAX_PATH];
+            _tcscpy(eto,dialog.Str(COPYDLG_ETO));
+            FSF.Unquote(eto);
             if(PlgOpt.ExpandVars)
             {
-              char exp[MAX_PATH]; DWORD res;
-              res=FSF.ExpandEnvironmentStr(DialogItems[COPYDLG_ETO].Data,exp,sizeof(exp));
-              strcpy(DialogItems[COPYDLG_ETO].Data,exp);
+              TCHAR exp[MAX_PATH]; DWORD res;
+#ifdef UNICODE
+              res=ExpandEnvironmentStrings(eto,exp,ArraySize(exp));
+#else
+              res=FSF.ExpandEnvironmentStr(eto,exp,ArraySize(exp));
+#endif
+              _tcscpy(eto,exp);
             }
-            char *filename;
-            filename=strrchr(DialogItems[COPYDLG_ETO].Data,'\\');
+            TCHAR *filename;
+            filename=_tcsrchr(eto,'\\');
             if(!filename)
-              filename=DialogItems[COPYDLG_ETO].Data;
-            if(!(strcmp(filename,".")&&strcmp(filename,"..")))
-              strcat(DialogItems[COPYDLG_ETO].Data,"\\");
-            DWORD full_res=GetFullPathName(DialogItems[COPYDLG_ETO].Data,sizeof(DestA),DestA,&filename);
+              filename=eto;
+            if(!(_tcscmp(filename,_T("."))&&_tcscmp(filename,_T(".."))))
+              _tcscat(eto,_T("\\"));
+            DWORD full_res=GetFullPathName(eto,ArraySize(DestA),DestA,&filename);
             if(!full_res||full_res>=sizeof(DestA))
             {
-              char err3[512];
-              sprintf(err3,GetMsg(mCpyErr3),DialogItems[COPYDLG_ETO].Data);
-              const char *MsgItems[]={GetMsg(mError),err3,GetMsg(mOk)};
+              TCHAR err3[512];
+              _stprintf(err3,GetMsg(mCpyErr3),eto);
+              const TCHAR *MsgItems[]={GetMsg(mError),err3,GetMsg(mOk)};
               Info.Message(Info.ModuleNumber,FMSG_ERRORTYPE|FMSG_WARNING,NULL,MsgItems,sizeofa(MsgItems),1);
               break;
             }
@@ -510,61 +540,78 @@ HANDLE WINAPI _export OpenPlugin(int OpenFrom,int Item)
             //check for such names as \\ZG\TEMP
             if(!CheckSystemFile(DestA))
             {
-              char Volume[MAX_PATH];
-              FSF.GetPathRoot(DestA,Volume);
-              if(strlen(DestA)<strlen(Volume))
+              TCHAR Volume[MAX_PATH];
+              FSF.GetPathRoot(DestA,Volume
+#ifdef UNICODE
+              ,MAX_PATH
+#endif
+              );
+              if(_tcslen(DestA)<_tcslen(Volume))
                 FSF.AddEndSlash(DestA);
             }
-            if(DestA[strlen(DestA)-1]!='\\')
+            if(DestA[_tcslen(DestA)-1]!='\\')
             {
-              WIN32_FIND_DATAA find;
+              WIN32_FIND_DATA find;
               HANDLE test_handle;
-              if((test_handle=FindFirstFileA(DestA,&find))!=INVALID_HANDLE_VALUE)
+              if((test_handle=FindFirstFile(DestA,&find))!=INVALID_HANDLE_VALUE)
               {
                 FindClose(test_handle);
                 if(find.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)
-                  strcat(DestA,"\\");
+                  _tcscat(DestA,_T("\\"));
               }
-              else if((!CheckSystemFile(DestA))&&(PInfo.SelectedItemsNumber==1)&&(!(PInfo.SelectedItems[0].Flags&PPIF_SELECTED))&&(PInfo.SelectedItems[0].FindData.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY))
+              else if((!CheckSystemFile(DestA))&&(pInfo.SelectedItemsNumber()==1)&&(!(pInfo.Selected(0).Flags&PPIF_SELECTED))&&(pInfo.Selected(0).FindData.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY))
               {
                 bcopy_flags[BCOPY_REN_COPY]=true;
-                strcat(DestA,"\\");
+                _tcscat(DestA,_T("\\"));
               }
             }
+#ifdef UNICODE
+            _tcsncpy(DestW,DestA,MAX_PATH-1);
+            DestW[MAX_PATH-1]=0;
+#else
             MultiByteToWideChar(CP_OEMCP,0,DestA,-1,DestW,MAX_PATH);
+#endif
             if(CheckPaths(SrcW,DestW,FALSE))
               goto copyexit_err1;
             send[0]=OPERATION_COPY;
             /*fill flags*/
             send[1]=0;
-            if(DialogItems[COPYDLG_OVERWRITE].Selected)
+            if(dialog.Check(COPYDLG_OVERWRITE))
               send[1]|=COPYFLAG_OVERWRITE;
-            if(DialogItems[COPYDLG_APPEND].Selected)
+            if(dialog.Check(COPYDLG_APPEND))
               send[1]|=COPYFLAG_APPEND;
-            if(DialogItems[COPYDLG_SKIP].Selected)
+            if(dialog.Check(COPYDLG_SKIP))
               send[1]|=COPYFLAG_SKIP;
-            if(DialogItems[COPYDLG_REFRESH].Selected)
+            if(dialog.Check(COPYDLG_REFRESH))
               send[1]|=COPYFLAG_REFRESH;
-            if(DialogItems[COPYDLG_ASK].Selected)
+            if(dialog.Check(COPYDLG_ASK))
               send[1]|=COPYFLAG_ASK;
-            if(DialogItems[COPYDLG_REMOVE].Selected)
+            if(dialog.Check(COPYDLG_REMOVE))
             {
               send[1]|=COPYFLAG_MOVE;
               bcopy_flags[BCOPY_MOVE]=true;
               //check same drive
-              char VolumeSrc[MAX_PATH],VolumeDest[MAX_PATH];
-              FSF.GetPathRoot(SrcA,VolumeSrc);
-              FSF.GetPathRoot(DestA,VolumeDest);
-              if(!_stricmp(VolumeSrc,VolumeDest))
+              TCHAR VolumeSrc[MAX_PATH],VolumeDest[MAX_PATH];
+              FSF.GetPathRoot(SrcA,VolumeSrc
+#ifdef UNICODE
+              ,MAX_PATH
+#endif
+              );
+              FSF.GetPathRoot(DestA,VolumeDest
+#ifdef UNICODE
+              ,MAX_PATH
+#endif
+              );
+              if(!_tcsicmp(VolumeSrc,VolumeDest))
                 bcopy_flags[BCOPY_NOREAL_COPY]=true;
             }
-            if(DialogItems[COPYDLG_ACCESS].Selected)
+            if(dialog.Check(COPYDLG_ACCESS))
               send[1]|=COPYFLAG_ACCESS;
-            if(DialogItems[COPYDLG_ROSRC].Selected)
+            if(dialog.Check(COPYDLG_ROSRC))
               send[1]|=COPYFLAG_ROSRC;
-            if(DialogItems[COPYDLG_RODST].Selected)
+            if(dialog.Check(COPYDLG_RODST))
               send[1]|=COPYFLAG_RODST;
-            switch(DialogItems[COPYDLG_ABORT].Selected)
+            switch(dialog.Check(COPYDLG_ABORT))
             {
               case BSTATE_CHECKED:
                 send[1]|=COPYFLAG_FAIL;
@@ -573,7 +620,7 @@ HANDLE WINAPI _export OpenPlugin(int OpenFrom,int Item)
                 send[1]|=COPYFLAG_FAIL_ASK|COPYFLAG_DONTLOGERRORS;
                 break;
             }
-            switch(DialogItems[COPYDLG_LINK].Selected)
+            switch(dialog.Check(COPYDLG_LINK))
             {
               case BSTATE_UNCHECKED:
                 send[1]=SET_LINK_TYPE(send[1],LINK_TYPE_LINK);
@@ -589,57 +636,61 @@ HANDLE WINAPI _export OpenPlugin(int OpenFrom,int Item)
               send[1]|=COPYFLAG_STATISTIC;
             if(GetClearReadOnly())
             { // clear read-only attribute, when copying from CD
-              char Volume[MAX_PATH],VolumeName[MAX_PATH],VolumeFS[MAX_PATH];
+              TCHAR Volume[MAX_PATH],VolumeName[MAX_PATH],VolumeFS[MAX_PATH];
               DWORD VolumeSerialNumber,MaximumComponentLength,FileSystemFlags;
-              FSF.GetPathRoot(SrcA,Volume);
-              strcpy(VolumeFS,"    ");
+              FSF.GetPathRoot(SrcA,Volume
+#ifdef UNICODE
+              ,MAX_PATH
+#endif
+              );
+              _tcscpy(VolumeFS,_T("    "));
               GetVolumeInformation(Volume,VolumeName,sizeof(VolumeName),&VolumeSerialNumber,&MaximumComponentLength,&FileSystemFlags,VolumeFS,sizeof(VolumeFS));
-              if((GetDriveType(Volume)==DRIVE_CDROM)||(!_stricmp(VolumeFS,"CDFS")))
+              if((GetDriveType(Volume)==DRIVE_CDROM)||(!_tcsicmp(VolumeFS,_T("CDFS"))))
               {
                 send[1]|=COPYFLAG_ATTR;
                 send[1]|=COPYFLAG_CLEAR_READONLY;
               }
             }
-            send[2]=PInfo.SelectedItemsNumber+2;
+            send[2]=pInfo.SelectedItemsNumber()+2;
             //create destination dirs
             {
               if(bcopy_flags[BCOPY_REN_COPY]&&bcopy_flags[BCOPY_NOREAL_COPY]&&bcopy_flags[BCOPY_MOVE])
               { //don't create renamed dir
-                int last_char_index=(int)strlen(DestA)-1;
+                int last_char_index=(int)_tcslen(DestA)-1;
                 if(DestA[last_char_index]=='\\')
                   DestA[last_char_index]=0;
               }
-              char DirA[MAX_PATH],*DirEnd;
-              if((strlen(DestA)>2)&&(!CheckSystemFile(DestA)))
+              TCHAR DirA[MAX_PATH],*DirEnd;
+              if((_tcslen(DestA)>2)&&(!CheckSystemFile(DestA)))
               {
-                BOOL CreateFlag=FALSE; char CreateDest[MAX_PATH];
+                BOOL CreateFlag=FALSE; TCHAR CreateDest[MAX_PATH];
                 DirEnd=DestA+3;
                 do
                 {
-                  DirEnd=strchr(DirEnd,'\\');
+                  DirEnd=_tcschr(DirEnd,'\\');
                   if(DirEnd)
                   {
-                    strncpy(DirA,DestA,DirEnd-DestA); DirA[DirEnd-DestA]=0;
+                    _tcsncpy(DirA,DestA,DirEnd-DestA); DirA[DirEnd-DestA]=0;
                     DirEnd++;
-                    CreateDirectoryA(DirA,NULL);
+                    CreateDirectory(DirA,NULL);
                     CreateFlag=TRUE;
                   }
                 } while(DirEnd);
                 if(CreateFlag)
                 {
-                  strcpy(CreateDest,DirA);
-                  strcat(CreateDest,"\\*");
-                  WIN32_FIND_DATAA find;
+                  _tcscpy(CreateDest,DirA);
+                  _tcscat(CreateDest,_T("\\*"));
+                  WIN32_FIND_DATA find;
                   SetLastError(0);
-                  HANDLE hFind=FindFirstFileA(CreateDest,&find);
+                  HANDLE hFind=FindFirstFile(CreateDest,&find);
                   DWORD err=GetLastError();
                   if(hFind!=INVALID_HANDLE_VALUE)
                     FindClose(hFind);
                   if(err==ERROR_PATH_NOT_FOUND)
                   {
-                    char err2[512];
-                    sprintf(err2,GetMsg(mCpyErr2),DirA);
-                    const char *MsgItems[]={GetMsg(mError),err2,GetMsg(mOk)};
+                    TCHAR err2[512];
+                    _stprintf(err2,GetMsg(mCpyErr2),DirA);
+                    const TCHAR *MsgItems[]={GetMsg(mError),err2,GetMsg(mOk)};
                     Info.Message(Info.ModuleNumber,FMSG_WARNING,NULL,MsgItems,sizeofa(MsgItems),1);
                     goto copyexit;
                   }
@@ -679,33 +730,36 @@ copyexit:
             012345678901234567890123456789012345678901234567890123456789012345
           */
           static struct InitDialogItem InitDlg[]={
-          /* 0*/  {DI_DOUBLEBOX,3,1,62,8,0,0,0,0,(char *)mDelDlgTitle},
-          /* 1*/  {DI_TEXT,5,2,0,0,0,0,DIF_SHOWAMPERSAND,0,""},
-          /* 2*/  {DI_TEXT,5,3,0,0,0,0,DIF_BOXCOLOR|DIF_SEPARATOR,0,""},
-          /* 3*/  {DI_CHECKBOX,5,4,0,0,0,0,0,0,(char *)mDelDlgChk1},
-          /* 4*/  {DI_CHECKBOX,5,5,0,0,0,0,DIF_3STATE,0,(char *)mDelDlgChk2},
-          /* 5*/  {DI_TEXT,5,6,0,0,0,0,DIF_BOXCOLOR|DIF_SEPARATOR,0,""},
-          /* 6*/  {DI_BUTTON,0,7,0,0,1,0,DIF_CENTERGROUP,1,(char *)mDelDlgOk},
-          /* 7*/  {DI_BUTTON,0,7,0,0,0,0,DIF_CENTERGROUP,0,(char *)mDelDlgCancel}
+          /* 0*/  {DI_DOUBLEBOX,3,1,62,8,0,0,0,0,(TCHAR *)mDelDlgTitle},
+          /* 1*/  {DI_TEXT,5,2,0,0,0,0,DIF_SHOWAMPERSAND,0,_T("")},
+          /* 2*/  {DI_TEXT,5,3,0,0,0,0,DIF_BOXCOLOR|DIF_SEPARATOR,0,_T("")},
+          /* 3*/  {DI_CHECKBOX,5,4,0,0,0,0,0,0,(TCHAR *)mDelDlgChk1},
+          /* 4*/  {DI_CHECKBOX,5,5,0,0,0,0,DIF_3STATE,0,(TCHAR *)mDelDlgChk2},
+          /* 5*/  {DI_TEXT,5,6,0,0,0,0,DIF_BOXCOLOR|DIF_SEPARATOR,0,_T("")},
+          /* 6*/  {DI_BUTTON,0,7,0,0,1,0,DIF_CENTERGROUP,1,(TCHAR *)mDelDlgOk},
+          /* 7*/  {DI_BUTTON,0,7,0,0,0,0,DIF_CENTERGROUP,0,(TCHAR *)mDelDlgCancel}
           };
           struct FarDialogItem DialogItems[sizeofa(InitDlg)];
           InitDialogItems(InitDlg,DialogItems,sizeofa(InitDlg));
           DialogItems[3].Selected=Opt.DeleteRO;
           DialogItems[4].Selected=Opt.DeleteAbort;
-          if(PInfo.SelectedItemsNumber>1)
-            sprintf(DialogItems[1].Data,GetMsg(mDelDlgDeleteN+NumberType(PInfo.SelectedItemsNumber)),PInfo.SelectedItemsNumber);
+          TCHAR delete_name[512];
+          if(pInfo.SelectedItemsNumber()>1)
+            _stprintf(delete_name,GetMsg(mDelDlgDeleteN+NumberType(pInfo.SelectedItemsNumber())),pInfo.SelectedItemsNumber());
           else
-            NormalizeName(InitDlg[0].X2-InitDlg[0].X1-3,mDelDlgDelete1,PInfo.SelectedItems[0].FindData.cFileName,DialogItems[1].Data);
+            NormalizeName(InitDlg[0].X2-InitDlg[0].X1-3,mDelDlgDelete1,pInfo.Selected(0).FindData.PANEL_FILENAME,delete_name);
+          INIT_DLG_DATA(DialogItems[1],delete_name);
           CommonDialogData dialog_data={TRUE};
-          int DlgCode=Info.DialogEx(Info.ModuleNumber,-1,-1,66,10,"Delete",DialogItems,sizeofa(InitDlg),0,0,DelDialogProc,(LONG_PTR)&dialog_data);
+          CFarDialog dialog;
+          int DlgCode=dialog.Execute(Info.ModuleNumber,-1,-1,66,10,_T("Delete"),DialogItems,sizeofa(InitDlg),0,0,DelDialogProc,(LONG_PTR)&dialog_data);
           if(DlgCode==6)
           {
             send[0]=OPERATION_COPY;
             /*fill flags*/
             send[1]=COPYFLAG_DELETE|COPYFLAG_OVERWRITE;
-            if(DialogItems[3].Selected)
+            if(dialog.Check(3))
               send[1]|=COPYFLAG_ROSRC;
-            switch(DialogItems[4].Selected)
+            switch(dialog.Check(4))
             {
               case BSTATE_CHECKED:
                 send[1]|=COPYFLAG_FAIL;
@@ -716,7 +770,7 @@ copyexit:
             }
             if(Opt.CopyFullInfo) //!!!
               send[1]|=COPYFLAG_STATISTIC;
-            send[2]=PInfo.SelectedItemsNumber+2;
+            send[2]=pInfo.SelectedItemsNumber()+2;
             #define CHECK_DEST
             #define DEST_W L""
             #define ON_ERROR ;
@@ -750,37 +804,44 @@ copyexit:
             012345678901234567890123456789012345678901234
           */
           static struct InitDialogItem InitDlg[]={
-          /* 0*/  {DI_DOUBLEBOX,3,1,41,12,0,0,0,0,(char *)mAttrDlgTitle},
-          /* 1*/  {DI_TEXT,0,3,0,0,0,0,DIF_SHOWAMPERSAND,0,""},
-          /* 2*/  {DI_TEXT,0,2,0,0,0,0,0,0,(char *)mAttrDlgTitle2},
-          /* 3*/  {DI_TEXT,5,4,0,0,0,0,DIF_BOXCOLOR|DIF_SEPARATOR,0,""},
-          /* 4*/  {DI_CHECKBOX,5,5,0,0,1,2,DIF_3STATE,0,(char *)mAttrDlgReadOnly},
-          /* 5*/  {DI_CHECKBOX,5,6,0,0,0,2,DIF_3STATE,0,(char *)mAttrDlgArchive},
-          /* 6*/  {DI_CHECKBOX,5,7,0,0,0,2,DIF_3STATE,0,(char *)mAttrDlgHidden},
-          /* 7*/  {DI_CHECKBOX,5,8,0,0,0,2,DIF_3STATE,0,(char *)mAttrDlgSystem},
-          /* 8*/  {DI_CHECKBOX,5,9,0,0,0,2,DIF_3STATE|DIF_DISABLE,0,(char *)mAttrDlgCompressed},
-          /* 9*/  {DI_TEXT,5,10,0,0,0,0,DIF_BOXCOLOR|DIF_SEPARATOR,0,""},
-          /*10*/  {DI_BUTTON,0,11,0,0,1,0,DIF_CENTERGROUP,1,(char *)mAttrDlgSet},
-          /*11*/  {DI_BUTTON,0,11,0,0,0,0,DIF_CENTERGROUP,0,(char *)mAttrDlgCancel}
+          /* 0*/  {DI_DOUBLEBOX,3,1,41,12,0,0,0,0,(TCHAR *)mAttrDlgTitle},
+          /* 1*/  {DI_TEXT,0,3,0,0,0,0,DIF_SHOWAMPERSAND,0,_T("")},
+          /* 2*/  {DI_TEXT,0,2,0,0,0,0,0,0,(TCHAR *)mAttrDlgTitle2},
+          /* 3*/  {DI_TEXT,5,4,0,0,0,0,DIF_BOXCOLOR|DIF_SEPARATOR,0,_T("")},
+          /* 4*/  {DI_CHECKBOX,5,5,0,0,1,2,DIF_3STATE,0,(TCHAR *)mAttrDlgReadOnly},
+          /* 5*/  {DI_CHECKBOX,5,6,0,0,0,2,DIF_3STATE,0,(TCHAR *)mAttrDlgArchive},
+          /* 6*/  {DI_CHECKBOX,5,7,0,0,0,2,DIF_3STATE,0,(TCHAR *)mAttrDlgHidden},
+          /* 7*/  {DI_CHECKBOX,5,8,0,0,0,2,DIF_3STATE,0,(TCHAR *)mAttrDlgSystem},
+          /* 8*/  {DI_CHECKBOX,5,9,0,0,0,2,DIF_3STATE|DIF_DISABLE,0,(TCHAR *)mAttrDlgCompressed},
+          /* 9*/  {DI_TEXT,5,10,0,0,0,0,DIF_BOXCOLOR|DIF_SEPARATOR,0,_T("")},
+          /*10*/  {DI_BUTTON,0,11,0,0,1,0,DIF_CENTERGROUP,1,(TCHAR *)mAttrDlgSet},
+          /*11*/  {DI_BUTTON,0,11,0,0,0,0,DIF_CENTERGROUP,0,(TCHAR *)mAttrDlgCancel}
           };
           struct FarDialogItem DialogItems[sizeofa(InitDlg)];
           InitDialogItems(InitDlg,DialogItems,sizeofa(InitDlg));
-          if(PInfo.SelectedItemsNumber>1)
-            sprintf(DialogItems[1].Data,GetMsg(mAttrDlgChangeN+NumberType(PInfo.SelectedItemsNumber)),PInfo.SelectedItemsNumber);
+          TCHAR attr_name[512];
+          if(pInfo.SelectedItemsNumber()>1)
+            _stprintf(attr_name,GetMsg(mAttrDlgChangeN+NumberType(pInfo.SelectedItemsNumber())),pInfo.SelectedItemsNumber());
           else
-            NormalizeName(InitDlg[0].X2-InitDlg[0].X1-3,mAttrDlgChange1,PInfo.SelectedItems[0].FindData.cFileName,DialogItems[1].Data);
-          DialogItems[1].X1=4+(37-(int)strlen(DialogItems[1].Data))/2;
-          DialogItems[2].X1=4+(37-(int)strlen(DialogItems[2].Data))/2;
+            NormalizeName(InitDlg[0].X2-InitDlg[0].X1-3,mAttrDlgChange1,pInfo.Selected(0).FindData.PANEL_FILENAME,attr_name);
+          INIT_DLG_DATA(DialogItems[1],attr_name);
+          DialogItems[1].X1=4+(37-(int)_tcslen(DLG_DATA(DialogItems[1])))/2;
+          DialogItems[2].X1=4+(37-(int)_tcslen(DLG_DATA(DialogItems[2])))/2;
           { // clear read-only attribute, when copying from CD
-            char Volume[MAX_PATH],VolumeName[MAX_PATH],VolumeFS[MAX_PATH];
+            TCHAR Volume[MAX_PATH],VolumeName[MAX_PATH],VolumeFS[MAX_PATH];
             DWORD VolumeSerialNumber,MaximumComponentLength,FileSystemFlags;
-            FSF.GetPathRoot(SrcA,Volume);
+            FSF.GetPathRoot(SrcA,Volume
+#ifdef UNICODE
+            ,MAX_PATH
+#endif
+            );
             if(GetVolumeInformation(Volume,VolumeName,sizeof(VolumeName),&VolumeSerialNumber,&MaximumComponentLength,&FileSystemFlags,VolumeFS,sizeof(VolumeFS)))
               if(FileSystemFlags&FS_FILE_COMPRESSION)
                 DialogItems[8].Flags&=~DIF_DISABLE;
           }
           CommonDialogData dialog_data={TRUE};
-          int DlgCode=Info.DialogEx(Info.ModuleNumber,-1,-1,45,14,"Attributes",DialogItems,sizeofa(InitDlg),0,0,AttrDialogProc,(LONG_PTR)&dialog_data);
+          CFarDialog dialog;
+          int DlgCode=dialog.Execute(Info.ModuleNumber,-1,-1,45,14,_T("Attributes"),DialogItems,sizeofa(InitDlg),0,0,AttrDialogProc,(LONG_PTR)&dialog_data);
           if(DlgCode==10)
           {
             send[0]=OPERATION_COPY;
@@ -796,12 +857,12 @@ copyexit:
               {COPYFLAG_CLEAR_COMPRESSED,COPYFLAG_SET_COMPRESSED,0},
             };
             for(int i=0;i<5;i++)
-              send[1]|=flags[i][DialogItems[4+i].Selected];
+              send[1]|=flags[i][dialog.Check(4+i)];
             if(send[1]!=(COPYFLAG_ATTRMAIN|COPYFLAG_ATTR|COPYFLAG_OVERWRITE))
             {
               if(Opt.CopyFullInfo) //!!!
                 send[1]|=COPYFLAG_STATISTIC;
-              send[2]=PInfo.SelectedItemsNumber+2;
+              send[2]=pInfo.SelectedItemsNumber()+2;
               #define CHECK_DEST
               #define DEST_W L""
               #define ON_ERROR ;
@@ -831,29 +892,32 @@ copyexit:
             012345678901234567890123456789012345678901234567890123456789012345
           */
           static struct InitDialogItem InitDlg[]={
-          /* 0*/  {DI_DOUBLEBOX,3,1,62,7,0,0,0,0,(char *)mWpeDlgTitle},
-          /* 1*/  {DI_TEXT,5,2,0,0,0,0,DIF_SHOWAMPERSAND,0,""},
-          /* 2*/  {DI_TEXT,5,3,0,0,0,0,DIF_BOXCOLOR|DIF_SEPARATOR,0,""},
-          /* 3*/  {DI_CHECKBOX,5,4,0,0,0,0,DIF_3STATE,0,(char *)mWpeDlgChk},
-          /* 4*/  {DI_TEXT,5,5,0,0,0,0,DIF_BOXCOLOR|DIF_SEPARATOR,0,""},
-          /* 5*/  {DI_BUTTON,0,6,0,0,1,0,DIF_CENTERGROUP,1,(char *)mWpeDlgOk},
-          /* 6*/  {DI_BUTTON,0,6,0,0,0,0,DIF_CENTERGROUP,0,(char *)mWpeDlgCancel}
+          /* 0*/  {DI_DOUBLEBOX,3,1,62,7,0,0,0,0,(TCHAR *)mWpeDlgTitle},
+          /* 1*/  {DI_TEXT,5,2,0,0,0,0,DIF_SHOWAMPERSAND,0,_T("")},
+          /* 2*/  {DI_TEXT,5,3,0,0,0,0,DIF_BOXCOLOR|DIF_SEPARATOR,0,_T("")},
+          /* 3*/  {DI_CHECKBOX,5,4,0,0,0,0,DIF_3STATE,0,(TCHAR *)mWpeDlgChk},
+          /* 4*/  {DI_TEXT,5,5,0,0,0,0,DIF_BOXCOLOR|DIF_SEPARATOR,0,_T("")},
+          /* 5*/  {DI_BUTTON,0,6,0,0,1,0,DIF_CENTERGROUP,1,(TCHAR *)mWpeDlgOk},
+          /* 6*/  {DI_BUTTON,0,6,0,0,0,0,DIF_CENTERGROUP,0,(TCHAR *)mWpeDlgCancel}
           };
           struct FarDialogItem DialogItems[sizeofa(InitDlg)];
           InitDialogItems(InitDlg,DialogItems,sizeofa(InitDlg));
           DialogItems[3].Selected=Opt.WipeAbort;
-          if(PInfo.SelectedItemsNumber>1)
-            sprintf(DialogItems[1].Data,GetMsg(mWpeDlgWipeN+NumberType(PInfo.SelectedItemsNumber)),PInfo.SelectedItemsNumber);
+          TCHAR wipe_name[512];
+          if(pInfo.SelectedItemsNumber()>1)
+            _stprintf(wipe_name,GetMsg(mWpeDlgWipeN+NumberType(pInfo.SelectedItemsNumber())),pInfo.SelectedItemsNumber());
           else
-            NormalizeName(InitDlg[0].X2-InitDlg[0].X1-3,mWpeDlgWipe1,PInfo.SelectedItems[0].FindData.cFileName,DialogItems[1].Data);
+            NormalizeName(InitDlg[0].X2-InitDlg[0].X1-3,mWpeDlgWipe1,pInfo.Selected(0).FindData.PANEL_FILENAME,wipe_name);
+          INIT_DLG_DATA(DialogItems[1],wipe_name);
           CommonDialogData dialog_data={TRUE};
-          int DlgCode=Info.DialogEx(Info.ModuleNumber,-1,-1,66,9,"Delete",DialogItems,sizeofa(InitDlg),0,0,WipeDialogProc,(LONG_PTR)&dialog_data);
+          CFarDialog dialog;
+          int DlgCode=dialog.Execute(Info.ModuleNumber,-1,-1,66,9,_T("Delete"),DialogItems,sizeofa(InitDlg),0,0,WipeDialogProc,(LONG_PTR)&dialog_data);
           if(DlgCode==5)
           {
             send[0]=OPERATION_COPY;
             /*fill flags*/
             send[1]=COPYFLAG_DELETE|COPYFLAG_WIPE|COPYFLAG_OVERWRITE;
-            switch(DialogItems[3].Selected)
+            switch(dialog.Check(3))
             {
               case BSTATE_CHECKED:
                 send[1]|=COPYFLAG_FAIL;
@@ -864,7 +928,7 @@ copyexit:
             }
             if(Opt.CopyFullInfo) //!!!
               send[1]|=COPYFLAG_STATISTIC;
-            send[2]=PInfo.SelectedItemsNumber+2;
+            send[2]=pInfo.SelectedItemsNumber()+2;
             #define CHECK_DEST
             #define DEST_W L""
             #define ON_ERROR ;
@@ -873,10 +937,14 @@ copyexit:
           break;
         }
         case 5:
-          if(PInfo.CurrentItem>=0)
+          if(pInfo.CurrentItem()>=0)
           {
             wchar_t WideName[MAX_PATH],WideFullName[MAX_PATH];
-            if(GetWideName(SrcA,&PInfo.PanelItems[PInfo.CurrentItem].FindData,WideName))
+#ifdef UNICODE
+            _tcscpy(WideName,pInfo[pInfo.CurrentItem()].FindData.lpwszFileName);
+#else
+            if(GetWideName(SrcA,&pInfo[pInfo.CurrentItem()].FindData,WideName))
+#endif
             {
               wcscpy(WideFullName,SrcW);
               wcscat(WideFullName,WideName);
@@ -893,37 +961,59 @@ copyexit:
         case 7:
         case 8:
         {
-          if((PInfo.CurrentItem>=0)&&!(PInfo.PanelItems[PInfo.CurrentItem].FindData.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY))
+          if((pInfo.CurrentItem()>=0)&&!(pInfo[pInfo.CurrentItem()].FindData.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY))
           {
-            char SrcLA[MAX_PATH];
-            char *ShortFileName=PInfo.PanelItems[PInfo.CurrentItem].FindData.cAlternateFileName;
-            strcpy(SrcLA,SrcA);
-            if(!ShortFileName[0]||PInfo.Plugin)
-              ShortFileName=PInfo.PanelItems[PInfo.CurrentItem].FindData.cFileName;
-            strcat(SrcA,ShortFileName);
-            strcat(SrcLA,PInfo.PanelItems[PInfo.CurrentItem].FindData.cFileName);
+            TCHAR SrcLA[MAX_PATH];
+#ifndef UNICODE
+            TCHAR *ShortFileName=pInfo[pInfo.CurrentItem()].FindData.cAlternateFileName;
+#endif
+            _tcscpy(SrcLA,SrcA);
+#ifdef UNICODE
+            _tcscat(SrcA,pInfo[pInfo.CurrentItem()].FindData.PANEL_FILENAME);
+#else
+            if(!ShortFileName[0]||pInfo.Plugin())
+              ShortFileName=pInfo[pInfo.CurrentItem()].FindData.PANEL_FILENAME;
+            _tcscat(SrcA,ShortFileName);
+#endif
+            _tcscat(SrcLA,pInfo[pInfo.CurrentItem()].FindData.PANEL_FILENAME);
             if(MenuCode==7)
-              Info.Viewer(SrcA,SrcLA,0,0,-1,-1,VF_NONMODAL|VF_IMMEDIATERETURN|VF_ENABLE_F6);
+              Info.Viewer(SrcA,SrcLA,0,0,-1,-1,VF_NONMODAL|VF_IMMEDIATERETURN|VF_ENABLE_F6
+#ifdef UNICODE
+              ,CP_AUTODETECT
+#endif
+              );
             else
-              Info.Editor(SrcA,SrcLA,0,0,-1,-1,EF_NONMODAL|EF_IMMEDIATERETURN|EF_ENABLE_F6,1,1);
+              Info.Editor(SrcA,SrcLA,0,0,-1,-1,EF_NONMODAL|EF_IMMEDIATERETURN|EF_ENABLE_F6,1,1
+#ifdef UNICODE
+              ,CP_AUTODETECT
+#endif
+              );
           }
           break;
         }
         case 9:
           {
             wchar_t WideName[MAX_PATH];
-            if(OpenFrom==OPEN_PLUGINSMENU&&PInfo.ItemsNumber>0)
+            if(OpenFrom==OPEN_PLUGINSMENU&&pInfo.ItemsNumber()>0)
             {
-              if(PInfo.CurrentItem>=0)
+              if(pInfo.CurrentItem()>=0)
               {
-                if(PInfo.Plugin)
+                if(pInfo.Plugin())
                 {
-                  if(GetWideNameDirect(SrcA,PInfo.PanelItems[PInfo.CurrentItem].FindData.cFileName,WideName))
+#ifdef UNICODE
+                  _tcscpy(WideName,pInfo[pInfo.CurrentItem()].FindData.PANEL_FILENAME);
+#else
+                  if(GetWideNameDirect(SrcA,pInfo[pInfo.CurrentItem()].FindData.PANEL_FILENAME,WideName))
+#endif
                     ShowName(WideName);
                 }
                 else
                 {
-                  if(GetWideName(SrcA,&PInfo.PanelItems[PInfo.CurrentItem].FindData,WideName))
+#ifdef UNICODE
+                  _tcscpy(WideName,pInfo[pInfo.CurrentItem()].FindData.PANEL_FILENAME);
+#else
+                  if(GetWideName(SrcA,&pInfo[pInfo.CurrentItem()].FindData,WideName))
+#endif
                     ShowName(WideName);
                 }
               }
@@ -934,7 +1024,11 @@ copyexit:
               winfo.Pos=-1;
               if(Info.AdvControl(Info.ModuleNumber,ACTL_GETWINDOWINFO,&winfo))
               {
-                if(GetWideNameDirect("",winfo.Name,WideName))
+#ifdef UNICODE
+                  _tcscpy(WideName,winfo.Name);
+#else
+                if(GetWideNameDirect(_T(""),winfo.Name,WideName))
+#endif
                   ShowName(WideName);
               }
             }
@@ -958,7 +1052,7 @@ copyexit:
         RefreshSCSI();
         break;
       case 15:
-        Configure(0);
+        EXP_NAME_CALL(Configure)(0);
         break;
       case 16:
       {
@@ -970,7 +1064,7 @@ copyexit:
   return INVALID_HANDLE_VALUE;
 }
 
-int WINAPI _export Configure(int ItemNumber)
+int WINAPI EXP_NAME(Configure)(int ItemNumber)
 {
   switch(ItemNumber)
   {
@@ -980,7 +1074,7 @@ int WINAPI _export Configure(int ItemNumber)
   return(FALSE);
 }
 
-void WINAPI _export ExitFAR()
+void WINAPI EXP_NAME(ExitFAR)()
 {
   if(!IsOldFAR)
   {

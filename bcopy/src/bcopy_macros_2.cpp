@@ -1,15 +1,16 @@
 #include <stdio.h>
-#include "../../plugin.hpp"
-#include "../../farkeys.hpp"
+#include "plugin.hpp"
+#include "farkeys.hpp"
 #include "bcplugin.h"
 #include "memory.h"
+#include <tchar.h>
 
-static const char *MacroNames[MACRO_COUNT]={"Copy","Move","Delete","Attributes","Wipe","Overwrite","Retry","Info","Link","InfoMenu"};
+static const TCHAR *MacroNames[MACRO_COUNT]={_T("Copy"),_T("Move"),_T("Delete"),_T("Attributes"),_T("Wipe"),_T("Overwrite"),_T("Retry"),_T("Info"),_T("Link"),_T("InfoMenu")};
 
 struct MacroEntry
 {
   DWORD Key;
-  char *Seq;
+  TCHAR *Seq;
   bool DisableOutput;
 };
 
@@ -23,33 +24,33 @@ static DWORD UpperKey(DWORD Key)
   return result;
 }
 
-static bool add_macro(int index,const char *KeyIn,const char *Path)
+static bool add_macro(int index,const TCHAR *KeyIn,const TCHAR *Path)
 {
   if(!KeyIn||!*KeyIn) return false;
   LONG KeyOut=FSF.FarNameToKey(KeyIn);
   if(KeyOut==-1) return false;
   //read
   bool res=false;
-  char KeyPath[1024]; HKEY hKey=NULL;
-  strcpy(KeyPath,Path);
-  strcat(KeyPath,"\\");
-  strcat(KeyPath,KeyIn);
+  TCHAR KeyPath[1024]; HKEY hKey=NULL;
+  _tcscpy(KeyPath,Path);
+  _tcscat(KeyPath,_T("\\"));
+  _tcscat(KeyPath,KeyIn);
   if(RegOpenKeyEx(HKEY_CURRENT_USER,KeyPath,0,KEY_READ,&hKey)==ERROR_SUCCESS)
   {
-    DWORD DisableOutput=TRUE,Type,DataSize=0; char ValueBuffer[1024];
+    DWORD DisableOutput=TRUE,Type,DataSize=0; TCHAR ValueBuffer[1024];
     ValueBuffer[0]=0;
     DataSize=sizeof(DisableOutput);
-    RegQueryValueEx(hKey,"DisableOutput",0,&Type,(LPBYTE)&DisableOutput,&DataSize);
+    RegQueryValueEx(hKey,_T("DisableOutput"),0,&Type,(LPBYTE)&DisableOutput,&DataSize);
     DataSize=sizeof(ValueBuffer);
-    RegQueryValueEx(hKey,"Sequence",0,&Type,(LPBYTE)ValueBuffer,&DataSize);
+    RegQueryValueEx(hKey,_T("Sequence"),0,&Type,(LPBYTE)ValueBuffer,&DataSize);
     if(ValueBuffer[0])
     {
-      int SeqSize=(int)strlen(ValueBuffer)+1; char *Seq;
-      Seq=(char *)malloc(SeqSize);
+      int SeqSize=(int)_tcslen(ValueBuffer)+1; TCHAR *Seq;
+      Seq=(TCHAR *)malloc(SeqSize);
       if(Seq)
       {
         Seq[0]=0;
-        strcat(Seq,ValueBuffer);
+        _tcscat(Seq,ValueBuffer);
         MacroEntry *new_macros=(MacroEntry *)realloc(macros[index],sizeof(MacroEntry)*(macro_count[index]+1));
         if(new_macros)
         {
@@ -68,18 +69,18 @@ static bool add_macro(int index,const char *KeyIn,const char *Path)
   return res;
 }
 
-void load_macros_2(const char *registry)
+void load_macros_2(const TCHAR *registry)
 {
-  HKEY hKey=NULL; char path[1024],curr_path[1024];
-  strcpy(path,registry);
-  strcat(path,"\\KeyMacros\\");
+  HKEY hKey=NULL; TCHAR path[1024],curr_path[1024];
+  _tcscpy(path,registry);
+  _tcscat(path,_T("\\KeyMacros\\"));
   for(int i=0;i<MACRO_COUNT;i++)
   {
-    strcpy(curr_path,path);
-    strcat(curr_path,MacroNames[i]);
+    _tcscpy(curr_path,path);
+    _tcscat(curr_path,MacroNames[i]);
     if(RegOpenKeyEx(HKEY_CURRENT_USER,curr_path,0,KEY_READ,&hKey)==ERROR_SUCCESS)
     {
-      char NameBuffer[1024];
+      TCHAR NameBuffer[1024];
       DWORD j;
       LONG Result;
       for(j=0;;j++)

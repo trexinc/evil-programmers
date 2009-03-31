@@ -1,4 +1,4 @@
-#include "../../plugin.hpp"
+#include "far_helper.h"
 #include "bcplugin.h"
 #include <stdio.h>
 
@@ -12,72 +12,88 @@ void InitDialogItems(InitDialogItem *Init,FarDialogItem *Item,int ItemsNumber)
     Item[i].X2=Init[i].X2;
     Item[i].Y2=Init[i].Y2;
     Item[i].Focus=Init[i].Focus;
-    Item[i].Reserved=Init[i].Selected;
+    Item[i].Selected=Init[i].Selected;
     Item[i].Flags=Init[i].Flags;
     Item[i].DefaultButton=Init[i].DefaultButton;
-    if ((unsigned)(DWORD_PTR)Init[i].Data<2000)
-      strcpy(Item[i].Data,GetMsg((unsigned int)(DWORD_PTR)Init[i].Data));
+#ifdef UNICODE
+    Item[i].MaxLen=0;
+#endif
+    if((unsigned)Init[i].Data<2000)
+#ifdef UNICODE
+      Item[i].PtrData=GetMsg((unsigned int)(DWORD_PTR)Init[i].Data);
+#else
+      _tcscpy(Item[i].Data,GetMsg((unsigned int)(DWORD_PTR)Init[i].Data));
+#endif
     else
-      strcpy(Item[i].Data,Init[i].Data);
+#ifdef UNICODE
+      Item[i].PtrData=Init[i].Data;
+#else
+      _tcscpy(Item[i].Data,Init[i].Data);
+#endif
   }
 }
 
-const char *GetMsg(int MsgId)
+const TCHAR *GetMsg(int MsgId)
 {
   return(Info.GetMsg(Info.ModuleNumber,MsgId));
 };
 
 #define MY_COMBINE_PATH \
 FSF.AddEndSlash(oem_buff); \
-strcpy(res_buff,oem_buff); \
-strcat(res_buff,path+3); \
-strcpy(path,res_buff);
-void UNCPath(char *path)
+_tcscpy(res_buff,oem_buff); \
+_tcscat(res_buff,path+3); \
+_tcscpy(path,res_buff);
+void UNCPath(TCHAR *path)
 {
-  char buff[MAX_PATH],oem_buff[MAX_PATH],res_buff[MAX_PATH],device[3]=" :"; DWORD size;
+  TCHAR buff[MAX_PATH],oem_buff[MAX_PATH],res_buff[MAX_PATH],device[3]=_T(" :"); DWORD size;
   for(int i=0;i<2;i++)
   {
-    if((strlen(path)>2)&&(path[1]==':'))
+    if((_tcslen(path)>2)&&(path[1]==':'))
     {
       device[0]=path[0]; size=sizeof(buff);
       if(WNetGetConnection(device,buff,&size)==NO_ERROR)
       {
-        CharToOem(buff,oem_buff);
+        t_CharToOem(buff,oem_buff);
         MY_COMBINE_PATH
       }
       else if(QueryDosDevice(device,buff,sizeof(buff)))
-        if(!strncmp(buff,"\\??\\",4))
+        if(!_tcsncmp(buff,_T("\\??\\"),4))
         {
-          CharToOem(buff+4,oem_buff);
+          t_CharToOem(buff+4,oem_buff);
           MY_COMBINE_PATH
         }
     }
   }
   //extract symlinks only for local disk
-  if((strlen(path)>2)&&(path[1]==':'))
+  if((_tcslen(path)>2)&&(path[1]==':'))
     if((unsigned int)FSF.ConvertNameToReal(path,NULL,0)<sizeof(buff))
     {
       FSF.ConvertNameToReal(path,buff,sizeof(buff));
-      strcpy(path,buff);
+      _tcscpy(path,buff);
     }
-  for(unsigned int i=0;i<strlen(path);i++) if(path[i]=='/') path[i]='\\';
+  for(unsigned int i=0;i<_tcslen(path);i++) if(path[i]=='/') path[i]='\\';
 }
 #undef MY_COMBINE_PATH
 
-void NormalizeName(int width,int msg,char *filename,char *dest)
+void NormalizeName(int width,int msg,TCHAR *filename,TCHAR *dest)
 {
-  int msg_len=(int)strlen(GetMsg(msg))-2;
-  char truncated[MAX_PATH];
-  strcpy(truncated,filename);
+  int msg_len=(int)_tcslen(GetMsg(msg))-2;
+  TCHAR truncated[MAX_PATH];
+  _tcscpy(truncated,filename);
   FSF.TruncPathStr(truncated,width-msg_len);
-  sprintf(dest,GetMsg(msg),truncated);
+  _stprintf(dest,GetMsg(msg),truncated);
 }
 
 void NormalizeNameW(int width,int msg,wchar_t *filename,wchar_t *dest)
 {
-  int msg_len=(int)strlen(GetMsg(msg))-2;
+  int msg_len=(int)_tcslen(GetMsg(msg))-2;
   wchar_t truncated[MAX_PATH],mask[MAX_PATH];
+#ifdef UNICODE
+  _tcsncpy(mask,GetMsg(msg),sizeofa(mask)-1);
+  mask[sizeofa(mask)-1]=0;
+#else
   MultiByteToWideChar(CP_OEMCP,0,GetMsg(msg),-1,mask,sizeofa(mask));
+#endif
   wcscpy(truncated,filename);
   TruncPathStrW(truncated,width-msg_len);
   swprintf(dest,mask,truncated);
@@ -116,6 +132,6 @@ wchar_t *TruncPathStrW(wchar_t *Str,int MaxLength)
 
 void ShowError(int Message,bool SysError)
 {
-  const char *MsgItems[]={GetMsg(mError),GetMsg(Message),GetMsg(mOk)};
+  const TCHAR *MsgItems[]={GetMsg(mError),GetMsg(Message),GetMsg(mOk)};
   Info.Message(Info.ModuleNumber,FMSG_WARNING|(SysError?FMSG_ERRORTYPE:0),NULL,MsgItems,sizeofa(MsgItems),1);
 }

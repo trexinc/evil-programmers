@@ -1,6 +1,6 @@
 #include <stdio.h>
-#include "../../plugin.hpp"
-#include "../../farkeys.hpp"
+#include "plugin.hpp"
+#include "farkeys.hpp"
 #include "bcplugin.h"
 #include "bcopy_fast_redraw.h"
 #include "dm_macro.hpp"

@@ -1,7 +1,7 @@
 #include <stdio.h>
-#include "../../plugin.hpp"
-#include "../../farkeys.hpp"
-#include "../../farcolor.hpp"
+#include "far_helper.h"
+#include "farkeys.hpp"
+#include "farcolor.hpp"
 #include "bcplugin.h"
 #include "memory.h"
 #include "bcopy_fast_redraw.h"
@@ -13,7 +13,7 @@ static bool GetJobList(DWORD *size,SmallInfoRec **receive)
   {
     DWORD send[2]={OPERATION_INFO,INFOFLAG_ALL};
     DWORD dwBytesRead,dwBytesWritten,rec_size;
-    HANDLE hPipe=CreateFile(PIPE_NAME,GENERIC_READ|GENERIC_WRITE,0,NULL,OPEN_EXISTING,0,NULL);
+    HANDLE hPipe=CreateFile(PIPE_NAMEP,GENERIC_READ|GENERIC_WRITE,0,NULL,OPEN_EXISTING,0,NULL);
     if(hPipe!=INVALID_HANDLE_VALUE)
     {
       if(WriteFile(hPipe,send,sizeof(send),&dwBytesWritten,NULL))
@@ -51,15 +51,21 @@ struct InfoMenuData
 static void UpdateItem(FarListItem *item,SmallInfoRec *data,int width)
 {
   const int InfoMsgs[]={0,mInfoCopy,mInfoMove,mInfoWipe,mInfoDel,mInfoAttr};
-  char SrcA[2*MAX_PATH],percent[10];
-  WideCharToMultiByte(CP_OEMCP,0,data->Src,-1,SrcA,sizeofa(SrcA),NULL,NULL);
-  sprintf(percent,"%3ld",data->percent); percent[3]=0;
-  strcpy(item->Text,GetMsg(InfoMsgs[data->type]));
-  strcat(item->Text,GetMsg(mInfoSep));
-  strcat(item->Text,percent);
-  strcat(item->Text,"%");
-  strcat(item->Text,GetMsg(mInfoSep));
-  strcat(item->Text,FSF.TruncPathStr(SrcA,width));
+  TCHAR SrcA[2*MAX_PATH],percent[10];
+#ifdef UNICODE
+  TCHAR* text=(TCHAR*)malloc(128*sizeof(TCHAR));
+  item->Text=text;
+#else
+  TCHAR* text=item->Text;
+#endif
+  wc2mb(data->Src,SrcA,sizeofa(SrcA));
+  _stprintf(percent,_T("%3ld"),data->percent); percent[3]=0;
+  _tcscpy(text,GetMsg(InfoMsgs[data->type]));
+  _tcscat(text,GetMsg(mInfoSep));
+  _tcscat(text,percent);
+  _tcscat(text,_T("%"));
+  _tcscat(text,GetMsg(mInfoSep));
+  _tcscat(text,FSF.TruncPathStr(SrcA,width));
   if(data->wait)
   {
     if(data->pause)
@@ -75,9 +81,21 @@ static void UpdateItem(FarListItem *item,SmallInfoRec *data,int width)
     item->Flags=LIF_CHECKED|'*';
 }
 
+static void FreeItems(FarListItem* items,size_t size)
+{
+  (void)items;
+  (void)size;
+#ifdef UNICODE
+  for(size_t ii=0;ii<size;++ii)
+  {
+    free((void*)items[ii].Text);
+  }
+#endif
+}
+
 static int WidthToPathWidth(int width)
 {
-  return width-(int)strlen(GetMsg(mInfoCopy))-12-(int)(2*strlen(GetMsg(mInfoSep))-1+4);
+  return width-(int)_tcslen(GetMsg(mInfoCopy))-12-(int)(2*_tcslen(GetMsg(mInfoSep))-1+4);
 }
 
 static LONG_PTR WINAPI InfoMenuProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2)
@@ -104,10 +122,10 @@ static LONG_PTR WINAPI InfoMenuProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Para
     case DN_INITDIALOG:
       {
         FarListTitles titles;
-        titles.Title=(char *)GetMsg(mName);
-        titles.TitleLen=(int)strlen(titles.Title);
-        titles.Bottom=(char *)GetMsg(mInfoBottom);
-        titles.BottomLen=(int)strlen(titles.Bottom);
+        titles.Title=(TCHAR *)GetMsg(mName);
+        titles.TitleLen=(int)_tcslen(titles.Title);
+        titles.Bottom=(TCHAR *)GetMsg(mInfoBottom);
+        titles.BottomLen=(int)_tcslen(titles.Bottom);
         Info.SendDlgMessage(hDlg,DM_LISTSETTITLES,0,(LONG_PTR)&titles);
       }
       break;
@@ -161,11 +179,11 @@ static LONG_PTR WINAPI InfoMenuProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Para
                 length=(DWORD)wcslen(receive[i].Src);
                 if(length>width) width=length;
               }
-              width+=(DWORD)strlen(GetMsg(mInfoCopy));
-              width+=(DWORD)(2*strlen(GetMsg(mInfoSep)))-1+4; // -1 for headers, 4 for percents
-              length=(DWORD)strlen(GetMsg(mName));
+              width+=(DWORD)_tcslen(GetMsg(mInfoCopy));
+              width+=(DWORD)(2*_tcslen(GetMsg(mInfoSep)))-1+4; // -1 for headers, 4 for percents
+              length=(DWORD)_tcslen(GetMsg(mName));
               if(length>width) width=length;
-              length=(DWORD)strlen(GetMsg(mInfoBottom));
+              length=(DWORD)_tcslen(GetMsg(mInfoBottom));
               if(length>width) width=length;
               width+=12;
               height=size+4;
@@ -207,6 +225,7 @@ static LONG_PTR WINAPI InfoMenuProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Para
                     if(restore_pos&&receive[i].ThreadId==old_pos) new_pos.SelectPos=i;
                   }
                   Info.SendDlgMessage(hDlg,DM_LISTADD,0,(LONG_PTR)&list);
+                  FreeItems(list_items,size);
                   free(list_items);
                   if(restore_pos) Info.SendDlgMessage(hDlg,DM_LISTSETCURPOS,0,(LONG_PTR)&new_pos);
                 }
@@ -239,6 +258,7 @@ static LONG_PTR WINAPI InfoMenuProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Para
                   Info.SendDlgMessage(hDlg,DM_LISTGETITEM,0,(LONG_PTR)&item);
                   UpdateItem(&(item.Item),receive+i,path_width);
                   Info.SendDlgMessage(hDlg,DM_LISTUPDATE,0,(LONG_PTR)&item);
+                  FreeItems(&(item.Item),1);
                 }
               }
               free(DlgParams->id);
@@ -306,7 +326,8 @@ void WINAPI _export ShowInfoMenu(void)
   ThreadData Thread={FALSE,NULL,NULL,NULL,PlgOpt.RefreshInterval};
   InitThreadData(&Thread);
   InfoMenuData params={{&Thread,0,{-1,-1},{L"",L""},INVALID_HANDLE_VALUE,false,InfoMenuDialogKeyProc,MACRO_INFO_MENU,true,false},0,NULL,true,true};
-  Info.DialogEx(Info.ModuleNumber,-1,-1,0,0,"InfoMenu",DialogItems,sizeofa(DialogItems),0,0,InfoMenuProc,(LONG_PTR)&params);
+  CFarDialog dialog;
+  dialog.Execute(Info.ModuleNumber,-1,-1,0,0,_T("InfoMenu"),DialogItems,sizeofa(DialogItems),0,0,InfoMenuProc,(LONG_PTR)&params);
   FreeThreadData(&Thread);
   free(params.id);
 }

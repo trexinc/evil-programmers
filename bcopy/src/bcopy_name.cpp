@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "../../plugin.hpp"
+#include "far_helper.h"
 #include "bcplugin.h"
 
 struct Splited
@@ -64,7 +64,8 @@ void ShowName(const wchar_t *Name)
   Names.Console=CreateFileW(L"CONOUT$",GENERIC_WRITE,FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
   if(Names.Console!=INVALID_HANDLE_VALUE)
   {
-    Info.DialogEx(Info.ModuleNumber,-1,-1,75,8,"ShowName",DialogItems,sizeofa(DialogItems),0,0,NameDlgProc,(LONG_PTR)&Names);
+    CFarDialog dialog;
+    dialog.Execute(Info.ModuleNumber,-1,-1,75,8,_T("ShowName"),DialogItems,sizeofa(DialogItems),0,0,NameDlgProc,(LONG_PTR)&Names);
     CloseHandle(Names.Console);
   }
 }

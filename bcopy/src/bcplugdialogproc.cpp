@@ -46,21 +46,21 @@ LONG_PTR WINAPI CopyDialogProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2)
       Info.SendDlgMessage(hDlg,DM_SETDLGITEM,COPYDLG_ROSRC,(LONG_PTR)&DialogItemDst);
       if(DialogItemSrc.Selected)
       {
-        Caption1.PtrData=(char *)GetMsg(mCpyDlgMoveTitle);
-        Caption1.PtrLength=(int)strlen(Caption1.PtrData);
+        Caption1.PtrData=(TCHAR *)GetMsg(mCpyDlgMoveTitle);
+        Caption1.PtrLength=(int)_tcslen(Caption1.PtrData);
         Caption2.PtrData=dialog_data->MoveMessage;
-        Caption2.PtrLength=(int)strlen(Caption2.PtrData);
-        Caption3.PtrData=(char *)GetMsg(mCpyDlgOkMove);
-        Caption3.PtrLength=(int)strlen(Caption3.PtrData);
+        Caption2.PtrLength=(int)_tcslen(Caption2.PtrData);
+        Caption3.PtrData=(TCHAR *)GetMsg(mCpyDlgOkMove);
+        Caption3.PtrLength=(int)_tcslen(Caption3.PtrData);
       }
       else
       {
-        Caption1.PtrData=(char *)GetMsg(mCpyDlgCopyTitle);
-        Caption1.PtrLength=(int)strlen(Caption1.PtrData);
+        Caption1.PtrData=(TCHAR *)GetMsg(mCpyDlgCopyTitle);
+        Caption1.PtrLength=(int)_tcslen(Caption1.PtrData);
         Caption2.PtrData=dialog_data->CopyMessage;
-        Caption2.PtrLength=(int)strlen(Caption2.PtrData);
-        Caption3.PtrData=(char *)GetMsg(mCpyDlgOkCopy);
-        Caption3.PtrLength=(int)strlen(Caption3.PtrData);
+        Caption2.PtrLength=(int)_tcslen(Caption2.PtrData);
+        Caption3.PtrData=(TCHAR *)GetMsg(mCpyDlgOkCopy);
+        Caption3.PtrLength=(int)_tcslen(Caption3.PtrData);
       }
       Info.SendDlgMessage(hDlg,DM_SETTEXT,COPYDLG_BORDER,(LONG_PTR)&Caption1);
       Info.SendDlgMessage(hDlg,DM_SETTEXT,COPYDLG_LTO,(LONG_PTR)&Caption2);
