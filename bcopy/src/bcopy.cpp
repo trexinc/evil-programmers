@@ -546,7 +546,7 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom,int Item)
             if(!(_tcscmp(filename,_T("."))&&_tcscmp(filename,_T(".."))))
               _tcscat(eto,_T("\\"));
             DWORD full_res=GetFullPathName(eto,ArraySize(DestA),DestA,&filename);
-            if(!full_res||full_res>=sizeof(DestA))
+            if(!full_res||full_res>=ArraySize(DestA))
             {
               TCHAR err3[512];
               _stprintf(err3,GetMsg(mCpyErr3),eto);
@@ -662,7 +662,7 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom,int Item)
 #endif
               );
               _tcscpy(VolumeFS,_T("    "));
-              GetVolumeInformation(Volume,VolumeName,sizeof(VolumeName),&VolumeSerialNumber,&MaximumComponentLength,&FileSystemFlags,VolumeFS,sizeof(VolumeFS));
+              GetVolumeInformation(Volume,VolumeName,ArraySize(VolumeName),&VolumeSerialNumber,&MaximumComponentLength,&FileSystemFlags,VolumeFS,ArraySize(VolumeFS));
               if((GetDriveType(Volume)==DRIVE_CDROM)||(!_tcsicmp(VolumeFS,_T("CDFS"))))
               {
                 send[1]|=COPYFLAG_ATTR;
@@ -853,7 +853,7 @@ copyexit:
             ,MAX_PATH
 #endif
             );
-            if(GetVolumeInformation(Volume,VolumeName,sizeof(VolumeName),&VolumeSerialNumber,&MaximumComponentLength,&FileSystemFlags,VolumeFS,sizeof(VolumeFS)))
+            if(GetVolumeInformation(Volume,VolumeName,ArraySize(VolumeName),&VolumeSerialNumber,&MaximumComponentLength,&FileSystemFlags,VolumeFS,ArraySize(VolumeFS)))
               if(FileSystemFlags&FS_FILE_COMPRESSION)
                 DialogItems[8].Flags&=~DIF_DISABLE;
           }

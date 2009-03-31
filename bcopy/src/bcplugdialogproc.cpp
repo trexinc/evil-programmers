@@ -29,8 +29,8 @@ LONG_PTR WINAPI CopyDialogProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2)
     case DN_INITDIALOG:
       Info.SendDlgMessage(hDlg,DM_SETTEXTLENGTH,COPYDLG_ETO,MAX_PATH-1);
     case DN_BTNCLICK:
-      Info.SendDlgMessage(hDlg,DM_GETDLGITEM,COPYDLG_SKIP,(LONG_PTR)&DialogItemSrc);
-      Info.SendDlgMessage(hDlg,DM_GETDLGITEM,COPYDLG_RODST,(LONG_PTR)&DialogItemDst);
+      Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,COPYDLG_SKIP,(LONG_PTR)&DialogItemSrc);
+      Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,COPYDLG_RODST,(LONG_PTR)&DialogItemDst);
       if(DialogItemSrc.Selected)
       {
         if(!(DialogItemDst.Flags&DIF_DISABLE))
@@ -44,10 +44,10 @@ LONG_PTR WINAPI CopyDialogProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2)
           DialogItemDst.Selected=dialog_data->DstRO;
         DialogItemDst.Flags&=~DIF_DISABLE;
       }
-      Info.SendDlgMessage(hDlg,DM_SETDLGITEM,COPYDLG_RODST,(LONG_PTR)&DialogItemDst);
+      Info.SendDlgMessage(hDlg,DM_SETDLGITEMSHORT,COPYDLG_RODST,(LONG_PTR)&DialogItemDst);
 
-      Info.SendDlgMessage(hDlg,DM_GETDLGITEM,COPYDLG_REMOVE,(LONG_PTR)&DialogItemSrc);
-      Info.SendDlgMessage(hDlg,DM_GETDLGITEM,COPYDLG_ROSRC,(LONG_PTR)&DialogItemDst);
+      Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,COPYDLG_REMOVE,(LONG_PTR)&DialogItemSrc);
+      Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,COPYDLG_ROSRC,(LONG_PTR)&DialogItemDst);
       if(DialogItemSrc.Selected)
       {
         if(DialogItemDst.Flags&DIF_DISABLE)
@@ -61,7 +61,7 @@ LONG_PTR WINAPI CopyDialogProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2)
         DialogItemDst.Selected=FALSE;
         DialogItemDst.Flags|=DIF_DISABLE;
       }
-      Info.SendDlgMessage(hDlg,DM_SETDLGITEM,COPYDLG_ROSRC,(LONG_PTR)&DialogItemDst);
+      Info.SendDlgMessage(hDlg,DM_SETDLGITEMSHORT,COPYDLG_ROSRC,(LONG_PTR)&DialogItemDst);
       if(DialogItemSrc.Selected)
       {
         Caption1.PtrData=(TCHAR *)GetMsg(mCpyDlgMoveTitle);
@@ -90,7 +90,7 @@ LONG_PTR WINAPI CopyDialogProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2)
     case DN_KEY:
       if(!dialog_data->Macro)
       {
-        Info.SendDlgMessage(hDlg,DM_GETDLGITEM,COPYDLG_REMOVE,(LONG_PTR)&DialogItemSrc);
+        Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,COPYDLG_REMOVE,(LONG_PTR)&DialogItemSrc);
         if(run_macro(DialogItemSrc.Selected?MACRO_MOVE:MACRO_COPY,(DWORD)Param2))
         {
           dialog_data->Macro=TRUE;

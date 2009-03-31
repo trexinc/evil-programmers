@@ -76,19 +76,19 @@ $(TARGET): $(OBJS)
 	$(RM) $@.base
 	$(RM) $@.exp
 
-../$(OBJDIR)/bcopy.o: bcopy.cpp bcopy_find.cpp bcplugin.h bcplugdialogproc.cpp bcconfig.cpp bcopy_eject.cpp bcCommon.h dm_macro.hpp
+../$(OBJDIR)/bcopy.o: bcopy.cpp bcopy_find.cpp bcplugin.h bcplugdialogproc.cpp bcconfig.cpp bcopy_eject.cpp bcCommon.h dm_macro.hpp far_helper.h
 	$(CC) $(CPPFLAGS) $< -o $@
 
-../$(OBJDIR)/bcopy_common.o: bcopy_common.cpp bcplugin.h bcCommon.h
+../$(OBJDIR)/bcopy_common.o: bcopy_common.cpp bcplugin.h bcCommon.h far_helper.h
 	$(CC) $(CPPFLAGS) $< -o $@
 
-../$(OBJDIR)/bcopy_info.o: bcopy_info.cpp bcplugin.h bcCommon.h
+../$(OBJDIR)/bcopy_info.o: bcopy_info.cpp bcplugin.h bcCommon.h far_helper.h
 	$(CC) $(CPPFLAGS) $< -o $@
 
-../$(OBJDIR)/bcopy_name.o: bcopy_name.cpp bcplugin.h
+../$(OBJDIR)/bcopy_name.o: bcopy_name.cpp bcplugin.h far_helper.h
 	$(CC) $(CPPFLAGS) $< -o $@
 
-../$(OBJDIR)/bcopy_infomenu.o: bcopy_infomenu.cpp bcplugin.h bcCommon.h
+../$(OBJDIR)/bcopy_infomenu.o: bcopy_infomenu.cpp bcplugin.h bcCommon.h far_helper.h
 	$(CC) $(CPPFLAGS) $< -o $@
 
 ../$(OBJDIR)/bcopy_selcolor.o: bcopy_selcolor.cpp bcplugin.h bcCommon.h
@@ -97,10 +97,10 @@ $(TARGET): $(OBJS)
 ../$(OBJDIR)/bcopy_macros.o: bcopy_macros.cpp bcplugin.h
 	$(CC) $(CPPFLAGS) $< -o $@
 
-../$(OBJDIR)/bcopy_macros_2.o: bcopy_macros_2.cpp bcplugin.h
+../$(OBJDIR)/bcopy_macros_2.o: bcopy_macros_2.cpp bcplugin.h far_helper.h
 	$(CC) $(CPPFLAGS) $< -o $@
 
-../$(OBJDIR)/bcopy_fast_redraw.o: bcopy_fast_redraw.cpp bcplugin.h bcopy_fast_redraw.h dm_macro.hpp
+../$(OBJDIR)/bcopy_fast_redraw.o: bcopy_fast_redraw.cpp bcplugin.h bcopy_fast_redraw.h dm_macro.hpp far_helper.h
 	$(CC) $(CPPFLAGS) $< -o $@
 
 ../$(OBJDIR)/far_helper.o: far_helper.cpp far_helper.h

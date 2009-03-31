@@ -17,7 +17,7 @@
 */
 
 #include <stdio.h>
-#include "plugin.hpp"
+#include "far_helper.h"
 #include "farkeys.hpp"
 #include "bcplugin.h"
 #include "bcopy_fast_redraw.h"
@@ -107,7 +107,7 @@ LONG_PTR FastRedrawDefDlgProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2)
             DWORD written; COORD coord;
             SMALL_RECT Rect; FarDialogItem DialogItem;
             Info.SendDlgMessage(hDlg,DM_GETDLGRECT,0,(LONG_PTR)&Rect);
-            Info.SendDlgMessage(hDlg,DM_GETDLGITEM,DlgParams->UnicodeInicies[i],(LONG_PTR)&DialogItem);
+            Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,DlgParams->UnicodeInicies[i],(LONG_PTR)&DialogItem);
             coord.X=Rect.Left+DialogItem.X1;
             coord.Y=Rect.Top+DialogItem.Y1;
             WriteConsoleOutputCharacterW(DlgParams->Console,&(DlgParams->FileNameW[i][0]),(DWORD)wcslen(&(DlgParams->FileNameW[i][0])),coord,&written);
