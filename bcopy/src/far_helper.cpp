@@ -73,4 +73,15 @@ PluginPanelItem& CFarPanel::Selected(size_t index)
   return *iItem;
 }
 
+int CFarDialog::Execute(INT_PTR PluginNumber,int X1,int Y1,int X2,int Y2,const TCHAR* HelpTopic,struct FarDialogItem* Item,int ItemsNumber,DWORD Reserved,DWORD Flags,FARWINDOWPROC DlgProc,LONG_PTR Param)
+{
+  iDlg=Info.DialogInit(PluginNumber,X1,Y1,X2,Y2,HelpTopic,Item,ItemsNumber,Reserved,Flags,DlgProc,Param);
+  return Info.DialogRun(iDlg);
+}
+
+int CFarDialog::Check(int index)
+{
+  return (int)Info.SendDlgMessage(iDlg,DM_GETCHECK,index,0);
+}
+
 #endif
