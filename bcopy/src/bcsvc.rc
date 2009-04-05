@@ -1,4 +1,4 @@
-#include "./bootstrap/bcversion.h"
+#include "bcversion.h"
 #include "winver.h"
 1 VERSIONINFO
  FILEVERSION VER_MAJOR,VER_MINOR,VER_BUILD,0
@@ -25,4 +25,4 @@ BEGIN
     END
 END
 
-1 MESSAGETABLE "./bootstrap/bcsvc_MSG00001.bin"
+1 MESSAGETABLE "bcsvc_MSG00001.bin"
