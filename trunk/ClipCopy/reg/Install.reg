@@ -1,0 +1,25 @@
+REGEDIT4
+
+[HKEY_CURRENT_USER\Software\Far\PluginHotkeys\Plugins/ClipCopy/ClipCopy.dll]
+"Hotkey"="["
+
+[HKEY_CURRENT_USER\Software\Far\KeyMacros\Shell\CtrlC]
+"Sequence"="F11 [ 1"
+"DisableOutput"=dword:00000001
+"Description"="Copy selected file(s) to clipboard"
+
+[HKEY_CURRENT_USER\Software\Far\KeyMacros\Shell\CtrlX]
+"Sequence"="F11 [ 2"
+"DisableOutput"=dword:00000001
+"Description"="Cut selected file(s) to clipboard"
+
+[HKEY_CURRENT_USER\Software\Far\KeyMacros\Shell\CtrlV]
+"Sequence"="F11 [ 3"
+"DisableOutput"=dword:00000001
+"Description"="Paste file(s) from clipboard"
+
+
+[HKEY_CURRENT_USER\Software\Far\KeyMacros\Shell\CtrlB]
+"Sequence"="F11 [ 4"
+"DisableOutput"=dword:00000001
+"Description"="Paste link(s) from file(s) in clipboard"

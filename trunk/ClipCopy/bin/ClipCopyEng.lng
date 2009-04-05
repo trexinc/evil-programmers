@@ -1,0 +1,14 @@
+.Language=English,English
+
+"&1 Copy"
+"&2 Cut"
+"Clipboard"
+"&3 Paste"
+"&4 Paste link(s)"
+"Error"
+"Ok"
+"%u file(s) ignored or not and existent file(s)"
+"Cannot set cut format: 0x%08x"
+"Cannot put data to clipboard: 0x%08x"
+"Cannot create link: 0x%08x"
+"Cannot prepare file list for copy/cut operation: 0x%08x"
