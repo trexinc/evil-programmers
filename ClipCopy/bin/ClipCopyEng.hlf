@@ -1,0 +1,106 @@
+.Language=English,English
+.PluginContents=Clipboard
+
+@Contents
+$^#Clipboard (version 2.0 of 05.04.2009)#
+    This plugin allows to copy files and directories using Windows clipboard. You can copy files or directories from Windows apps to ~FAR~@:Content@ and backward.
+
+    ~Using the plugin~@UsingThePlugin@
+    ~Command line~@CMD@
+    ~Support~@Support@
+    ~Thanks~@Thanks@
+    ~About authors~@About@
+
+@UsingThePlugin
+$ #Using plugin#
+    Clipboard can be invoked from menu #External modules commands#, which can be activated by #F11# or by choosing corresponding option from ~Commands menu~@:CmdMenu@.
+    Menu consist of 4 options:
+
+ #1 Copy# - like Copy in explorer.
+   Copy ~selected~@:SelectFiles@ files into clipboard.
+   This files have to be:
+   1) Real files or folders.
+   2) Exist in one folder.
+
+   All files, which do not comply these rules, will be ignored with message of quantity.
+   In case of copying from temporary panel the "real" catalogue will be first one.
+
+ #2 Cut# - like Cut in explorer.
+   The same as #Copy#, but with marking original files to be deleted after copying (insertion).
+
+ #3 Paste# - like "Paste" in explorer.
+   Insert files/folders from clipboard to active catalogue ~FilePanel~@:FilePanel@.
+   In case of necessarity overwriting confirmation will be asked.
+
+ #4 Insert shortcut(s)# - like Insert shortcuts in explorer.
+   Create shortcuts to files/folders from clipboard in active panel catalogue.
+   In case of existing of shortcut with the same name it will be automatically transformed by template #filefame.lnk#, #filefame (2).lnk#, etc.
+
+  ~Content~@Contents@
+
+@CMD
+$ #Batch string#
+
+  #Copy#                : clip:copy "file name.ext" filename.ext
+  #Cut#                 : clip:cut "file name.ext" filename.ext
+  #Paste#               : clip:paste
+  #Insert shortcut(s)#  : clip:link
+
+  Execution of plugin in dialogue mode: #clip:#
+  Plugin will be started in dialogue mode in case of error in batch string.
+
+  ~Content~@Contents@
+
+@Support
+$ #Support#
+
+Your offers and reports on mistakes send on:
+
+    e-mail: ~entryway@@all-info.com.ua~@mailto:entryway@@all-info.com.ua@
+    ICQ   : ~100023~@http://wwp.icq.com/scripts/search.dll?to=100023@
+
+  ~Content~@Contents@
+
+@Thanks
+$ #Thanks#
+
+  Dedicated to #John Romero#, presented us #Doom#;
+  #John Carmack# because Hi Is GOD;
+  #Trent Reznor# & #Marylin Manson# that they are exist;
+
+  As well as:
+    #Dostoevskiy# for "Crime & Punisment"
+    #Milla Jovovich# for "Ganna D'Ark"
+      and
+    #Eugen Roshal# & #Igor Russkih#, I think, all knows why;
+
+  컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  Far - isn`t a program, as well as Doom - isn`t a game.
+
+  #FAR IS RELIGION#
+
+  ~Content~@Contents@
+
+@About
+$ #Info about authors#
+
+    Author   : Andre Budko, Kiev, Ukraine
+    e-mail   : ~entryway@@all-info.com.ua~@mailto:entryway@@all-info.com.ua@
+    ICQ      : ~100023~@http://wwp.icq.com/scripts/search.dll?to=100023@
+    homepage : ~http://www.geocities.com/e6y/~@http://www.geocities.com/e6y/@
+
+  The initial idea and writing plugin with Copy, Paste.
+  Performing logical AND with #Stanislav# sources with following bit optimization.
+  Creating of this documentation.
+
+    Author   : Stanislav Mekhanoshin, Russia, St.Petersburg
+    e-mail  : ~rampitec@@tu.spb.ru~@mailto:rampitec@@tu.spb.ru@
+    ICQ     : ~106937579~@http://wwp.icq.com/scripts/search.dll?to=106937579@
+    homepage: ~http://www.geocities.com/rampitec/~@http://www.geocities.com/rampitec/index.htm@
+
+  Idea and realization #Cut# and #Paste shortcut(s)#
+  Divine translation of lng file into Russian.
+  Testing and debugging by method of studying sources.
+
+  ~Content~@Contents@

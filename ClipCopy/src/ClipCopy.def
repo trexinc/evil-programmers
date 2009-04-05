@@ -1,0 +1,5 @@
+LIBRARY        ClipCopy
+EXPORTS
+	SetStartupInfoW
+	OpenPluginW
+	GetPluginInfoW
