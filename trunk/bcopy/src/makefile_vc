@@ -43,7 +43,6 @@ $(OBJDIR)\bcopy_common.obj \
 $(OBJDIR)\bcopy_fast_redraw.obj \
 $(OBJDIR)\bcopy_info.obj \
 $(OBJDIR)\bcopy_infomenu.obj \
-$(OBJDIR)\bcopy_macros.obj \
 $(OBJDIR)\bcopy_macros_2.obj \
 $(OBJDIR)\bcopy_name.obj \
 $(OBJDIR)\bcopy_selcolor.obj \

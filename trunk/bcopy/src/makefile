@@ -35,7 +35,7 @@ M4=m4
 MKDIR=mkdir -p
 
 DEF=bcopy$(DIRSURF).def
-OBJS=../$(OBJDIR)/bcopy.o ../$(OBJDIR)/bcopy_common.o ../$(OBJDIR)/bcopy.res.o ../$(OBJDIR)/bcopy_info.o ../$(OBJDIR)/bcopy_infomenu.o ../$(OBJDIR)/bcopy_selcolor.o ../$(OBJDIR)/bcopy_macros.o ../$(OBJDIR)/bcopy_macros_2.o ../$(OBJDIR)/bcopy_name.o ../$(OBJDIR)/bcopy_fast_redraw.o ../$(OBJDIR)/far_helper.o
+OBJS=../$(OBJDIR)/bcopy.o ../$(OBJDIR)/bcopy_common.o ../$(OBJDIR)/bcopy.res.o ../$(OBJDIR)/bcopy_info.o ../$(OBJDIR)/bcopy_infomenu.o ../$(OBJDIR)/bcopy_selcolor.o ../$(OBJDIR)/bcopy_macros_2.o ../$(OBJDIR)/bcopy_name.o ../$(OBJDIR)/bcopy_fast_redraw.o ../$(OBJDIR)/far_helper.o
 TARGET=../$(BINDIR)/bcopy.dll
 
 SVCOBJS=../$(OBJDIR)/bcsvc.o ../$(OBJDIR)/bcHandler.o ../$(OBJDIR)/bcThreads.o ../$(OBJDIR)/bcLog.o ../$(OBJDIR)/bcInfo.o ../$(OBJDIR)/bcNotify.o ../$(OBJDIR)/bcWipe.o ../$(OBJDIR)/bcsvc.res.o
@@ -93,9 +93,6 @@ $(TARGET): $(OBJS)
 	$(CC) $(CPPFLAGS) $< -o $@
 
 ../$(OBJDIR)/bcopy_selcolor.o: bcopy_selcolor.cpp bcplugin.h bcCommon.h
-	$(CC) $(CPPFLAGS) $< -o $@
-
-../$(OBJDIR)/bcopy_macros.o: bcopy_macros.cpp bcplugin.h
 	$(CC) $(CPPFLAGS) $< -o $@
 
 ../$(OBJDIR)/bcopy_macros_2.o: bcopy_macros_2.cpp bcplugin.h far_helper.h

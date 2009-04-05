@@ -126,7 +126,7 @@ LONG_PTR FastRedrawDefDlgProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2)
         DlgParams->State=!DlgParams->State;
         return TRUE;
       }
-      else if(!DlgParams->InMacro&&run_macro(DlgParams->MacroIndex,(DWORD)Param2))
+      else if(!DlgParams->InMacro&&run_macro_2(DlgParams->MacroIndex,(DWORD)Param2))
       {
         DlgParams->InMacro=true;
         return TRUE;

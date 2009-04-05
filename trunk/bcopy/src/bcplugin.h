@@ -327,10 +327,6 @@ extern void WINAPI _export ShowInfoMenu(void);
 extern bool SelectColor(int *fg,int *bg);
 extern void ShowName(const wchar_t *Name);
 
-extern void load_macros(const TCHAR *registry);
-extern void free_macros(void);
-extern bool run_macro(int index,DWORD Key);
-
 extern void load_macros_2(const TCHAR *registry);
 extern void free_macros_2(void);
 extern bool run_macro_2(int index,DWORD Key);
