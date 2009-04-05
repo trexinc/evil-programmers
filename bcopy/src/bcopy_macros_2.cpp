@@ -37,8 +37,11 @@ static DWORD macro_count[MACRO_COUNT]={0,0,0,0,0,0,0,0,0,0};
 
 static DWORD UpperKey(DWORD Key)
 {
-  long result=Key;
-  if(FSF.LIsAlpha(Key)) result=FSF.LUpper(Key);
+  DWORD result=Key,shift=Key&KEY_CTRLMASK,clean=Key&~KEY_CTRLMASK;
+  if(clean<(1<<(sizeof(TCHAR)*8))&&FSF.LIsAlpha(clean))
+  {
+    result=FSF.LUpper(clean)|shift;
+  }
   return result;
 }
 
