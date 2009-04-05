@@ -91,7 +91,7 @@ LONG_PTR WINAPI CopyDialogProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2)
       if(!dialog_data->Macro)
       {
         Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,COPYDLG_REMOVE,(LONG_PTR)&DialogItemSrc);
-        if(run_macro(DialogItemSrc.Selected?MACRO_MOVE:MACRO_COPY,(DWORD)Param2))
+        if(run_macro_2(DialogItemSrc.Selected?MACRO_MOVE:MACRO_COPY,(DWORD)Param2))
         {
           dialog_data->Macro=TRUE;
           return TRUE;
@@ -113,7 +113,7 @@ LONG_PTR WINAPI DelDialogProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2)
       if(dialog_data->Macro) dialog_data->Macro=FALSE;
       break;
     case DN_KEY:
-      if(!dialog_data->Macro&&run_macro(MACRO_DELETE,(DWORD)Param2))
+      if(!dialog_data->Macro&&run_macro_2(MACRO_DELETE,(DWORD)Param2))
       {
         dialog_data->Macro=TRUE;
         return TRUE;
@@ -134,7 +134,7 @@ LONG_PTR WINAPI AttrDialogProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2)
       if(dialog_data->Macro) dialog_data->Macro=FALSE;
       break;
     case DN_KEY:
-      if(!dialog_data->Macro&&run_macro(MACRO_ATTR,(DWORD)Param2))
+      if(!dialog_data->Macro&&run_macro_2(MACRO_ATTR,(DWORD)Param2))
       {
         dialog_data->Macro=TRUE;
         return TRUE;
@@ -155,7 +155,7 @@ LONG_PTR WINAPI WipeDialogProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2)
       if(dialog_data->Macro) dialog_data->Macro=FALSE;
       break;
     case DN_KEY:
-      if(!dialog_data->Macro&&run_macro(MACRO_WIPE,(DWORD)Param2))
+      if(!dialog_data->Macro&&run_macro_2(MACRO_WIPE,(DWORD)Param2))
       {
         dialog_data->Macro=TRUE;
         return TRUE;

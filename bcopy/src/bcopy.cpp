@@ -142,7 +142,6 @@ void WINAPI EXP_NAME(SetStartupInfo)(const struct PluginStartupInfo *Info)
     }
     if((Opt.CopyType>4)||(Opt.CopyType<0))
       Opt.CopyType=2;
-    load_macros(PluginRootKey); //FIXME: remove after far release
     load_macros_2(PluginRootKey);
   }
 }
@@ -176,7 +175,7 @@ void WINAPI EXP_NAME(GetPluginInfo)(struct PluginInfo *Info)
 #ifndef UNICODE
 int WINAPI EXP_NAME(GetMinFarVersion)(void)
 {
-  return MAKEFARVERSION(1,70,1527);
+  return MAKEFARVERSION(1,70,2087);
 }
 #endif
 
@@ -1096,7 +1095,6 @@ void WINAPI EXP_NAME(ExitFAR)()
 {
   if(!IsOldFAR)
   {
-    free_macros(); //FIXME: remove after far release
     free_macros_2();
   }
 }
