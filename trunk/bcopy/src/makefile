@@ -19,11 +19,12 @@ BOOTSTRAPDIR=bootstrap$(DIRSURF)
 WFLAGS=-Wall -W -Wpointer-arith -Winline -Wno-strict-aliasing
 # -Wno-unused
 # -Werror -ffor-scope -Wbad-function-cast
-CFLAGS=-c -mtune=pentium4 -Os $(WFLAGS) -fomit-frame-pointer -fstrict-aliasing
+CFLAGS=-c -mtune=pentium4 -Os $(WFLAGS) -fomit-frame-pointer -fstrict-aliasing -I ./$(BOOTSTRAPDIR)
 CPPFLAGS=-c -mtune=pentium4 -Os $(WFLAGS) -fomit-frame-pointer -fstrict-aliasing -fno-exceptions -fno-rtti -fno-threadsafe-statics $(CCWIDE) -I $(COMINC)
 LFLAGS=-s -nostartfiles
 LIBS=-lmpr -lntdll
 SVCLIBS=-lntdll
+RCFLAGS=-I ./$(BOOTSTRAPDIR)
 
 RM=rm -f
 MV=mv -f
@@ -57,7 +58,7 @@ $(SVCTARGET): $(SVCOBJS)
 ../$(OBJDIR)/bcThreads.o: bcThreads.c bcThreads_wrappers.c $(SVCH)
 	$(CC) $(CFLAGS) $< -o $@
 
-../$(OBJDIR)/bcLog.o: bcLog.c ./$(BOOTSTRAPDIR)/bcsvc.h ./$(BOOTSTRAPDIR)/bcversion.h ./$(BOOTSTRAPDIR)/bcsvc_MSG00001.bin
+../$(OBJDIR)/bcLog.o: bcLog.c ./$(BOOTSTRAPDIR)/bcsvc.hxx ./$(BOOTSTRAPDIR)/bcversion.h ./$(BOOTSTRAPDIR)/bcsvc_MSG00001.bin
 	$(CC) $(CFLAGS) $< -o $@
 
 ../$(OBJDIR)/bcInfo.o: bcInfo.c $(SVCH)
@@ -107,13 +108,13 @@ $(TARGET): $(OBJS)
 	$(CC) $(CPPFLAGS) $< -o $@
 
 ../$(OBJDIR)/bcopy.res.o: bcopy.rc ./$(BOOTSTRAPDIR)/bcversion.h
-	windres -i $< -o $@
+	windres $(RCFLAGS) -i $< -o $@
 
 ../$(OBJDIR)/bcsvc.res.o: bcsvc.rc ./$(BOOTSTRAPDIR)/bcversion.h ./$(BOOTSTRAPDIR)/bcsvc_MSG00001.bin
-	windres -i $< -o $@
+	windres $(RCFLAGS) -i $< -o $@
 
-./$(BOOTSTRAPDIR)/bcsvc_MSG00001.bin ./$(BOOTSTRAPDIR)/bcsvc.h: bcsvc.mc
-	windmc -b -r./$(BOOTSTRAPDIR) -h./$(BOOTSTRAPDIR) $<
+./$(BOOTSTRAPDIR)/bcsvc_MSG00001.bin ./$(BOOTSTRAPDIR)/bcsvc.hxx: bcsvc.mc
+	windmc -b -r./$(BOOTSTRAPDIR) -h./$(BOOTSTRAPDIR) -ehxx $<
 
 ./$(BOOTSTRAPDIR)/bcversion.h: bcversion.m4 bc_ver.m4
 	$(M4) $< > $@

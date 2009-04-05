@@ -18,7 +18,7 @@
 
 #include <windows.h>
 #include <stdio.h>
-#include "./bootstrap/bcversion.h"
+#include "bcversion.h"
 #include "bcCommon.h"
 #include "bcsvc.h"
 #include "memory.h"
