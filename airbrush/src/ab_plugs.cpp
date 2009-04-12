@@ -33,6 +33,7 @@ static TCHAR Unknown[20];
 static void WINAPI addcolor(int lno,int start,int len,int fg,int bg)
 {
   if((fg==-1)&&(bg==-1)) return;
+  if(len==0) return;
   WaitForSingleObject(Mutex,INFINITE);
   if(bg==-1) bg=Info.AdvControl(Info.ModuleNumber,ACTL_GETCOLOR,(void *)COL_EDITORTEXT)&0xF0;
   else bg=bg<<4;
