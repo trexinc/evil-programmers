@@ -1,0 +1,6 @@
+EXPORTS
+ SetStartupInfo
+ GetPluginInfo
+ OpenPlugin
+ ExitFAR
+ RestartFAR

@@ -1,0 +1,110 @@
+NAME = update
+DLLNAME = $(NAME)$(_ODS_).dll
+
+!ifndef DEBUG
+_ODN_=final
+!else
+_ODN_=debug
+!endif
+!ifdef AMD64
+_ODB_=64
+!else
+_ODB_=32
+!endif
+
+OUTDIR=$(_ODN_).$(_ODB_)$(_ODS_).vc
+
+INTDIR = $(OUTDIR)\obj
+COMMON = ..\common
+
+!ifdef ANSI
+_ODS_=A
+INC=$(COMMON)\ascii
+CPP_WIDE=
+RC_PROJ=
+!else
+_ODS_=W
+INC=$(COMMON)\unicode
+CPP_WIDE=/DUNICODE /D_UNICODE
+RC_PROJ=$(RC_PROJ) /DUNICODE
+!endif
+
+!ifdef AMD64
+RC_PROJ=$(RC_PROJ) /D_WIN64
+ULOUT=-Tpd+
+!else
+ULOUT=-Tpd -Re
+!endif
+
+DLLFULLNAME = $(OUTDIR)\$(DLLNAME)
+DEF=$(NAME)$(_ODS_).vc.def
+MAP=$(OUTDIR)\$(NAME)$(_ODS_).map
+
+PCH=$(INTDIR)\headers.pch
+
+LIBS=chkstk.obj kernel32.lib user32.lib Version.lib shlwapi.lib Psapi.lib Shell32.lib wininet.lib oleaut32.lib
+
+CPP_PROJ=/W3 /nologo /c /Oi- /O1 /Os /J /GF /GS- /Gr /GR- /EHs-c- /LD /Fo"$(INTDIR)\\" $(CPP_WIDE) /I "$(INC)"
+
+!ifdef AMD64
+CPP_PROJ=$(CPP_PROJ) /Zp8
+!endif
+
+
+!ifndef ULINK
+LNK=$(_LINK_PATH_)link.exe
+LINK_FLAGS=/noentry /nodefaultlib /nologo /dll /release /merge:.rdata=.text /def:"$(DEF)" /map:"$(MAP)" /out:"$(DLLFULLNAME)" $(LIBS)
+!else
+LNK=$(_ULINK_PATH_)ulink.exe +-
+LINK_FLAGS=-q $(ULOUT) -Gz -m- -Gh -Gh- -e- -n /ZD:"$(DEF)" /ZM:"$(MAP)" /ZO:"$(DLLFULLNAME)" $(LIBS)
+!endif
+
+
+
+
+
+LINK_OBJS = $(INTDIR)\$(NAME).obj\
+            $(INTDIR)\Console.obj\
+            $(INTDIR)\CursorPos.obj\
+            $(INTDIR)\HideCursor.obj\
+            $(INTDIR)\TextColor.obj\
+            $(INTDIR)\Imports.obj\
+            $(INTDIR)\Memory.obj\
+            $(INTDIR)\Underscore.Archives.obj\
+            $(INTDIR)\PropVariant.obj\
+            $(INTDIR)\$(NAME).res
+
+ALL: $(OUTDIR) $(INTDIR) lng $(PCH) $(DLLFULLNAME)
+
+.PHONY: lng
+lng: lng.templ
+	@echo generating language files
+	@tools\lng.generator.exe -nc -i lng.ini -ol "$(OUTDIR)" lng.templ
+	@copy /b $(NAME).dll.config $(OUTDIR)\$(DLLNAME).config
+	@copy /b 7zxr.dll.$(_ODB_) $(OUTDIR)\7zxr.dll
+!ifndef ANSI
+	@$(COMMON)\convert.exe "$(OUTDIR)"\update_ru.lng "$(OUTDIR)"\update_en.lng "$(OUTDIR)"\
+!endif
+
+$(PCH): headers.cpp
+	@echo making precompiled headers
+	@$(CPP) $(CPP_PROJ) headers.cpp /Yc /Fp"$(INTDIR)\headers.pch"
+
+$(DLLFULLNAME): $(LINK_OBJS)
+	$(LNK) @<<
+	$(LINK_FLAGS) $(LINK_OBJS)
+<<
+
+.cpp{$(INTDIR)}.obj::
+	cl @<<
+	$(CPP_PROJ) /Yuheaders.hpp /Fp"$(INTDIR)\headers.pch" $<
+<<
+
+$(INTDIR)\$(NAME).res: $(NAME).rc
+	@rc $(RC_PROJ) /fo"$(INTDIR)\$(NAME).res" $(NAME).rc
+
+$(INTDIR): $(OUTDIR)
+	@if not exist "$(INTDIR)\" mkdir "$(INTDIR)"
+
+$(OUTDIR):
+	@if not exist "$(OUTDIR)\" mkdir "$(OUTDIR)"
