@@ -13,10 +13,7 @@
 #include "HideCursor.hpp"
 #include "TextColor.hpp"
 
-TCHAR update_list[MAX_PATH];
-TCHAR basepath[MAX_PATH];
-TCHAR tmpdir[MAX_PATH];
-TCHAR config[MAX_PATH];
+IPC ipc;
 
 LPCTSTR strVer=TEXT("1.0");
 LPCTSTR Directory=TEXT("FUTMP");
@@ -159,10 +156,10 @@ bool GetCurrentModuleVersion(LPCTSTR Module,VerInfo &vi)
 
 bool GetNewModuleVersion(LPCTSTR Name,VerInfo &vi)
 {
-	vi.Version=GetPrivateProfileInt(Name,TEXT("major"),-1,update_list);
-	vi.SubVersion=GetPrivateProfileInt(Name,TEXT("minor"),-1,update_list);
-	vi.Build=GetPrivateProfileInt(Name,TEXT("build"),-1,update_list);
-	vi.FarBuild=GetPrivateProfileInt(Name,TEXT("farbuild"),vi.Build,update_list);
+	vi.Version=GetPrivateProfileInt(Name,TEXT("major"),-1,ipc.UpdateList);
+	vi.SubVersion=GetPrivateProfileInt(Name,TEXT("minor"),-1,ipc.UpdateList);
+	vi.Build=GetPrivateProfileInt(Name,TEXT("build"),-1,ipc.UpdateList);
+	vi.FarBuild=GetPrivateProfileInt(Name,TEXT("farbuild"),vi.Build,ipc.UpdateList);
 	return vi.Version!=-1 && vi.SubVersion!=-1 && vi.Build!=-1 && vi.FarBuild!=-1;
 }
 
@@ -291,24 +288,21 @@ DWORD WINAPI WinInetDownload(LPCTSTR strSrv, LPCTSTR strURL, LPCTSTR strFile,DOW
 bool DownloadFile(LPCTSTR RemoteFile,LPCTSTR LocalName=NULL,bool UseCallBack=false)
 {
 	TCHAR LocalFile[MAX_PATH];
-	FSF.sprintf(LocalFile,TEXT("%s\\%s"),tmpdir,LocalName?LocalName:FSF.PointToName(RemoteFile));
-
-	TCHAR strReq[512];
-	FSF.sprintf(strReq, TEXT("%s/%s"),RemotePath,RemoteFile);
-
+	lstrcpy(LocalFile,ipc.TempDirectory);
+	lstrcat(LocalFile,LocalName?LocalName:FSF.PointToName(RemoteFile));
 	return WinInetDownload(RemoteSrv,RemoteFile,LocalFile,UseCallBack?DownloadProc:NULL)==0;
 }
 
 DWORD CheckUpdates(DWORD *Mask=NULL)
 {
 	DWORD Ret=S_UPTODATE;
-	CreateDirectory(tmpdir,NULL);
+	CreateDirectory(ipc.TempDirectory,NULL);
 	TCHAR URL[1024];
 	FSF.sprintf(URL,TEXT("%s/%s%s"),RemotePath,phpFile,phpRequest);
 	if(DownloadFile(URL,phpFile))
 	{
 		TCHAR sVer[MAX_PATH];
-		GetPrivateProfileString(TEXT("info"),TEXT("version"),TEXT(""),sVer,ARRAYSIZE(sVer),update_list);
+		GetPrivateProfileString(TEXT("info"),TEXT("version"),TEXT(""),sVer,ARRAYSIZE(sVer),ipc.UpdateList);
 		if(lstrcmp(sVer, strVer))
 		{
 			return S_CANTCONNECT;
@@ -317,8 +311,11 @@ DWORD CheckUpdates(DWORD *Mask=NULL)
 		{
 			VerInfo vi_old,vi_new;
 			TCHAR RealName[MAX_PATH];
-			BOOL bEmpty = !Modules[i].Path || lstrlen(Modules[i].Path) == 0;
-			FSF.sprintf(RealName,TEXT("%s\\%s%s%s"),basepath,Modules[i].Path, bEmpty?TEXT(""):TEXT("\\"), Modules[i].Module);
+			lstrcpy(RealName,ipc.FarDirectory);
+			lstrcat(RealName,Modules[i].Path);
+			if(Modules[i].Path&&*Modules[i].Path)
+				lstrcat(RealName,TEXT("\\"));
+			lstrcat(RealName,Modules[i].Module);
 			if(GetCurrentModuleVersion(RealName,vi_old))
 			{
 				if(GetNewModuleVersion(Modules[i].DisplayName,vi_new))
@@ -352,8 +349,12 @@ bool DownloadUpdates(bool Silent=false)
 	{
 		VerInfo vi_old,vi_new;
 		TCHAR RealName[MAX_PATH];
-		BOOL bEmpty = !Modules[i].Path || !*Modules[i].Path;
-		FSF.sprintf(RealName,TEXT("%s\\%s%s%s"),basepath,Modules[i].Path, bEmpty?TEXT(""):TEXT("\\"), Modules[i].Module);
+		lstrcpy(RealName,ipc.FarDirectory);
+		lstrcat(RealName,Modules[i].Path);
+		if(Modules[i].Path&&*Modules[i].Path)
+			lstrcat(RealName,TEXT("\\"));
+		lstrcat(RealName,Modules[i].Module);
+
 		if(GetCurrentModuleVersion(RealName,vi_old))
 		{
 			if(GetNewModuleVersion(Modules[i].DisplayName,vi_new))
@@ -361,7 +362,7 @@ bool DownloadUpdates(bool Silent=false)
 				if(NeedUpdate(vi_old,vi_new))
 				{
 					TCHAR URL[1024],arc[MAX_PATH];
-					GetPrivateProfileString(Modules[i].DisplayName,TEXT("arc"),TEXT(""),arc,ARRAYSIZE(arc),update_list);
+					GetPrivateProfileString(Modules[i].DisplayName,TEXT("arc"),TEXT(""),arc,ARRAYSIZE(arc),ipc.UpdateList);
 					FSF.sprintf(URL,TEXT("%s/%s"),RemotePath,arc);
 					if(!Silent)
 						mprintf(TEXT("%s %-50s"),MSG(MLoad),Modules[i].DisplayName);
@@ -410,8 +411,8 @@ bool DownloadUpdates(bool Silent=false)
 
 bool Clean()
 {
-	DeleteFile(update_list);
-	RemoveDirectory(tmpdir);
+	DeleteFile(ipc.UpdateList);
+	RemoveDirectory(ipc.TempDirectory);
 	return true;
 }
 
@@ -444,32 +445,28 @@ VOID StartUpdate(bool Silent=false)
 		HANDLE ProcDup;
 		DuplicateHandle(GetCurrentProcess(),GetCurrentProcess(),GetCurrentProcess(),&ProcDup,NULL,TRUE,DUPLICATE_SAME_ACCESS);
 
-		LPTSTR cmdline=new TCHAR[32*1024];
+		TCHAR cmdline[MAX_PATH];
 
-		TCHAR FarExe[MAX_PATH];
-		GetModuleFileName(NULL,FarExe,ARRAYSIZE(FarExe));
 		size_t NumArgs=0;
 		LPTSTR *Argv=CommandLineToArgv(GetCommandLine(),reinterpret_cast<PINT>(&NumArgs));
-		TCHAR Params[MAX_PATH*4]={0};
+		*ipc.FarParams=0;
 		for(size_t i=1;i<NumArgs;i++)
 		{
-			lstrcat(Params,Argv[i]);
+			lstrcat(ipc.FarParams,Argv[i]);
 			if(i<NumArgs-1)
-				lstrcat(Params,TEXT(" "));
+				lstrcat(ipc.FarParams,TEXT(" "));
 		}
 		LocalFree(Argv);
-		TCHAR DllPath[MAX_PATH];
-		lstrcpy(DllPath,Info.ModuleName);
-		lstrcpy(const_cast<LPTSTR>(FSF.PointToName(DllPath)),TEXT("7zxr.dll"));
 
-		FSF.sprintf(cmdline,TEXT("rundll32 \"%s\", RestartFAR %I64d %d \"%s\" \"%s\" \"%s\" \"%s\""),Info.ModuleName,reinterpret_cast<INT64>(ProcDup),!Silent,FarExe,Params,basepath,DllPath);
+		ipc.Silent=!Silent;
+
+		FSF.sprintf(cmdline,TEXT("rundll32 \"%s\", RestartFAR %I64d %I64d"),ipc.PluginModule,reinterpret_cast<INT64>(ProcDup),reinterpret_cast<INT64>(&ipc));
 
 		STARTUPINFO si={sizeof(si)};
 		PROCESS_INFORMATION pi;
 
 		BOOL Created=CreateProcess(NULL,cmdline,NULL,NULL,TRUE,0,NULL,NULL,&si,&pi);
 
-		delete[] cmdline;
 		if(Created)
 		{
 			hRunDll=pi.hProcess;
@@ -484,6 +481,15 @@ VOID StartUpdate(bool Silent=false)
 			exitfar=true;
 			LeaveCriticalSection(&cs);
 		}
+		else
+		{
+			if(!Silent)
+			{
+				TextColor color(FOREGROUND_RED|FOREGROUND_INTENSITY);
+				mprintf(TEXT("%s - error %d"),MSG(MCantCreateProcess),GetLastError());
+			}
+		}
+
 	}
 	else
 	{
@@ -600,30 +606,52 @@ DWORD WINAPI ThreadProc(LPVOID /*lpParameter*/)
 	}
 	return 0;
 }
-VOID InitPaths(LPCTSTR base)
+
+VOID InitPaths()
 {
-	wsprintf(tmpdir,TEXT("%s\\FUTMP"),base);
-	wsprintf(update_list,TEXT("%s\\%s"),tmpdir,phpFile);
-	TCHAR ModuleName[MAX_PATH];
-	if(GetModuleFileName(reinterpret_cast<HINSTANCE>(&__ImageBase),ModuleName,ARRAYSIZE(ModuleName)))
-		wsprintf(config,TEXT("%s.config"),ModuleName);
+	GetModuleFileName(NULL,ipc.FarModule,ARRAYSIZE(ipc.FarModule));
+
+	lstrcpy(ipc.FarDirectory,ipc.FarModule);
+	*(StrRChr(ipc.FarDirectory,NULL,TEXT('\\'))+1)=0;
+
+	lstrcpy(ipc.TempDirectory,ipc.FarDirectory);
+	lstrcat(ipc.TempDirectory,TEXT("FUTMP\\"));
+
+	lstrcpy(ipc.UpdateList,ipc.TempDirectory);
+	lstrcat(ipc.UpdateList,phpFile);
+
+	lstrcpy(ipc.PluginModule,Info.ModuleName);
+
+	lstrcpy(ipc.PluginDirectory,ipc.PluginModule);
+	*(StrRChr(ipc.PluginDirectory,NULL,'\\')+1)=0;
+
+	lstrcpy(ipc.Config,ipc.PluginModule);
+	lstrcat(ipc.Config,TEXT(".config"));
+
+	lstrcpy(ipc.SevenZip,ipc.PluginDirectory);
+	lstrcat(ipc.SevenZip,TEXT("7zxr.dll"));
+
 }
 
-VOID ReadUserPaths(LPCTSTR cfgfile)
+VOID ReadUserPaths()
 {
 	static TCHAR UserPaths[ARRAYSIZE(Modules)][MAX_PATH];
 	for(size_t i=1;i<ARRAYSIZE(Modules);i++)
 	{
-		GetPrivateProfileString(TEXT("paths"),Modules[i].DisplayName,Modules[i].Path,UserPaths[i],ARRAYSIZE(UserPaths[i]),cfgfile);
+		GetPrivateProfileString(TEXT("paths"),Modules[i].DisplayName,Modules[i].Path,UserPaths[i],ARRAYSIZE(UserPaths[i]),ipc.Config);
 		Modules[i].Path=UserPaths[i];
 	}
 }
-VOID ReadConnectSettings(LPCTSTR cfgfile)
+
+VOID ReadSettings()
 {
-	bUseProxy = GetPrivateProfileInt(TEXT("connect"),TEXT("proxy"), 0, cfgfile) == 1;
-	GetPrivateProfileString(TEXT("connect"),TEXT("srv"),TEXT(""),strProxyName,ARRAYSIZE(strProxyName),cfgfile);
-	GetPrivateProfileString(TEXT("connect"),TEXT("user"), TEXT(""),strProxyUser,ARRAYSIZE(strProxyUser),cfgfile);
-	GetPrivateProfileString(TEXT("connect"),TEXT("pass"), TEXT(""),strProxyPass,ARRAYSIZE(strProxyPass),cfgfile);
+	Force=(GetPrivateProfileInt(TEXT("update"),TEXT("Force"),1,ipc.Config)!=0);
+	Mode=GetPrivateProfileInt(TEXT("update"),TEXT("Mode"),2,ipc.Config);
+
+	bUseProxy = GetPrivateProfileInt(TEXT("connect"),TEXT("proxy"), 0, ipc.Config) == 1;
+	GetPrivateProfileString(TEXT("connect"),TEXT("srv"),TEXT(""),strProxyName,ARRAYSIZE(strProxyName),ipc.Config);
+	GetPrivateProfileString(TEXT("connect"),TEXT("user"), TEXT(""),strProxyUser,ARRAYSIZE(strProxyUser),ipc.Config);
+	GetPrivateProfileString(TEXT("connect"),TEXT("pass"), TEXT(""),strProxyPass,ARRAYSIZE(strProxyPass),ipc.Config);
 }
 
 VOID WINAPI EXP_NAME(SetStartupInfo)(const PluginStartupInfo* psInfo)
@@ -638,13 +666,13 @@ VOID WINAPI EXP_NAME(SetStartupInfo)(const PluginStartupInfo* psInfo)
 	*strProxyUser=0;
 	*strProxyPass=0;
 
-	GetModuleFileName(NULL,basepath,ARRAYSIZE(basepath));
-	*StrRChr(basepath,NULL,TEXT('\\'))=0;
-	InitPaths(basepath);
+	InitPaths();
 #ifndef UNICODE
 	VerInfo vi;
 	TCHAR RealName[MAX_PATH];
-	FSF.sprintf(RealName,TEXT("%s\\%s\\%s"),basepath,Modules[0].Path,Modules[0].Module);
+	lstrcpy(RealName,ipc.FarDirectory);
+	lstrcat(RealName,Modules[0].Path);
+	lstrcat(RealName,Modules[0].Module);
 	GetCurrentModuleVersion(RealName,vi);
 	if(vi.Version>1)
 	{
@@ -652,12 +680,10 @@ VOID WINAPI EXP_NAME(SetStartupInfo)(const PluginStartupInfo* psInfo)
 		return;
 	}
 #endif
-	ReadConnectSettings(config);
-	ReadUserPaths(config);
+	ReadSettings();
+	ReadUserPaths();
 	InitializeCriticalSection(&cs);
 
-	Force=(GetPrivateProfileInt(TEXT("update"),TEXT("Force"),1,config)!=0);
-	Mode=GetPrivateProfileInt(TEXT("update"),TEXT("Mode"),2,config);
 	if(Mode)
 	{
 		hThread=CreateThread(NULL,0,ThreadProc,NULL,0,NULL);
@@ -803,7 +829,7 @@ EXTERN_C VOID WINAPI EXP_NAME(RestartFAR)(HWND,HINSTANCE,LPCTSTR lpCmd,DWORD)
 	INT argc=0;
 	LPTSTR *argv=CommandLineToArgv(lpCmd,&argc);
 	INT n=0;
-	if(argc==6+n)
+	if(argc==2+n)
 	{
 		if(!ifn.AttachConsole(ATTACH_PARENT_PROCESS))
 		{
@@ -829,89 +855,121 @@ EXTERN_C VOID WINAPI EXP_NAME(RestartFAR)(HWND,HINSTANCE,LPCTSTR lpCmd,DWORD)
 			{
 				SetMenuItemInfo(hMenu,Pos,MF_BYPOSITION,&mi);
 			}
-			int Silent=StringToNumber(argv[n+1],Silent);
-			if(!Silent)
+			INT_PTR IPCPtr=StringToNumber(argv[n+1],IPCPtr);
+			if(ReadProcessMemory(hFar,reinterpret_cast<LPCVOID>(IPCPtr),&ipc,sizeof(IPC),NULL))
 			{
-				MessageBox(NULL,TEXT("Updates are downloaded.\n\nExit from FAR to continue."),TEXT("Update"),MB_ICONINFORMATION);
-			}
-			WaitForSingleObject(hFar,INFINITE);
-
-			CONSOLE_SCREEN_BUFFER_INFO csbi;
-			GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE),&csbi);
-			while(csbi.dwSize.Y--)
-			{
-				mprintf(TEXT("\n"));
-			}
-			CloseHandle(hFar);
-
-			mprintf(TEXT("\n\n\n"));
-
-			InitPaths(argv[n+4]);
-			ReadUserPaths(config);
-			for(size_t i=0;i<ARRAYSIZE(Modules);i++)
-			{
-				TCHAR destpath[MAX_PATH];
-				wsprintf(destpath,TEXT("%s\\%s"),argv[n+4],Modules[i].Path);
-				if (destpath[lstrlen(destpath)-1]!=TEXT('\\'))
+				if(!ipc.Silent)
 				{
-					lstrcat(destpath,TEXT("\\"));
+					MessageBox(NULL,TEXT("Updates are downloaded.\n\nExit from FAR to continue."),TEXT("Update"),MB_ICONINFORMATION);
 				}
+				WaitForSingleObject(hFar,INFINITE);
 
-				TCHAR arc[MAX_PATH];
-				GetPrivateProfileString(Modules[i].DisplayName,TEXT("arc"),TEXT(""),arc,ARRAYSIZE(arc),update_list);
-				if(*arc)
+				CONSOLE_SCREEN_BUFFER_INFO csbi;
+				GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE),&csbi);
+				while(csbi.dwSize.Y--)
 				{
-					TCHAR local_arc[MAX_PATH];
-					wsprintf(local_arc,TEXT("%s\\%s"),tmpdir,arc);
-					if(GetFileAttributes(local_arc)!=INVALID_FILE_ATTRIBUTES)
+					mprintf(TEXT("\n"));
+				}
+				CloseHandle(hFar);
+
+				mprintf(TEXT("\n\n\n"));
+
+				ReadUserPaths();
+				for(size_t i=0;i<ARRAYSIZE(Modules);i++)
+				{
+					TCHAR destpath[MAX_PATH];
+					lstrcpy(destpath,ipc.FarDirectory);
+					lstrcat(destpath,Modules[i].Path);
+					if (destpath[lstrlen(destpath)-1]!=TEXT('\\'))
 					{
-						mprintf(TEXT("Unpacking %-50s"),arc);
-						bool Result=false;
-						while(!Result)
+						lstrcat(destpath,TEXT("\\"));
+					}
+
+					TCHAR arc[MAX_PATH];
+					GetPrivateProfileString(Modules[i].DisplayName,TEXT("arc"),TEXT(""),arc,ARRAYSIZE(arc),ipc.UpdateList);
+					if(*arc)
+					{
+						TCHAR local_arc[MAX_PATH];
+						lstrcpy(local_arc,ipc.TempDirectory);
+						lstrcat(local_arc,arc);
+						if(GetFileAttributes(local_arc)!=INVALID_FILE_ATTRIBUTES)
 						{
-							if(!Extract(argv[n+5],local_arc,destpath))
+							mprintf(TEXT("Unpacking %-50s"),arc);
+							bool Result=false;
+							while(!Result)
 							{
-								if(MessageBox(NULL,TEXT("unpack error"),TEXT("FAR Update"),MB_ICONERROR|MB_RETRYCANCEL)==IDCANCEL)
+								if(!Extract(ipc.SevenZip,local_arc,destpath))
 								{
-									break;
+									if(MessageBox(NULL,TEXT("unpack error"),TEXT("FAR Update"),MB_ICONERROR|MB_RETRYCANCEL)==IDCANCEL)
+									{
+										break;
+									}
 								}
+								else
+								{
+									Result=true;
+								}
+							}
+							if(Result)
+							{
+								TextColor color(FOREGROUND_GREEN|FOREGROUND_INTENSITY);
+								mprintf(TEXT("OK\n"));
+								DeleteFile(local_arc);
 							}
 							else
 							{
-								Result=true;
+								TextColor color(FOREGROUND_RED|FOREGROUND_INTENSITY);
+								mprintf(TEXT("error\n"));
 							}
 						}
-						if(Result)
+					}
+				}
+				TCHAR exec[2048],execExp[4096];
+				GetPrivateProfileString(TEXT("events"),TEXT("PostInstall"),TEXT(""),exec,ARRAYSIZE(exec),ipc.Config);
+				if(*exec)
+				{
+					ExpandEnvironmentStrings(exec,execExp,ARRAYSIZE(execExp));
+					STARTUPINFO si={sizeof(si)};
+					PROCESS_INFORMATION pi;
+					{
+						TextColor color(FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE|FOREGROUND_INTENSITY);
+						mprintf(TEXT("\nExecuting %-50.50s"),execExp);
+					}
+					if(CreateProcess(NULL,execExp,NULL,NULL,TRUE,NULL,NULL,ipc.PluginDirectory,&si,&pi))
+					{
 						{
 							TextColor color(FOREGROUND_GREEN|FOREGROUND_INTENSITY);
-							mprintf(TEXT("OK\n"));
-							DeleteFile(local_arc);
+							mprintf(TEXT("OK\n\n"));
 						}
-						else
-						{
-							TextColor color(FOREGROUND_RED|FOREGROUND_INTENSITY);
-							mprintf(TEXT("error\n"));
-						}
+						WaitForSingleObject(pi.hProcess,INFINITE);
 					}
+					else
+					{
+						TextColor color(FOREGROUND_RED|FOREGROUND_INTENSITY);
+						mprintf(TEXT("Error %d"),GetLastError());
+					}
+					mprintf(TEXT("\n"));
+					CloseHandle(pi.hThread);
+					CloseHandle(pi.hProcess);
 				}
-			}
-			TCHAR exec[2048];
-			GetPrivateProfileString(TEXT("events"),TEXT("PostInstall"),TEXT(""),exec,ARRAYSIZE(exec),config);
-			if(*exec)
-			{
+				if(Pos!=-1)
+				{
+					mi.wID=SC_CLOSE;
+					SetMenuItemInfo(hMenu,Pos,MF_BYPOSITION,&mi);
+					DrawMenuBar(GetConsoleWindow());
+				}
+				TextColor color(FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE|FOREGROUND_INTENSITY);
+				mprintf(TEXT("\n%-60s"),TEXT("Starting FAR again..."));
 				STARTUPINFO si={sizeof(si)};
 				PROCESS_INFORMATION pi;
+				TCHAR FarCmd[2048];
+				lstrcpy(FarCmd,ipc.FarModule);
+				lstrcat(FarCmd,TEXT(" "));
+				lstrcat(FarCmd,ipc.FarParams);
+				if(CreateProcess(NULL,FarCmd,NULL,NULL,TRUE,NULL,NULL,NULL,&si,&pi))
 				{
-					TextColor color(FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE|FOREGROUND_INTENSITY);
-					mprintf(TEXT("\nExecuting %-50.50s"),exec);
-				}
-				if(CreateProcess(NULL,exec,NULL,NULL,TRUE,NULL,NULL,NULL,&si,&pi))
-				{
-					{
-						TextColor color(FOREGROUND_GREEN|FOREGROUND_INTENSITY);
-						mprintf(TEXT("OK\n\n"));
-					}
-					WaitForSingleObject(pi.hProcess,INFINITE);
+					TextColor color(FOREGROUND_GREEN|FOREGROUND_INTENSITY);
+					mprintf(TEXT("OK"));
 				}
 				else
 				{
@@ -919,51 +977,24 @@ EXTERN_C VOID WINAPI EXP_NAME(RestartFAR)(HWND,HINSTANCE,LPCTSTR lpCmd,DWORD)
 					mprintf(TEXT("Error %d"),GetLastError());
 				}
 				mprintf(TEXT("\n"));
+				
+				// шаманство для x64
+				DWORD ProcList[2];
+				for(;;)
+				{
+					DWORD ProcCount=ifn.GetConsoleProcessList(ProcList,2);
+					if(Count==1)
+					{
+						Sleep(1);
+					}
+					else
+					{
+						break;
+					}
+				}
 				CloseHandle(pi.hThread);
 				CloseHandle(pi.hProcess);
 			}
-			if(Pos!=-1)
-			{
-				mi.wID=SC_CLOSE;
-				SetMenuItemInfo(hMenu,Pos,MF_BYPOSITION,&mi);
-				DrawMenuBar(GetConsoleWindow());
-			}
-			TextColor color(FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE|FOREGROUND_INTENSITY);
-			mprintf(TEXT("\n%-60s"),TEXT("Starting FAR again..."));
-			STARTUPINFO si={sizeof(si)};
-			PROCESS_INFORMATION pi;
-			TCHAR FarCmd[2048];
-			lstrcpy(FarCmd,argv[n+2]);
-			lstrcat(FarCmd,TEXT(" "));
-			lstrcat(FarCmd,argv[n+3]);
-			if(CreateProcess(NULL,FarCmd,NULL,NULL,TRUE,NULL,NULL,NULL,&si,&pi))
-			{
-				TextColor color(FOREGROUND_GREEN|FOREGROUND_INTENSITY);
-				mprintf(TEXT("OK"));
-			}
-			else
-			{
-				TextColor color(FOREGROUND_RED|FOREGROUND_INTENSITY);
-				mprintf(TEXT("Error %d"),GetLastError());
-			}
-			mprintf(TEXT("\n"));
-			
-			// шаманство для x64
-			DWORD ProcList[2];
-			for(;;)
-			{
-				DWORD ProcCount=ifn.GetConsoleProcessList(ProcList,2);
-				if(Count==1)
-				{
-					Sleep(1);
-				}
-				else
-				{
-					break;
-				}
-			}
-			CloseHandle(pi.hThread);
-			CloseHandle(pi.hProcess);
 		}
 	}
 	LocalFree(argv);

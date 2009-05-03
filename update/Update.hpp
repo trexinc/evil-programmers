@@ -61,3 +61,17 @@ enum STATUS
 	S_UPTODATE,
 	S_REQUIRED,
 };
+
+struct IPC
+{
+	TCHAR FarModule[MAX_PATH];
+	TCHAR FarDirectory[MAX_PATH];
+	TCHAR PluginModule[MAX_PATH];
+	TCHAR PluginDirectory[MAX_PATH];
+	TCHAR FarParams[MAX_PATH*4];
+	TCHAR TempDirectory[MAX_PATH];
+	TCHAR Config[MAX_PATH];
+	TCHAR UpdateList[MAX_PATH];
+	TCHAR SevenZip[MAX_PATH];
+	bool Silent;
+};
