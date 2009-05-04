@@ -46,6 +46,21 @@ void Realloc(PluginPanelItem*& aData,int& aSize,int aNewSize)
   }
 }
 
+const wchar_t* CFarDialog::Str(int index)
+{
+  return (const wchar_t*)Info.SendDlgMessage(iDlg,DM_GETCONSTTEXTPTR,index,0);
+}
+
+int CFarDialog::Check(int index)
+{
+  return (int)Info.SendDlgMessage(iDlg,DM_GETCHECK,index,0);
+}
+
+CFarPanel::CFarPanel(HANDLE aPlugin,int aCommand): iPlugin(aPlugin),iCurDir(NULL),iCurDirSize(0),iItem(NULL),iItemSize(0)
+{
+  iResult=Info.Control(aPlugin,aCommand,0,(LONG_PTR)&iInfo);
+}
+
 CFarPanel::~CFarPanel()
 {
   free(iCurDir);
