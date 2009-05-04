@@ -16,9 +16,9 @@
     along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifdef UNICODE
-
 #include "far_helper.h"
+
+#ifdef UNICODE
 
 void Realloc(TCHAR*& aData,int& aLength,int aNewLength)
 {
@@ -44,6 +44,11 @@ void Realloc(PluginPanelItem*& aData,int& aSize,int aNewSize)
       aSize=aNewSize;
     }
   }
+}
+
+CFarPanel::CFarPanel(HANDLE aPlugin,int aCommand): iPlugin(aPlugin),iCurDir(NULL),iCurDirSize(0),iItem(NULL),iItemSize(0)
+{
+  iResult=Info.Control(aPlugin,aCommand,0,(LONG_PTR)&iInfo);
 }
 
 CFarPanel::~CFarPanel()
@@ -73,6 +78,16 @@ PluginPanelItem& CFarPanel::Selected(size_t index)
   return *iItem;
 }
 
+void CFarPanel::RemoveSelection(size_t index)
+{
+  Info.Control(iPlugin,FCTL_SETSELECTION,index,0);
+}
+
+CFarDialog::~CFarDialog()
+{
+  Info.DialogFree(iDlg);
+}
+
 int CFarDialog::Execute(INT_PTR PluginNumber,int X1,int Y1,int X2,int Y2,const TCHAR* HelpTopic,struct FarDialogItem* Item,int ItemsNumber,DWORD Reserved,DWORD Flags,FARWINDOWPROC DlgProc,LONG_PTR Param)
 {
   iDlg=Info.DialogInit(PluginNumber,X1,Y1,X2,Y2,HelpTopic,Item,ItemsNumber,Reserved,Flags,DlgProc,Param);
@@ -82,6 +97,18 @@ int CFarDialog::Execute(INT_PTR PluginNumber,int X1,int Y1,int X2,int Y2,const T
 int CFarDialog::Check(int index)
 {
   return (int)Info.SendDlgMessage(iDlg,DM_GETCHECK,index,0);
+}
+
+const wchar_t* CFarDialog::Str(int index)
+{
+  return (const wchar_t*)Info.SendDlgMessage(iDlg,DM_GETCONSTTEXTPTR,index,0);
+}
+
+#else
+
+void CFarPanel::CommitSelection(void)
+{
+  Info.Control(iPlugin,FCTL_SETSELECTION,&iInfo);
 }
 
 #endif

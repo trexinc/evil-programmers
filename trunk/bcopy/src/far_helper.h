@@ -34,11 +34,11 @@ class CFarDialog
     HANDLE iDlg;
   public:
     inline CFarDialog(): iDlg(INVALID_HANDLE_VALUE) {};
-    inline ~CFarDialog() {Info.DialogFree(iDlg);};
+    ~CFarDialog();
     int Execute(INT_PTR PluginNumber,int X1,int Y1,int X2,int Y2,const TCHAR* HelpTopic,struct FarDialogItem* Item,int ItemsNumber,DWORD Reserved,DWORD Flags,FARWINDOWPROC DlgProc,LONG_PTR Param);
     inline HANDLE Handle(void) {return iDlg;};
     int Check(int index);
-    inline const wchar_t* Str(int index) {return (const wchar_t*)Info.SendDlgMessage(iDlg,DM_GETCONSTTEXTPTR,index,0);};
+    const wchar_t* Str(int index);
     inline DWORD Flags(int index)
     {
       FarDialogItem DialogItem;
@@ -124,7 +124,7 @@ class CFarPanel
   private:
     CFarPanel();
   public:
-    inline CFarPanel(HANDLE aPlugin,int aCommand): iPlugin(aPlugin),iCurDir(NULL),iCurDirSize(0),iItem(NULL),iItemSize(0) {iResult=Info.Control(aPlugin,aCommand,0,(LONG_PTR)&iInfo);};
+    CFarPanel(HANDLE aPlugin,int aCommand);
     ~CFarPanel();
     inline bool IsOk(void) {return iResult;}
     inline int PanelType(void) {return iInfo.PanelType;};
@@ -136,7 +136,7 @@ class CFarPanel
     TCHAR* CurDir(void);
     PluginPanelItem& operator[](size_t index);
     PluginPanelItem& Selected(size_t index);
-    inline void RemoveSelection(size_t index) {Info.Control(iPlugin,FCTL_SETSELECTION,index,0);};
+    void RemoveSelection(size_t index);
     inline void CommitSelection(void) {};
 };
 #else
@@ -163,7 +163,7 @@ class CFarPanel
     inline PluginPanelItem& operator[](size_t index) {return iInfo.PanelItems[index];};
     inline PluginPanelItem& Selected(size_t index) {return iInfo.SelectedItems[index];};
     inline void RemoveSelection(size_t index) {iInfo.PanelItems[index].Flags&=~PPIF_SELECTED;};
-    inline void CommitSelection(void) {Info.Control(iPlugin,FCTL_SETSELECTION,&iInfo);};
+    void CommitSelection(void);
 };
 #endif
 
