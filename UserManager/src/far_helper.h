@@ -39,8 +39,8 @@ class CFarDialog
       return Info.DialogRun(iDlg);
     };
     inline HANDLE Handle(void) {return iDlg;};
-    inline int Check(int index) {return (int)Info.SendDlgMessage(iDlg,DM_GETCHECK,index,0);};
-    inline const wchar_t* Str(int index) {return (const wchar_t*)Info.SendDlgMessage(iDlg,DM_GETCONSTTEXTPTR,index,0);};
+    int Check(int index);
+    const wchar_t* Str(int index);
     inline DWORD Flags(int index)
     {
       FarDialogItem DialogItem;
@@ -104,7 +104,7 @@ class CFarPanel
   private:
     CFarPanel();
   public:
-    inline CFarPanel(HANDLE aPlugin,int aCommand): iPlugin(aPlugin),iCurDir(NULL),iCurDirSize(0),iItem(NULL),iItemSize(0) {iResult=Info.Control(aPlugin,aCommand,0,(LONG_PTR)&iInfo);};
+    CFarPanel(HANDLE aPlugin,int aCommand);
     ~CFarPanel();
     inline bool IsOk(void) {return iResult;}
     inline int PanelType(void) {return iInfo.PanelType;};
