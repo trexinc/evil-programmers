@@ -29,7 +29,7 @@
 
 HMENU menu;
 HINSTANCE hin;
-LPWSTR wav;
+LPCWSTR wav;
 bool z;
 UINT lst_size=0;
 
@@ -245,7 +245,18 @@ int proc(HWND h,UINT m,WPARAM w,LPARAM l)
 
 template <typename T, size_t N> inline size_t arraySize(const T (&)[N]){return N;}
 
+#ifdef __GNUC__
+#ifdef __cplusplus
+extern "C"{
+#endif
+int WinMainCRTStartup(void);
+#ifdef __cplusplus
+};
+int WinMainCRTStartup(void)
+#endif
+#else
 int APIENTRY wWinMain(HINSTANCE,HINSTANCE,LPWSTR,int)
+#endif
 {
   a[4]=a[10]=a[15]=0xffff;
   HINSTANCE I=(HINSTANCE)GetModuleHandleW(NULL);
