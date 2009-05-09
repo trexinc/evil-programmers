@@ -41,7 +41,11 @@ struct PluginStartupInfo Info;
 FARSTANDARDFUNCTIONS FSF;
 TCHAR PluginRootKey[80];
 HMODULE hEsc;
+#ifdef UNICODE
+int (WINAPI *GetEditorSettings)(int EditorID, const wchar_t *szName, void *Param);
+#else
 int (WINAPI *GetEditorSettings)(int EditorID, const char *szName, void *Param);
+#endif
 
 struct Options
 {
@@ -312,7 +316,13 @@ void WINAPI EXP_NAME(SetStartupInfo)(const struct PluginStartupInfo *psi)
   GetEditorSettings=NULL;
   hEsc=GetModuleHandle(_T("esc.dll"));
   if (hEsc)
+  {
+#ifdef UNICODE
+    GetEditorSettings=(int (WINAPI*)(int, const wchar_t*, void*))GetProcAddress(hEsc,"GetEditorSettingsW");
+#else
     GetEditorSettings=(int (WINAPI*)(int, const char*, void*))GetProcAddress(hEsc,"GetEditorSettings");
+#endif
+  }
 }
 
 void SetColor(int *Color)
@@ -1016,8 +1026,8 @@ int WINAPI EXP_NAME(ProcessEditorEvent)(int Event, void *Param)
 
     if (GetEditorSettings)
     {
-      GetEditorSettings(ei.EditorID,"wrap",(void *)&RightBorder);
-      GetEditorSettings(ei.EditorID,"autowrap",(void *)&AutoWrap);
+      GetEditorSettings(ei.EditorID,_T("wrap"),(void *)&RightBorder);
+      GetEditorSettings(ei.EditorID,_T("autowrap"),(void *)&AutoWrap);
 
       if (RightBorder<=0 || RightBorder>512)
         RightBorder = 0;
