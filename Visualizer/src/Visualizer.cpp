@@ -41,11 +41,7 @@ struct PluginStartupInfo Info;
 FARSTANDARDFUNCTIONS FSF;
 TCHAR PluginRootKey[80];
 HMODULE hEsc;
-#ifdef UNICODE
-int (WINAPI *GetEditorSettings)(int EditorID, const wchar_t *szName, void *Param);
-#else
-int (WINAPI *GetEditorSettings)(int EditorID, const char *szName, void *Param);
-#endif
+int (WINAPI *GetEditorSettings)(int EditorID, const TCHAR *szName, void *Param);
 
 struct Options
 {
