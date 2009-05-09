@@ -1,6 +1,10 @@
 History:
 --------
 
+v0.6 (09/05/2009)
+-----------------
+ + Added support of [ESC] unicode version.
+
 v0.5 (14/03/09)
 ---------------
  + Bookmarks visualization, from Drkns.
