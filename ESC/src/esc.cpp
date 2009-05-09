@@ -617,7 +617,7 @@ int WINAPI _export ProcessEditorEventW(int Event, void *Param)
           {
             EditorSetParameter espar;
             memset(&espar, 0, sizeof(espar));
-            espar.Type=ESPT_CHARTABLE;
+            espar.Type=ESPT_CODEPAGE;
             bool done=false;
             if(*nodedata.TableName.str)
             {
