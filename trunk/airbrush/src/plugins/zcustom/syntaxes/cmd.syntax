@@ -73,8 +73,8 @@ context default
     keyword whole /[Vv]//[Oo]//[Ll]/ white
     keyword whole /[Xx]//[Cc]//[Oo]//[Pp]//[Yy]/ white
     keyword %%/[a-zA-Z0-9]+/ brightmagenta
-    keyword %/[a-zA-Z0-9]+/ brightmagenta
     keyword %/[a-zA-Z0-9]+/% brightmagenta
+    keyword %/[a-zA-Z0-9]+/ brightmagenta
     keyword < brightmagenta
     keyword > brightmagenta
     keyword | brightmagenta
