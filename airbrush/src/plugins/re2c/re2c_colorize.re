@@ -127,6 +127,7 @@ dot = any \ [\n];
 esc = dot \ [\\];
 cstring = "["  ((esc \ [\]]) | "\\" dot)* "]" ;
 dstring = "\"" ((esc \ ["] ) | "\\" dot)* "\"";
+istring = "'" ((esc \ ['] ) | "\\" dot)* "'";
 letter = [a-zA-Z];
 digit = [0-9];
 */
@@ -206,7 +207,7 @@ colorize_clear:
     if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_STRING],colors[HC_STRING+1]);
     goto colorize_clear;
   }
-  cstring
+  cstring|istring
   {
     if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_STRING],colors[HC_STRING+1]);
     goto colorize_clear;
