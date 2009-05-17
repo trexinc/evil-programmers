@@ -42,7 +42,7 @@ RCFLAGS=-I ./$(BOOTSTRAPDIR)
 TARGET=../$(BINDIR)/airbrush.dll
 OBJS=../$(OBJDIR)/ab_main.o ../$(OBJDIR)/ab_plugs.o ../$(OBJDIR)/ab_selcolor.o ../$(OBJDIR)/ab_classes.o ../$(OBJDIR)/airbrush.res.o
 LIBS=
-SUBDIRS=c pas sql html php re2c yacclex zcustom
+SUBDIRS=c pas sql html php re2c yacclex zcustom armgnuasm
 DOCTARGET=../file_id.diz ../$(BINDIR)/airbrush.hlf ../$(BINDIR)/airbrush.lng
 
 all: dirs $(TARGET) $(SUBDIRS) $(DOCTARGET)
