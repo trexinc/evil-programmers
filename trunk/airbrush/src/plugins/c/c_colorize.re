@@ -96,7 +96,7 @@ colorize_clear:
   { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_KEYWORD1],colors[HC_KEYWORD1+1]); goto colorize_clear; }
   L(L|D)*
   { goto colorize_clear; }
-  ("0"[xX]H+IS?)|("0"D+IS?)|(D+IS?)|
+  ("0"[xX]H+IS?)|("0"O+IS?)|(D+IS?)|
   (D+E FS?)|(D*"."D+E?FS?)|(D+"."D*E?FS?)
   { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_NUMBER1],colors[HC_NUMBER1+1]); goto colorize_clear; }
   ("L")?["]
