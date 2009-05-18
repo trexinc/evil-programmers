@@ -42,15 +42,14 @@ O = [0-7];
 D = [0-9];
 L = [a-zA-Z_];
 H = [a-fA-F0-9];
-E = [Ee] [+-]? D+;
-FS  = [fFlL];
-IS  = [uUlL]*;
+SIGN = [+-]?;
 ESC = [\\] ([abfnrtv?'"\\] | "x" H+ | O+);
 ARMCONDTHUMB = 'eq'|'ne'|'cs'|'hs'|'cc'|'lo'|'mi'|'pl'|'vs'|'vc'|'hi'|'ls'|'ge'|'lt'|'gt'|'le';
 ARMCOND = ARMCONDTHUMB|'al';
 THUMBREGSLO = 'r0'|'r1'|'r2'|'r3'|'r4'|'r5'|'r6'|'r7';
 THUMBREGSHI = 'r8'|'r9'|'r10'|'r11'|'r12'|'r13'|'r14'|'r15'|'fp'|'ip'|'sp'|'lr'|'pc';
-ARMREGS = THUMBREGSLO|THUMBREGSHI;
+ARMREGSCOMMON = THUMBREGSLO|THUMBREGSHI;
+ARMREGS = ARMREGSCOMMON|'cpsr' ('_'[cfsx])?;
 ARMMEMORY = 'ia'|'ib'|'da'|'db'|'fd'|'ed'|'fa'|'ea';
 */
 
@@ -91,46 +90,50 @@ colorize_clear:
     if(state[0]==PARSER_STRING1||state[0]==PARSER_STRING2) goto colorize_string1;
     if(state[0]==PARSER_THUMB) goto colorize_thumb;
 /*!re2c
-  '.thumb' | '.thumb_func'
+  '.thumb' | '.thumb_func' | '.code 16'
   {
     if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_DEFINE],colors[HC_DEFINE+1]);
     state[0]=PARSER_THUMB;
     goto colorize_thumb;
   }
+  "." 'h'? 'word' [ \t]+ SIGN (("0"[xX]H+)|(D+))
+  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_NUMBER1],colors[HC_NUMBER1+1]); goto colorize_clear; }
+  '.code 32' | "." (L|D)+
+  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_DEFINE],colors[HC_NUMBER1+1]); goto colorize_clear; }
   "/*"
   { state[0]=PARSER_COMMENT1; commentstart=yytok; goto colorize_comment1; }
   "@"
   { commentstart=yytok; goto colorize_comment2; }
-  'add' (ARMCOND)? 's'? | 'sub' (ARMCOND)? 's'? | 'sbc' (ARMCOND)? 's'? | 'rsb' (ARMCOND)? 's'?|'rsc' (ARMCOND)? 's'? |
-  'mul' (ARMCOND)? 's'? | 'mla' (ARMCOND)? 's'? | 'umull' (ARMCOND)? 's'? | 'umlal' (ARMCOND)? 's'? | 'smull' (ARMCOND)? 's'? | 'smlal' (ARMCOND)? 's'? |
-  'cmp' (ARMCOND)? | 'cmn' (ARMCOND)? | 'nop'
+  ('add'|'sub'|'sbc'|'rsb'|'rsc'|'mul'|'mla'|'umull'|'umlal'|'smull'|'smlal') (ARMCOND)? 's'? | ('cmp'|'cmn') (ARMCOND)?
   { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_ARM_ARITHMETIC],colors[HC_ARM_ARITHMETIC+1]); goto colorize_clear; }
-  'q' ('d')? 'add' (ARMCOND)? | 'q' ('d')? 'sub' (ARMCOND)? | 'smul' [wWtTbB] [tTbB] (ARMCOND) | 'smla' [wWtTbB] [tTbB] (ARMCOND) | 'smlal' [tTbB] [tTbB] (ARMCOND) |
+  'q' ('d')? ('add'|'sub') (ARMCOND)? | ('smul'|'smla') [wWtTbB] [tTbB] (ARMCOND) | 'smlal' [tTbB] [tTbB] (ARMCOND) |
   'clz' (ARMCOND)?
   { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_ARM_ARITHMETIC5],colors[HC_ARM_ARITHMETIC5+1]); goto colorize_clear; }
-  'tst' (ARMCOND)? | 'teq' (ARMCOND)? | 'and' (ARMCOND)? 's'? | 'eor' (ARMCOND)? 's'? | 'orr' (ARMCOND)? 's'? | 'bic' (ARMCOND)? 's'?
+  ('tst'|'teq') (ARMCOND)? | ('and'|'eor'|'orr'|'bic') (ARMCOND)? 's'?
   { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_ARM_LOGICAL],colors[HC_ARM_LOGICAL+1]); goto colorize_clear; }
-  'mov' (ARMCOND)? 's'? | 'mvn' (ARMCOND)? 's'? | 'mrs' (ARMCOND)? | 'msr' (ARMCOND)?
+  ('mov'|'mvn') (ARMCOND)? 's'? | ('mrs'|'msr') (ARMCOND)?
   { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_ARM_MOVE],colors[HC_ARM_MOVE+1]); goto colorize_clear; }
-  'lsl' [ \t]* '#' (D)+ | 'lsr' [ \t]* '#' (D)+ | 'asr' [ \t]* '#' (D)+ | 'ror' [ \t]* '#' (D)+ | 'rrx' [ \t]* '#' (D)+
+  ARMREGSCOMMON [ \t]* "," [ \t]* ('lsl'|'lsr'|'asr'|'ror') [ \t]* '#' (D)+ | ARMREGSCOMMON [ \t]* "," [ \t]* 'rrx' | ARMREGSCOMMON [ \t]* "," [ \t]* ('lsl'|'lsr'|'asr'|'ror') [ \t]+ ARMREGSCOMMON
   { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_ARM_SHIFT],colors[HC_ARM_SHIFT+1]); goto colorize_clear; }
-  'b' (ARMCOND)? | 'bl' (ARMCOND)? | 'bx' (ARMCOND)? | 'swi' (ARMCOND)? [ \t]+ (('0x'H+)|(D+))
+  ('b'|'bl'|'bx') (ARMCOND)? | 'swi' (ARMCOND)? [ \t]+ (('0x'H+)|(D+))
   { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_ARM_BRANCH],colors[HC_ARM_BRANCH+1]); goto colorize_clear; }
   'blx'/[ \t]+ (L|[.])(L|D)*
   { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_ARM_BRANCH5],colors[HC_ARM_BRANCH5+1]); goto colorize_clear; }
-  'blx' (ARMCOND)? / [ \t]+ ARMREGS
+  'blx' (ARMCOND)? / [ \t]+ ARMREGSCOMMON
   { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_ARM_BRANCH5],colors[HC_ARM_BRANCH5+1]); goto colorize_clear; }
   ('ldr'|'str') (ARMCOND)? ('t'|'b'|'bt'|'sb'|'h'|'sh')? | ('ldm'|'stm') (ARMCOND)? (ARMMEMORY) | 'swp' (ARMCOND)? 'b'?
   { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_ARM_MEMORY],colors[HC_ARM_MEMORY+1]); goto colorize_clear; }
   'pld' | ('ldr'|'str') (ARMCOND)? 'd'
   { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_ARM_MEMORY5],colors[HC_ARM_MEMORY5+1]); goto colorize_clear; }
+  'adr' 'l'? (ARMCOND)? | 'movl' (ARMCOND)? | ('asr'|'lsl'|'lsr'|'ror'|'rrx') (ARMCOND)? 's'? | 'push' (ARMCOND)? | 'pop' (ARMCOND)? | 'nop'
+  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_ARM_PSEUDO],colors[HC_ARM_PSEUDO+1]); goto colorize_clear; }
   ARMREGS
   { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_ARM_REGS],colors[HC_ARM_REGS+1]); goto colorize_clear; }
   L(L|D)*
   { goto colorize_clear; }
-  '#' (("0"[xX]H+)|(D+))
+  "#" SIGN (("0"[xX]H+)|(D+))
   { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_NUMBER1],colors[HC_NUMBER1+1]); goto colorize_clear; }
-  "-"|"+"|","
+  "-"|"+"|","|"!"
   {
     if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_KEYWORD1],colors[HC_KEYWORD1+1]);
     goto colorize_clear;
@@ -210,17 +213,21 @@ colorize_string1:
 colorize_thumb:
     yytok=yycur;
 /*!re2c
-  ".arm"
+  '.arm' | '.code 32'
   {
     if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_DEFINE],colors[HC_DEFINE+1]);
     state[0]=PARSER_CLEAR;
     goto colorize_clear;
   }
+  "." 'h'? 'word' [ \t]+ SIGN (("0"[xX]H+)|(D+))
+  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_NUMBER1],colors[HC_NUMBER1+1]); goto colorize_clear; }
+  '.code 16' | "." (L|D)+
+  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_DEFINE],colors[HC_NUMBER1+1]); goto colorize_clear; }
   "/*"
   { state[0]=PARSER_COMMENT3; commentstart=yytok; goto colorize_comment1; }
   "@"
   { commentstart=yytok; goto colorize_comment2; }
-  'add' | 'adc' | 'sub' | 'sbc' | 'neg' | 'mul' | 'cmp' | 'cmn' | 'nop'
+  'add' | 'adc' | 'sub' | 'sbc' | 'neg' | 'mul' | 'cmp' | 'cmn'
   { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_THUMB_ARITHMETIC],colors[HC_THUMB_ARITHMETIC+1]); goto colorize_clear; }
   'and' | 'eor' | 'orr' | 'bic' | 'tst'
   { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_THUMB_LOGICAL],colors[HC_THUMB_LOGICAL+1]); goto colorize_clear; }
@@ -234,13 +241,15 @@ colorize_thumb:
   { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_THUMB_BRANCH5],colors[HC_THUMB_BRANCH5+1]); goto colorize_clear; }
   ('ldr'|'str') ('b'|'h'|'sh'|'sb')? | 'ldmia' | 'stmia' | 'push' | 'pop'
   { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_THUMB_MEMORY],colors[HC_THUMB_MEMORY+1]); goto colorize_clear; }
+  'adr' 'l'? | 'movl' | 'nop'
+  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_THUMB_PSEUDO],colors[HC_THUMB_PSEUDO+1]); goto colorize_clear; }
   THUMBREGSLO
   { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_THUMB_REGS_LO],colors[HC_THUMB_REGS_LO+1]); goto colorize_clear; }
   THUMBREGSHI
   { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_THUMB_REGS_HI],colors[HC_THUMB_REGS_HI+1]); goto colorize_clear; }
   L(L|D)*
   { goto colorize_clear; }
-  '#' (("0"[xX]H+)|(D+))
+  "#" SIGN (("0"[xX]H+)|(D+))
   { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_NUMBER1],colors[HC_NUMBER1+1]); goto colorize_clear; }
   "-"|"+"|","
   {

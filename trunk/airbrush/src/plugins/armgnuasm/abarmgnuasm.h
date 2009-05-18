@@ -41,9 +41,11 @@
 #define HC_ARM_MEMORY       44
 #define HC_ARM_MEMORY5      46
 #define HC_THUMB_MEMORY     48
-#define HC_ARM_REGS         50
-#define HC_THUMB_REGS_LO    52
-#define HC_THUMB_REGS_HI    54
+#define HC_ARM_PSEUDO       50
+#define HC_THUMB_PSEUDO     52
+#define HC_ARM_REGS         54
+#define HC_THUMB_REGS_LO    56
+#define HC_THUMB_REGS_HI    58
 
 #define PARSER_CLEAR    0
 #define PARSER_COMMENT1 1
