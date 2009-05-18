@@ -18,15 +18,18 @@
 
 #define HC_COMMENT  0
 #define HC_KEYWORD1 2
-#define HC_STRING   4
-#define HC_REGEXPS  6
-#define HC_REGEXP   8
-#define HC_NUMBER   10
-#define HC_BUILTIN  12
-#define HC_IO       14
-#define HC_PARAM    16
-#define HC_HIGHLITE 18
-#define HC_HL_ERROR 20
+#define HC_KEYWORD2 4
+#define HC_STRING   6
+#define HC_REGEXPS  8
+#define HC_REGEXP   10
+#define HC_NUMBER   12
+#define HC_BUILTIN  14
+#define HC_IO       16
+#define HC_PARAM    18
+#define HC_HIGHLITE 20
+#define HC_SYMBOL   22
+#define HC_PATTERNS 24
+#define HC_HL_ERROR 26
 
 #define PARSER_CLEAR    0
 #define PARSER_STRING   1
