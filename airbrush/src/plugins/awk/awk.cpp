@@ -22,8 +22,8 @@
 #include "abawk.h"
 
 ColorizeInfo Info;
-int colors[]={0x03,-1,0x0f,-1,0x0e,-1,0x02,-1,0x06,-1,0x0C,-1,0x01,0x0C};
-const TCHAR* colornames[]={_T("Comment"),_T("Keyword"),_T("String"),_T("Regexp '/'"),_T("Regexp body"),_T("Pair"),_T("Wrong Pair")};
+int colors[]={0x03,-1,0x0f,-1,0x0e,-1,0x02,-1,0x06,-1,0x0a,-1,0x0f,-1,0x0f,-1,0x0f,-1,0x0c,-1,0x01,0x0c};
+const TCHAR* colornames[]={_T("Comment"),_T("Keyword"),_T("String"),_T("Regexp '/'"),_T("Regexp body"),_T("Number"),_T("Builtin"),_T("IO"),_T("Param"),_T("Pair"),_T("Wrong Pair")};
 
 int WINAPI SetColorizeInfo(ColorizeInfo *AInfo)
 {
