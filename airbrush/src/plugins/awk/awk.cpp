@@ -22,8 +22,23 @@
 #include "abawk.h"
 
 ColorizeInfo Info;
-int colors[]={0x03,-1,0x0f,-1,0x0e,-1,0x02,-1,0x06,-1,0x0a,-1,0x0f,-1,0x0f,-1,0x0f,-1,0x0c,-1,0x01,0x0c};
-const TCHAR* colornames[]={_T("Comment"),_T("Keyword"),_T("String"),_T("Regexp '/'"),_T("Regexp body"),_T("Number"),_T("Builtin"),_T("IO"),_T("Param"),_T("Pair"),_T("Wrong Pair")};
+int colors[]={
+  0x03,-1,              // HC_COMMENT  0
+  0x0f,-1,              // HC_KEYWORD1 2
+  0x0a,-1,              // HC_KEYWORD2 4
+  0x0e,-1,              // HC_STRING   6
+  0x02,-1,              // HC_REGEXPS  8
+  0x06,-1,              // HC_REGEXP   10
+  0x0a,-1,              // HC_NUMBER   12
+  0x0f,-1,              // HC_BUILTIN  14
+  0x0f,-1,              // HC_IO       16
+  0x0a,-1,              // HC_PARAM    18
+  0x0c,-1,              // HC_HIGHLITE 20
+  0x0e,-1,              // HC_SYMBOL   22
+  0x0d,-1,              // HC_PATTERNS 24
+  0x01,0x0c             // HC_HL_ERROR 26
+};
+const TCHAR* colornames[]={_T("Comment"),_T("Keyword"),_T("Keyword2"),_T("String"),_T("Regexp '/'"),_T("Regexp body"),_T("Number"),_T("Builtin"),_T("IO"),_T("Param"),_T("Pair"),_T("Symbol"),_T("Patterns"),_T("Wrong Pair")};
 
 int WINAPI SetColorizeInfo(ColorizeInfo *AInfo)
 {

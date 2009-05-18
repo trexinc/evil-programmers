@@ -95,10 +95,12 @@ colorize_clear:
     commentstart=yycur;
     goto colorize_regexp;
   }
-  "break"|"case"|"continue"|"default"|"delete"|"do"|"else"|"exit"|"for"|"if"|"in"|"switch"|"while"|
-  "func"|"function"|"return"|
-  "BEGIN"|"END"|
+  "BEGIN"|"END"
+  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_PATTERNS],colors[HC_PATTERNS+1]); goto colorize_clear; }
   "ARGC"|"ARGIND"|"ARGV"|"BINMODE"|"CONVFMT"|"ENVIRON"|"ERRNO"|"FIELDWIDTHS"|"FILENAME"|"FNR"|"FS"|"IGNORECASE"|"LINT"|"NF"|"NR"|"OFMT"|"OFS"|"ORS"|"PROCINFO"|"RLENGTH"|"RS"|"RSTART"|"RT"|"SUBSEP"|"TEXTDOMAIN"
+  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_KEYWORD2],colors[HC_KEYWORD2+1]); goto colorize_clear; }
+  "break"|"case"|"continue"|"default"|"delete"|"do"|"else"|"exit"|"for"|"if"|"in"|"switch"|"while"|
+  "func"|"function"|"return"
   { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_KEYWORD1],colors[HC_KEYWORD1+1]); goto colorize_clear; }
   "close"|"fflush"|"getline"|"next"|"nextfile"|"prev"|"print"|"system"|"printf"|
   "atan2"|"cos"|"exp"|"int"|"log"|"rand"|"sin"|"sqrt"|"srand"|
@@ -118,7 +120,9 @@ colorize_clear:
   L(L|D)*
   { goto colorize_clear; }
   ";"|"="|"+"|"-"|"/"|"*"|"&"|"|"|"^"|","|"."|":"|"!"|"~"|">"|"<"|"%"
-  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_KEYWORD1],colors[HC_KEYWORD1+1]); goto colorize_clear; }
+  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_SYMBOL],colors[HC_SYMBOL+1]); goto colorize_clear; }
+  "\"" ( "/dev/" ("stdin"|"stdout"|"stderr"|"fd/" D|"pid"|"ppid"|"pgrpid"|"user") | "/inet/" ("tcp"|"udp"|"raw") "/" (D|L)+ "/" [0-9a-zA-Z._-]+ "/" (D|L)+ ) "\""
+  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_IO],colors[HC_IO+1]); goto colorize_clear; }
   "(" {PUSH_PAIR(0)}
   ")" {POP_PAIR(0,0)}
   "[" {PUSH_PAIR(1)}
@@ -162,16 +166,6 @@ colorize_string:
     if(lColorize) Info.pAddColor(lno,commentstart-line,yycur-commentstart,colors[HC_STRING],colors[HC_STRING+1]);
     state[0]=PARSER_CLEAR;
     goto colorize_clear;
-  }
-  "/dev/" ("stdin"|"stdout"|"stderr"|"fd/" D|"pid"|"ppid"|"pgrpid"|"user") | "/inet/" ("tcp"|"udp"|"raw") "/" D+ "/" [0-9a-zA-Z.] "/" D+
-  {
-    if(lColorize)
-    {
-      Info.pAddColor(lno,commentstart-line,yytok-commentstart,colors[HC_STRING],colors[HC_STRING+1]);
-      Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_IO],colors[HC_IO+1]);
-      commentstart=yycur;
-    }
-    goto colorize_string;
   }
   [\000]
   { if(yytok==yyend) goto colorize_end; goto colorize_string; }
