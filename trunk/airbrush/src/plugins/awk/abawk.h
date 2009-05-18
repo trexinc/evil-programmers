@@ -21,8 +21,12 @@
 #define HC_STRING   4
 #define HC_REGEXPS  6
 #define HC_REGEXP   8
-#define HC_HIGHLITE 10
-#define HC_HL_ERROR 12
+#define HC_NUMBER   10
+#define HC_BUILTIN  12
+#define HC_IO       14
+#define HC_PARAM    16
+#define HC_HIGHLITE 18
+#define HC_HL_ERROR 20
 
 #define PARSER_CLEAR    0
 #define PARSER_STRING   1
