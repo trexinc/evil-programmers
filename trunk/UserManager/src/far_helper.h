@@ -57,8 +57,11 @@ class CFarDialog
 #define EXP_NAME(p) _export p ## W
 #define EXP_NAME_CALL(p) p ## W
 #define PANEL_FILENAME lpwszFileName
+#define FIRST_PARAM int
 #define SECOND_PARAM LONG_PTR
 #define ControlShort(a,b,c) Control(a,b,0,c)
+#define ControlShort2(a,b,c) Control(a,b,c,0)
+#define ControlShort3(a,b,c) Control(a,b,c,0)
 #else
 #define DM_GETDLGITEMSHORT DM_GETDLGITEM
 #define DM_SETDLGITEMSHORT DM_SETDLGITEM
@@ -83,8 +86,11 @@ class CFarDialog
 #define EXP_NAME(p) _export p
 #define EXP_NAME_CALL(p) p
 #define PANEL_FILENAME cFileName
+#define FIRST_PARAM void*
 #define SECOND_PARAM void*
 #define ControlShort(a,b,c) Control(a,b,c)
+#define ControlShort2(a,b,c) Control(a,b,&c)
+#define ControlShort3(a,b,c) Control(a,b,c)
 #endif
 
 #ifdef UNICODE
