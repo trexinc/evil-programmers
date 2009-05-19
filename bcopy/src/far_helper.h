@@ -59,9 +59,11 @@ class CFarDialog
 #define t_OemToChar(s,d) wcscpy(d,s)
 typedef wchar_t UTCHAR;
 #define PANEL_FILENAME lpwszFileName
+#define FIRST_PARAM int
 #define SECOND_PARAM LONG_PTR
 #define ControlShort(a,b,c) Control(a,b,0,c)
 #define ControlShort2(a,b,c) Control(a,b,c,0)
+#define ControlShort3(a,b,c) Control(a,b,c,0)
 #define FCTL_GETPANELSHORTINFO FCTL_GETPANELINFO
 #define FCTL_GETANOTHERPANELSHORTINFO FCTL_GETPANELINFO
 #define FCTL_UPDATEANOTHERPANEL FCTL_UPDATEPANEL
@@ -99,9 +101,11 @@ class CFarDialog
 #define t_OemToChar(s,d) OemToChar(s,d)
 typedef unsigned char UTCHAR;
 #define PANEL_FILENAME cFileName
+#define FIRST_PARAM void*
 #define SECOND_PARAM void*
 #define ControlShort(a,b,c) Control(a,b,c)
 #define ControlShort2(a,b,c) Control(a,b,&c)
+#define ControlShort3(a,b,c) Control(a,b,c)
 #define BOX1 '°'
 #define BOX2 'Û'
 #define wc2mb(src,dst,dstsize) WideCharToMultiByte(CP_OEMCP,0,src,-1,dst,dstsize,NULL,NULL);

@@ -111,7 +111,7 @@
       }
       else
       {
-        Info.ControlShort(INVALID_HANDLE_VALUE,FCTL_UPDATEPANEL,NULL);
+        Info.ControlShort3(INVALID_HANDLE_VALUE,FCTL_UPDATEPANEL,(FIRST_PARAM)0);
         Info.ControlShort(INVALID_HANDLE_VALUE,FCTL_REDRAWPANEL,NULL);
       }
     }
