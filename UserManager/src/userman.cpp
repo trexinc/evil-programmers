@@ -897,7 +897,7 @@ void WINAPI EXP_NAME(FreeFindData)(HANDLE hPlugin,struct PluginPanelItem *PanelI
   {
     panel->error=false;
     EXP_NAME_CALL(SetDirectory)(hPlugin,_T(".."),0);
-    Info.ControlShort(hPlugin,FCTL_UPDATEPANEL,(SECOND_PARAM)1);
+    Info.ControlShort3(hPlugin,FCTL_UPDATEPANEL,(FIRST_PARAM)1);
     Info.ControlShort(hPlugin,FCTL_REDRAWPANEL,NULL);
   }
 }
@@ -1071,7 +1071,7 @@ int WINAPI EXP_NAME(ProcessKey)(HANDLE hPlugin,int Key,unsigned int ControlState
     if(press_f4[panel->level])
       if(press_f4[panel->level](panel))
       {
-        Info.ControlShort(hPlugin,FCTL_UPDATEPANEL,(SECOND_PARAM)1);
+        Info.ControlShort3(hPlugin,FCTL_UPDATEPANEL,(FIRST_PARAM)1);
         Info.ControlShort(hPlugin,FCTL_REDRAWPANEL,NULL);
       }
     return TRUE;
@@ -1082,7 +1082,7 @@ int WINAPI EXP_NAME(ProcessKey)(HANDLE hPlugin,int Key,unsigned int ControlState
     if(press_alt_f4[panel->level])
       if(press_alt_f4[panel->level](panel))
       {
-        Info.ControlShort(hPlugin,FCTL_UPDATEPANEL,(SECOND_PARAM)1);
+        Info.ControlShort3(hPlugin,FCTL_UPDATEPANEL,(FIRST_PARAM)1);
         Info.ControlShort(hPlugin,FCTL_REDRAWPANEL,NULL);
       }
     return TRUE;
@@ -1093,7 +1093,7 @@ int WINAPI EXP_NAME(ProcessKey)(HANDLE hPlugin,int Key,unsigned int ControlState
     if(press_shift_f4[panel->level])
       if(press_shift_f4[panel->level](panel))
       {
-        Info.ControlShort(hPlugin,FCTL_UPDATEPANEL,(SECOND_PARAM)1);
+        Info.ControlShort3(hPlugin,FCTL_UPDATEPANEL,(FIRST_PARAM)1);
         Info.ControlShort(hPlugin,FCTL_REDRAWPANEL,NULL);
       }
     return TRUE;
@@ -1113,7 +1113,7 @@ int WINAPI EXP_NAME(ProcessKey)(HANDLE hPlugin,int Key,unsigned int ControlState
 #ifdef UNICODE
           Info.Control(PANEL_ACTIVE,FCTL_UPDATEPANEL,0,NULL);
           Info.Control(PANEL_ACTIVE,FCTL_REDRAWPANEL,0,NULL);
-          Info.Control(PANEL_PASSIVE,FCTL_UPDATEPANEL,0,(SECOND_PARAM)1);
+          Info.Control(PANEL_PASSIVE,FCTL_UPDATEPANEL,1,NULL);
           Info.Control(PANEL_PASSIVE,FCTL_REDRAWPANEL,0,NULL);
 #else
           Info.Control(hPlugin,FCTL_UPDATEPANEL,NULL);
@@ -1132,7 +1132,7 @@ int WINAPI EXP_NAME(ProcessKey)(HANDLE hPlugin,int Key,unsigned int ControlState
     if(press_f8[panel->level])
       if(press_f8[panel->level](panel,ControlState!=PKF_SHIFT))
       {
-        Info.ControlShort(hPlugin,FCTL_UPDATEPANEL,(SECOND_PARAM)1);
+        Info.ControlShort3(hPlugin,FCTL_UPDATEPANEL,(FIRST_PARAM)1);
         Info.ControlShort(hPlugin,FCTL_REDRAWPANEL,NULL);
       }
     return TRUE;
@@ -1143,7 +1143,7 @@ int WINAPI EXP_NAME(ProcessKey)(HANDLE hPlugin,int Key,unsigned int ControlState
     if(press_f7[panel->level])
       if(press_f7[panel->level](panel))
       {
-        Info.ControlShort(hPlugin,FCTL_UPDATEPANEL,(SECOND_PARAM)1);
+        Info.ControlShort3(hPlugin,FCTL_UPDATEPANEL,(FIRST_PARAM)1);
         Info.ControlShort(hPlugin,FCTL_REDRAWPANEL,NULL);
       }
     return TRUE;
@@ -1154,7 +1154,7 @@ int WINAPI EXP_NAME(ProcessKey)(HANDLE hPlugin,int Key,unsigned int ControlState
     if(press_f6[panel->level])
       if(press_f6[panel->level](panel,ControlState!=PKF_SHIFT))
       {
-        Info.ControlShort(hPlugin,FCTL_UPDATEPANEL,(SECOND_PARAM)1);
+        Info.ControlShort3(hPlugin,FCTL_UPDATEPANEL,(FIRST_PARAM)1);
         Info.ControlShort(hPlugin,FCTL_REDRAWPANEL,NULL);
       }
     return TRUE;
@@ -1189,7 +1189,7 @@ int WINAPI EXP_NAME(ProcessKey)(HANDLE hPlugin,int Key,unsigned int ControlState
       }
       else
         wcscpy(panel->domain,L"");
-      Info.ControlShort(hPlugin,FCTL_UPDATEPANEL,NULL);
+      Info.ControlShort3(hPlugin,FCTL_UPDATEPANEL,(FIRST_PARAM)0);
       Info.ControlShort(hPlugin,FCTL_REDRAWPANEL,NULL);
     }
     else if(perm_dirs_dir[panel->level]!=PERM_NO)
@@ -1204,7 +1204,7 @@ int WINAPI EXP_NAME(ProcessKey)(HANDLE hPlugin,int Key,unsigned int ControlState
             UpdateAcl(panel,panel->level,GetSidFromUserData(pInfo[pInfo.CurrentItem()].UserData),GetItemTypeFromUserData(pInfo[pInfo.CurrentItem()].UserData),0,actionChangeType);
           }
         }
-        Info.ControlShort(hPlugin,FCTL_UPDATEPANEL,NULL);
+        Info.ControlShort3(hPlugin,FCTL_UPDATEPANEL,(FIRST_PARAM)0);
         Info.ControlShort(hPlugin,FCTL_REDRAWPANEL,NULL);
       }
     }
@@ -1223,7 +1223,7 @@ int WINAPI EXP_NAME(ProcessKey)(HANDLE hPlugin,int Key,unsigned int ControlState
           UpdateAcl(panel,panel->level,GetSidFromUserData(pInfo[pInfo.CurrentItem()].UserData),GetItemTypeFromUserData(pInfo[pInfo.CurrentItem()].UserData),0,(Key==VK_UP)?actionMoveUp:actionMoveDown);
         }
       }
-      Info.ControlShort(hPlugin,FCTL_UPDATEPANEL,NULL);
+      Info.ControlShort3(hPlugin,FCTL_UPDATEPANEL,(FIRST_PARAM)0);
       Info.ControlShort(hPlugin,FCTL_REDRAWPANEL,NULL);
     }
     return TRUE;
