@@ -1523,7 +1523,7 @@ int WINAPI EXP_NAME(ProcessKey)(HANDLE hPlugin,int Key,unsigned int ControlState
             _tcscpy(panel->computer_oem,dialog.Str(2));
 #endif
             panel->computer_ptr=panel->computer;
-            Info.ControlShort(hPlugin,FCTL_UPDATEPANEL,NULL);
+            Info.ControlShort3(hPlugin,FCTL_UPDATEPANEL,(FIRST_PARAM)0);
             Info.ControlShort(hPlugin,FCTL_REDRAWPANEL,NULL);
           }
           else
@@ -1537,7 +1537,7 @@ int WINAPI EXP_NAME(ProcessKey)(HANDLE hPlugin,int Key,unsigned int ControlState
           _tcscpy(panel->computer,_T(""));
           _tcscpy(panel->computer_oem,_T(""));
           panel->computer_ptr=NULL;
-          Info.ControlShort(hPlugin,FCTL_UPDATEPANEL,NULL);
+          Info.ControlShort3(hPlugin,FCTL_UPDATEPANEL,(FIRST_PARAM)0);
           Info.ControlShort(hPlugin,FCTL_REDRAWPANEL,NULL);
         }
       }
@@ -1549,7 +1549,7 @@ int WINAPI EXP_NAME(ProcessKey)(HANDLE hPlugin,int Key,unsigned int ControlState
     _tcscpy(panel->computer,_T(""));
     _tcscpy(panel->computer_oem,_T(""));
     panel->computer_ptr=NULL;
-    Info.ControlShort(hPlugin,FCTL_UPDATEPANEL,NULL);
+    Info.ControlShort3(hPlugin,FCTL_UPDATEPANEL,(FIRST_PARAM)0);
     Info.ControlShort(hPlugin,FCTL_REDRAWPANEL,NULL);
     return TRUE;
   }
