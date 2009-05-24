@@ -347,7 +347,7 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom,int Item)
   int MenuCode=-1;
   FarMenuItem MenuItems[mMenuInfo-mMenuCopy+1];
 #ifdef UNICODE
-  TCHAR ItemText[3][128];
+  TCHAR ItemText[mMenuInfo-mMenuCopy+1][128];
 #endif
   unsigned int MenuItemsSize=mMenuInfo-mMenuCopy+1;
   memset(MenuItems,0,sizeof(MenuItems));
