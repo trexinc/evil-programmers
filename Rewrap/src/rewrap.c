@@ -302,7 +302,9 @@ HANDLE WINAPI OpenPluginW(int OpenFrom,INT_PTR Item)
                     if( IsCSpace(ess.StringText[i]) )j++;
                 // j==amount of meaning blanks==word count-1
                 if( j ){
-                    SpaceCount=div(nWrapPos-ess.StringLength+j,j);
+                    SpaceCount.quot = nWrapPos-ess.StringLength+j;
+                    SpaceCount.rem = SpaceCount.quot % j;
+                    SpaceCount.quot = SpaceCount.quot / j;
                     // now we have minimum space length in SpaceCount.quot
                     // and amount of blank fields with extra spacing in SpaceCount.rem
                     for( j=nWrapPos-1, i=ess.StringLength-1; i>=nPara; i-- ){
