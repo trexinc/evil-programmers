@@ -1,0 +1,12 @@
+v2.0
+----
+- Far 2.0 build 953 and ESC 2.5
+- Undo in single step
+
+v1.2
+----
+
+- fixed bug: quote
+  > xxx
+  >  xxx
+  was treated as a two different quotes.

@@ -1,0 +1,12 @@
+Rewrap v2.0 FAR editor plugin
+(c) 2001, Stanislav V. Mekhanoshin
+(c) 2009, Alex Yaroslavsky
+
+- reformat paragraph based on
+  ESC plugin settings
+- justification support
+- FTN quote support
+- sources included
+
+2:5030/172.9@fidonet.org
+rampitec@tu.spb.ru

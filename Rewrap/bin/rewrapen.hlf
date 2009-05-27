@@ -1,0 +1,48 @@
+﻿.Language=English,English
+.PluginContents=Reformat Paragraph for internal editor
+
+@Contents
+$^#ReWrap FAR plugin#
+$^#About plugin
+
+ This plugin has to be used to #reformat# the text in the FAR internal editor.
+
+ To function it also requires ~Esc~@Esc@ plugin.
+
+ To use press F11 in an internal editor and select #Reformat Paragraph# from the menu.
+
+ If there is a selection, text, including fully or partially selected lines, will be considered as a paragraph. Right margin has to be set by #wrap# setting of the ~Esc~@Esc@ plugin. Left margin of the first and second lines will be kept unchanged. All the rest lines will be aligned by the left margin of the second line. If quote processing is enabled for the file it will be quoted as in the first line of block.
+
+ If there is no selection, then the start of the current line will be considered as the paragraph start. The end of paragraph is either the completely blank line or third or following line with left margin different from the second line. If quote processing is enabled for the file then the quote change will be also considered as a paragraph end.
+
+
+ ~About author~@Contact@
+
+@Esc
+$^#ReWrap FAR plugin#
+$^#Esc plugin#
+
+ To function rewrap needs #Esc# plugin (Editor's settings changer), (c) Ivan Sintyurin, version #2.5# or higher. Esc.dll should not be renamed!
+
+ In the Esc configuration wrapping setting (#wrap#) must be enabled for this file type.
+
+ If justification (#justify#) is enabled it will be also used.
+
+ If #p_quote# is set, FTN quote processing for the file is also supported.
+
+
+ ~About plugin~@Contents@
+
+@Contact
+$^#ReWrap FAR plugin#
+$^#Copyright (C) 2001 Stanislav V. Mekhanoshin#
+$^#Copyright (C) 2009, Alex Yaroslavsky#
+$^#About author#
+
+ Stanislav V. Mekhanoshin, St.Petersburg, Russia
+
+ FIDO:      #2:5030/172.9#
+ E-Mail:    ~rampitec@@tu.spb.ru~@mailto:rampitec@@tu.spb.ru@
+ Home Page: ~http://www.geocities.com/rampitec/index.htm?far~@http://www.geocities.com/rampitec/index.htm?far@
+ ──────────
+ ~About plugin~@Contents@
