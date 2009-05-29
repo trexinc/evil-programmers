@@ -4,51 +4,44 @@
 The following files are needed:
 
 http://sourceforge.net/projects/mingw/
+  *bison-2.3-MSYS-1.0.11-1.tar.bz2
+  *msysCORE-1.0.11-20080826.tar.gz
+  *binutils-2.19.1-mingw32-bin.tar.tar
+  *mingw32-make-3.81-20080326-3.tar.tar
+  *mingwrt-3.15.2-mingw32-dev.tar.tar
+  *mingw-utils-0.3.tar.gz
+  *w32api-3.13-mingw32-dev.tar.gz
 
-bison-2.3-MSYS-1.0.11-1.tar.bz2
+http://www.tdragon.net/recentgcc/
+  *gcc-4.4.0-tdm-1-core-2.zip
+  *gcc-4.4.0-tdm-1-g++-2.zip
 
-msysCORE-1.0.11-20080826.tar.gz
+http://sourceforge.net/projects/re2c
+  *re2c-0.13.5-bin.zip
 
-binutils-2.19.1-mingw32-bin.tar.tar
+Extract to *msys* folder:
+  *bison-2.3-MSYS-1.0.11-1.tar.bz2
+  *msysCORE-1.0.11-20080826.tar.gz
 
-mingw32-make-3.81-20080326-3.tar.tar
+Extract to *msys/bin* folder:
+  *re2c-0.13.5-bin.zip
 
-mingwrt-3.15.2-mingw32-dev.tar.tar
+Extract to *mingw* folder:
+  *binutils-2.19.1-mingw32-bin.tar.tar
+  *mingw32-make-3.81-20080326-3.tar.tar
+  *mingwrt-3.15.2-mingw32-dev.tar.tar
+  *mingw-utils-0.3.tar.gz
+  *w32api-3.13-mingw32-dev.tar.gz
+  *gcc-4.4.0-tdm-1-core-2.zip
+  *gcc-4.4.0-tdm-1-g++-2.zip
 
-mingw-utils-0.3.tar.gz
+Add *mingw/bin* and *msys/bin* to *PATH*.
 
-w32api-3.13-mingw32-dev.tar.gz
+Create a file called *fstab* under *msys/etc* with the following contents:
+{{{Drive:/path_to/mingw /mingw}}}
 
- http://www.tdragon.net/recentgcc/
- gcc-4.4.0-tdm-1-core-2.zip
- gcc-4.4.0-tdm-1-g++-2.zip
+Now, to compile the plugins you need to use the following command:
+{{{mingw32-make -f makefile WIDE=1 COMMON=../path_to_common/from_far_svn}}}
 
- http://sourceforge.net/projects/re2c
- re2c-0.13.5-bin.zip
-
- Extract to *msys* folder:
- bison-2.3-MSYS-1.0.11-1.tar.bz2
- msysCORE-1.0.11-20080826.tar.gz
-
- Extract to *msys/bin* folder:
- re2c-0.13.5-bin.zip
-
- Extract to *mingw* folder:
- binutils-2.19.1-mingw32-bin.tar.tar
- mingw32-make-3.81-20080326-3.tar.tar
- mingwrt-3.15.2-mingw32-dev.tar.tar
- mingw-utils-0.3.tar.gz
- w32api-3.13-mingw32-dev.tar.gz
- gcc-4.4.0-tdm-1-core-2.zip
- gcc-4.4.0-tdm-1-g++-2.zip
-
- Add *mingw/bin* and *msys/bin* to *PATH*.
-
- Create a file called *fstab* under *msys/etc* with the following contents:
- _Drive:/path_to/mingw /mingw_
-
- Now, to compile the plugins you need to use the following command:
- _mingw32-make -f makefile WIDE=1 COMMON=../path_to_common/from_far_svn_
-
- Some plugins might require the CRT (*common/CRT*) lib from Far repository, it can be built as follows:
- _mingw32-make -f makefile_lib_gcc_
+Some plugins might require the CRT (*common/CRT*) lib from Far repository, it can be built as follows:
+{{{mingw32-make -f makefile_lib_gcc}}}
