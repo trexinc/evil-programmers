@@ -3,14 +3,14 @@
 
  The following files are needed:
 
- http://sourceforge.net/projects/mingw/ 
- bison-2.3-MSYS-1.0.11-1.tar.bz2
- msysCORE-1.0.11-20080826.tar.gz
- binutils-2.19.1-mingw32-bin.tar.tar
- mingw32-make-3.81-20080326-3.tar.tar
- mingwrt-3.15.2-mingw32-dev.tar.tar
- mingw-utils-0.3.tar.gz
- w32api-3.13-mingw32-dev.tar.gz
+  http://sourceforge.net/projects/mingw/
+  bison-2.3-MSYS-1.0.11-1.tar.bz2
+  msysCORE-1.0.11-20080826.tar.gz
+  binutils-2.19.1-mingw32-bin.tar.tar
+  mingw32-make-3.81-20080326-3.tar.tar
+  mingwrt-3.15.2-mingw32-dev.tar.tar
+  mingw-utils-0.3.tar.gz
+  w32api-3.13-mingw32-dev.tar.gz
 
  http://www.tdragon.net/recentgcc/
  gcc-4.4.0-tdm-1-core-2.zip
