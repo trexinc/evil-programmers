@@ -41,7 +41,11 @@ Create a file called *fstab* under *msys/etc* with the following contents:
 {{{Drive:/path_to/mingw /mingw}}}
 
 Now, to compile the plugins you need to use the following command:
-{{{mingw32-make -f makefile WIDE=1 COMMON=../path_to_common/from_far_svn}}}
+{{{
+mingw32-make -f makefile WIDE=1 COMMON=../path_to_common/from_far_svn
+}}}
 
 Some plugins might require the CRT (*common/CRT*) lib from Far repository, it can be built as follows:
-{{{mingw32-make -f makefile_lib_gcc}}}
+{{{
+mingw32-make -f makefile_lib_gcc
+}}}
