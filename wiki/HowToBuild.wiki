@@ -1,5 +1,7 @@
-#summary How to build plugins with GCC
+#summary How to build plugins
 #labels Featured,Phase-Deploy
+
+= Using Mingw GCC =
 
 The following files are needed:
 
