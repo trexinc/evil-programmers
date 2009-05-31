@@ -6,6 +6,10 @@ Legend:  + added
          * changed
          ! fixed
 
+version 3.22 (31/05/09)
+-----------------------
+ ! Crashed if opened in editor in Far 2.0 build 955 and higher.
+
 version 3.21 (15/07/06)
 -----------------------
  ! Some cosmetic errors when using newer FAR builds.

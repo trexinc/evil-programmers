@@ -15,7 +15,6 @@ $ #Character Map - Contents#
 @AboutPlugin
 $ #About the plug-in#
 
-  #Version: 3.21 , July 15 2006 , Sources included#
   Character Map (a.k.a ASCII Table) is a FAR 1.70 beta 5+ plug-in that shows
 you a character map in which you can ~navigate~@Navigation@ to any character
 and see its ASCII number and position. You can also perform any of the
@@ -40,8 +39,7 @@ you will be able to install and/or distribute them.
 $ #About the author#
 
  Name:      Alex Yaroslavsky
- E-mail:    at yandex.ru / trexinc
- Home Page: ~http://trexinc.sf.net/~@http://trexinc.sf.net/@
+ Home Page: ~http://code.google.com/p/evil-programmers/~@http://code.google.com/p/evil-programmers/@
 
  Bug reports and/or suggestions are welcomed. Enjoy!
 
@@ -51,7 +49,7 @@ $ #About the author#
 $ #License#
 
  CharacterMap plugin for FAR Manager
- Copyright (C) 2001-2006 Alex Yaroslavsky
+ Copyright (C) 2001-2009 Alex Yaroslavsky
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
