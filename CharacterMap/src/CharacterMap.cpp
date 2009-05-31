@@ -1,6 +1,6 @@
 /*
     CharacterMap plugin for FAR Manager
-    Copyright (C) 2001-2006 Alex Yaroslavsky
+    Copyright (C) 2001-2009 Alex Yaroslavsky
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -359,6 +359,8 @@ long WINAPI MyDialog(HANDLE hDlg,int Msg,int Param1,long Param2)
             break;
 
           default:
+            if (ei.TableNum < 0)
+              break;
             TargetTable = ei.TableNum+2;
             FSF.sprintf(DlgText.Data,s32,MenuItems[ei.TableNum+2].Text);
             MenuItems[LastSelectedMenu].Selected = 0;
