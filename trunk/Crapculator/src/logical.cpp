@@ -16,10 +16,13 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+#include <string.h>
+
+static long long vars[L'z'-L'a'+1];
 
 static bool IsEnd(int c)
 {
-  return c == 0 || c == L')' || c == L'=';
+  return c == 0 || c == L')' || c == L'=' || c == L';';
 }
 
 static void SkipSpace(const wchar_t **p)
@@ -292,7 +295,7 @@ static int Precedence(int a)
   return 0;
 }
 
-bool LExpression(const wchar_t **p, long long *n, int pa, int *b)
+static bool Expression(const wchar_t **p, long long *n, int pa, int *b)
 {
   if (!**p)
     return false;
@@ -300,14 +303,48 @@ bool LExpression(const wchar_t **p, long long *n, int pa, int *b)
   int o=SkipOpenBracket(p);
   *b+=o;
 
-  if (!GetNumber(p, n))
+start:
+
+  if (**p == L'$')
+  {
+    (*p)++; if (**p < L'a' || **p > L'z') return false;
+
+    int v=**p-L'a';
+
+    (*p)++;
+
+    SkipSpace(p);
+
+    if (**p == L':')
+    {
+      (*p)++;
+      SkipSpace(p);
+      if (**p != L'=') return false;
+      (*p)++;
+
+      int bb=0;
+      long long nn=0;
+      if (!Expression(p, &nn, 0 , &bb) || bb)
+        return false;
+      (*p)++;
+      SkipSpace(p);
+
+      vars[v]=nn;
+      goto start;
+    }
+    else
+    {
+      *n=vars[v];
+    }
+  }
+  else if (!GetNumber(p, n))
   {
     int u;
     if (!GetUnaryActionPrefix(p,&u))
       return false;
 
     int d=*b;
-    if (!LExpression(p, n, HIGHEST_PRECEDENCE , b))
+    if (!Expression(p, n, HIGHEST_PRECEDENCE , b))
       return false;
 
     if (!UnaryAction(n, u))
@@ -356,7 +393,7 @@ bool LExpression(const wchar_t **p, long long *n, int pa, int *b)
 
     long long x;
     int d=*b;
-    if (!LExpression(p, &x, Precedence(a), b))
+    if (!Expression(p, &x, Precedence(a), b))
       return false;
 
     if (!Action(*n, x, n, a))
@@ -370,4 +407,14 @@ bool LExpression(const wchar_t **p, long long *n, int pa, int *b)
   *b-=SkipCloseBracket(p);
 
   return true;
+}
+
+bool Logical(const wchar_t **p, long long *n)
+{
+  int b=0;
+  *n=0;
+
+  memset(vars,0,sizeof(vars));
+
+  return Expression(p,n,0,&b) && !b;
 }

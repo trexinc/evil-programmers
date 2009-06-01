@@ -1,4 +1,4 @@
-         Crapculator v0.4
+         Crapculator v0.5
         FAR Manager Plugin
          Sources Included
 -----------------------------------
@@ -6,6 +6,10 @@ Author: Alex Yaroslavsky
 Home page: http://code.google.com/p/evil-programmers/
 -----------------------------------
 Crapculates current line in editor.
+
+Variables:
+Names: $a .. $z
+Assignment: $a := expression ;
 
 Crapculator:
 Syntax: ( ) d.d
