@@ -1,4 +1,4 @@
-         Crapculator v0.2
+         Crapculator v0.3
         FAR Manager Plugin
          Sources Included
 -----------------------------------
@@ -12,7 +12,7 @@ Syntax: ( ) d.d
 Constants: e pi
 Binary: ^ * / % - +
 Unary: - + sqrt ln log sin cos tan
-       rad deg floor ceil
+       rad deg floor ceil frac fac
 Line may end with "=".
 
 Hackulator:
