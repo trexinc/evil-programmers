@@ -20,6 +20,7 @@
 #include <math.h>
 #include <errno.h>
 #include <string.h>
+#include "common.hpp"
 
 static double vars[L'z'-L'a'+1];
 
@@ -36,60 +37,21 @@ static unsigned long long factorial(unsigned long long n)
   return r;
 }
 
-static bool IsEnd(int c)
-{
-  return c == 0 || c == L')' || c == L'=' || c == L';';
-}
-
-static void SkipSpace(const wchar_t **p)
-{
-  while (**p == L' ' || **p == L'\t')
-  {
-    (*p)++;
-  }
-}
-
-static int SkipOpenBracket(const wchar_t **p)
-{
-  int c=0;
-  SkipSpace(p);
-  while (**p == L'(')
-  {
-    (*p)++;
-    c++;
-    SkipSpace(p);
-  }
-  return c;
-}
-
-static int SkipCloseBracket(const wchar_t **p)
-{
-  int c=0;
-  SkipSpace(p);
-  while (**p == L')')
-  {
-    (*p)++;
-    c++;
-    SkipSpace(p);
-  }
-  return c;
-}
-
 static bool GetNumber(const wchar_t **p, double *n)
 {
-  if (**p < L'0' || **p > L'9')
+  if (!IsDigit(**p))
   {
-    if (**p == L'e' || **p == L'E')
+    if (((**p)|0x20) == L'e')
     {
       *n=M_E;
       (*p)++;
       return true;
 
     }
-    if (**p == L'p' || **p == L'P')
+    if (((**p)|0x20) == L'p')
     {
       (*p)++;
-      if (**p == L'i' || **p == L'I')
+      if (((**p)|0x20) == L'i')
       {
         *n=M_PI;
         (*p)++;
@@ -101,9 +63,9 @@ static bool GetNumber(const wchar_t **p, double *n)
   }
 
   *n=0;
-  while (**p >= L'0' && **p <= L'9')
+  while (IsDigit(**p))
   {
-    *n=*n*10+**p-L'0';
+    *n=*n*10 + **p - L'0';
     (*p)++;
   }
 
@@ -114,9 +76,9 @@ static bool GetNumber(const wchar_t **p, double *n)
 
   double r=0;
   double c=10.0;
-  while (**p >= L'0' && **p <= L'9')
+  while (IsDigit(**p))
   {
-    r+=((double)(**p-L'0'))/c;
+    r+=((double)(**p - L'0'))/c;
     (*p)++;
     c*=10.0;
   }
@@ -154,24 +116,25 @@ static bool GetUnaryActionPrefix(const wchar_t **p, int *a)
     case L'+':
     case L'-':
       *a = **p;
-      break;
+      (*p)++;
+      return true;
+  }
 
+  switch ((**p)|0x20)
+  {
     case L'c':
-    case L'C':
     {
       (*p)++;
-      switch (**p)
+      switch ((**p)|0x20)
       {
         case L'o':
-        case L'O':
-          (*p)++; if (**p!=L's' && **p!=L'S') return false;
+          (*p)++; if (((**p)|0x20) != L's') return false;
           *a = L'c';
           break;
 
         case L'e':
-        case L'E':
-          (*p)++; if (**p!=L'i' && **p!=L'I') return false;
-          (*p)++; if (**p!=L'l' && **p!=L'L') return false;
+          (*p)++; if (((**p)|0x20) != L'i') return false;
+          (*p)++; if (((**p)|0x20) != L'l') return false;
           *a = L'e';
           break;
 
@@ -181,36 +144,31 @@ static bool GetUnaryActionPrefix(const wchar_t **p, int *a)
     }
 
     case L'd':
-    case L'D':
-      (*p)++; if (**p!=L'e' && **p!=L'E') return false;
-      (*p)++; if (**p!=L'g' && **p!=L'G') return false;
+      (*p)++; if (((**p)|0x20) != L'e') return false;
+      (*p)++; if (((**p)|0x20) != L'g') return false;
       *a = L'd';
       break;
 
     case L'f':
-    case L'F':
     {
       (*p)++;
-      switch (**p)
+      switch ((**p)|0x20)
       {
         case L'a':
-        case L'A':
-          (*p)++; if (**p!=L'c' && **p!=L'C') return false;
+          (*p)++; if (((**p)|0x20) != L'c') return false;
           *a = L'!';
           break;
 
         case L'l':
-        case L'L':
-          (*p)++; if (**p!=L'o' && **p!=L'O') return false;
-          (*p)++; if (**p!=L'o' && **p!=L'O') return false;
-          (*p)++; if (**p!=L'r' && **p!=L'R') return false;
+          (*p)++; if (((**p)|0x20) != L'o') return false;
+          (*p)++; if (((**p)|0x20) != L'o') return false;
+          (*p)++; if (((**p)|0x20) != L'r') return false;
           *a = L'f';
           break;
 
         case L'r':
-        case L'R':
-          (*p)++; if (**p!=L'a' && **p!=L'A') return false;
-          (*p)++; if (**p!=L'c' && **p!=L'C') return false;
+          (*p)++; if (((**p)|0x20) != L'a') return false;
+          (*p)++; if (((**p)|0x20) != L'c') return false;
           *a = L'a';
           break;
 
@@ -218,20 +176,18 @@ static bool GetUnaryActionPrefix(const wchar_t **p, int *a)
       }
       break;
     }
+
     case L'l':
-    case L'L':
     {
       (*p)++;
-      switch (**p)
+      switch ((**p)|0x20)
       {
         case L'n':
-        case L'N':
           *a = L'n';
           break;
 
         case L'o':
-        case L'O':
-          (*p)++; if (**p!=L'g' && **p!=L'G') return false;
+          (*p)++; if (((**p)|0x20) != L'g') return false;
           *a = L'l';
           break;
 
@@ -241,28 +197,24 @@ static bool GetUnaryActionPrefix(const wchar_t **p, int *a)
     }
 
     case L'r':
-    case L'R':
-      (*p)++; if (**p!=L'a' && **p!=L'A') return false;
-      (*p)++; if (**p!=L'd' && **p!=L'D') return false;
+      (*p)++; if (((**p)|0x20) != L'a') return false;
+      (*p)++; if (((**p)|0x20) != L'd') return false;
       *a = L'r';
       break;
 
     case L's':
-    case L'S':
     {
       (*p)++;
-      switch (**p)
+      switch ((**p)|0x20)
       {
         case L'q':
-        case L'Q':
-          (*p)++; if (**p!=L'r' && **p!=L'R') return false;
-          (*p)++; if (**p!=L't' && **p!=L'T') return false;
+          (*p)++; if (((**p)|0x20) != L'r') return false;
+          (*p)++; if (((**p)|0x20) != L't') return false;
           *a = L's';
           break;
 
         case L'i':
-        case L'I':
-          (*p)++; if (**p!=L'n' && **p!=L'N') return false;
+          (*p)++; if (((**p)|0x20) != L'n') return false;
           *a = L'i';
           break;
 
@@ -272,9 +224,8 @@ static bool GetUnaryActionPrefix(const wchar_t **p, int *a)
     }
 
     case L't':
-    case L'T':
-      (*p)++; if (**p!=L'a' && **p!=L'A') return false;
-      (*p)++; if (**p!=L'n' && **p!=L'N') return false;
+      (*p)++; if (((**p)|0x20) != L'a') return false;
+      (*p)++; if (((**p)|0x20) != L'n') return false;
       *a = L't';
       break;
 
@@ -380,6 +331,7 @@ start:
     {
       (*p)++;
       SkipSpace(p);
+
       if (**p != L'=') return false;
       (*p)++;
 
@@ -387,6 +339,7 @@ start:
       double nn=0;
       if (!Expression(p, &nn, 0 , &bb) || bb)
         return false;
+
       (*p)++;
       SkipSpace(p);
 
@@ -411,7 +364,7 @@ start:
     if (!UnaryAction(n, u))
       return false;
 
-    o-=d-*b;
+    o-=d - *b;
     if (o<0)
       return true;
   }
@@ -460,7 +413,7 @@ start:
     if (!Action(*n, x, n, a))
       return false;
 
-    o-=d-*b;
+    o-=d - *b;
     if (o<0)
       return true;
   }

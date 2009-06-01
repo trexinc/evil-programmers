@@ -13,7 +13,7 @@ REOBJDIR = \.\.\/o\/
 DLLDIR = ../bin
 DLLNAME = Crapculator.dll
 DLLFULLNAME = $(DLLDIR)/$(DLLNAME)
-SRCS = Crapculator.cpp logical.cpp numerical.cpp
+SRCS = Crapculator.cpp logical.cpp numerical.cpp common.cpp
 DEF = Crapculator.gcc.def
 
 CXX = g++
