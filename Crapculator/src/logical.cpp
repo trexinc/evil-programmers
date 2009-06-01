@@ -17,92 +17,19 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 #include <string.h>
+#include "common.hpp"
 
 static long long vars[L'z'-L'a'+1];
 
-static bool IsEnd(int c)
-{
-  return c == 0 || c == L')' || c == L'=' || c == L';';
-}
-
-static void SkipSpace(const wchar_t **p)
-{
-  while (**p == L' ' || **p == L'\t')
-  {
-    (*p)++;
-  }
-}
-
-static int SkipOpenBracket(const wchar_t **p)
-{
-  int c=0;
-  SkipSpace(p);
-  while (**p == L'(')
-  {
-    (*p)++;
-    c++;
-    SkipSpace(p);
-  }
-  return c;
-}
-
-static int SkipCloseBracket(const wchar_t **p)
-{
-  int c=0;
-  SkipSpace(p);
-  while (**p == L')')
-  {
-    (*p)++;
-    c++;
-    SkipSpace(p);
-  }
-  return c;
-}
-
-static bool IsHexDigit(int c)
-{
-  return (c >= L'0' && c <= L'9') || (c >= L'A' && c <= L'F') || (c >= L'a' && c <= L'f');
-}
-
 static long long GetHex(int c)
 {
-  switch (c)
-  {
-    case L'0':
-    case L'1':
-    case L'2':
-    case L'3':
-    case L'4':
-    case L'5':
-    case L'6':
-    case L'7':
-    case L'8':
-    case L'9':
-      return (c-L'0');
+  if (IsDigit(c))
+    return (c-L'0');
 
-    case L'A':
-    case L'B':
-    case L'C':
-    case L'D':
-    case L'E':
-    case L'F':
-      return (10ll+c-L'A');
-
-    case L'a':
-    case L'b':
-    case L'c':
-    case L'd':
-    case L'e':
-    case L'f':
-      return (10ll+c-L'a');
-  }
+  if (IsHexDigit(c))
+    return (10ll + (c|0x20) - L'a');
 
   return 0ll;
-}
-
-static bool IsDigit(int c)
-{
-  return (c >= L'0' && c <= L'9');
 }
 
 static bool GetIPv4(const wchar_t **p, long long *n)
@@ -121,9 +48,10 @@ static bool GetIPv4(const wchar_t **p, long long *n)
 
     while (IsDigit(**p))
     {
-      x=x*10+**p-L'0';
+      x=x*10 + **p - L'0';
       (*p)++;
       i++;
+
       if (i>3 || x>255)
         goto bad;
     }
@@ -153,15 +81,16 @@ static bool GetNumber(const wchar_t **p, long long *n)
 
   *n=0;
 
-  if (**p == L'0' && (*(*p+1) == L'x' || *(*p+1) == L'X'))
+  if (**p == L'0' && ((*(*p+1))|0x20) == L'x')
   {
     (*p)+=2;
+
     if (!IsHexDigit(**p))
       return false;
 
     while (IsHexDigit(**p))
     {
-      *n=*n*16ll+GetHex(**p);
+      *n=*n*16ll + GetHex(**p);
       (*p)++;
     }
   }
@@ -262,8 +191,6 @@ static bool UnaryAction(long long *r, int a)
   return true;
 }
 
-#define HIGHEST_PRECEDENCE (1000000)
-
 static int Precedence(int a)
 {
   switch (a)
@@ -309,7 +236,7 @@ start:
   {
     (*p)++; if (**p < L'a' || **p > L'z') return false;
 
-    int v=**p-L'a';
+    int v=**p - L'a';
 
     (*p)++;
 
@@ -319,6 +246,7 @@ start:
     {
       (*p)++;
       SkipSpace(p);
+
       if (**p != L'=') return false;
       (*p)++;
 
@@ -326,6 +254,7 @@ start:
       long long nn=0;
       if (!Expression(p, &nn, 0 , &bb) || bb)
         return false;
+
       (*p)++;
       SkipSpace(p);
 
@@ -350,7 +279,7 @@ start:
     if (!UnaryAction(n, u))
       return false;
 
-    o-=d-*b;
+    o-=d - *b;
     if (o<0)
       return true;
   }
@@ -399,7 +328,7 @@ start:
     if (!Action(*n, x, n, a))
       return false;
 
-    o-=d-*b;
+    o-=d - *b;
     if (o<0)
       return true;
   }
