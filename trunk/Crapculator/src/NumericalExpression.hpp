@@ -1,3 +1,5 @@
+#ifndef __NUMERICALEXPRESSION_HPP__
+#define __NUMERICALEXPRESSION_HPP__
 /*
     Crapculator plugin for FAR Manager
     Copyright (C) 2009 Alex Yaroslavsky
@@ -16,12 +18,24 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+#include "BasicExpression.hpp"
 
-#define HIGHEST_PRECEDENCE (1000000)
+class NumericalExpression: public BasicExpression<double>
+{
+  protected:
+    bool GetUnaryActionPrefix(const wchar_t **p, int *a);
+    bool UnaryAction(double *r, int a);
 
-bool IsEnd(int c);
-void SkipSpace(const wchar_t **p);
-int SkipOpenBracket(const wchar_t **p);
-int SkipCloseBracket(const wchar_t **p);
-bool IsDigit(int c);
-bool IsHexDigit(int c);
+    bool GetAction(const wchar_t **p, int *a);
+    bool Action(double x, double y, double *r, int a);
+
+    int Precedence(int a);
+
+    bool GetNumber(const wchar_t **p, double *n);
+
+  public:
+
+    ~NumericalExpression() { }
+};
+
+#endif // __NUMERICALEXPRESSION_HPP__
