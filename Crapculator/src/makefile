@@ -13,7 +13,7 @@ REOBJDIR = \.\.\/o\/
 DLLDIR = ../bin
 DLLNAME = Crapculator.dll
 DLLFULLNAME = $(DLLDIR)/$(DLLNAME)
-SRCS = Crapculator.cpp logical.cpp numerical.cpp common.cpp
+SRCS = Crapculator.cpp LogicalExpression.cpp NumericalExpression.cpp
 DEF = Crapculator.gcc.def
 
 CXX = g++
@@ -24,7 +24,7 @@ M4 = m4 -P
 MV = mv -f
 MKDIR = mkdir -p
 CXXFLAGS = -mno-cygwin -Os -I $(COMMON) -I $(COMINC) -Wall -funsigned-char -fomit-frame-pointer -fstrict-aliasing -fno-rtti -fno-exceptions $(ADDDEFINES)
-LNKFLAGS = -mno-cygwin -mdll -s -nostartfiles -lgcc $(COMMONLIB)
+LNKFLAGS = -mno-cygwin -mdll -s -nostartfiles -lgcc
 
 OBJS = $(patsubst %.cpp,$(OBJDIR)/%.o,$(filter %.cpp,$(SRCS)))
 DEPS = $(patsubst %.cpp,$(OBJDIR)/%.d,$(filter %.cpp,$(SRCS)))

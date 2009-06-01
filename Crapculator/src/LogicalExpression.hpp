@@ -1,3 +1,5 @@
+#ifndef __LOGICALEXPRESSION_HPP__
+#define __LOGICALEXPRESSION_HPP__
 /*
     Crapculator plugin for FAR Manager
     Copyright (C) 2009 Alex Yaroslavsky
@@ -16,52 +18,27 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+#include "BasicExpression.hpp"
 
-bool IsEnd(int c)
+class LogicalExpression: public BasicExpression<long long>
 {
-  return c == 0 || c == L')' || c == L'=' || c == L';';
-}
+  protected:
+    bool GetUnaryActionPrefix(const wchar_t **p, int *a);
+    bool UnaryAction(long long *r, int a);
 
-void SkipSpace(const wchar_t **p)
-{
-  while (**p == L' ' || **p == L'\t')
-  {
-    (*p)++;
-  }
-}
+    bool GetAction(const wchar_t **p, int *a);
+    bool Action(long long x, long long y, long long *r, int a);
 
-int SkipOpenBracket(const wchar_t **p)
-{
-  int c=0;
-  SkipSpace(p);
-  while (**p == L'(')
-  {
-    (*p)++;
-    c++;
-    SkipSpace(p);
-  }
-  return c;
-}
+    int Precedence(int a);
 
-int SkipCloseBracket(const wchar_t **p)
-{
-  int c=0;
-  SkipSpace(p);
-  while (**p == L')')
-  {
-    (*p)++;
-    c++;
-    SkipSpace(p);
-  }
-  return c;
-}
+    bool IsHexDigit(int c) { return (IsDigit(c) || ((c|0x20) >= L'a' && (c|0x20) <= L'f')); }
+    long long GetHex(int c);
+    bool GetIPv4(const wchar_t **p, long long *n);
+    bool GetNumber(const wchar_t **p, long long *n);
 
-bool IsDigit(int c)
-{
-  return (c >= L'0' && c <= L'9');
-}
+  public:
 
-bool IsHexDigit(int c)
-{
-  return (IsDigit(c) || ((c|0x20) >= L'a' && (c|0x20) <= L'f'));
-}
+    ~LogicalExpression() { }
+};
+
+#endif // __LOGICALEXPRESSION_HPP__

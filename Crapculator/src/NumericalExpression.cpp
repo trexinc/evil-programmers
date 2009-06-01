@@ -16,13 +16,9 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-
+#include "NumericalExpression.hpp"
 #include <math.h>
 #include <errno.h>
-#include <string.h>
-#include "common.hpp"
-
-static double vars[L'z'-L'a'+1];
 
 static unsigned long long factorial(unsigned long long n)
 {
@@ -37,7 +33,7 @@ static unsigned long long factorial(unsigned long long n)
   return r;
 }
 
-static bool GetNumber(const wchar_t **p, double *n)
+bool NumericalExpression::GetNumber(const wchar_t **p, double *n)
 {
   if (!IsDigit(**p))
   {
@@ -88,7 +84,7 @@ static bool GetNumber(const wchar_t **p, double *n)
   return true;
 }
 
-static bool GetAction(const wchar_t **p, int *a)
+bool NumericalExpression::GetAction(const wchar_t **p, int *a)
 {
   switch (**p)
   {
@@ -109,7 +105,7 @@ static bool GetAction(const wchar_t **p, int *a)
   return true;
 }
 
-static bool GetUnaryActionPrefix(const wchar_t **p, int *a)
+bool NumericalExpression::GetUnaryActionPrefix(const wchar_t **p, int *a)
 {
   switch (**p)
   {
@@ -238,7 +234,7 @@ static bool GetUnaryActionPrefix(const wchar_t **p, int *a)
 }
 
 
-static bool Action(double x, double y, double *r, int a)
+bool NumericalExpression::Action(double x, double y, double *r, int a)
 {
   switch (a)
   {
@@ -255,7 +251,7 @@ static bool Action(double x, double y, double *r, int a)
   return true;
 }
 
-static bool UnaryAction(double *r, int a)
+bool NumericalExpression::UnaryAction(double *r, int a)
 {
   switch (a)
   {
@@ -285,9 +281,7 @@ static bool UnaryAction(double *r, int a)
   return true;
 }
 
-#define HIGHEST_PRECEDENCE (1000000)
-
-static int Precedence(int a)
+int NumericalExpression::Precedence(int a)
 {
   switch (a)
   {
@@ -305,130 +299,4 @@ static int Precedence(int a)
   }
 
   return 0;
-}
-
-static bool Expression(const wchar_t **p, double *n, int pa, int *b)
-{
-  if (!**p)
-    return false;
-
-  int o=SkipOpenBracket(p);
-  *b+=o;
-
-start:
-
-  if (**p == L'$')
-  {
-    (*p)++; if (**p < L'a' || **p > L'z') return false;
-
-    int v=**p-L'a';
-
-    (*p)++;
-
-    SkipSpace(p);
-
-    if (**p == L':')
-    {
-      (*p)++;
-      SkipSpace(p);
-
-      if (**p != L'=') return false;
-      (*p)++;
-
-      int bb=0;
-      double nn=0;
-      if (!Expression(p, &nn, 0 , &bb) || bb)
-        return false;
-
-      (*p)++;
-      SkipSpace(p);
-
-      vars[v]=nn;
-      goto start;
-    }
-    else
-    {
-      *n=vars[v];
-    }
-  }
-  else if (!GetNumber(p, n))
-  {
-    int u;
-    if (!GetUnaryActionPrefix(p,&u))
-      return false;
-
-    int d=*b;
-    if (!Expression(p, n, HIGHEST_PRECEDENCE , b))
-      return false;
-
-    if (!UnaryAction(n, u))
-      return false;
-
-    o-=d - *b;
-    if (o<0)
-      return true;
-  }
-
-  SkipSpace(p);
-
-  if (*b)
-  {
-    int c=SkipCloseBracket(p);
-    *b-=c;
-    o-=c;
-    if (o < 0)
-      return true;
-  }
-
-  if (*b<0)
-    return false;
-
-  while (!IsEnd(**p))
-  {
-    int a;
-    if (pa && o==0)
-    {
-      const wchar_t *s=*p;
-
-      if (!GetAction(p, &a))
-        return false;
-
-      if (pa >= Precedence(a))
-      {
-        *p = s;
-        return true;
-      }
-    }
-    else
-    {
-      if (!GetAction(p, &a))
-        return false;
-    }
-
-    double x;
-    int d=*b;
-    if (!Expression(p, &x, Precedence(a), b))
-      return false;
-
-    if (!Action(*n, x, n, a))
-      return false;
-
-    o-=d - *b;
-    if (o<0)
-      return true;
-  }
-
-  *b-=SkipCloseBracket(p);
-
-  return true;
-}
-
-bool Numerical(const wchar_t **p, double *d)
-{
-  int b=0;
-  *d=0;
-
-  memset(vars,0,sizeof(vars));
-
-  return Expression(p,d,0,&b) && !b;
 }

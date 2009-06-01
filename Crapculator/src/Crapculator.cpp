@@ -16,11 +16,10 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-
 #include "plugin.hpp"
-
-bool Numerical(const wchar_t **p, double *d);
-bool Logical(const wchar_t **p, long long *n);
+#include "LogicalExpression.hpp"
+#include "NumericalExpression.hpp"
+#include <CRT/crt.hpp>
 
 struct PluginStartupInfo Info;
 FARSTANDARDFUNCTIONS FSF;
@@ -55,16 +54,25 @@ HANDLE WINAPI OpenPluginW(int OpenFrom, INT_PTR Item)
     if (Item == 0)
     {
       double d=0;
-      if (Numerical(&egs.StringText,&d))
+      NumericalExpression ne;
+      if (ne.Calc(&egs.StringText,&d))
       {
         FSF.sprintf(result,L"%f",d);
+        size_t i = wcslen(result)-1;
+        while (i>0 && result[i] == L'0')
+        {
+          result[i--] = 0;
+        }
+        if (result[i] == L'.')
+          result[i] = 0;
         r=result;
       }
     }
     else
     {
       long long n=0;
-      if (Logical(&egs.StringText,&n))
+      LogicalExpression le;
+      if (le.Calc(&egs.StringText,&n))
       {
         if (*egs.StringText == L'=')
         {
@@ -92,6 +100,19 @@ HANDLE WINAPI OpenPluginW(int OpenFrom, INT_PTR Item)
 }
 
 #if defined(__GNUC__)
+
+#ifdef __cplusplus
+extern "C"{
+#endif
+void __cxa_pure_virtual(void);
+#ifdef __cplusplus
+};
+#endif
+
+void __cxa_pure_virtual(void)
+{
+}
+
 #ifdef __cplusplus
 extern "C"{
 #endif
@@ -107,4 +128,5 @@ BOOL WINAPI DllMainCRTStartup(HANDLE hDll,DWORD dwReason,LPVOID lpReserved)
   (void) lpReserved;
   return TRUE;
 }
+
 #endif
