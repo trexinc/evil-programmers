@@ -19,8 +19,8 @@
 
 #include "plugin.hpp"
 
-bool Expression(const wchar_t **p, double *n, int pa, int *b);
-bool LExpression(const wchar_t **p, long long *n, int pa, int *b);
+bool Numerical(const wchar_t **p, double *d);
+bool Logical(const wchar_t **p, long long *n);
 
 struct PluginStartupInfo Info;
 FARSTANDARDFUNCTIONS FSF;
@@ -44,9 +44,6 @@ void WINAPI GetPluginInfoW(struct PluginInfo *pi)
 
 HANDLE WINAPI OpenPluginW(int OpenFrom, INT_PTR Item)
 {
-  int b=0;
-  double d=0;
-  long long n=0;
   wchar_t result[200];
   wchar_t error[] = L"Crap";
   wchar_t *r=error;
@@ -57,7 +54,8 @@ HANDLE WINAPI OpenPluginW(int OpenFrom, INT_PTR Item)
   {
     if (Item == 0)
     {
-      if (Expression(&egs.StringText,&d,0,&b) && !b)
+      double d=0;
+      if (Numerical(&egs.StringText,&d))
       {
         FSF.sprintf(result,L"%f",d);
         r=result;
@@ -65,7 +63,8 @@ HANDLE WINAPI OpenPluginW(int OpenFrom, INT_PTR Item)
     }
     else
     {
-      if (LExpression(&egs.StringText,&n,0,&b) && !b)
+      long long n=0;
+      if (Logical(&egs.StringText,&n))
       {
         if (*egs.StringText == L'=')
         {

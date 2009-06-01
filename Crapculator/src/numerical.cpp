@@ -19,6 +19,9 @@
 
 #include <math.h>
 #include <errno.h>
+#include <string.h>
+
+static double vars[L'z'-L'a'+1];
 
 static unsigned long long factorial(unsigned long long n)
 {
@@ -35,7 +38,7 @@ static unsigned long long factorial(unsigned long long n)
 
 static bool IsEnd(int c)
 {
-  return c == 0 || c == L')' || c == L'=';
+  return c == 0 || c == L')' || c == L'=' || c == L';';
 }
 
 static void SkipSpace(const wchar_t **p)
@@ -353,7 +356,7 @@ static int Precedence(int a)
   return 0;
 }
 
-bool Expression(const wchar_t **p, double *n, int pa, int *b)
+static bool Expression(const wchar_t **p, double *n, int pa, int *b)
 {
   if (!**p)
     return false;
@@ -361,7 +364,41 @@ bool Expression(const wchar_t **p, double *n, int pa, int *b)
   int o=SkipOpenBracket(p);
   *b+=o;
 
-  if (!GetNumber(p, n))
+start:
+
+  if (**p == L'$')
+  {
+    (*p)++; if (**p < L'a' || **p > L'z') return false;
+
+    int v=**p-L'a';
+
+    (*p)++;
+
+    SkipSpace(p);
+
+    if (**p == L':')
+    {
+      (*p)++;
+      SkipSpace(p);
+      if (**p != L'=') return false;
+      (*p)++;
+
+      int bb=0;
+      double nn=0;
+      if (!Expression(p, &nn, 0 , &bb) || bb)
+        return false;
+      (*p)++;
+      SkipSpace(p);
+
+      vars[v]=nn;
+      goto start;
+    }
+    else
+    {
+      *n=vars[v];
+    }
+  }
+  else if (!GetNumber(p, n))
   {
     int u;
     if (!GetUnaryActionPrefix(p,&u))
@@ -431,4 +468,14 @@ bool Expression(const wchar_t **p, double *n, int pa, int *b)
   *b-=SkipCloseBracket(p);
 
   return true;
+}
+
+bool Numerical(const wchar_t **p, double *d)
+{
+  int b=0;
+  *d=0;
+
+  memset(vars,0,sizeof(vars));
+
+  return Expression(p,d,0,&b) && !b;
 }
