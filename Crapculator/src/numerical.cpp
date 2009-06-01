@@ -20,6 +20,19 @@
 #include <math.h>
 #include <errno.h>
 
+unsigned long long factorial(unsigned long long n)
+{
+  if (n==0ull || n==1ull)
+    return 1ull;
+
+  unsigned long long r=1ull;
+
+  for ( ; n > 1ull; n--)
+    r*=n;
+
+  return r;
+}
+
 static bool IsEnd(int c)
 {
   return c == 0 || c == L')' || c == L'=';
@@ -173,13 +186,35 @@ static bool GetUnaryActionPrefix(const wchar_t **p, int *a)
 
     case L'f':
     case L'F':
-      (*p)++; if (**p!=L'l' && **p!=L'L') return false;
-      (*p)++; if (**p!=L'o' && **p!=L'O') return false;
-      (*p)++; if (**p!=L'o' && **p!=L'O') return false;
-      (*p)++; if (**p!=L'r' && **p!=L'R') return false;
-      *a = L'f';
-      break;
+    {
+      (*p)++;
+      switch (**p)
+      {
+        case L'a':
+        case L'A':
+          (*p)++; if (**p!=L'c' && **p!=L'C') return false;
+          *a = L'!';
+          break;
 
+        case L'l':
+        case L'L':
+          (*p)++; if (**p!=L'o' && **p!=L'O') return false;
+          (*p)++; if (**p!=L'o' && **p!=L'O') return false;
+          (*p)++; if (**p!=L'r' && **p!=L'R') return false;
+          *a = L'f';
+          break;
+
+        case L'r':
+        case L'R':
+          (*p)++; if (**p!=L'a' && **p!=L'A') return false;
+          (*p)++; if (**p!=L'c' && **p!=L'C') return false;
+          *a = L'a';
+          break;
+
+        default: return false;
+      }
+      break;
+    }
     case L'l':
     case L'L':
     {
@@ -257,7 +292,7 @@ static bool Action(double x, double y, double *r, int a)
     case L'-': *r=x-y; break;
     case L'*': *r=x*y; break;
     case L'/': if (!y) return false; *r=x/y; break;
-    case L'%': if (!y) return false; *r=(int)x%(int)y; break;
+    case L'%': errno=0; *r=fmod(x,y); if (errno) return false; break;
     case L'^': errno=0; *r=pow(x,y); if (errno) return false; break;
 
     default: return false;
@@ -273,6 +308,8 @@ static bool UnaryAction(double *r, int a)
     case L'+': break;
     case L'-': *r=*r*-1.0; break;
 
+    case L'!': if (*r < 0) return false; *r=factorial(*r); break;
+
     case L's': errno=0; *r=sqrt(*r); if (errno) return false; break;
 
     case L'i': errno=0; *r=sin(*r); if (errno) return false; break;
@@ -286,6 +323,7 @@ static bool UnaryAction(double *r, int a)
 
     case L'f': errno=0; *r=floor(*r); if (errno) return false; break;
     case L'e': errno=0; *r=ceil(*r); if (errno) return false; break;
+    case L'a': { errno=0; double i; *r=modf(*r, &i); if (errno) return false; break; }
 
     default: return false;
   }
