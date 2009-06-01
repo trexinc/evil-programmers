@@ -1,4 +1,4 @@
-         Crapculator v0.3
+         Crapculator v0.4
         FAR Manager Plugin
          Sources Included
 -----------------------------------
@@ -16,9 +16,12 @@ Unary: - + sqrt ln log sin cos tan
 Line may end with "=".
 
 Hackulator:
-Syntax: ( ) d 0xh
+Syntax: ( ) d 0xh IPv4
 Binary: * / % - + >> << & ^ |
 Unary: - + ~
-Line may end with "="  for  hex  or
-"=d" for decimal.
+Line may end with:
+"=" for  hex,
+"=d" for decimal,
+"=u" for unsigned decimal
+"=4" for IPv4 address.
 -----------------------------------

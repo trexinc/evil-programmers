@@ -72,6 +72,10 @@ HANDLE WINAPI OpenPluginW(int OpenFrom, INT_PTR Item)
           egs.StringText++;
           if (*egs.StringText == L'd' || *egs.StringText == L'D')
             FSF.sprintf(result,L"%I64d",n);
+          else if (*egs.StringText == L'u' || *egs.StringText == L'U')
+            FSF.sprintf(result,L"%I64u",n);
+          else if (*egs.StringText == L'4')
+            FSF.sprintf(result,L"%u.%u.%u.%u", (int)((n&0xFF000000ull)>>24) , (int)((n&0xFF0000ull)>>16), (int)((n&0xFF00ull)>>8), (int)((n&0xFFull)));
           else
             FSF.sprintf(result,L"0x%I64X",n);
         }

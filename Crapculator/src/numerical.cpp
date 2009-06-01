@@ -20,7 +20,7 @@
 #include <math.h>
 #include <errno.h>
 
-unsigned long long factorial(unsigned long long n)
+static unsigned long long factorial(unsigned long long n)
 {
   if (n==0ull || n==1ull)
     return 1ull;
@@ -378,6 +378,8 @@ bool Expression(const wchar_t **p, double *n, int pa, int *b)
     if (o<0)
       return true;
   }
+
+  SkipSpace(p);
 
   if (*b)
   {
