@@ -56,7 +56,7 @@ static int SkipCloseBracket(const wchar_t **p)
   return c;
 }
 
-static bool HexDigit(int c)
+static bool IsHexDigit(int c)
 {
   return (c >= L'0' && c <= L'9') || (c >= L'A' && c <= L'F') || (c >= L'a' && c <= L'f');
 }
@@ -97,9 +97,55 @@ static long long GetHex(int c)
   return 0ll;
 }
 
+static bool IsDigit(int c)
+{
+  return (c >= L'0' && c <= L'9');
+}
+
+static bool GetIPv4(const wchar_t **p, long long *n)
+{
+  const wchar_t *s=*p;
+
+  *n=0;
+
+  for (int c=0; c<4; c++)
+  {
+    int x=0;
+    int i=0;
+
+    if (!IsDigit(**p))
+      goto bad;
+
+    while (IsDigit(**p))
+    {
+      x=x*10+**p-L'0';
+      (*p)++;
+      i++;
+      if (i>3 || x>255)
+        goto bad;
+    }
+
+    *n=(*n<<8)|x;
+
+    if (c==3)
+      break;
+
+    if (**p != L'.')
+      goto bad;
+
+    (*p)++;
+  }
+
+  return true;
+
+bad:
+  *p=s;
+  return false;
+}
+
 static bool GetNumber(const wchar_t **p, long long *n)
 {
-  if (**p < L'0' || **p > L'9')
+  if (!IsDigit(**p))
     return false;
 
   *n=0;
@@ -107,18 +153,19 @@ static bool GetNumber(const wchar_t **p, long long *n)
   if (**p == L'0' && (*(*p+1) == L'x' || *(*p+1) == L'X'))
   {
     (*p)+=2;
-    if (!HexDigit(**p))
+    if (!IsHexDigit(**p))
       return false;
 
-    while (HexDigit(**p))
+    while (IsHexDigit(**p))
     {
       *n=*n*16ll+GetHex(**p);
       (*p)++;
     }
   }
-  else
+  else if (!GetIPv4(p,n))
   {
-    while (**p >= L'0' && **p <= L'9')
+    *n=0;
+    while (IsDigit(**p))
     {
       *n=*n*10ll+**p-L'0';
       (*p)++;
@@ -270,6 +317,8 @@ bool LExpression(const wchar_t **p, long long *n, int pa, int *b)
     if (o<0)
       return true;
   }
+
+  SkipSpace(p);
 
   if (*b)
   {
