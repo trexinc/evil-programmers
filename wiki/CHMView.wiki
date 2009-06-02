@@ -7,7 +7,8 @@ CHMLib library by Jed Wing at ugcs.caltech.edu / jedwin
 LZX library by Stuart Caie at 4u.net / kyzer
 UTF8 en/decoder by Oleg Bondar at mail.ru / hobo-mts
 
-Usage: chmview <option> chmfile [/file_to_extract or @file_with_list]
+Usage: chmview `<option>` chmfile `[/file_to_extract or @file_with_list]`
+
          Options:
            l - list archive contents
            e - extract without path names
