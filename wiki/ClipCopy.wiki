@@ -1,6 +1,2 @@
-#summary One-sentence summary of this page.
 #labels Featured
-
-= Introduction =
-
 This plugin allow to copy files and folders using clipboard
