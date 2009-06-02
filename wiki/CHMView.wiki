@@ -3,7 +3,7 @@ A tool for viewing and extracting files from CHM (HTMLHelp) files. Written to be
 
 {{{
 CHMView v2.0 beta 3 with UTF-8 support (March 7 2005)
-(c) Alex Yaroslavsky at yandex / trexinc.
+(c) Alex Yaroslavsky
 Using:
 CHMLib library by Jed Wing at ugcs.caltech.edu / jedwin
 LZX library by Stuart Caie at 4u.net / kyzer
