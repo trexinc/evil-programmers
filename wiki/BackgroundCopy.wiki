@@ -1,4 +1,3 @@
-#labels Featured
 With this plugin you can:
  * copy/move/delete files in background;
  * get info about current background jobs;

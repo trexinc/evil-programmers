@@ -1,4 +1,3 @@
-#labels Featured
 Indents the selected block (or the current line) to the nearest tab position or by space in the chosen direction (left or right).
 
 Features:

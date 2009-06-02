@@ -1,7 +1,4 @@
-#labels Featured
-<pre>
-
-Crapculates current line in editor.
+<pre>Crapculates current line in editor.
 
 Variables:
  Names: $a .. $z
@@ -22,5 +19,4 @@ Hackulator:
  "=" for  hex,
  "=d" for decimal,
  "=u" for unsigned decimal
- "=4" for IPv4 address.
-</pre>
+ "=4" for IPv4 address.</pre>
