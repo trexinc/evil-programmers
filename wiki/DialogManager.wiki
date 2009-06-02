@@ -4,7 +4,7 @@ Current version comes with the following sub-plugins:
   * Case - Allows to change case of text in input lines.
   * Pwd - Allows to view the password hidden by asterisks.
   * !OpenFile - Shows an "Open file" dialog similar to the one provided by the OS.
-  * Logger - Writes to a log file all input received by the DefDlgProc.
+  * Logger - Writes to a log file all input received by the [http://api.farmanager.com/en/dialogapi/defdlgproc.html DefDlgProc].
   * !GrabDialog - Saves dialog structure into a file.
   * BCopy - Shows the information menu of the BackgroundCopy plugin.
   * !CharMap - Allows to insert any symbol into an input line using the CharacterMap plugin.
