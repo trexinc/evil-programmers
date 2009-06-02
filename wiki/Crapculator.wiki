@@ -1,0 +1,25 @@
+#labels Featured
+<pre>
+Crapculates current line in editor.
+
+Variables:
+ Names: $a .. $z
+ Assignment: $a := expression ;
+
+Crapculator:
+ Syntax: ( ) d.d
+ Constants: e pi
+ Binary: ^ `*` / % - +
+ Unary: - + sqrt ln log sin cos tan rad deg floor ceil frac fac
+ Line may end with "=".
+
+Hackulator:
+ Syntax: ( ) d 0xh IPv4
+ Binary: `*` / % - + >> << & ^ |
+ Unary: - + ~
+ Line may end with:
+ "=" for  hex,
+ "=d" for decimal,
+ "=u" for unsigned decimal
+ "=4" for IPv4 address.
+</pre>
