@@ -1,0 +1,2 @@
+#labels Featured
+Shows in the task bar notification area the progress of background operations made by the [BackgroundCopy Background Copy] plugin.
