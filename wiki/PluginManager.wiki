@@ -1,0 +1,1 @@
+This is an attempt to create a Plugin Manager for FAR Manager. A demo basically.
