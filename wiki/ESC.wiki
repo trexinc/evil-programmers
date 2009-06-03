@@ -1,1 +1,1 @@
-`[`ESC`]` Editor's settings changer
+Editor's settings changer
