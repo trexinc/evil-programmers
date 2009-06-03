@@ -1,0 +1,1 @@
+This plugin is used to "visualize" otherwise not so easily noticed things in FAR's internal editor - things like right border, tabs, end of line, cross, etc.
