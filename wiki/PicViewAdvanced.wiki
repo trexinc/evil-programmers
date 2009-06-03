@@ -1,0 +1,1 @@
+View pictures inside FAR Manager. The main difference from other such plugins is the ability to open images automaticaly when they are opened in the Viewer or in Quick View.
