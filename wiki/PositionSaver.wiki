@@ -1,0 +1,1 @@
+This plug-in was written for people who need to save file positions from the internal editor/viewer for an unlimited period of time and no matter how much files have been edited/viewed in the meanwhile.
