@@ -1,0 +1,3 @@
+HXSView - list and extract files from HXS/HXI MS-Help 2 archives<br>
+Using OpenCLit library by Dan Jackson (http://www.convertlit.com/)<br>
+and LZX library by Stuart Caie (http://www.kyz.uklinux.net/)<br>
