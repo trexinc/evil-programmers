@@ -4,8 +4,8 @@
 //LANGUAGE 25,1
 
 IDR_VERSION VERSIONINFO
-FILEVERSION 1,4,0,4
-PRODUCTVERSION 1,4,0,4
+FILEVERSION 1,4,1,5
+PRODUCTVERSION 1,4,1,5
 FILEOS VOS_NT_WINDOWS32
 FILETYPE VFT_APP
 BEGIN
@@ -13,7 +13,7 @@ BEGIN
   BEGIN
     BLOCK "000004E4"
     BEGIN
-      VALUE "FileVersion", "1.4 build 4\0"
+      VALUE "FileVersion", "1.4 build 5\0"
       VALUE "FileDescription", "Background Copy Indicator\0"
       VALUE "InternalName", "bci.exe\0"
       VALUE "LegalCopyright", "GNU GPL 2005, WhiteDragon; 2009, DrKnS; Std; GrAnD\0"

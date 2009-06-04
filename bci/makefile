@@ -17,6 +17,6 @@ RM  = rm -f
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 %.exe: %.res %.o
-	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
+	$(CXX) $(LFLAGS) -o bin/$@ $^ $(LIBS)
 
 all: $(TARGET)
