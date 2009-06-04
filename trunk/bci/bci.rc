@@ -1,0 +1,29 @@
+#include "winver.h"
+#define IDR_VERSION 1
+
+//LANGUAGE 25,1
+
+IDR_VERSION VERSIONINFO
+FILEVERSION 1,4,0,4
+PRODUCTVERSION 1,4,0,4
+FILEOS VOS_NT_WINDOWS32
+FILETYPE VFT_APP
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "000004E4"
+    BEGIN
+      VALUE "FileVersion", "1.4 build 4\0"
+      VALUE "FileDescription", "Background Copy Indicator\0"
+      VALUE "InternalName", "bci.exe\0"
+      VALUE "LegalCopyright", "GNU GPL 2005, WhiteDragon; 2009, DrKnS; Std; GrAnD\0"
+//      VALUE "LegalTrademarks", "LegalTrademarks\0"
+//      VALUE "OriginalFilename", "OriginalFilename\0"
+//      VALUE "ProductName", "ProductName\0"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0, 0x4e4
+  END
+END
