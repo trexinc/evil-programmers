@@ -1,15 +1,22 @@
-WFLAGS=-Wall -W -Wpointer-arith -Winline -Wno-strict-aliasing
-CPPFLAGS=-c -mtune=core2 -Os $(WFLAGS) -fomit-frame-pointer -fstrict-aliasing -fno-exceptions -fno-rtti -fno-threadsafe-statics
-LFLAGS=-s -nostartfiles -mwindows
-LIBS=-lntdll -lgdi32 -lwinmm
+TARGET = bci.exe
 
-RM=rm -f
-CC=gcc
+WFLAGS  =-Wall -W -Wpointer-arith -Wno-strict-aliasing #-Winline
+EFLAGS  =-fomit-frame-pointer -fstrict-aliasing -fno-exceptions -fno-rtti -fno-threadsafe-statics #-mtune=core2
+CXXFLAGS=-c -Os $(WFLAGS) $(EFLAGS)
+LFLAGS  =-s -nostartfiles -mwindows
+LIBS    =-lntdll -lgdi32 -lwinmm
 
-all: bci.exe
+CXX = g++
+RC  = windres
+RM  = rm -f
 
-bci.exe: bci.o
-	$(CC) $(LFLAGS) -o $@ $^ $(LIBS)
+%.res: %.rc
+	$(RC) -i $< -J rc -o $@ -O coff
 
-bci.o: bci.cpp bci.h
-	$(CC) $(CPPFLAGS) $< -o $@
+%.o: %.cpp %.hpp %.h
+	$(CXX) $(CXXFLAGS) $< -o $@
+
+%.exe: %.res %.o
+	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
+
+all: $(TARGET)
