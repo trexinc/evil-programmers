@@ -54,6 +54,14 @@ const wchar_t *OutMsg[] = {
 	L"Установка атрибутов"
 };
 
+const wchar_t *AskMsg[] = {
+	L"Внимание",
+	L"Такой файл уже существует",
+	L"ASKGROUP_RETRY",
+	L"ASKGROUP_RETRYONLY",
+	L"ASKGROUP_LINK"
+};
+
 /// ============================================================================================ var
 //#define WM_TASKICON (WM_USER+27)
 
@@ -97,6 +105,7 @@ UINT 			uiTIMER = 500;
 size_t			TimeOut = 5 * 1000;		// play sound timeout
 bool			ColorWhite = false;		// icon color
 bool			bSendExit = false;
+bool			bNoBalloon = false;
 
 void TrimCopy(wchar_t* buf, size_t bufsize, const wchar_t* filepath) {
 	const wchar_t* dots = L"...";
@@ -165,13 +174,85 @@ void FormatHint(TCHAR *buf, size_t bufsize, const TCHAR *action, const TCHAR *fi
 	buf[bufsize-1] = 0;
 }
 
+/// ========================================================================================== bcopy
+namespace bcopy {
+	void		Command(DWORD Command, DWORD ThreadId) {
+		DWORD send[3] = {OPERATION_INFO, Command, ThreadId};
+		HANDLE hPipe = ::CreateFile(PIPE_NAMEW, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+		if (hPipe != INVALID_HANDLE_VALUE) {
+			DWORD dwBytesWritten;
+			::WriteFile(hPipe, send, sizeof(send), &dwBytesWritten, NULL);
+			::CloseHandle(hPipe);
+		}
+	}
+	bool		GetList(SmallInfoRec* &InfoList, DWORD &size) {
+		bool Result = false;
+		size = 0;
+		InfoList = NULL;
+		DWORD send[2] = {OPERATION_INFO, INFOFLAG_ALL};
+		DWORD dwBytesRead, dwBytesWritten, rec_size;
+		HANDLE hPipe = ::CreateFile(PIPE_NAMEW, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+		if (hPipe != INVALID_HANDLE_VALUE) {
+			if (::WriteFile(hPipe, send, sizeof(send), &dwBytesWritten, NULL))
+				if (::ReadFile(hPipe, &size, sizeof(size), &dwBytesRead, NULL) &&
+						::ReadFile(hPipe, &rec_size, sizeof(rec_size), &dwBytesRead, NULL)) {
+					Result = true;
+					if (size) {
+						InfoList = (SmallInfoRec*)MemAlloc(sizeof(SmallInfoRec) * size);
+						if ((!(InfoList)) || (!::ReadFile(hPipe, InfoList, sizeof(struct SmallInfoRec)*(size), &dwBytesRead, NULL))) {
+							MemFree(InfoList);
+							InfoList = NULL;
+							size = 0;
+							Result = false;
+						}
+					}
+				}
+			::CloseHandle(hPipe);
+		}
+		return Result;
+	}
+	void		FreeList(SmallInfoRec* &InfoList) {
+		MemFree(InfoList);
+	}
+
+	bool			GetInfo(InfoRec *receive, DWORD ThreadId) {
+		bool Result = false;
+		DWORD dwBytesRead, dwBytesWritten, dwSize;
+		DWORD send[3] = {OPERATION_INFO, INFOFLAG_BYHANDLE, ThreadId};
+		receive->info.type = INFOTYPE_INVALID;
+		HANDLE hPipe = ::CreateFile(PIPE_NAMEW, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+		if (hPipe != INVALID_HANDLE_VALUE) {
+			::WriteFile(hPipe, send, sizeof(send), &dwBytesWritten, NULL);
+			if (::ReadFile(hPipe, &dwSize, sizeof(dwSize), &dwBytesRead, NULL))
+				::ReadFile(hPipe, receive, sizeof(InfoRec), &dwBytesRead, NULL);
+			::CloseHandle(hPipe);
+		} else if (::GetLastError() == ERROR_PIPE_BUSY) {
+			Result = true;
+		}
+		return Result;
+	}
+}
+
 ///=================================================================================== TaskBar Icons
 size_t const	MAX_ICONS = 64;
 class TbIcons {
 	size_t		Size;
 	IconItem	IconList[MAX_ICONS+1];
 
-	bool		TrayRefresh(UINT uID, HICON hIcon, PWSTR szTip) {
+	bool		ShowBalloon(UINT uID, PCWSTR szInfoTitle, PCWSTR szInfo) {
+		NOTIFYICONDATA tnid;
+		MemZero(tnid);
+		tnid.cbSize = sizeof(NOTIFYICONDATA);
+		tnid.hWnd = hWnd;
+		tnid.uID = uID;
+		tnid.uVersion = NOTIFYICON_VERSION;
+		tnid.uFlags = NIF_INFO;
+		tnid.dwInfoFlags = NIIF_INFO;
+		lstrcpyn(tnid.szInfoTitle, szInfoTitle, sizeofa(tnid.szInfoTitle) - 1);
+		lstrcpyn(tnid.szInfo, szInfo, sizeofa(tnid.szInfo) - 1);
+		return ::Shell_NotifyIcon(NIM_MODIFY, &tnid);
+	}
+	bool		TrayRefresh(UINT uID, HICON hIcon, PCWSTR szTip) {
 		bool	Result = false;
 		static HICON hPrevIcon = NULL;
 		if (hPrevIcon)
@@ -184,11 +265,12 @@ class TbIcons {
 		tnid.hWnd = hWnd;
 		tnid.uID = uID;
 		if (hIcon) {
-			tnid.uFlags = NIF_ICON | NIF_TIP | NIF_MESSAGE/*|NIF_INFO*/;
+			tnid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP | NIF_INFO;
 			tnid.uCallbackMessage = WM_TASKICON;
 			tnid.hIcon = hIcon;
 			lstrcpyn(tnid.szTip, szTip, sizeofa(tnid.szTip) - 1);
-			//lstrcpyn(tnid.szInfo,lpszTip,sizeofa(tnid.szTip)-1);
+			lstrcpyn(tnid.szInfoTitle, L"", sizeofa(tnid.szInfoTitle) - 1);
+			lstrcpyn(tnid.szInfo, L"", sizeofa(tnid.szInfo) - 1);
 			Result = Shell_NotifyIcon(NIM_MODIFY, &tnid);
 			if (!Result)
 				Result = Shell_NotifyIcon(NIM_ADD, &tnid);
@@ -205,7 +287,6 @@ class TbIcons {
 	}
 
 	void		Refresh(const SmallInfoRec &InfoItem, size_t i) {
-		//TCHAR	file[2*MAX_PATH], szTip[128] = {0};
 		TCHAR	szTip[128] = {0};
 		BYTE percent = InfoItem.percent + 128 * InfoItem.pause;
 		if ((IconList[i].pr != percent)) {
@@ -225,9 +306,6 @@ class TbIcons {
 				for (size_t k = 0; k < 16; ++k)
 					x[k] = ~(a[k] | x[k]);
 
-//			::lstrcpy(file, InfoItem.Src);
-//			::wsprintf(szTip, L"%s\n\"%s\"\nв \"%s\"\nВыполнено %i%%", OutMsg[o], file, InfoItem.DestDir, InfoItem.percent);
-//			::wsprintf(szTip, L"%s\n\"%s\"\nв \"%s\"", OutMsg[o], file, InfoItem.DestDir);
 			FormatHint(szTip, sizeofa(szTip), OutMsg[InfoItem.type - 1], InfoItem.Src, InfoItem.percent);
 			HBITMAP	ba = ::CreateBitmap(16, 16, 1, 1, a);
 			HBITMAP	bx = ::CreateBitmap(16, 16, 1, 1, x);
@@ -236,6 +314,14 @@ class TbIcons {
 			::DeleteObject(ba);
 			::DeleteObject(bx);
 			TrayRefresh(IconList[i].id, hIcon, szTip);
+			if (!bNoBalloon && InfoItem.Ask) {
+				TCHAR	szInfo[3*MAX_PATH];
+				InfoRec info;
+				MemZero(info);
+				bcopy::GetInfo(&info, InfoItem.ThreadId);
+				_snwprintf(szInfo, sizeofa(szInfo), L"%s\n%s", AskMsg[InfoItem.Ask], info.Dest);
+				ShowBalloon(IconList[i].id, AskMsg[0], szInfo);
+			}
 		}
 	}
 	void		Create(const SmallInfoRec &InfoItem) {
@@ -296,91 +382,6 @@ public:
 	}
 } Icons;
 
-/// ========================================================================================== bcopy
-namespace bcopy {
-	void		Command(DWORD Command, DWORD ThreadId) {
-		DWORD send[3] = {OPERATION_INFO, Command, ThreadId};
-		HANDLE hPipe = ::CreateFile(PIPE_NAMEW, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
-		if (hPipe != INVALID_HANDLE_VALUE) {
-			DWORD dwBytesWritten;
-			::WriteFile(hPipe, send, sizeof(send), &dwBytesWritten, NULL);
-			::CloseHandle(hPipe);
-		}
-	}
-	bool 		GetList(SmallInfoRec* &InfoList, DWORD &size) {
-		bool Result = false;
-		size = 0;
-		InfoList = NULL;
-		DWORD send[2] = {OPERATION_INFO, INFOFLAG_ALL};
-		DWORD dwBytesRead, dwBytesWritten, rec_size;
-		HANDLE hPipe = ::CreateFile(PIPE_NAMEW, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
-		if (hPipe != INVALID_HANDLE_VALUE) {
-			if (::WriteFile(hPipe, send, sizeof(send), &dwBytesWritten, NULL))
-				if (::ReadFile(hPipe, &size, sizeof(size), &dwBytesRead, NULL) &&
-						::ReadFile(hPipe, &rec_size, sizeof(rec_size), &dwBytesRead, NULL)) {
-					Result = true;
-					if (size) {
-						InfoList = (SmallInfoRec*)MemAlloc(sizeof(SmallInfoRec) * size);
-						if ((!(InfoList)) || (!::ReadFile(hPipe, InfoList, sizeof(struct SmallInfoRec)*(size), &dwBytesRead, NULL))) {
-							MemFree(InfoList);
-							InfoList = NULL;
-							size = 0;
-							Result = false;
-						}
-					}
-				}
-			::CloseHandle(hPipe);
-		}
-		return Result;
-	}
-	void		FreeList(SmallInfoRec* &InfoList) {
-		MemFree(InfoList);
-	}
-}
-/*
-bool			GetInfo(DWORD ThreadId, InfoRec *receive) {
-	bool Result = false;
-	DWORD dwBytesRead, dwBytesWritten, RecSize;
-	DWORD send[3] = {OPERATION_INFO, INFOFLAG_BYHANDLE, ThreadId};
-	receive->info.type = INFOTYPE_INVALID;
-	HANDLE hPipe = CreateFile(PIPE_NAMEW, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
-	if (hPipe != INVALID_HANDLE_VALUE) {
-		::WriteFile(hPipe, send, sizeof(send), &dwBytesWritten, NULL);
-		if (::ReadFile(hPipe, &RecSize, sizeof(RecSize), &dwBytesRead, NULL)) //FIXME
-			::ReadFile(hPipe, receive, sizeof(struct InfoRec), &dwBytesRead, NULL);
-		::CloseHandle(hPipe);
-	} else if (::GetLastError() == ERROR_PIPE_BUSY) {
-		Result = true;
-	}
-	return Result;
-}
-*/
-
-/*
-///============================================================================= wchar <-> multibyte
-wstring				cp2w(const string &in, UINT cp) {
-	wstring	Result;
-	if (in.empty())
-		return Result;
-
-	size_t bsz = ::MultiByteToWideChar(cp, 0, in.c_str(), -1, NULL, 0) * sizeof(WCHAR);
-	PWSTR buf = (PWSTR)MemAlloc(bsz);
-	if (::MultiByteToWideChar(cp, 0, in.c_str(), -1, buf, bsz))
-		Result = buf;
-	return Result;
-}
-string				w2cp(const wstring &in, UINT cp) {
-	string	Result;
-	if (in.empty())
-		return Result;
-
-	size_t bsz = ::WideCharToMultiByte(cp, 0, in.c_str(), -1, NULL, 0, NULL, NULL);
-	PSTR buf = (PSTR)MemAlloc(bsz);
-	if (::WideCharToMultiByte(cp, 0, in.c_str(), -1, buf, bsz, NULL, NULL))
-		Result = buf;
-	return Result;
-}
-*/
 /// ================================================================================================
 void			CreatePopUpMenu() {
 	puMenu = ::CreatePopupMenu();
@@ -491,6 +492,11 @@ int APIENTRY	wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
 		}
 		if ((::lstrcmp(argv[i], L"/r") == 0)) {
 			bSendExit = true;
+			continue;
+		}
+		if ((::lstrcmp(argv[i], L"/nb") == 0)) {
+			bNoBalloon = true;
+			continue;
 		}
 	}
 
