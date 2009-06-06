@@ -3,13 +3,9 @@ ifndef COMMON
 COMMON = ../../../FAR/fardev/plugins/common
 endif
 
-ifdef WIDE
 SUFFIX=W
 ADDDEFINES=-D UNICODE -D _UNICODE
 COMINC = $(COMMON)/unicode
-else
-COMINC = $(COMMON)/ascii
-endif
 
 #COMMONLIB = -L $(COMMON) -lCRT
 
