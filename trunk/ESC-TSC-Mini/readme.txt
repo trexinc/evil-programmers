@@ -6,15 +6,15 @@ Editor Settings Changer - Temporary Settings Changer - Minimalistic
 
 (That's a pretty long name for a very small plugin :-)
 
-ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+--------------------------------------------------------------------------------
 
 Author: Alex Yaroslavsky
-Home page: http://trexinc.sf.net/
+Home page: http://code.google.com/p/evil-programmers/
 
-ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+--------------------------------------------------------------------------------
 
 About
-ÄÄÄÄÄ
+-----
 
 What this plugin does, it lets you change the settings of ESC for  the  current
 editor session. To use this plugin you'll need FAR version 1.70 build  2087  or
@@ -25,7 +25,7 @@ http://plugring.farmanager.com/ - The PlugRinG
 
 
 License
-ÄÄÄÄÄÄÄ
+-------
 
 ESC-TSC-Mini plugin for FAR Manager
 Copyright (C) 2001 Alex Yaroslavsky
@@ -46,7 +46,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 
 How to use the plugin:
-ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+----------------------
 
 Parameter: [            ]
 
@@ -83,15 +83,15 @@ action. Upon succession the value read will be shown.
 *Note: If the action is successful the parameter will be added to  the  history
 of parameters, for quick future access.
 
-ºÄÄÄÄÄÄÄÄÄÄStatusÄÄÄÄÄÄÄÄÄÄº
-ºWaiting...                º
-ÈÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼
++----------Status----------+
+|Waiting...                |
++--------------------------+
 
 Here you will be shown messages upon succession or failure of  the  action  you
 have made. "Waiting..." means that the plugin is waiting for the next action.
 
 Advanced usage:
-ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+---------------
 
 This plugin can be used with any future ESC version without any change  in  the
 code as long as the esc.dll stays with that name and the names of the functions
