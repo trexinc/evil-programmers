@@ -2,7 +2,7 @@ Visualizer
 -------------------------------------------------------------------------------
 
 Author: Alex Yaroslavsky
-Home page: http://trexinc.sf.net/
+Home page: http://code.google.com/p/evil-programmers/
 
 -------------------------------------------------------------------------------
 

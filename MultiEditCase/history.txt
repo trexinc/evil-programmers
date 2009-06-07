@@ -1,5 +1,5 @@
 Multilingual Editor Case Converter: History
-ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+-------------------------------------------
 
 Legend:  + added
          - removed
@@ -7,17 +7,17 @@ Legend:  + added
          ! fixed
 
 version 2.132 (25/03/05)
-ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+------------------------
  * Compiled using MingW with GCC 3.4.2.
  + Now the plugin is released under the GNU GPL license.
 
 version 2.131 (30/11/01)
-ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+------------------------
  * Some cosmetic changes to the help file,  as  suggested  by  Ivan
    Sintyurin at mail.ru / spinoza.
 
 version 2.13 (30/11/01)
-ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+-----------------------
  + Cycling change now works on single character.
  - Removed the russian "not" help.
  + Transformed the !readme!.txt into english help file.
@@ -25,7 +25,7 @@ version 2.13 (30/11/01)
 
 
 version 2.12 (19/10/01)
-ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+-----------------------
  - Plugin no longer searches for "EditCase.dat" file, so  you  must
    configure the plugin  if  you  want  to  use  non  english  case
    conversion.
@@ -37,7 +37,7 @@ version 2.12 (19/10/01)
  ! Some very minor bug fixes.
 
 version 2.11 (09/10/01)
-ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+-----------------------
  ! The plugin didn't work under Windows  NT/2000.  Thanks  to  Ivan
    Sintyurin at mail.ru / spinoza for noticing the problem.
  ! The action to be done in the menu did not coincide with what was
@@ -50,7 +50,7 @@ version 2.11 (09/10/01)
  * Plugin size shrunk from 11264 bytes to 10240 bytes.
 
 version 2.1 (28/09/01)
-ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+----------------------
  ! There was a serious bug that I created when  I  transformed  the
    original code from C++ to C, it didn't  cause  any  problems  in
    Case Conversion but generated some memory  leaks  and  incorrect
@@ -74,13 +74,13 @@ version 2.1 (28/09/01)
    Sintyurin at mail.ru / spinoza.
 
 version 2.0 (21/09/01)
-ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+----------------------
  + Added support for  multiple  language  files  with  on  the  fly
    language file selection.
  * Extended the !readme!.txt, and made it more  understandable,  in
    my opinion :).
 
 version 1.0 (19/09/01)
-ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+----------------------
  + Preliminary release with  only  one  language  file  at  a  time
    operation.

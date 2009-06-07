@@ -92,8 +92,7 @@ $^#Authors#
   Currently the development of this plug-in is maintained by FARMail Group:
 
   #Alex Yaroslavsky#
-  E-mail   : at yandex.ru / trexinc
-  Homepage : ~http://trexinc.sf.net/~@http://trexinc.sf.net/@
+  Homepage : ~http://code.google.com/p/evil-programmers/~@http://code.google.com/p/evil-programmers/@
 
   #Vadim Yegorov#
   E-mail   : at bmg.lv / zg

@@ -84,8 +84,7 @@ $^#Авторы#
   На сей момент разработкой плагина занимается FARMail Group:
 
   #Алексей Ярославский#
-  E-mail   : at yandex.ru / trexinc
-  Homepage : ~http://trexinc.sf.net/~@http://trexinc.sf.net/@
+  Homepage : ~http://code.google.com/p/evil-programmers/~@http://code.google.com/p/evil-programmers/@
 
   #Вадим Егоров#
   E-mail   : at bmg.lv / zg

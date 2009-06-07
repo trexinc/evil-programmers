@@ -6,8 +6,7 @@ FAR `v'FAR_MAJOR.FAR_MINOR beta FAR_BETA`+' plugin
 (c) COPYRIGHT by FARMail Group
 
 Alex Yaroslavsky
-mailto:at yandex.ru / trexinc
-http://trexinc.sf.net/
+http://code.google.com/p/evil-programmers/
 
 Vadim Yegorov
 mailto:at bmg.lv / zg
