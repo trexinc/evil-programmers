@@ -487,6 +487,7 @@ struct InfoDlgParams
   BOOL Time;
   BOOL Format;
   DWORD Error;
+  BOOL Closed;
 };
 
 static LONG_PTR WINAPI InfoDialogKeyProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2)
@@ -663,6 +664,7 @@ static LONG_PTR WINAPI InfoDialogProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Pa
         Info.SendDlgMessage(hDlg,DM_CLOSE,1,0); //Ok button
       break;
     case DM_CHECK_STATE:
+      if(!DlgParams->Closed)
       {
         InfoRec receive;
         if(GetInfo(DlgParams->Id,&receive)) break;
@@ -687,6 +689,7 @@ static LONG_PTR WINAPI InfoDialogProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Pa
       break;
     case DN_CLOSE:
       Redraw_Close(DlgParams->CommonData.Thread);
+      DlgParams->Closed=TRUE;
       break;
   }
   return FastRedrawDefDlgProc(hDlg,Msg,Param1,Param2);
@@ -784,7 +787,7 @@ void ShowInfoDialog(SmallInfoRec *receive)
   }
   ThreadData Thread={FALSE,NULL,NULL,NULL,PlgOpt.RefreshInterval};
   InitThreadData(&Thread);
-  InfoDlgParams DlgParams={{&Thread,0,{5,(receive->type<INFOTYPE_WIPE)?8:-1},{L"",L""},INVALID_HANDLE_VALUE,false,InfoDialogKeyProc,MACRO_INFO,true,false},receive->ThreadId,PlgOpt.CurrentTime,PlgOpt.FormatSize,0};
+  InfoDlgParams DlgParams={{&Thread,0,{5,(receive->type<INFOTYPE_WIPE)?8:-1},{L"",L""},INVALID_HANDLE_VALUE,false,InfoDialogKeyProc,MACRO_INFO,true,false},receive->ThreadId,PlgOpt.CurrentTime,PlgOpt.FormatSize,0,FALSE};
   if(PlgOpt.ShowUnicode) DlgParams.CommonData.Console=CreateFileW(L"CONOUT$",GENERIC_WRITE,FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
   CFarDialog dialog;
   int DlgCode=dialog.Execute(Info.ModuleNumber,-1,-1,76,height,_T("Info"),DialogItems,i,0,0,InfoDialogProc,(LONG_PTR)&DlgParams);
