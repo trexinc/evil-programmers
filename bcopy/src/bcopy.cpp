@@ -1038,15 +1038,24 @@ copyexit:
             else
             {
               WindowInfo winfo;
+#ifdef UNICODE
+              memset(&winfo,0,sizeof(winfo));
+#endif
               winfo.Pos=-1;
               if(Info.AdvControl(Info.ModuleNumber,ACTL_GETWINDOWINFO,&winfo))
               {
 #ifdef UNICODE
+                winfo.Name = (wchar_t *)malloc(winfo.NameSize*sizeof(wchar_t));
+                if (winfo.Name && Info.AdvControl(Info.ModuleNumber,ACTL_GETWINDOWINFO,&winfo))
+                {
                   _tcscpy(WideName,winfo.Name);
+                  ShowName(WideName);
+                }
+                free(winfo.Name);
 #else
                 if(GetWideNameDirect(_T(""),winfo.Name,WideName))
-#endif
                   ShowName(WideName);
+#endif
               }
             }
           }
