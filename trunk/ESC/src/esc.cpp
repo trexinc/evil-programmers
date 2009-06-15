@@ -109,7 +109,7 @@ BOOL WINAPI ESCFICompEQ(const ESCFileInfo &a,const ESCFileInfo &b)
   return a.Name==b.Name;
 }
 
-BOOL InitSetsTree(const EditorInfo &EI)
+BOOL InitSetsTree(const EditorInfo &EI, const wchar_t *editorfilename)
 {
    if(!NodeData)
      return FALSE;
@@ -122,7 +122,7 @@ BOOL InitSetsTree(const EditorInfo &EI)
    for(int i=TotalNodes-1;i>=0;--i)
    {
      nd=NodeData->getItem(i);
-     if(CmpWithFileMask(nd->mask.str, EI.FileName, nd->Options&E_SkipPath_On))
+     if(CmpWithFileMask(nd->mask.str, editorfilename, nd->Options&E_SkipPath_On))
      {
        LastAcceptableType=i;
        if(nd->Options&E_OverLoad_On)
@@ -228,9 +228,11 @@ HANDLE WINAPI _export OpenPluginW(int /*OpenFrom*/,int /*Item*/)
         FarMenuItem *fmi=static_cast<FarMenuItem*>(malloc(FMISize));
         if(fmi)
         {
+            wchar_t *editorfilename = (wchar_t *)malloc(EditorControl(ECTL_GETFILENAME,NULL)*sizeof(wchar_t));
+            EditorControl(ECTL_GETFILENAME, editorfilename);
             EditorControl(ECTL_GETINFO, &ei);
             if(ESETStorage->IsEmpty())
-               InitSetsTree(ei);
+               InitSetsTree(ei, editorfilename);
             memset(fmi, 0, FMISize);
 
             int RealPos=-1; // где ставить галку, если "-1", то нигде
@@ -239,7 +241,7 @@ HANDLE WINAPI _export OpenPluginW(int /*OpenFrom*/,int /*Item*/)
             for(int f=TotalNodes-1;f>=0;--f)
             {
               nd=NodeData->getItem(f);
-              if(RealPos==-1 && CmpWithFileMask(nd->mask.str, ei.FileName, nd->Options&E_SkipPath_On))
+              if(RealPos==-1 && CmpWithFileMask(nd->mask.str, editorfilename, nd->Options&E_SkipPath_On))
               {
                 LastAcceptableType=f;
                 if(nd->Options&E_OverLoad_On)
@@ -324,11 +326,12 @@ HANDLE WINAPI _export OpenPluginW(int /*OpenFrom*/,int /*Item*/)
                }
 
                if(Item)
-                 ApplyEditorOptions(Item->data.Data,ei.FileName);
+                 ApplyEditorOptions(Item->data.Data,editorfilename);
             }
             for (DWORD f = 0; f < TotalNodes; ++f)
               free((void *)fmi[f].Text);
             free(fmi);
+            free(editorfilename);
         }
     }
     EditorControl(ECTL_TURNOFFMARKINGBLOCK,NULL);
@@ -497,8 +500,10 @@ int WINAPI _export ProcessEditorEventW(int Event, void *Param)
    if(Event==EE_REDRAW ||
       ((Event==EE_READ || Event==EE_SAVE) && ReloadSettings(FALSE)))
    {
+    wchar_t *editorfilename = (wchar_t *)malloc(EditorControl(ECTL_GETFILENAME,NULL)*sizeof(wchar_t));
+    EditorControl(ECTL_GETFILENAME, editorfilename);
     EditorControl(ECTL_GETINFO, &ei);
-    if(Event==EE_READ) InitSetsTree(ei);
+    if(Event==EE_READ) InitSetsTree(ei,editorfilename);
     EditorSettingsStorage ESS(ei.EditorID);
     Node_<EditorSettingsStorage> *Item=ESETStorage->findNode(ESS);
     if(Item)
@@ -605,15 +610,15 @@ int WINAPI _export ProcessEditorEventW(int Event, void *Param)
         else if(Event==EE_REDRAW)
         {
           if(nodedata.Options&E_LockFile_On && !nodedata.LockFile.IsOn())
-            nodedata.LockFile.On(ei.FileName);
+            nodedata.LockFile.On(editorfilename);
         }
         else  // EE_READ
         {
-          ApplyEditorOptions(nodedata,ei.FileName);
+          ApplyEditorOptions(nodedata,editorfilename);
           KeySequence macro;
           const KeySequenceStorage *KSS;
           BOOL stop=TRUE;
-          if(!FileExists(ei.FileName)) // файла нет на диске, значит он новый
+          if(!FileExists(editorfilename)) // файла нет на диске, значит он новый
           {
             EditorSetParameter espar;
             memset(&espar, 0, sizeof(espar));
@@ -664,6 +669,7 @@ int WINAPI _export ProcessEditorEventW(int Event, void *Param)
           _D(SysLog(L"PEE: auto-macros / OnLoad - end"));
         }
     }
+    free(editorfilename);
    }
    else if(Event==EE_CLOSE)
    {
@@ -714,7 +720,12 @@ int WINAPI _export ProcessEditorInputW(const INPUT_RECORD *Rec)
 
     EditorControl(ECTL_GETINFO,&ei);
     if(ESETStorage->IsEmpty())
-       InitSetsTree(ei);
+    {
+       wchar_t *editorfilename = (wchar_t *)malloc(EditorControl(ECTL_GETFILENAME,NULL)*sizeof(wchar_t));
+       EditorControl(ECTL_GETFILENAME, editorfilename);
+       InitSetsTree(ei, editorfilename);
+       free(editorfilename);
+    }
     EditorSettingsStorage ESS(ei.EditorID);
     Node_<EditorSettingsStorage> *Item=ESETStorage->findNode(ESS);
     if(NULL==Item)
