@@ -37,16 +37,19 @@ static long get_height(HANDLE hDlg,int Index)
   long result=0;
 #ifdef UNICODE
   FarDialogItem* DialogItem;
-  DialogItem=(FarDialogItem*)(LONG_PTR)Info.SendDlgMessage(hDlg,DM_GETDLGITEM,Index,0);
+  DialogItem=(FarDialogItem*)malloc(Info.SendDlgMessage(hDlg,DM_GETDLGITEM,Index,0));
 #else
   FarDialogItem DialogItem_; FarDialogItem* DialogItem=&DialogItem_;
   Info.SendDlgMessage(hDlg,DM_GETDLGITEM,Index,(LONG_PTR)DialogItem);
 #endif
   if(DialogItem)
   {
+#ifdef UNICODE
+    Info.SendDlgMessage(hDlg,DM_GETDLGITEM,Index,(LONG_PTR)DialogItem);
+#endif
     result=DialogItem->Y2-DialogItem->Y1+1;
 #ifdef UNICODE
-    Info.SendDlgMessage(hDlg,DM_FREEDLGITEM,0,(LONG_PTR)DialogItem);
+    free(DialogItem);
 #endif
   }
   return result;
@@ -550,13 +553,16 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
       {
 #ifdef UNICODE
         FarDialogItem* DialogItem;
-        DialogItem=(FarDialogItem*)(LONG_PTR)Info.SendDlgMessage(hDlg,DM_GETDLGITEM,Param1,0);
+        DialogItem=(FarDialogItem*)malloc(Info.SendDlgMessage(hDlg,DM_GETDLGITEM,Param1,0));
 #else
         FarDialogItem DialogItem_; FarDialogItem* DialogItem=&DialogItem_;
         Info.SendDlgMessage(hDlg,DM_GETDLGITEM,Param1,(LONG_PTR)DialogItem);
 #endif
         if(DialogItem)
         {
+#ifdef UNICODE
+          Info.SendDlgMessage(hDlg,DM_GETDLGITEM,Param1,(LONG_PTR)DialogItem);
+#endif
           if(DialogItem->VBuf)
           {
             int width=DialogItem->X2-DialogItem->X1+1,height=DialogItem->Y2-DialogItem->Y1+1;
@@ -634,7 +640,7 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
             if(attr_buffer) HeapFree(GetProcessHeap(),0,attr_buffer);
           }
 #ifdef UNICODE
-          Info.SendDlgMessage(hDlg,DM_FREEDLGITEM,0,(LONG_PTR)DialogItem);
+          free(DialogItem);
 #endif
         }
       }
