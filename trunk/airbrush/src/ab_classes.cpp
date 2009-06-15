@@ -136,6 +136,11 @@ int OnEditorEvent(int event,void *param)
   static bool stop_colorize=false;
   if(stop_colorize) return 0;
 
+#ifdef UNICODE
+  TCHAR* editorfilename;
+#else
+  const TCHAR* editorfilename;
+#endif
   const TCHAR* filename;
   PEditFile curfile;
   EditorInfo ei;
@@ -157,7 +162,15 @@ int OnEditorEvent(int event,void *param)
 
   // search file in list
   Info.EditorControl(ECTL_GETINFO,&ei);
-  filename=FSF.PointToName(ei.FileName); // deletes path...
+
+#ifdef UNICODE
+  editorfilename = (TCHAR *)malloc(Info.EditorControl(ECTL_GETFILENAME,NULL)*sizeof(TCHAR));
+  Info.EditorControl(ECTL_GETFILENAME,editorfilename);
+#else
+  editorfilename = ei.FileName;
+#endif
+
+  filename=FSF.PointToName(editorfilename); // deletes path...
 
   EditorGetString egs;
   egs.StringNumber=0;
@@ -166,8 +179,8 @@ int OnEditorEvent(int event,void *param)
   if((!(curfile=ef_getfile(ei.EditorID)))&&Opt.Active&&(ei.TotalLines<=Opt.MaxLines))
   {
     TCHAR ini_path[MAX_PATH],ini_type[256];
-    lstrcpyn(ini_path,ei.FileName,filename-ei.FileName+1);
-    ini_path[filename-ei.FileName]=0;
+    lstrcpyn(ini_path,editorfilename,filename-editorfilename+1);
+    ini_path[filename-editorfilename]=0;
     lstrcat(ini_path,_T("airbrush.ini"));
     if(GetPrivateProfileString(_T("types"),filename,_T(""),ini_type,sizeof(ini_type)/sizeof(ini_type[0]),ini_path))
     {
@@ -230,6 +243,10 @@ int OnEditorEvent(int event,void *param)
       }
     }
   }
+
+#ifdef UNICODE
+  free(editorfilename);
+#endif
 
   if((!curfile)&&(Opt.ColorizeAll)) curfile=loadfile(ei.EditorID,-1);
   if(!curfile) return 0;
