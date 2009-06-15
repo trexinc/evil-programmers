@@ -351,28 +351,28 @@ static void UpdateItem(int Index,UserParam *DlgParams)
 static void UpdateExpired(HANDLE hDlg,UserParam *DlgParams)
 {
   FarDialogItem DialogItem;
-  Info.SendDlgMessage(hDlg,DM_GETDLGITEM,indexExpired,(long)&DialogItem);
+  Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,indexExpired,(long)&DialogItem);
   if(DialogItem.Selected)
   {
     for(int i=0;i<2;i++)
     {
-      Info.SendDlgMessage(hDlg,DM_GETDLGITEM,indexFlags+i,(long)&DialogItem);
+      Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,indexFlags+i,(long)&DialogItem);
       if(DialogItem.Selected)
       {
         DialogItem.Selected=FALSE;
         UpdateItem(indexFlags+i,DlgParams);
       }
       DialogItem.Flags|=DIF_DISABLE;
-      Info.SendDlgMessage(hDlg,DM_SETDLGITEM,indexFlags+i,(long)&DialogItem);
+      Info.SendDlgMessage(hDlg,DM_SETDLGITEMSHORT,indexFlags+i,(long)&DialogItem);
     }
   }
   else
   {
     for(int i=0;i<2;i++)
     {
-      Info.SendDlgMessage(hDlg,DM_GETDLGITEM,indexFlags+i,(long)&DialogItem);
+      Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,indexFlags+i,(long)&DialogItem);
       DialogItem.Flags&=~DIF_DISABLE;
-      Info.SendDlgMessage(hDlg,DM_SETDLGITEM,indexFlags+i,(long)&DialogItem);
+      Info.SendDlgMessage(hDlg,DM_SETDLGITEMSHORT,indexFlags+i,(long)&DialogItem);
     }
   }
 }
@@ -401,9 +401,9 @@ static long WINAPI ManageGroupUserDialogProc(HANDLE hDlg,int Msg,int Param1,long
       if(Param1==(indexFlags+1))
       {
         FarDialogItem DialogItem;
-        Info.SendDlgMessage(hDlg,DM_GETDLGITEM,indexFlags+3,(long)&DialogItem);
+        Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,indexFlags+3,(long)&DialogItem);
         DialogItem.Flags|=DIF_DISABLE;
-        Info.SendDlgMessage(hDlg,DM_SETDLGITEM,indexFlags+3,(long)&DialogItem);
+        Info.SendDlgMessage(hDlg,DM_SETDLGITEMSHORT,indexFlags+3,(long)&DialogItem);
       }
       if(Param1==indexProfile)
       {

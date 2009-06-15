@@ -37,9 +37,9 @@ static long WINAPI EditAdvancedAccessDialogProc(HANDLE hDlg,int Msg,int Param1,l
         FarDialogItem DialogItem;
         for(int i=0;i<DlgParams[1];i++)
         {
-          Info.SendDlgMessage(hDlg,DM_GETDLGITEM,DlgParams[0]+i,(long)&DialogItem);
+          Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,DlgParams[0]+i,(long)&DialogItem);
           DialogItem.Selected=state;
-          Info.SendDlgMessage(hDlg,DM_SETDLGITEM,DlgParams[0]+i,(long)&DialogItem);
+          Info.SendDlgMessage(hDlg,DM_SETDLGITEMSHORT,DlgParams[0]+i,(long)&DialogItem);
         }
       }
       break;
