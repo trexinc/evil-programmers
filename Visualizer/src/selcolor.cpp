@@ -1,5 +1,18 @@
 /*
-   Copyright (C) Vadim Yegorov
+    Copyright (C) 2000-2009 zg
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 #include "Visualizer.hpp"
 
@@ -9,17 +22,16 @@
 static inline DWORD GetFlags(int i,HANDLE hDlg)
 {
   DWORD flags=0;
-  FarDialogItem* DialogItem=(FarDialogItem*)(LONG_PTR)Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,0);
-  if(DialogItem)
+  FarDialogItem DialogItem;
+  if(Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,i,(LONG_PTR)&DialogItem))
   {
-    flags=DialogItem->Flags;
-    Info.SendDlgMessage(hDlg,DM_FREEDLGITEM,0,(LONG_PTR)DialogItem);
+    flags=DialogItem.Flags;
   }
   return flags;
 }
 #endif
 
-long WINAPI ColorDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
+LONG_PTR WINAPI ColorDialogProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2)
 {
   int color=0;
 #ifdef UNICODE
@@ -34,54 +46,63 @@ long WINAPI ColorDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
       for(int i=1;i<17;i++)
       {
 #ifdef UNICODE
-        DialogItem=(FarDialogItem*)(LONG_PTR)Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,0);
+        DialogItem=(FarDialogItem*)malloc(Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,0));
 #else
         Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,(LONG_PTR)DialogItem);
 #endif
         if(DialogItem)
         {
+#ifdef UNICODE
+          Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,(LONG_PTR)DialogItem);
+#endif
           if(DialogItem->Selected)
           {
             color|=(DialogItem->Flags&0xF0)>>4;
             break;
           }
 #ifdef UNICODE
-          Info.SendDlgMessage(hDlg,DM_FREEDLGITEM,0,(LONG_PTR)DialogItem);
+          free(DialogItem);
 #endif
         }
       }
       for(int i=18;i<34;i++)
       {
 #ifdef UNICODE
-        DialogItem=(FarDialogItem*)(LONG_PTR)Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,0);
+        DialogItem=(FarDialogItem*)malloc(Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,0));
 #else
         Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,(LONG_PTR)DialogItem);
 #endif
         if(DialogItem)
         {
+#ifdef UNICODE
+          Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,(LONG_PTR)DialogItem);
+#endif
           if(DialogItem->Selected)
           {
             color|=(DialogItem->Flags&0xF0);
             break;
           }
 #ifdef UNICODE
-          Info.SendDlgMessage(hDlg,DM_FREEDLGITEM,0,(LONG_PTR)DialogItem);
+          free(DialogItem);
 #endif
         }
       }
       for(int i=36;i<39;i++)
       {
 #ifdef UNICODE
-        DialogItem=(FarDialogItem*)(LONG_PTR)Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,0);
+        DialogItem=(FarDialogItem*)malloc(Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,0));
 #else
         Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,(LONG_PTR)DialogItem);
 #endif
         if(DialogItem)
         {
+#ifdef UNICODE
+          Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,(LONG_PTR)DialogItem);
+#endif
           DialogItem->Flags=(DialogItem->Flags&0xffffff00)|color;
           Info.SendDlgMessage(hDlg,DM_SETDLGITEM,i,(LONG_PTR)DialogItem);
 #ifdef UNICODE
-          Info.SendDlgMessage(hDlg,DM_FREEDLGITEM,0,(LONG_PTR)DialogItem);
+          free(DialogItem);
 #endif
         }
       }

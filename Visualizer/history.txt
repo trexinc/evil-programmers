@@ -1,6 +1,10 @@
 History:
 --------
 
+v0.7 (15/06/2009)
+-----------------
+ * Far 2.0 build 992 support.
+
 v0.6 (09/05/2009)
 -----------------
  + Added support of [ESC] unicode version.
