@@ -28,11 +28,12 @@
 static DWORD GetFlags(int i,HANDLE hDlg)
 {
   DWORD flags=0;
-  FarDialogItem* DialogItem=(FarDialogItem*)(LONG_PTR)Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,0);
+  FarDialogItem* DialogItem=(FarDialogItem*)malloc((LONG_PTR)Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,0));
   if(DialogItem)
   {
+    Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,(LONG_PTR)DialogItem);
     flags=DialogItem->Flags;
-    Info.SendDlgMessage(hDlg,DM_FREEDLGITEM,0,(LONG_PTR)DialogItem);
+    free(DialogItem);
   }
   return flags;
 }
@@ -53,54 +54,63 @@ long WINAPI ColorDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
       for(int i=1;i<17;i++)
       {
 #ifdef UNICODE
-        DialogItem=(FarDialogItem*)(LONG_PTR)Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,0);
+        DialogItem=(FarDialogItem*)malloc((LONG_PTR)Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,0));
 #else
         Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,(LONG_PTR)DialogItem);
 #endif
         if(DialogItem)
         {
+#ifdef UNICODE
+          Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,(LONG_PTR)DialogItem);
+#endif
           if(DialogItem->Selected)
           {
             color|=(DialogItem->Flags&0xF0)>>4;
             break;
           }
 #ifdef UNICODE
-          Info.SendDlgMessage(hDlg,DM_FREEDLGITEM,0,(LONG_PTR)DialogItem);
+          free(DialogItem);
 #endif
         }
       }
       for(int i=18;i<34;i++)
       {
 #ifdef UNICODE
-        DialogItem=(FarDialogItem*)(LONG_PTR)Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,0);
+        DialogItem=(FarDialogItem*)malloc((LONG_PTR)Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,0));
 #else
         Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,(LONG_PTR)DialogItem);
 #endif
         if(DialogItem)
         {
+#ifdef UNICODE
+          Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,(LONG_PTR)DialogItem);
+#endif
           if(DialogItem->Selected)
           {
             color|=(DialogItem->Flags&0xF0);
             break;
           }
 #ifdef UNICODE
-          Info.SendDlgMessage(hDlg,DM_FREEDLGITEM,0,(LONG_PTR)DialogItem);
+          free(DialogItem);
 #endif
         }
       }
       for(int i=36;i<39;i++)
       {
 #ifdef UNICODE
-        DialogItem=(FarDialogItem*)(LONG_PTR)Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,0);
+        DialogItem=(FarDialogItem*)malloc((LONG_PTR)Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,0));
 #else
         Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,(LONG_PTR)DialogItem);
 #endif
         if(DialogItem)
         {
+#ifdef UNICODE
+          Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,(LONG_PTR)DialogItem);
+#endif
           DialogItem->Flags=(DialogItem->Flags&0xffffff00)|color;
           Info.SendDlgMessage(hDlg,DM_SETDLGITEM,i,(LONG_PTR)DialogItem);
 #ifdef UNICODE
-          Info.SendDlgMessage(hDlg,DM_FREEDLGITEM,0,(LONG_PTR)DialogItem);
+          free(DialogItem);
 #endif
         }
       }
