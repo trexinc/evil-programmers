@@ -3,3 +3,5 @@ EXPORTS
 	SetStartupInfoW
 	OpenPluginW
 	GetPluginInfoW
+	GetMinFarVersionW
+	ProcessSynchroEventW
