@@ -6,6 +6,11 @@ Legend:  + added
          * changed
          ! fixed
 
+v2.2 (21/06/09)
+---------------
+
+ + Single step undo in Far 2.0.
+
 v2.1 (21/12/08)
 ---------------
 
