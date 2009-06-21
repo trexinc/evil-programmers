@@ -110,6 +110,12 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom, int Item)
     }
   }
 
+#ifdef UNICODE
+  struct EditorUndoRedo eur={0};
+  eur.Command=EUR_BEGIN;
+  Info.EditorControl(ECTL_UNDOREDO,&eur);
+#endif
+
   do
   {
     struct EditorGetString egs;
@@ -170,6 +176,11 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom, int Item)
     esp.CurTabPos = -1;
     Info.EditorControl(ECTL_SETPOSITION,&esp);
   }
+
+#ifdef UNICODE
+  eur.Command=EUR_END;
+  Info.EditorControl(ECTL_UNDOREDO,&eur);
+#endif
 
   return INVALID_HANDLE_VALUE;
 }
