@@ -122,14 +122,26 @@ static inline HRESULT CreateLink(LPCTSTR lpszPathObj, LPCTSTR lpszPathLink)
 static inline VOID PanelsRedraw(VOID)
 {
 #ifdef UNICODE
-  Info.Control(INVALID_HANDLE_VALUE, FCTL_UPDATEPANEL, 0, NULL);
-  Info.Control(INVALID_HANDLE_VALUE, FCTL_REDRAWPANEL, 0, NULL);
+  Info.AdvControl(Info.ModuleNumber, ACTL_SYNCHRO, NULL);
 #else
   SetFileApisToOEM();
   Info.Control(INVALID_HANDLE_VALUE, FCTL_UPDATEPANEL, NULL);
   Info.Control(INVALID_HANDLE_VALUE, FCTL_REDRAWPANEL, NULL);
 #endif
 }
+
+#ifdef UNICODE
+INT WINAPI ProcessSynchroEventW(INT Event, VOID *Param)
+{
+  if (Event == SE_COMMONSYNCHRO)
+  {
+    Info.Control(INVALID_HANDLE_VALUE, FCTL_UPDATEPANEL, 0, NULL);
+    Info.Control(INVALID_HANDLE_VALUE, FCTL_REDRAWPANEL, 0, NULL);
+  }
+
+  return 0;
+}
+#endif
 
 static DWORD _stdcall CopyThread(LPVOID pci)
 {
@@ -150,7 +162,9 @@ static DWORD _stdcall CopyThread(LPVOID pci)
   FOS.fFlags = FOF_ALLOWUNDO;
   SHFileOperation(&FOS);
   HeapFree(hHeap, 0, pci);
+#ifndef UNICODE
   if (GetTickCount() < (dwStart + 2000))
+#endif
   {
     PanelsRedraw();
   }
@@ -625,6 +639,15 @@ VOID WINAPI EXP_NAME(SetStartupInfo)(CONST struct PluginStartupInfo *pInfo)
   Info = *pInfo;
   hHeap = GetProcessHeap();
 }
+
+#ifdef UNICODE
+INT WINAPI EXP_NAME(GetMinFarVersion)(VOID)
+{
+#ifdef UNICODE
+  return MAKEFARVERSION(2, 0, 1005);
+#endif
+}
+#endif
 
 /*#ifndef _DEBUG
 extern "C" int WINAPI _DllMainCRTStartup(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
