@@ -8,6 +8,9 @@
 
 #include <shellapi.h>
 #include <shlobj.h>
+#if defined(__GNUC__)
+#include <CRT/crt.hpp>
+#endif
 #include <malloc.h>
 
 #ifdef UNICODE
@@ -146,7 +149,9 @@ INT WINAPI ProcessSynchroEventW(INT Event, VOID *Param)
 static DWORD _stdcall CopyThread(LPVOID pci)
 {
   SHFILEOPSTRUCT FOS;
+#ifndef UNICODE
   DWORD dwStart = GetTickCount();
+#endif
 
   ZeroMemory(&FOS, sizeof(FOS));
   FOS.pTo = (TCHAR*)(((DWORD*)pci) + 1);
@@ -655,3 +660,33 @@ extern "C" int WINAPI _DllMainCRTStartup(HINSTANCE hinstDLL, DWORD fdwReason, LP
   return TRUE;
 }
 #endif*/
+
+#if defined(__GNUC__)
+#ifdef __cplusplus
+extern "C"{
+#endif
+void __cxa_pure_virtual(void);
+#ifdef __cplusplus
+};
+#endif
+
+void __cxa_pure_virtual(void)
+{
+}
+
+#ifdef __cplusplus
+extern "C"{
+#endif
+  BOOL WINAPI DllMainCRTStartup(HANDLE hDll,DWORD dwReason,LPVOID lpReserved);
+#ifdef __cplusplus
+};
+#endif
+
+BOOL WINAPI DllMainCRTStartup(HANDLE hDll,DWORD dwReason,LPVOID lpReserved)
+{
+  (void) hDll;
+  (void) dwReason;
+  (void) lpReserved;
+  return TRUE;
+}
+#endif
