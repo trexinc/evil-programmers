@@ -1,6 +1,8 @@
 EXPORTS
+ GetMinFarVersionW
  SetStartupInfoW
  GetPluginInfoW
  OpenPluginW
+ ProcessSynchroEventW
  ExitFARW
  RestartFARW

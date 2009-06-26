@@ -23,7 +23,7 @@ FILEFLAGS VS_FF_PRERELEASE
    VALUE L"FileVersion",ALLSTR
    VALUE L"ProductVersion",ALLSTR
    VALUE L"InternalName",L"Update"
-   VALUE L"OriginalFilename",L"update" SUFFIX L".dll"
+   VALUE L"OriginalFilename",L"update.dll"
    VALUE L"ProductName",PRODUCTNAME
   }
  }

@@ -1,5 +1,5 @@
 NAME = update
-DLLNAME = $(NAME)$(_ODS_).dll
+DLLNAME = $(NAME).dll
 
 !ifndef DEBUG
 _ODN_=final
@@ -38,7 +38,7 @@ ULOUT=-Tpd -Re
 
 DLLFULLNAME = $(OUTDIR)\$(DLLNAME)
 DEF=$(NAME)$(_ODS_).vc.def
-MAP=$(OUTDIR)\$(NAME)$(_ODS_).map
+MAP=$(OUTDIR)\$(NAME).map
 
 PCH=$(INTDIR)\headers.pch
 
@@ -80,7 +80,7 @@ ALL: $(OUTDIR) $(INTDIR) lng $(PCH) $(DLLFULLNAME)
 lng: lng.templ
 	@echo generating language files
 	@tools\lng.generator.exe -nc -i lng.ini -ol "$(OUTDIR)" lng.templ
-	@copy /b $(NAME).dll.config $(OUTDIR)\$(DLLNAME).config
+	@copy /b $(DLLNAME).config $(OUTDIR)\$(DLLNAME).config
 	@copy /b 7zxr.dll.$(_ODB_) $(OUTDIR)\7zxr.dll
 !ifndef ANSI
 	@$(COMMON)\convert.exe "$(OUTDIR)"\update_ru.lng "$(OUTDIR)"\update_en.lng "$(OUTDIR)"\

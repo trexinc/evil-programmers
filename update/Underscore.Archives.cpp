@@ -297,7 +297,20 @@ HRESULT __stdcall CArchiveExtractCallback::SetOperationResult (int resultEOperat
 
 bool COutFile::Open (const TCHAR *lpFileName)
 {
-	HANDLE hFile = CreateFile (lpFileName, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+	DWORD Attr=GetFileAttributes(lpFileName);
+	if(Attr!=INVALID_FILE_ATTRIBUTES)
+	{
+		if(Attr&FILE_ATTRIBUTE_READONLY)
+		{
+			Attr^=FILE_ATTRIBUTE_READONLY;
+			SetFileAttributes(lpFileName,Attr);
+		}
+	}
+	else
+	{
+		Attr=FILE_ATTRIBUTE_NORMAL;
+	}
+	HANDLE hFile = CreateFile (lpFileName, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, CREATE_ALWAYS,Attr|FILE_FLAG_SEQUENTIAL_SCAN, NULL);
 
 	if ( hFile != INVALID_HANDLE_VALUE )
 	{

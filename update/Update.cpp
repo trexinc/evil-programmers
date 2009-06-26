@@ -13,7 +13,39 @@
 #include "HideCursor.hpp"
 #include "TextColor.hpp"
 
-IPC ipc;
+enum STATUS
+{
+	S_CANTCONNECT,
+	S_UPTODATE,
+	S_REQUIRED,
+};
+
+enum EVENT
+{
+	E_ASKLOAD,
+	E_CONNECTFAIL,
+	E_DOWNLOADED,
+};
+
+struct EventStruct
+{
+	EVENT Event;
+	LPVOID Data;
+	bool *Result;
+};
+
+struct IPC
+{
+	TCHAR FarModule[MAX_PATH];
+	TCHAR FarDirectory[MAX_PATH];
+	TCHAR PluginModule[MAX_PATH];
+	TCHAR PluginDirectory[MAX_PATH];
+	TCHAR FarParams[MAX_PATH*4];
+	TCHAR TempDirectory[MAX_PATH];
+	TCHAR Config[MAX_PATH];
+	TCHAR UpdateList[MAX_PATH];
+	TCHAR SevenZip[MAX_PATH];
+} ipc;
 
 LPCTSTR strVer=TEXT("1.0");
 LPCTSTR Directory=TEXT("FUTMP");
@@ -60,7 +92,6 @@ PluginStartupInfo Info;
 FarStandardFunctions FSF;
 
 DWORD Mode=0;
-bool Force=false;
 
 INT mprintf(LPCTSTR format,...)
 {
@@ -112,63 +143,27 @@ LPSTR * CommandLineToArgvA(LPCSTR lpCmdLineA, __out int* pNumArgs)
 #define CommandLineToArgv CommandLineToArgvW
 #endif
 
-bool GetCurrentModuleVersion(LPCTSTR Module,VerInfo &vi)
+VOID GetNewModuleVersion(DWORD &NewMajor,DWORD &NewMinor,DWORD &NewBuild)
 {
-	bool ret=false;
-	DWORD dwHandle;
-	DWORD dwSize=GetFileVersionInfoSize(Module,&dwHandle);
-	if(dwSize)
-	{
-		LPVOID Data=malloc(dwSize);
-		if(Data)
-		{
-			if(GetFileVersionInfo(Module,NULL,dwSize,Data))
-			{
-				VS_FIXEDFILEINFO *ffi;
-				UINT Len;
-				LPVOID lplpBuffer;
-				if(VerQueryValue(Data,TEXT("\\"),&lplpBuffer,&Len))
-				{
-					ffi=static_cast<VS_FIXEDFILEINFO*>(lplpBuffer);
-					if(ffi->dwFileType==VFT_APP || ffi->dwFileType==VFT_DLL)
-					{
-						vi.Version=LOBYTE(HIWORD(ffi->dwFileVersionMS));
-						vi.SubVersion=LOBYTE(LOWORD(ffi->dwFileVersionMS));
-						vi.Build=LOWORD(ffi->dwFileVersionLS);
-						vi.FarBuild=LOWORD(ffi->dwProductVersionLS);
-						ret=true;
-					}
-				}
-			}
-			free(Data);
-		}
-	}
-	if(!ret && Force)
-	{
-		vi.Version=0;
-		vi.SubVersion=0;
-		vi.Build=0;
-		vi.FarBuild=0;
-		ret=true;
-	}	
-	return ret;
+	NewMajor=GetPrivateProfileInt(TEXT("far"),TEXT("major"),-1,ipc.UpdateList);
+	NewMinor=GetPrivateProfileInt(TEXT("far"),TEXT("minor"),-1,ipc.UpdateList);
+	NewBuild=GetPrivateProfileInt(TEXT("far"),TEXT("build"),-1,ipc.UpdateList);
 }
 
-bool GetNewModuleVersion(LPCTSTR Name,VerInfo &vi)
+bool NeedUpdate()
 {
-	vi.Version=GetPrivateProfileInt(Name,TEXT("major"),-1,ipc.UpdateList);
-	vi.SubVersion=GetPrivateProfileInt(Name,TEXT("minor"),-1,ipc.UpdateList);
-	vi.Build=GetPrivateProfileInt(Name,TEXT("build"),-1,ipc.UpdateList);
-	vi.FarBuild=GetPrivateProfileInt(Name,TEXT("farbuild"),vi.Build,ipc.UpdateList);
-	return vi.Version!=-1 && vi.SubVersion!=-1 && vi.Build!=-1 && vi.FarBuild!=-1;
+	DWORD CurVer=static_cast<DWORD>(Info.AdvControl(Info.ModuleNumber,ACTL_GETFARVERSION,NULL));
+	DWORD CurMajor=HIBYTE(LOWORD(CurVer)),NewMajor;
+	DWORD CurMinor=LOBYTE(LOWORD(CurVer)),NewMinor;
+	DWORD CurBuild=HIWORD(CurVer),NewBuild;
+	
+	GetNewModuleVersion(NewMajor,NewMinor,NewBuild);
+
+	return (NewMajor>CurMajor) || 
+	((NewMajor==CurMajor)&&(NewMinor>CurMinor))||
+	((NewMajor==CurMajor)&&(NewMinor==CurMinor)&&(NewBuild>CurBuild));
 }
 
-bool NeedUpdate(VerInfo &vi_old,VerInfo &vi_new)
-{                                                         
-	return (vi_new.Version>vi_old.Version) || 
-	((vi_new.Version==vi_old.Version)&&(vi_new.SubVersion>vi_old.SubVersion))||
-	((vi_new.Version==vi_old.Version)&&(vi_new.SubVersion==vi_old.SubVersion)&&((vi_new.Build>vi_old.Build)||(vi_new.FarBuild>vi_old.FarBuild)));
-}
 typedef BOOL (CALLBACK* DOWNLOADPROC)(DWORD);
 
 BOOL CALLBACK DownloadProc(DWORD Percent)
@@ -181,7 +176,7 @@ BOOL CALLBACK DownloadProc(DWORD Percent)
 	else
 	{
 		mprintf(TEXT("    "));
- 	}
+	}
 	return TRUE;
 }
 
@@ -293,7 +288,7 @@ bool DownloadFile(LPCTSTR RemoteFile,LPCTSTR LocalName=NULL,bool UseCallBack=fal
 	return WinInetDownload(RemoteSrv,RemoteFile,LocalFile,UseCallBack?DownloadProc:NULL)==0;
 }
 
-DWORD CheckUpdates(DWORD *Mask=NULL)
+DWORD CheckUpdates()
 {
 	DWORD Ret=S_UPTODATE;
 	CreateDirectory(ipc.TempDirectory,NULL);
@@ -307,33 +302,9 @@ DWORD CheckUpdates(DWORD *Mask=NULL)
 		{
 			return S_CANTCONNECT;
 		}
-		for(size_t i=0;i<ARRAYSIZE(Modules);i++)
+		if(NeedUpdate())
 		{
-			VerInfo vi_old,vi_new;
-			TCHAR RealName[MAX_PATH];
-			lstrcpy(RealName,ipc.FarDirectory);
-			lstrcat(RealName,Modules[i].Path);
-			if(Modules[i].Path&&*Modules[i].Path)
-				lstrcat(RealName,TEXT("\\"));
-			lstrcat(RealName,Modules[i].Module);
-			if(GetCurrentModuleVersion(RealName,vi_old))
-			{
-				if(GetNewModuleVersion(Modules[i].DisplayName,vi_new))
-				{
-					if(NeedUpdate(vi_old,vi_new))
-					{
-						Ret=S_REQUIRED;
-						if(Mask)
-						{
-							*Mask|=(1<<i);
-						}
-						else
-						{
-							break;
-						}
-					}
-				}
-			}
+			Ret=S_REQUIRED;
 		}
 	}
 	else
@@ -345,66 +316,33 @@ DWORD CheckUpdates(DWORD *Mask=NULL)
 
 bool DownloadUpdates(bool Silent=false)
 {
-	for(size_t i=0;i<ARRAYSIZE(Modules);i++)
+	TCHAR URL[1024],arc[MAX_PATH];
+	GetPrivateProfileString(TEXT("far"),TEXT("arc"),TEXT(""),arc,ARRAYSIZE(arc),ipc.UpdateList);
+	FSF.sprintf(URL,TEXT("%s/%s"),RemotePath,arc);
+	if(!Silent)
 	{
-		VerInfo vi_old,vi_new;
-		TCHAR RealName[MAX_PATH];
-		lstrcpy(RealName,ipc.FarDirectory);
-		lstrcat(RealName,Modules[i].Path);
-		if(Modules[i].Path&&*Modules[i].Path)
-			lstrcat(RealName,TEXT("\\"));
-		lstrcat(RealName,Modules[i].Module);
-
-		if(GetCurrentModuleVersion(RealName,vi_old))
+		mprintf(TEXT("%s %-50s"),MSG(MLoad),TEXT("Far"));
+	}
+	if(DownloadFile(URL,NULL,!Silent))
+	{
+		if(!Silent)
 		{
-			if(GetNewModuleVersion(Modules[i].DisplayName,vi_new))
-			{
-				if(NeedUpdate(vi_old,vi_new))
-				{
-					TCHAR URL[1024],arc[MAX_PATH];
-					GetPrivateProfileString(Modules[i].DisplayName,TEXT("arc"),TEXT(""),arc,ARRAYSIZE(arc),ipc.UpdateList);
-					FSF.sprintf(URL,TEXT("%s/%s"),RemotePath,arc);
-					if(!Silent)
-						mprintf(TEXT("%s %-50s"),MSG(MLoad),Modules[i].DisplayName);
-					if(DownloadFile(URL,NULL,!Silent))
-					{
-						if(!Silent)
-						{
-							TextColor color(FOREGROUND_GREEN|FOREGROUND_INTENSITY);
-							mprintf(TEXT("OK"));
-						}
-						NeedRestart=true;
-					}
-					else
-					{
-						if(!Silent)
-						{
-							TextColor color(FOREGROUND_RED|FOREGROUND_INTENSITY);
-							mprintf(TEXT("download error %d"),GetLastError());
-						}
-					}
-				}
-				else
-				{
-					if(!Silent)
-					{
-						mprintf(TEXT("%s %s"),Modules[i].DisplayName,MSG(MUpToDate));
-					}
-				}
-			}
-			else
-			{
-				if(!Silent)
-				{
-					TextColor color(FOREGROUND_RED|FOREGROUND_INTENSITY);
-					mprintf(TEXT("%s %s"),MSG(MCantFindInfo),Modules[i].DisplayName);
-				}
-			}
-			if(!Silent)
-			{
-				mprintf(TEXT("\n"));
-			}
+			TextColor color(FOREGROUND_GREEN|FOREGROUND_INTENSITY);
+			mprintf(TEXT("OK"));
 		}
+		NeedRestart=true;
+	}
+	else
+	{
+		if(!Silent)
+		{
+			TextColor color(FOREGROUND_RED|FOREGROUND_INTENSITY);
+			mprintf(TEXT("download error %d"),GetLastError());
+		}
+	}
+	if(!Silent)
+	{
+		mprintf(TEXT("\n"));
 	}
 	return true;
 }
@@ -458,8 +396,6 @@ VOID StartUpdate(bool Silent=false)
 		}
 		LocalFree(Argv);
 
-		ipc.Silent=!Silent;
-
 		FSF.sprintf(cmdline,TEXT("rundll32 \"%s\", RestartFAR %I64d %I64d"),ipc.PluginModule,reinterpret_cast<INT64>(ProcDup),reinterpret_cast<INT64>(&ipc));
 
 		STARTUPINFO si={sizeof(si)};
@@ -475,6 +411,25 @@ VOID StartUpdate(bool Silent=false)
 			{
 				TextColor color(FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_INTENSITY);
 				mprintf(TEXT("\n%s\n"),MSG(MExitFAR));
+			}
+			else
+			{
+#ifndef UNICODE
+				char Title[1024],Msg[1024];
+				lstrcpy(Title,MSG(MName));
+				OemToCharBuff(Title,Title,ARRAYSIZE(Title));
+				lstrcpy(Msg,MSG(MUpdatesDownloaded));
+				lstrcat(Msg,"\n");
+				lstrcat(Msg,MSG(MExitFAR));
+				OemToCharBuff(Msg,Msg,ARRAYSIZE(Msg));
+				MessageBox(NULL,Msg,Title,MB_ICONINFORMATION);
+#else
+				HANDLE hEvent=CreateEvent(NULL,FALSE,FALSE,NULL);
+				EventStruct es={E_DOWNLOADED,hEvent};
+				Info.AdvControl(Info.ModuleNumber,ACTL_SYNCHRO,&es);
+				WaitForSingleObject(hEvent,INFINITE);
+				CloseHandle(hEvent);
+#endif
 			}
 			EnterCriticalSection(&cs);
 			SaveTime();
@@ -516,47 +471,46 @@ DWORD WINAPI ThreadProc(LPVOID /*lpParameter*/)
 
 		if(Time)
 		{
-			DWORD Mask=0;
-			switch(CheckUpdates(&Mask))
+			switch(CheckUpdates())
 			{
 			case S_REQUIRED:
 				{
+#ifndef UNICODE
 					TCHAR Msg[2048];
 					lstrcpy(Msg,MSG(MAvailableUpdates));
-#ifndef UNICODE
 					OemToCharBuff(Msg,Msg,lstrlen(Msg));
-#endif
 					lstrcat(Msg,TEXT("\n\n"));
-					for(size_t i=0;i<ARRAYSIZE(Modules);i++)
+					lstrcat(Msg,TEXT("Far Manager"));
+					DWORD NewMajor,NewMinor,NewBuild;
+					GetNewModuleVersion(NewMajor,NewMinor,NewBuild);
 					{
-						if(Mask&(1<<i))
-						{
-							lstrcat(Msg,Modules[i].DisplayName);
-							VerInfo vi;
-							if(GetNewModuleVersion(Modules[i].DisplayName,vi))
-							{
-								TCHAR Version[MAX_PATH];
-								wsprintf(Version,TEXT(" (%d.%d build %d)"),vi.Version,vi.SubVersion,vi.Build);
-								lstrcat(Msg,Version);
-							}
-							lstrcat(Msg,TEXT("\n"));
-						}
+						TCHAR Version[MAX_PATH];
+						wsprintf(Version,TEXT("Far Manager (%d.%d build %d)"),NewMajor,NewMinor,NewBuild);
+						lstrcat(Msg,Version);
 					}
 					lstrcat(Msg,TEXT("\n"));
-#ifndef UNICODE
 					TCHAR Tmp[1024];
-					lstrcpy(Tmp,MSG(MAsk2));
+					lstrcpy(Tmp,MSG(MAsk));
 					OemToCharBuff(Tmp,Tmp,lstrlen(Tmp));
 					lstrcat(Msg,Tmp);
-#else
-					lstrcat(Msg,MSG(MAsk2));
 #endif
 					EnterCriticalSection(&cs);
 					SaveTime();
 					lock=true;
 					LeaveCriticalSection(&cs);
-					Info.Message(Info.ModuleNumber,FMSG_MB_YESNO|FMSG_LEFTALIGN,TEXT("iddqd"),NULL,1,2);
-					bool Load=(Mode==2)||MessageBox(NULL,Msg,TEXT("FAR Update"),MB_ICONINFORMATION|MB_YESNO)==IDYES;
+					bool Load=(Mode==2);
+					if(!Load)
+					{
+#ifndef UNICODE
+						Load=(MessageBox(NULL,Msg,TEXT("FAR Update"),MB_ICONINFORMATION|MB_YESNO)==IDYES);
+#else
+						HANDLE hEvent=CreateEvent(NULL,FALSE,FALSE,NULL);
+						EventStruct es={E_ASKLOAD,hEvent,&Load};
+						Info.AdvControl(Info.ModuleNumber,ACTL_SYNCHRO,&es);
+						WaitForSingleObject(hEvent,INFINITE);
+						CloseHandle(hEvent);
+#endif
+					}
 					if(Load)
 					{
 						if(DownloadUpdates(true))
@@ -580,10 +534,16 @@ DWORD WINAPI ThreadProc(LPVOID /*lpParameter*/)
 					CHAR Msg[1024];
 					lstrcpy(Msg,MSG(MCantConnect));
 					OemToCharBuff(Msg,Msg,lstrlen(Msg));
-#else
-					LPCWSTR Msg=MSG(MCantConnect);
-#endif
 					if(MessageBox(NULL,Msg,TEXT("FAR Update"),MB_ICONERROR|MB_RETRYCANCEL)==IDCANCEL)
+#else
+					HANDLE hEvent=CreateEvent(NULL,FALSE,FALSE,NULL);
+					bool Cancel=false;
+					EventStruct es={E_CONNECTFAIL,hEvent,&Cancel};
+					Info.AdvControl(Info.ModuleNumber,ACTL_SYNCHRO,&es);
+					WaitForSingleObject(hEvent,INFINITE);
+					CloseHandle(hEvent);
+					if(Cancel)
+#endif
 					{
 						EnterCriticalSection(&cs);
 						SaveTime();
@@ -633,25 +593,20 @@ VOID InitPaths()
 
 }
 
-VOID ReadUserPaths()
-{
-	static TCHAR UserPaths[ARRAYSIZE(Modules)][MAX_PATH];
-	for(size_t i=1;i<ARRAYSIZE(Modules);i++)
-	{
-		GetPrivateProfileString(TEXT("paths"),Modules[i].DisplayName,Modules[i].Path,UserPaths[i],ARRAYSIZE(UserPaths[i]),ipc.Config);
-		Modules[i].Path=UserPaths[i];
-	}
-}
-
 VOID ReadSettings()
 {
-	Force=(GetPrivateProfileInt(TEXT("update"),TEXT("Force"),1,ipc.Config)!=0);
 	Mode=GetPrivateProfileInt(TEXT("update"),TEXT("Mode"),2,ipc.Config);
 
 	bUseProxy = GetPrivateProfileInt(TEXT("connect"),TEXT("proxy"), 0, ipc.Config) == 1;
 	GetPrivateProfileString(TEXT("connect"),TEXT("srv"),TEXT(""),strProxyName,ARRAYSIZE(strProxyName),ipc.Config);
 	GetPrivateProfileString(TEXT("connect"),TEXT("user"), TEXT(""),strProxyUser,ARRAYSIZE(strProxyUser),ipc.Config);
 	GetPrivateProfileString(TEXT("connect"),TEXT("pass"), TEXT(""),strProxyPass,ARRAYSIZE(strProxyPass),ipc.Config);
+}
+
+
+INT WINAPI EXP_NAME(GetMinFarVersion)()
+{
+	return MAKEFARVERSION(MIN_FAR_MAJOR_VER,MIN_FAR_MINOR_VER,MIN_FAR_BUILD);
 }
 
 VOID WINAPI EXP_NAME(SetStartupInfo)(const PluginStartupInfo* psInfo)
@@ -668,20 +623,13 @@ VOID WINAPI EXP_NAME(SetStartupInfo)(const PluginStartupInfo* psInfo)
 
 	InitPaths();
 #ifndef UNICODE
-	VerInfo vi;
-	TCHAR RealName[MAX_PATH];
-	lstrcpy(RealName,ipc.FarDirectory);
-	lstrcat(RealName,Modules[0].Path);
-	lstrcat(RealName,Modules[0].Module);
-	GetCurrentModuleVersion(RealName,vi);
-	if(vi.Version>1)
+	if(HIBYTE(LOWORD(Info.AdvControl(Info.ModuleNumber,ACTL_GETFARVERSION,NULL)))>1)
 	{
 		wrapper=true;
 		return;
 	}
 #endif
 	ReadSettings();
-	ReadUserPaths();
 	InitializeCriticalSection(&cs);
 
 	if(Mode)
@@ -747,37 +695,23 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(INT /*OpenFrom*/,INT_PTR /*item*/)
 	}
 	Console console;
 	NeedRestart=false;
-	DWORD Mask=0;
-	switch(CheckUpdates(&Mask))
+	switch(CheckUpdates())
 	{
 	case S_REQUIRED:
 		{
-			LPCTSTR Items[5+ARRAYSIZE(Modules)];
-			TCHAR Str[ARRAYSIZE(Modules)][128];
+			LPCTSTR Items[6];
+			TCHAR Str[128];
 			Items[0]=MSG(MName);
 			Items[1]=MSG(MAvailableUpdates);
 			Items[2]=TEXT("\x1");
-			size_t count=3;
-			for(size_t i=0;i<ARRAYSIZE(Modules);i++)
-			{
-				if(Mask&(1<<i))
-				{
-					VerInfo vi;
-					if(GetNewModuleVersion(Modules[i].DisplayName,vi))
-					{
-						FSF.sprintf(Str[i],TEXT("%s (%d.%d build %d)"),Modules[i].DisplayName,vi.Version,vi.SubVersion,vi.Build);
-						Items[count++]=Str[i];
-					}
-					else
-					{
-						Items[count++]=Modules[i].DisplayName;
-					}
-				}
-			}
-			Items[count++]=TEXT("\x1");
-			Items[count++]=MSG(MAsk);
+			DWORD NewMajor,NewMinor,NewBuild;
+			GetNewModuleVersion(NewMajor,NewMinor,NewBuild);
+			FSF.sprintf(Str,TEXT("Far Manager (%d.%d build %d)"),NewMajor,NewMinor,NewBuild);
+			Items[3]=Str;
+			Items[4]=TEXT("\x1");
+			Items[5]=MSG(MAsk);
 
-			if(!Info.Message(Info.ModuleNumber,FMSG_MB_YESNO|FMSG_LEFTALIGN,NULL,Items,(int)count,2))
+			if(!Info.Message(Info.ModuleNumber,FMSG_MB_YESNO|FMSG_LEFTALIGN,NULL,Items,ARRAYSIZE(Items),2))
 			{
 				DownloadUpdates();
 				StartUpdate();
@@ -823,6 +757,55 @@ bool Extract(LPCTSTR lpArc,LPCTSTR lpPath,LPCTSTR lpDestDir)
 	return ArchiveManager.Extract(lpPath,lpDestDir);
 }
 
+#ifdef UNICODE
+INT WINAPI EXP_NAME(ProcessSynchroEvent)(INT Event,LPVOID Param)
+{
+	switch(Event)
+	{
+	case SE_COMMONSYNCHRO:
+		{
+			EventStruct* es=reinterpret_cast<EventStruct*>(Param);
+			switch(es->Event)
+			{
+			case E_ASKLOAD:
+				{
+					TCHAR Str[128];
+					DWORD NewMajor,NewMinor,NewBuild;
+					GetNewModuleVersion(NewMajor,NewMinor,NewBuild);
+					FSF.sprintf(Str,TEXT("Far Manager (%d.%d build %d)"),NewMajor,NewMinor,NewBuild);
+					LPCTSTR Items[]={MSG(MName),MSG(MAvailableUpdates),TEXT("\x1"),Str,TEXT("\x1"),MSG(MAsk)};
+					if(!Info.Message(Info.ModuleNumber,FMSG_MB_YESNO|FMSG_LEFTALIGN,NULL,Items,ARRAYSIZE(Items),2))
+					{
+						*es->Result=true;
+					}
+					SetEvent(reinterpret_cast<HANDLE>(es->Data));
+				}
+				break;
+			case E_CONNECTFAIL:
+				{
+					LPCTSTR Items[]={MSG(MName),MSG(MCantConnect)};
+					if(Info.Message(Info.ModuleNumber,FMSG_MB_RETRYCANCEL|FMSG_LEFTALIGN|FMSG_WARNING,NULL,Items,ARRAYSIZE(Items),2))
+					{
+						*es->Result=true;
+					}
+					SetEvent(reinterpret_cast<HANDLE>(es->Data));
+				}
+				break;
+			case E_DOWNLOADED:
+				{
+					LPCWSTR Items[]={MSG(MName),MSG(MUpdatesDownloaded),MSG(MExitFAR)};
+					Info.Message(Info.ModuleNumber,FMSG_MB_OK,NULL,Items,ARRAYSIZE(Items),0);
+					SetEvent(reinterpret_cast<HANDLE>(es->Data));
+				}
+				break;
+			}
+		}
+		break;
+	}
+	return 0;
+}
+#endif
+
 EXTERN_C VOID WINAPI EXP_NAME(RestartFAR)(HWND,HINSTANCE,LPCTSTR lpCmd,DWORD)
 {
 	ifn.Load();
@@ -858,10 +841,6 @@ EXTERN_C VOID WINAPI EXP_NAME(RestartFAR)(HWND,HINSTANCE,LPCTSTR lpCmd,DWORD)
 			INT_PTR IPCPtr=StringToNumber(argv[n+1],IPCPtr);
 			if(ReadProcessMemory(hFar,reinterpret_cast<LPCVOID>(IPCPtr),&ipc,sizeof(IPC),NULL))
 			{
-				if(!ipc.Silent)
-				{
-					MessageBox(NULL,TEXT("Updates are downloaded.\n\nExit from FAR to continue."),TEXT("Update"),MB_ICONINFORMATION);
-				}
 				WaitForSingleObject(hFar,INFINITE);
 
 				CONSOLE_SCREEN_BUFFER_INFO csbi;
@@ -874,53 +853,57 @@ EXTERN_C VOID WINAPI EXP_NAME(RestartFAR)(HWND,HINSTANCE,LPCTSTR lpCmd,DWORD)
 
 				mprintf(TEXT("\n\n\n"));
 
-				ReadUserPaths();
-				for(size_t i=0;i<ARRAYSIZE(Modules);i++)
-				{
-					TCHAR destpath[MAX_PATH];
-					lstrcpy(destpath,ipc.FarDirectory);
-					lstrcat(destpath,Modules[i].Path);
-					if (destpath[lstrlen(destpath)-1]!=TEXT('\\'))
-					{
-						lstrcat(destpath,TEXT("\\"));
-					}
+				TCHAR destpath[MAX_PATH];
+				lstrcpy(destpath,ipc.FarDirectory);
 
-					TCHAR arc[MAX_PATH];
-					GetPrivateProfileString(Modules[i].DisplayName,TEXT("arc"),TEXT(""),arc,ARRAYSIZE(arc),ipc.UpdateList);
-					if(*arc)
+				TCHAR arc[MAX_PATH];
+				GetPrivateProfileString(TEXT("far"),TEXT("arc"),TEXT(""),arc,ARRAYSIZE(arc),ipc.UpdateList);
+				if(*arc)
+				{
+					TCHAR local_arc[MAX_PATH];
+					lstrcpy(local_arc,ipc.TempDirectory);
+					lstrcat(local_arc,arc);
+					if(GetFileAttributes(local_arc)!=INVALID_FILE_ATTRIBUTES)
 					{
-						TCHAR local_arc[MAX_PATH];
-						lstrcpy(local_arc,ipc.TempDirectory);
-						lstrcat(local_arc,arc);
-						if(GetFileAttributes(local_arc)!=INVALID_FILE_ATTRIBUTES)
+						bool Result=false;
+						while(!Result)
 						{
 							mprintf(TEXT("Unpacking %-50s"),arc);
-							bool Result=false;
-							while(!Result)
+							if(!Extract(ipc.SevenZip,local_arc,destpath))
 							{
-								if(!Extract(ipc.SevenZip,local_arc,destpath))
 								{
-									if(MessageBox(NULL,TEXT("unpack error"),TEXT("FAR Update"),MB_ICONERROR|MB_RETRYCANCEL)==IDCANCEL)
-									{
-										break;
-									}
+									TextColor color(FOREGROUND_RED|FOREGROUND_INTENSITY);
+									mprintf(TEXT("\nUnpack error. Retry? (Y/N) "));
 								}
-								else
+								INPUT_RECORD ir={0};
+								DWORD n;
+								while(!(ir.EventType==KEY_EVENT && !ir.Event.KeyEvent.bKeyDown && (ir.Event.KeyEvent.wVirtualKeyCode==L'Y'||ir.Event.KeyEvent.wVirtualKeyCode==L'N')))
 								{
-									Result=true;
+									ReadConsoleInput(GetStdHandle(STD_INPUT_HANDLE),&ir,1,&n);
+									Sleep(1);
 								}
-							}
-							if(Result)
-							{
-								TextColor color(FOREGROUND_GREEN|FOREGROUND_INTENSITY);
-								mprintf(TEXT("OK\n"));
-								DeleteFile(local_arc);
+								if(ir.Event.KeyEvent.wVirtualKeyCode==L'N')
+								{
+									mprintf(TEXT("\n"));
+									break;
+								}
+								mprintf(TEXT("\n"));
 							}
 							else
 							{
-								TextColor color(FOREGROUND_RED|FOREGROUND_INTENSITY);
-								mprintf(TEXT("error\n"));
+								Result=true;
 							}
+						}
+						if(Result)
+						{
+							TextColor color(FOREGROUND_GREEN|FOREGROUND_INTENSITY);
+							mprintf(TEXT("OK\n"));
+							DeleteFile(local_arc);
+						}
+						else
+						{
+							TextColor color(FOREGROUND_RED|FOREGROUND_INTENSITY);
+							mprintf(TEXT("error\n"));
 						}
 					}
 				}
@@ -959,7 +942,7 @@ EXTERN_C VOID WINAPI EXP_NAME(RestartFAR)(HWND,HINSTANCE,LPCTSTR lpCmd,DWORD)
 					DrawMenuBar(GetConsoleWindow());
 				}
 				TextColor color(FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE|FOREGROUND_INTENSITY);
-				mprintf(TEXT("\n%-60s"),TEXT("Starting FAR again..."));
+				mprintf(TEXT("\n%-60s"),TEXT("Starting FAR..."));
 				STARTUPINFO si={sizeof(si)};
 				PROCESS_INFORMATION pi;
 				TCHAR FarCmd[2048];
