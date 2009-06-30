@@ -20,7 +20,7 @@
 
 void avl_window_data::clear(void)
 {
-  Active=On=false;
+  Active=On=BlockDeleted=false;
   Rewrited.clear();
   Inserted.clear();
 }

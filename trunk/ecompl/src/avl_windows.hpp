@@ -33,6 +33,7 @@ class avl_window_data
     size_t OldLen; //original word len
     size_t AddedLen; //autotext len
     bool On; //Autocomplete at next redraw
+    bool BlockDeleted; //non-persistent strem block - so skip 1st event.
     string Rewrited;
     string Inserted;
     avl_window_data(int value);
