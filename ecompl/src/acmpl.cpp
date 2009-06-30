@@ -70,7 +70,15 @@ int TAutoCompletion::ProcessEditorInput(const INPUT_RECORD *Rec)
         }
         UTCHAR c=Rec->Event.KeyEvent.uChar.t_KEY_CHAR;
         DWORD control=Rec->Event.KeyEvent.dwControlKeyState&(LEFT_ALT_PRESSED|LEFT_CTRL_PRESSED|RIGHT_ALT_PRESSED|RIGHT_CTRL_PRESSED);
-        if(IsAlpha(c)&&(control==0||control==(LEFT_CTRL_PRESSED|RIGHT_ALT_PRESSED))) Window->On=true;
+        if(IsAlpha(c)&&(control==0||control==(LEFT_CTRL_PRESSED|RIGHT_ALT_PRESSED)))
+        {
+          Window->On=true;
+          EditorInfo ei;
+          if(Info.EditorControl(ECTL_GETINFO,&ei)&&ei.BlockType==BTYPE_STREAM&&(ei.Options&EOPT_PERSISTENTBLOCKS)==0)
+          {
+            Window->BlockDeleted=true;
+          }
+        }
       }
     }
     else if((Rec->EventType==MOUSE_EVENT&&Rec->Event.MouseEvent.dwButtonState)||Rec->EventType==FARMACRO_KEY_EVENT)
@@ -107,10 +115,17 @@ int TAutoCompletion::ProcessEditorEvent(int Event,void *Param)
       {
         if(Window->On)
         {
-          Window->On=false;
-          Info.EditorControl(ECTL_REDRAW,0);
-          PutVariant(Window);
-          Info.EditorControl(ECTL_REDRAW,0);
+          if(Window->BlockDeleted)
+          {
+            if((int)Param==1) Window->BlockDeleted=false;
+          }
+          else
+          {
+            Window->On=false;
+            Info.EditorControl(ECTL_REDRAW,0);
+            PutVariant(Window);
+            Info.EditorControl(ECTL_REDRAW,0);
+          }
         }
         else if(Window->Active) Colorize(Color,Window);
       }
