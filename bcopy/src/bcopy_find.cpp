@@ -188,6 +188,7 @@
 
     SendToPipe(send,sendsize,&RetData);
     //clear selection
+    pInfo.StartSelection();
     for(int j=0;j<pInfo.ItemsNumber();j++)
       pInfo.RemoveSelection(j);
     pInfo.CommitSelection();

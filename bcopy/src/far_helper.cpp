@@ -78,9 +78,19 @@ PluginPanelItem& CFarPanel::Selected(size_t index)
   return *iItem;
 }
 
+void CFarPanel::StartSelection(void)
+{
+  Info.Control(iPlugin,FCTL_BEGINSELECTION,0,0);
+}
+
 void CFarPanel::RemoveSelection(size_t index)
 {
   Info.Control(iPlugin,FCTL_SETSELECTION,index,0);
+}
+
+void CFarPanel::CommitSelection(void)
+{
+  Info.Control(iPlugin,FCTL_ENDSELECTION,0,0);
 }
 
 CFarDialog::~CFarDialog()
