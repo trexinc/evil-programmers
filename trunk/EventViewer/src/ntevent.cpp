@@ -1143,6 +1143,7 @@ int WINAPI EXP_NAME(DeleteFiles)(HANDLE hPlugin,struct PluginPanelItem *PanelIte
             else
             {
               CFarPanel pInfo(hPlugin,FCTL_GETPANELINFO);
+              pInfo.StartSelection();
               for(int j=0;j<pInfo.ItemsNumber();j++)
                 if(!FSF.LStricmp(pInfo[j].FindData.PANEL_FILENAME,PanelItem[i].FindData.PANEL_FILENAME))
                   pInfo.RemoveSelection(j);
