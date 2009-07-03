@@ -140,8 +140,9 @@ class CFarPanel
     TCHAR* CurDir(void);
     PluginPanelItem& operator[](size_t index);
     PluginPanelItem& Selected(size_t index);
+    void StartSelection(void);
     void RemoveSelection(size_t index);
-    inline void CommitSelection(void) {};
+    void CommitSelection(void);
 };
 #else
 #define PANEL_ACTIVE  ((HANDLE)(-1))
@@ -166,6 +167,7 @@ class CFarPanel
     inline TCHAR* CurDir(void) {return iInfo.CurDir;};
     inline PluginPanelItem& operator[](size_t index) {return iInfo.PanelItems[index];};
     inline PluginPanelItem& Selected(size_t index) {return iInfo.SelectedItems[index];};
+    void StartSelection(void) {};
     inline void RemoveSelection(size_t index) {iInfo.PanelItems[index].Flags&=~PPIF_SELECTED;};
     void CommitSelection(void);
 };
