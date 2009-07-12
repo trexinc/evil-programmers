@@ -803,7 +803,7 @@ int WINAPI _export ProcessEditorInputW(const INPUT_RECORD *Rec)
         KeyEvent.wVirtualKeyCode!=VK_DELETE &&
         (
           KeyEvent.dwControlKeyState&ENHANCED_KEY ||
-          ((BYTE)KeyEvent.uChar.AsciiChar)<32
+          ((BYTE)KeyEvent.uChar.UnicodeChar)<32
         )
        )
       )
@@ -1046,18 +1046,18 @@ int WINAPI _export ProcessEditorInputW(const INPUT_RECORD *Rec)
       }
       RetCode=0;
       InitNLS(ei, nodedata);
-      //_D(SysLog(L"AsciiChar=[%c] AddSym_S=[%s]",KeyEvent.uChar.AsciiChar, nodedata.AddSym_S.str));
+      //_D(SysLog(L"UnicodeChar=[%c] AddSym_S=[%s]",KeyEvent.uChar.UnicodeChar, nodedata.AddSym_S.str));
       if(nodedata.AddSym_S.getLength() &&
          nodedata.AddSym_S.getLength()==nodedata.AddSym_E.getLength())
          RetCode=InsertAdditionalSymbol(ei, esp, ess, egs,
                             nodedata.AddSym_S, nodedata.AddSym_E,
-                            KeyEvent.uChar.AsciiChar, TRUE);
+                            KeyEvent.uChar.UnicodeChar, TRUE);
       if(!RetCode &&
          nodedata.AddSym_S_B.getLength() &&
          nodedata.AddSym_S_B.getLength()==nodedata.AddSym_E_B.getLength())
          RetCode=InsertAdditionalSymbol(ei, esp, ess, egs,
                             nodedata.AddSym_S_B, nodedata.AddSym_E_B,
-                            KeyEvent.uChar.AsciiChar, FALSE);
+                            KeyEvent.uChar.UnicodeChar, FALSE);
       isReenter=0;
       if(RetCode)
       {

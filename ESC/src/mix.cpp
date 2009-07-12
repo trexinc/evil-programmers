@@ -1397,10 +1397,10 @@ BOOL InsertAdditionalSymbol(const EditorInfo &ei,
                             EditorSetString &ess, EditorGetString &egs,
                             const strcon &AddSym_S,
                             const strcon &AddSym_E,
-                            BYTE Symbol, BOOL IncreaseCoordX)
+                            wchar_t Symbol, BOOL IncreaseCoordX)
 {
   BOOL RetCode=FALSE;
-  wchar_t *AddSym_Pos=wstrchr(AddSym_S.str, static_cast<wchar_t>(Symbol));
+  wchar_t *AddSym_Pos=wstrchr(AddSym_S.str, Symbol);
   if(AddSym_Pos)
   {
     InitESPandEGS(esp, egs);
