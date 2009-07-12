@@ -67,6 +67,6 @@ extern "C"
                             EditorSetString &ess, EditorGetString &egs,
                             const strcon &AddSym_S,
                             const strcon &AddSym_E,
-                            BYTE Symbol, BOOL IncreaseCoordX);
+                            wchar_t Symbol, BOOL IncreaseCoordX);
 }
 #endif // __mix_cpp

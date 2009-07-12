@@ -141,6 +141,8 @@ int CEditorOptions::ApplyOption(EDITOR_SETPARAMETER_TYPES type)
           RetCode=EditorControl(ECTL_SETPARAM, &ESPar);
           _D(SysLog(L"ESPT_SETWORDDIV: retcode=%d",RetCode));
           break;
+     default:
+          break;
   }
 
   return RetCode;
