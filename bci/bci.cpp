@@ -26,6 +26,7 @@
 #include <shellapi.h>
 #include <mmsystem.h>
 #include <wchar.h>
+
 #include "bcCommon.h"
 #include "bci.h"
 
@@ -37,7 +38,14 @@ enum puMenuCommands {
 	cExit
 };
 
-const wchar_t *puMenuMsg[] = {
+const wchar_t *MsgMenu1033[] = {
+	L"",
+	L"Info",
+	L"Cancel",
+	L"Pause/Continue",
+	L"Exit"
+};
+const wchar_t *MsgMenu1049[] = {
 	L"",
 	L"Информация",
 	L"Отменить",
@@ -45,7 +53,15 @@ const wchar_t *puMenuMsg[] = {
 	L"Выход"
 };
 
-const wchar_t *OutMsg[] = {
+const wchar_t *MsgOut1033[] = {
+//	L"Invalid",
+	L"Copying",
+	L"Moving",
+	L"Wiping",
+	L"Deleting",
+	L"Setting attributes"
+};
+const wchar_t *MsgOut1049[] = {
 //	L"Invalid",
 	L"Копирование",
 	L"Перенос",
@@ -54,13 +70,64 @@ const wchar_t *OutMsg[] = {
 	L"Установка атрибутов"
 };
 
-const wchar_t *AskMsg[] = {
+const wchar_t *MsgAsk1033[] = {
+	L"Attention",
+	L"Destination already exists",
+	L"The process cannot access the file",
+	L"ASKGROUP_RETRYONLY",
+	L"Symbolic link found"
+};
+const wchar_t *MsgAsk1049[] = {
 	L"Внимание",
 	L"Такой файл уже существует",
-	L"ASKGROUP_RETRY",
+	L"Нет доступа к файлу",
 	L"ASKGROUP_RETRYONLY",
-	L"ASKGROUP_LINK"
+	L"Найдена символическая связь"
 };
+
+const wchar_t MsgInfo1033[] = L"Info";
+const wchar_t MsgInfo1049[] = L"Информация";
+
+const wchar_t MsgAboutTitle1033[] = L"About";
+const wchar_t MsgAboutTitle1049[] = L"О программе";
+const wchar_t MsgAbout1033[] = L"bci - Background Copy Indicator\n\
+	to use in conjunction with Background Copy service\n\
+	(BCN.DLL must be placed near BCSVC.EXE)\n\
+\n\
+Purpose:\n\
+	Displays BC operations' progressbar(s) in tray icons\n\
+\n\
+You can view operation' details in mouse hint\n\
+If some operation needs user input (eg if destination already exists) then balloon pops out\n\
+Extra options are available from icon' context menu (pause/resume, cancel, info)\n\
+\n\
+Usage:\n\
+\n\
+bci.exe [/nb] [/s \"wav-file\" [/t \"seconds\"]] [/w]\n\
+bci.exe /r\n\
+bci.exe /?\n\
+\n\
+/r		remove running bci.exe from memory\n\
+/?		this help\n\
+\n\
+/e		enforce english dialogs\n\
+/nb		do not display balloons\n\
+/s \"wav-file\"	play sound after finishing operation\n\
+		sound plays only if operation lasts > timout\n\
+/t \"seconds\"	set timeout 0..65535 (default 60)\n\
+/w		white tray icon (default - black)";
+const wchar_t MsgAbout1049[] = L"bci - Background Copy Indicator\n\
+	приложение для использования совместно с сервисом Background Copy\n\
+	(BCN.DLL должна находиться в той же директории что и BCSVC.EXE)\n\
+//TODO НА РУССКОМ СДЕЛАТЬ!";
+
+const wchar_t **MsgMenu = MsgMenu1033;
+const wchar_t **MsgOut = MsgOut1033;
+const wchar_t **MsgAsk = MsgAsk1033;
+const wchar_t *MsgInfo = MsgInfo1033;
+const wchar_t *MsgAboutTitle = MsgAboutTitle1033;
+const wchar_t *MsgAbout = MsgAbout1033;
+const wchar_t *InfoTemplate = L"%s\n%s\nиз\n%s\nв\n%s";
 
 /// ============================================================================================ var
 //#define WM_TASKICON (WM_USER+27)
@@ -102,10 +169,12 @@ HMENU			puMenu = 0;
 UINT const		WM_TASKICON = WM_USER + 27;
 UINT 			uiTIMER = 500;
 
-size_t			TimeOut = 5 * 1000;		// play sound timeout
+size_t			TimeOut = 60 * 1000;	// play sound timeout
 bool			ColorWhite = false;		// icon color
 bool			bSendExit = false;
 bool			bNoBalloon = false;
+bool			bEnglishForced = false;
+bool			bShowAbout = false;
 
 void TrimCopy(wchar_t* buf, size_t bufsize, const wchar_t* filepath) {
 	const wchar_t* dots = L"...";
@@ -306,7 +375,7 @@ class TbIcons {
 				for (size_t k = 0; k < 16; ++k)
 					x[k] = ~(a[k] | x[k]);
 
-			FormatHint(szTip, sizeofa(szTip), OutMsg[InfoItem.type - 1], InfoItem.Src, InfoItem.percent);
+			FormatHint(szTip, sizeofa(szTip), MsgOut[InfoItem.type - 1], InfoItem.Src, InfoItem.percent);
 			HBITMAP	ba = ::CreateBitmap(16, 16, 1, 1, a);
 			HBITMAP	bx = ::CreateBitmap(16, 16, 1, 1, x);
 			ICONINFO ii = {TRUE, 0, 0, ba, bx};
@@ -319,8 +388,11 @@ class TbIcons {
 				InfoRec info;
 				MemZero(info);
 				bcopy::GetInfo(&info, InfoItem.ThreadId);
-				_snwprintf(szInfo, sizeofa(szInfo), L"%s\n%s", AskMsg[InfoItem.Ask], info.Dest);
-				ShowBalloon(IconList[i].id, AskMsg[0], szInfo);
+				if (InfoItem.Ask == 2)
+					_snwprintf(szInfo, sizeofa(szInfo), L"%s\n%s", MsgAsk[InfoItem.Ask], info.Src);
+				else
+					_snwprintf(szInfo, sizeofa(szInfo), L"%s\n%s", MsgAsk[InfoItem.Ask], info.Dest);
+				ShowBalloon(IconList[i].id, MsgAsk[0], szInfo);
 			}
 		}
 	}
@@ -385,32 +457,24 @@ public:
 /// ================================================================================================
 void			CreatePopUpMenu() {
 	puMenu = ::CreatePopupMenu();
-	::AppendMenu(puMenu, 0, cInfo, puMenuMsg[cInfo]);
+	::AppendMenu(puMenu, 0, cInfo, MsgMenu[cInfo]);
 	::AppendMenu(puMenu, MF_SEPARATOR, 0, NULL);
-	::AppendMenu(puMenu, 0, cStop, puMenuMsg[cStop]);
-	::AppendMenu(puMenu, 0, cPause, puMenuMsg[cPause]);
+	::AppendMenu(puMenu, 0, cStop, MsgMenu[cStop]);
+	::AppendMenu(puMenu, 0, cPause, MsgMenu[cPause]);
 	::AppendMenu(puMenu, MF_SEPARATOR, 0, NULL);
-	::AppendMenu(puMenu, 0, cExit, puMenuMsg[cExit]);
+	::AppendMenu(puMenu, 0, cExit, MsgMenu[cExit]);
 }
 void			ShowInfo(DWORD id) {
-	TCHAR szInfo[4*MAX_PATH] = {0};
-	SmallInfoRec	*InfoList;
-	DWORD			InfoSize;
-	if (bcopy::GetList(InfoList, InfoSize)) {
-		if (InfoSize) {
-			for (size_t i = 0; i < InfoSize; ++i) {
-				if (InfoList[i].ThreadId == id) {
-					_snwprintf(szInfo, sizeofa(szInfo), L"%s\n\n%s\nв\n%s",
-							   OutMsg[InfoList[i].type - 1],
-							   InfoList[i].Src,
-							   InfoList[i].DestDir);
-					::MessageBox(NULL, szInfo, (PCWSTR)L"Информация", MB_ICONINFORMATION);
-					break;
-				}
-			}
-		}
-		bcopy::FreeList(InfoList);
-	}
+	TCHAR	szInfo[5*MAX_PATH] = {0};
+	InfoRec info;
+	MemZero(info);
+	bcopy::GetInfo(&info, id);
+	_snwprintf(szInfo, sizeofa(szInfo), InfoTemplate,
+			   MsgOut[info.info.type - 1],
+			   info.Src,
+			   info.info.Src,
+			   info.info.DestDir			   );
+	::MessageBox(NULL, szInfo, MsgInfo, MB_ICONINFORMATION);
 }
 
 /// ======================================================================================= CallBack
@@ -483,7 +547,10 @@ int APIENTRY	wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
 			continue;
 		}
 		if ((::lstrcmp(argv[i], L"/t") == 0) && i < (argc - 1)) {
-			TimeOut = _wtoi(argv[i + 1]) * 1000;
+			wchar_t *err;
+			ULONG tmp = wcstoul(argv[i + 1], &err, 10);
+			if ((*err) == L'\0')
+				TimeOut = tmp * 1000;
 			continue;
 		}
 		if ((::lstrcmp(argv[i], L"/w") == 0)) {
@@ -494,63 +561,86 @@ int APIENTRY	wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
 			bSendExit = true;
 			continue;
 		}
+		if ((::lstrcmp(argv[i], L"/e") == 0)) {
+			bEnglishForced = true;
+			continue;
+		}
 		if ((::lstrcmp(argv[i], L"/nb") == 0)) {
 			bNoBalloon = true;
 			continue;
 		}
+		if ((::lstrcmp(argv[i], L"/?") == 0)) {
+			bShowAbout = true;
+			continue;
+		}
 	}
 
-	hWnd = ::FindWindow(NULL, WindowName);
-	if (!hWnd && !bSendExit) {
-		hEvent = ::CreateEvent(NULL, true, false, EventName);
-		if (!hEvent)
-			hEvent = ::OpenEvent(EVENT_MODIFY_STATE, false, EventName);
-		if (!hEvent)
-			return 1;
+	if (!bEnglishForced) {
+		if (::GetUserDefaultLCID() == 1049) {
+			MsgMenu = MsgMenu1049;
+			MsgOut = MsgOut1049;
+			MsgAsk = MsgAsk1049;
+			MsgInfo = MsgInfo1049;
+			MsgAboutTitle = MsgAboutTitle1049;
+			MsgAbout = MsgAbout1049;
+		}
+	}
 
-		CreatePopUpMenu();
+	if (bShowAbout) {
+		::MessageBox(NULL, MsgAbout, MsgAboutTitle, MB_ICONINFORMATION);
+	} else {
+		hWnd = ::FindWindow(NULL, WindowName);
+		if (hWnd) {
+			::PostMessage(hWnd, WM_CLOSE, 0, 0);
+		}
+		if (!bSendExit) {
+			hEvent = ::CreateEvent(NULL, true, false, EventName);
+			if (!hEvent)
+				hEvent = ::OpenEvent(EVENT_MODIFY_STATE, false, EventName);
+			if (!hEvent)
+				return 1;
 
-		WNDCLASS wndClass;
-		MemZero(wndClass);
-		wndClass.lpfnWndProc = (WNDPROC)WndProc;
-		wndClass.hInstance = hInstance;
-		wndClass.lpszClassName = WindowClass;
-		::RegisterClass(&wndClass);
+			CreatePopUpMenu();
 
-		hWnd = ::CreateWindow(WindowClass, WindowName, 0, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, hInstance, NULL);
-		if (!hWnd)
-			return 1;
+			WNDCLASS wndClass;
+			MemZero(wndClass);
+			wndClass.lpfnWndProc = (WNDPROC)WndProc;
+			wndClass.hInstance = hInstance;
+			wndClass.lpszClassName = WindowClass;
+			::RegisterClass(&wndClass);
 
-		::SetTimer(hWnd, 0, uiTIMER, 0);
+			hWnd = ::CreateWindow(WindowClass, WindowName, 0, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, hInstance, NULL);
+			if (!hWnd)
+				return 1;
 
-		MSG		msg;
-		HANDLE	pHandles[] = {hEvent};
-		DWORD	nCount = 1;
-		bool	bRun = true;
+			::SetTimer(hWnd, 0, uiTIMER, 0);
 
-		while (bRun) {
-			DWORD reason = ::MsgWaitForMultipleObjects(nCount, pHandles, false, INFINITE, QS_ALLINPUT);
-			if (reason == WAIT_OBJECT_0 + 0) {
-				if (Icons.GetSize() == 0)
-					::SetTimer(hWnd, 0, uiTIMER, 0);
-				::ResetEvent(hEvent);
-			} else if (reason == WAIT_OBJECT_0 + nCount) {
-				while (::PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
-					if (msg.message == WM_QUIT || msg.message == WM_CLOSE)
-						bRun = false;
-					else {
-						::TranslateMessage(&msg);
-						::DispatchMessage(&msg);
+			MSG		msg;
+			HANDLE	pHandles[] = {hEvent};
+			DWORD	nCount = 1;
+			bool	bNeedExit = false;
+			while (!bNeedExit) {
+				DWORD reason = ::MsgWaitForMultipleObjects(nCount, pHandles, false, INFINITE, QS_ALLINPUT);
+				if (reason == WAIT_OBJECT_0 + 0) {
+					if (Icons.GetSize() == 0)
+						::SetTimer(hWnd, 0, uiTIMER, 0);
+					::ResetEvent(hEvent);
+				} else if (reason == WAIT_OBJECT_0 + nCount) {
+					while (::PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+						if (msg.message == WM_QUIT || msg.message == WM_CLOSE)
+							bNeedExit = true;
+						else {
+							::TranslateMessage(&msg);
+							::DispatchMessage(&msg);
+						}
 					}
 				}
 			}
+			Icons.DeleteAll();
+			::KillTimer(hWnd, 0);
+			if (hEvent)
+				::CloseHandle(hEvent);
 		}
-		Icons.DeleteAll();
-		::KillTimer(hWnd, 0);
-		if (hEvent)
-			::CloseHandle(hEvent);
-	} else if (bSendExit) {
-		::PostMessage(hWnd, WM_CLOSE, 0, 0);
 	}
 	::LocalFree(argv); // do not replace
 	::ExitProcess(0);
