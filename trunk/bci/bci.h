@@ -29,7 +29,6 @@ struct IconItem {
 	IconItem(size_t id_, size_t st_): id(id_), start(st_), pr(111) {}
 };
 
-///=================================================================================================
 void	inline		XchgByte(WORD &inout) {
 	inout = inout >> 8 | inout << 8;
 }
@@ -37,18 +36,33 @@ void	inline		XchgWord(DWORD &inout) {
 	inout = inout >> 16 | inout << 16;
 }
 
+template <typename Type>
+inline	const Type&	Min(const Type &a, const Type &b) {
+	return (a < b) ? a : b;
+}
+template <typename Type>
+inline	const Type&	Max(const Type &a, const Type &b) {
+	return (a < b) ? b : a;
+}
+template <typename Type>
+inline	void		Swp(Type &x, Type &y) {
+	Type tmp(x);
+	x = y;
+	y = tmp;
+}
+
 ///========================================================================================== WinMem
 PVOID	inline		MemAlloc(size_t size) {
 	return ::HeapAlloc(::GetProcessHeap(), HEAP_ZERO_MEMORY, size);
 }
-PVOID	inline		MemRealloc(PVOID in, size_t size) {
-	return ::HeapReAlloc(::GetProcessHeap(), HEAP_ZERO_MEMORY, in, size);
+PVOID	inline		MemRealloc(PCVOID in, size_t size) {
+	return ::HeapReAlloc(::GetProcessHeap(), HEAP_ZERO_MEMORY, (PVOID)in, size);
 }
-void	inline		MemFree(PVOID in) {
-	::HeapFree(::GetProcessHeap(), 0, in);
+void	inline		MemFree(PCVOID in) {
+	::HeapFree(::GetProcessHeap(), 0, (PVOID)in);
 }
-void	inline		MemCopy(PVOID dest, PCVOID in, size_t size) {
-	::CopyMemory(dest, in, size);
+void	inline		MemCopy(PVOID dest, PCVOID sour, size_t size) {
+	::CopyMemory(dest, sour, size);
 }
 void	inline		MemFill(PVOID in, size_t size, char fill) {
 	::FillMemory(in, size, (BYTE)fill);
