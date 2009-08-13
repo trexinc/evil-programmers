@@ -166,7 +166,7 @@ colorize_clear:
   ([Tt][Ii][Mm][Ee])|([Tt][Ii][Mm][Ee][Ss][Tt][Aa][Mm][Pp])|([Tt][Oo])|([Tt][Oo][Pp])|([Tt][Rr][Aa][Nn][Ss][Aa][Cc][Tt][Ii][Oo][Nn])|
   ([Tt][Rr][Aa][Nn][Ss][Ll][Aa][Tt][Ee])|([Tt][Rr][Aa][Nn][Ss][Ll][Aa][Tt][Ii][Oo][Nn])|([Tt][Rr][Ii][Gg][Gg][Ee][Rr])|
   ([Tt][Rr][Ii][Mm])|([Tt][Yy][Pp][Ee])|([Uu][Nn][Cc][Oo][Mm][Mm][Ii][Tt][Tt][Ee][Dd])|([Uu][Nn][Ii][Oo][Nn])|
-  ([Uu][Nn][Ii][Qq][Uu][Ee])|([Uu][Pp][Dd][Aa][Tt][Ee])|([Uu][Pp][Pp][Ee][Rr])|([Uu][Ss][Ee][Rr])|
+  ([Uu][Nn][Ii][Qq][Uu][Ee])|([Uu][Pp][Dd][Aa][Tt][Ee])|([Uu][Pp][Pp][Ee][Rr])|([Uu][Ss][Ee][Rr])|([Uu][Ss][Ee])|
   ([Uu][Ss][Ii][Nn][Gg])|([Vv][Aa][Ll][Uu][Ee])|([Vv][Aa][Ll][Uu][Ee][Ss])|([Vv][Aa][Rr][Cc][Hh][Aa][Rr])|
   ([Vv][Aa][Rr][Ii][Aa][Bb][Ll][Ee])|([Vv][Aa][Rr][Yy][Ii][Nn][Gg])|([Vv][Ee][Rr][Ss][Ii][Oo][Nn])|
   ([Vv][Ii][Ee][Ww])|([Ww][Aa][Ii][Tt])|([Ww][Ee][Ee][Kk][Dd][Aa][Yy])|([Ww][Hh][Ee][Nn])|
