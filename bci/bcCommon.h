@@ -1,4 +1,4 @@
-/*
+﻿/*
     bcCommon.h
     Copyright (C) 2000-2009 zg
 

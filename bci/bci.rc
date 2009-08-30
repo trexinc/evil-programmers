@@ -1,7 +1,9 @@
 #include "winver.h"
 #define IDR_VERSION 1
 
+
 //LANGUAGE 25,1
+
 
 IDR_VERSION VERSIONINFO
 FILEVERSION 1,4,1,6

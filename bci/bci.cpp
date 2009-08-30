@@ -1,4 +1,4 @@
-/**
+﻿/**
     bci.cpp
     Copyright (C) 2005 WhiteDragon
     Copyright (C) 2009 DrKnS
@@ -119,15 +119,15 @@ bci.exe /?\n\
 const wchar_t MsgAbout1049[] = L"bci - Background Copy Indicator\n\
 	приложение для использования совместно с сервисом Background Copy\n\
 	(BCN.DLL должна находиться в той же директории что и BCSVC.EXE)\n\
-//TODO НА РУССКОМ СДЕЛАТЬ!";
+//TODO НА РУССКОМ СДЕЛАТЬ!!!!!!!!!!!!!!!!!!!!!!!!!!";
 
 const wchar_t **MsgMenu = MsgMenu1033;
 const wchar_t **MsgOut = MsgOut1033;
 const wchar_t **MsgAsk = MsgAsk1033;
-const wchar_t *MsgInfo = MsgInfo1033;
-const wchar_t *MsgAboutTitle = MsgAboutTitle1033;
-const wchar_t *MsgAbout = MsgAbout1033;
-const wchar_t *InfoTemplate = L"%s\n%s\nиз\n%s\nв\n%s";
+PCWSTR			MsgInfo = MsgInfo1033;
+PCWSTR			MsgAboutTitle = MsgAboutTitle1033;
+PCWSTR			MsgAbout = MsgAbout1033;
+PCWSTR			InfoTemplate = L"%s\n%s\nиз\n%s\nв\n%s";
 
 /// ============================================================================================ var
 //#define WM_TASKICON (WM_USER+27)
@@ -209,7 +209,7 @@ void TrimCopy(wchar_t* buf, size_t bufsize, const wchar_t* filepath) {
 	const wchar_t* p = filepath + filepath_len - 1;
 	while (p > filepath && *p != '\\')
 		--p;
-	int filename_len = filepath + filepath_len - p;
+	size_t filename_len = filepath + filepath_len - p;
 
 	// check if <prefix> + "..." + <at least filename of filepath> is fit to the buffer
 	if ((prefix_len + dots_len + filename_len) >= bufsize) {
@@ -319,7 +319,7 @@ class TbIcons {
 		tnid.dwInfoFlags = NIIF_INFO;
 		lstrcpyn(tnid.szInfoTitle, szInfoTitle, sizeofa(tnid.szInfoTitle) - 1);
 		lstrcpyn(tnid.szInfo, szInfo, sizeofa(tnid.szInfo) - 1);
-		return ::Shell_NotifyIcon(NIM_MODIFY, &tnid);
+		return ::Shell_NotifyIcon(NIM_MODIFY, &tnid) != 0;
 	}
 	bool		TrayRefresh(UINT uID, HICON hIcon, PCWSTR szTip) {
 		bool	Result = false;
@@ -340,9 +340,9 @@ class TbIcons {
 			lstrcpyn(tnid.szTip, szTip, sizeofa(tnid.szTip) - 1);
 			lstrcpyn(tnid.szInfoTitle, L"", sizeofa(tnid.szInfoTitle) - 1);
 			lstrcpyn(tnid.szInfo, L"", sizeofa(tnid.szInfo) - 1);
-			Result = Shell_NotifyIcon(NIM_MODIFY, &tnid);
+			Result = ::Shell_NotifyIcon(NIM_MODIFY, &tnid) != 0;
 			if (!Result)
-				Result = Shell_NotifyIcon(NIM_ADD, &tnid);
+				Result = ::Shell_NotifyIcon(NIM_ADD, &tnid) != 0;
 		}
 		return Result;
 	}
@@ -352,12 +352,12 @@ class TbIcons {
 		nid.cbSize = sizeof(NOTIFYICONDATA);
 		nid.hWnd = hWnd;
 		nid.uID = id;
-		return	::Shell_NotifyIcon(NIM_DELETE, &nid);
+		return	::Shell_NotifyIcon(NIM_DELETE, &nid) != 0;
 	}
 
 	void		Refresh(const SmallInfoRec &InfoItem, size_t i) {
 		TCHAR	szTip[128] = {0};
-		BYTE percent = InfoItem.percent + 128 * InfoItem.pause;
+		BYTE percent = (BYTE)(InfoItem.percent + 128 * InfoItem.pause);
 		if ((IconList[i].pr != percent)) {
 			IconList[i].pr = percent;
 			MemZero(x, sizeof(x));
@@ -473,7 +473,7 @@ void			ShowInfo(DWORD id) {
 			   MsgOut[info.info.type - 1],
 			   info.Src,
 			   info.info.Src,
-			   info.info.DestDir			   );
+			   info.info.DestDir);
 	::MessageBox(NULL, szInfo, MsgInfo, MB_ICONINFORMATION);
 }
 
@@ -483,7 +483,7 @@ BOOL CALLBACK	WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 		case WM_TASKICON:
 			switch (lParam) {
 				case WM_LBUTTONDOWN:
-					bcopy::Command(INFOFLAG_PAUSE, wParam);
+					bcopy::Command(INFOFLAG_PAUSE, static_cast<DWORD>(wParam));
 					break;
 				case WM_RBUTTONDOWN:
 					POINT cur;
@@ -491,13 +491,13 @@ BOOL CALLBACK	WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 					::SetForegroundWindow(hWnd);
 					switch (::TrackPopupMenu(puMenu, ::GetSystemMetrics(SM_MENUDROPALIGNMENT) | TPM_RETURNCMD | TPM_NONOTIFY, cur.x, cur.y, 0, hWnd, 0)) {
 						case cInfo:
-							ShowInfo(wParam);
+							ShowInfo(static_cast<DWORD>(wParam));
 							break;
 						case cStop:
-							bcopy::Command(INFOFLAG_STOP, wParam);
+							bcopy::Command(INFOFLAG_STOP, static_cast<DWORD>(wParam));
 							break;
 						case cPause:
-							bcopy::Command(INFOFLAG_PAUSE, wParam);
+							bcopy::Command(INFOFLAG_PAUSE, static_cast<DWORD>(wParam));
 							break;
 						case cExit:
 							::PostQuitMessage(0);
@@ -518,26 +518,12 @@ BOOL CALLBACK	WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 			}
 		}
 	}
-	return ::DefWindowProc(hWnd, uMsg, wParam, lParam);
+	return ::DefWindowProc(hWnd, uMsg, wParam, lParam) != 0;
 }
 
 /// =========================================================================================== main
-#ifdef __GNUC__
-#ifdef __cplusplus
-extern "C" {
-#endif
-	int WinMainCRTStartup(void);
-#ifdef __cplusplus
-};
-int WinMainCRTStartup(void)
-#endif
-#else
-int APIENTRY	wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
-#endif
-{
+int APIENTRY	wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int) {
 	a[4] = a[10] = a[15] = 0xffff;
-	HINSTANCE hInstance = ::GetModuleHandleW(NULL);
-	PCWSTR pCmdLine = ::GetCommandLine();
 
 	int argc = 0;
 	PWSTR* argv = ::CommandLineToArgvW(pCmdLine, &argc);
@@ -643,6 +629,34 @@ int APIENTRY	wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
 		}
 	}
 	::LocalFree(argv); // do not replace
-	::ExitProcess(0);
+//	::ExitProcess(0);
 	return 0;
+}
+
+/// ========================================================================== Startup (entry point)
+extern "C" int			WinMainCRTStartup() {
+	int		Result;
+	PWSTR	lpszCommandLine = ::GetCommandLineW();
+	STARTUPINFO StartupInfo = {sizeof(STARTUPINFO), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	::GetStartupInfo(&StartupInfo);
+
+	// skip past program name (first token in command line).
+	if (*lpszCommandLine == L'"') {
+		// double-quote or a null is encountered
+		while (*lpszCommandLine && (*lpszCommandLine != L'"'))
+			lpszCommandLine++;
+		// if we stopped on a double-quote (usual case), skip over it.
+		if (*lpszCommandLine == L'"')
+			lpszCommandLine++;
+	} else {
+		// first token wasn't a quote
+		while (*lpszCommandLine > L' ')
+			lpszCommandLine++;
+	}
+	while (*lpszCommandLine && (*lpszCommandLine <= L' '))
+		lpszCommandLine++;
+	Result = wWinMain(::GetModuleHandle(NULL), NULL, lpszCommandLine,
+					   StartupInfo.dwFlags & STARTF_USESHOWWINDOW ? StartupInfo.wShowWindow : SW_SHOWDEFAULT);
+	::ExitProcess(Result);
+	return	Result;
 }

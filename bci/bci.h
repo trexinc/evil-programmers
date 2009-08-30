@@ -21,12 +21,12 @@
 #include <windows.h>
 
 struct IconItem {
-	size_t id;
-	size_t start;
+	UINT id;
+	UINT start;
 	BYTE pr;
 
 	IconItem(): id(0), start(0), pr(111) {}
-	IconItem(size_t id_, size_t st_): id(id_), start(st_), pr(111) {}
+	IconItem(UINT id_, UINT st_): id(id_), start(st_), pr(111) {}
 };
 
 void	inline		XchgByte(WORD &inout) {
@@ -55,13 +55,13 @@ inline	void		Swp(Type &x, Type &y) {
 PVOID	inline		MemAlloc(size_t size) {
 	return ::HeapAlloc(::GetProcessHeap(), HEAP_ZERO_MEMORY, size);
 }
-PVOID	inline		MemRealloc(PCVOID in, size_t size) {
+PVOID	inline		MemRealloc(LPCVOID in, size_t size) {
 	return ::HeapReAlloc(::GetProcessHeap(), HEAP_ZERO_MEMORY, (PVOID)in, size);
 }
-void	inline		MemFree(PCVOID in) {
+void	inline		MemFree(LPCVOID in) {
 	::HeapFree(::GetProcessHeap(), 0, (PVOID)in);
 }
-void	inline		MemCopy(PVOID dest, PCVOID sour, size_t size) {
+void	inline		MemCopy(PVOID dest, LPCVOID sour, size_t size) {
 	::CopyMemory(dest, sour, size);
 }
 void	inline		MemFill(PVOID in, size_t size, char fill) {
