@@ -116,19 +116,43 @@ bci.exe /?\n\
 /nb		do not display balloons\n\
 /s \"wav-file\"	play sound after finishing operation\n\
 		sound plays only if operation lasts > timout\n\
+/s beep		speaker will sound\n\
 /t \"seconds\"	set timeout 0..65535 (default 60)\n\
 /w		white tray icon (default - black)";
 PCWSTR			MsgAbout1049 = L"bci - Background Copy Indicator\n\
 	приложение для использования совместно с сервисом Background Copy\n\
 	(BCN.DLL должна находиться в той же директории что и BCSVC.EXE)\n\
-//TODO НА РУССКОМ СДЕЛАТЬ!!!!!!!!!!!!!!!!!!!!!!!!!!";
+\n\
+Назначение:\n\
+	Отображает очередь задач BC в трее\n\
+\n\
+Вы можете посмотреть детали задачи, просто наведите курсор мыши на нужную иконку\n\
+Если какая либо из задач потребует вмешательства пользователя над ее иконкой появится всплывающее окно\n\
+Управлять задачами можно с помощью щелчка правой кнопкой мыши (Пауза/Продолжить, Отменить, Инфо)\n\
+\n\
+Использование:\n\
+\n\
+bci.exe [/nb] [/s \"имя_файла\" [/t \"секунды\"]] [/w]\n\
+bci.exe /r\n\
+bci.exe /?\n\
+\n\
+/r		Завершить процесс bci.exe, выполняющийся в данный момент\n\
+/?		показать краткую справку\n\
+\n\
+/e		принудительно выводить все на английском языке\n\
+/nb		отключить всплывающие окна\n\
+/s \"имя_файла\"	Имя файла, для подачи сигнала при завершении операции\n\
+/s beep		Сигнал будет подаваться спикером\n\
+		сигнал подается в случае если операция выполнялась дольше таймаут секунд\n\
+/t \"секунды\"	установить таймаут в секундах 0..65535 (по умолчанию 60)\n\
+/w		Рисовать иконку белым цветом (по умолчанию - черным)";
 
-PCWSTR			*MsgMenu = MsgMenu1033;
-PCWSTR			*MsgOut = MsgOut1033;
-PCWSTR			*MsgAsk = MsgAsk1033;
-PCWSTR			MsgInfo = MsgInfo1033;
-PCWSTR			MsgAboutTitle = MsgAboutTitle1033;
-PCWSTR			MsgAbout = MsgAbout1033;
+PCWSTR			*MsgMenu;
+PCWSTR			*MsgOut;
+PCWSTR			*MsgAsk;
+PCWSTR			MsgInfo;
+PCWSTR			MsgAboutTitle;
+PCWSTR			MsgAbout;
 PCWSTR			InfoTemplate = L"%s\n%s\nиз\n%s\nв\n%s";
 
 /// ============================================================================================ var
@@ -417,8 +441,18 @@ class TbIcons {
 	}
 	void		Delete(size_t i) {
 		TrayDelete(IconList[i].id);
-		if ((::GetTickCount() - IconList[i].start) >= TimeOut && WinStr::Cmpi(WavFile, L"") != 0)
-			::PlaySound(WavFile, NULL, SND_FILENAME | SND_NODEFAULT);
+		if ((::GetTickCount() - IconList[i].start) >= TimeOut) {
+			if (WinStr::Cmpi(WavFile, L"beep") != 0) {
+				::Beep(294, 1000 / 8);
+				::Beep(440, 1000 / 4);
+				::Beep(262*2, 1000 / 4);
+				::Beep(330*2, 1000 / 4);
+				::Beep(415, 1000 / 8);
+				::Beep(440, 1000);
+			} else if (WinStr::Cmpi(WavFile, L"") != 0) {
+				::PlaySound(WavFile, NULL, SND_FILENAME | SND_NODEFAULT);
+			}
+		}
 		IconList[i] = IconList[--Size];
 	}
 	void		DeleteEnded(SmallInfoRec* InfoList, size_t InfoSize) {
@@ -561,6 +595,12 @@ int APIENTRY	wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int) {
 		}
 	}
 
+	MsgMenu = MsgMenu1033;
+	MsgOut = MsgOut1033;
+	MsgAsk = MsgAsk1033;
+	MsgInfo = MsgInfo1033;
+	MsgAboutTitle = MsgAboutTitle1033;
+	MsgAbout = MsgAbout1033;
 	if (!bEnglishForced) {
 		if (::GetUserDefaultLCID() == 1049) {
 			MsgMenu = MsgMenu1049;
