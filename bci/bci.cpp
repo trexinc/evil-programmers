@@ -22,6 +22,8 @@
 #define _UNICODE
 #define _WIN32_IE 0x0600
 
+#include "win_def.h"
+
 #include <windows.h>
 #include <shellapi.h>
 #include <mmsystem.h>
@@ -31,21 +33,21 @@
 #include "bci.h"
 
 ///========================================================================================== define
-enum puMenuCommands {
+enum			puMenuCommands {
 	cInfo = 1,
 	cStop,
 	cPause,
 	cExit
 };
 
-const wchar_t *MsgMenu1033[] = {
+PCWSTR			MsgMenu1033[] = {
 	L"",
 	L"Info",
 	L"Cancel",
 	L"Pause/Continue",
 	L"Exit"
 };
-const wchar_t *MsgMenu1049[] = {
+PCWSTR			MsgMenu1049[] = {
 	L"",
 	L"Информация",
 	L"Отменить",
@@ -53,7 +55,7 @@ const wchar_t *MsgMenu1049[] = {
 	L"Выход"
 };
 
-const wchar_t *MsgOut1033[] = {
+PCWSTR			MsgOut1033[] = {
 //	L"Invalid",
 	L"Copying",
 	L"Moving",
@@ -61,7 +63,7 @@ const wchar_t *MsgOut1033[] = {
 	L"Deleting",
 	L"Setting attributes"
 };
-const wchar_t *MsgOut1049[] = {
+PCWSTR			MsgOut1049[] = {
 //	L"Invalid",
 	L"Копирование",
 	L"Перенос",
@@ -70,14 +72,14 @@ const wchar_t *MsgOut1049[] = {
 	L"Установка атрибутов"
 };
 
-const wchar_t *MsgAsk1033[] = {
+PCWSTR			MsgAsk1033[] = {
 	L"Attention",
 	L"Destination already exists",
 	L"The process cannot access the file",
 	L"ASKGROUP_RETRYONLY",
 	L"Symbolic link found"
 };
-const wchar_t *MsgAsk1049[] = {
+PCWSTR			MsgAsk1049[] = {
 	L"Внимание",
 	L"Такой файл уже существует",
 	L"Нет доступа к файлу",
@@ -85,12 +87,12 @@ const wchar_t *MsgAsk1049[] = {
 	L"Найдена символическая связь"
 };
 
-const wchar_t MsgInfo1033[] = L"Info";
-const wchar_t MsgInfo1049[] = L"Информация";
+PCWSTR			MsgInfo1033 = L"Info";
+PCWSTR			MsgInfo1049 = L"Информация";
 
-const wchar_t MsgAboutTitle1033[] = L"About";
-const wchar_t MsgAboutTitle1049[] = L"О программе";
-const wchar_t MsgAbout1033[] = L"bci - Background Copy Indicator\n\
+PCWSTR			MsgAboutTitle1033 = L"About";
+PCWSTR			MsgAboutTitle1049 = L"О программе";
+PCWSTR			MsgAbout1033 = L"bci - Background Copy Indicator\n\
 	to use in conjunction with Background Copy service\n\
 	(BCN.DLL must be placed near BCSVC.EXE)\n\
 \n\
@@ -116,14 +118,14 @@ bci.exe /?\n\
 		sound plays only if operation lasts > timout\n\
 /t \"seconds\"	set timeout 0..65535 (default 60)\n\
 /w		white tray icon (default - black)";
-const wchar_t MsgAbout1049[] = L"bci - Background Copy Indicator\n\
+PCWSTR			MsgAbout1049 = L"bci - Background Copy Indicator\n\
 	приложение для использования совместно с сервисом Background Copy\n\
 	(BCN.DLL должна находиться в той же директории что и BCSVC.EXE)\n\
 //TODO НА РУССКОМ СДЕЛАТЬ!!!!!!!!!!!!!!!!!!!!!!!!!!";
 
-const wchar_t **MsgMenu = MsgMenu1033;
-const wchar_t **MsgOut = MsgOut1033;
-const wchar_t **MsgAsk = MsgAsk1033;
+PCWSTR			*MsgMenu = MsgMenu1033;
+PCWSTR			*MsgOut = MsgOut1033;
+PCWSTR			*MsgAsk = MsgAsk1033;
 PCWSTR			MsgInfo = MsgInfo1033;
 PCWSTR			MsgAboutTitle = MsgAboutTitle1033;
 PCWSTR			MsgAbout = MsgAbout1033;
@@ -176,51 +178,51 @@ bool			bNoBalloon = false;
 bool			bEnglishForced = false;
 bool			bShowAbout = false;
 
-void TrimCopy(wchar_t* buf, size_t bufsize, const wchar_t* filepath) {
-	const wchar_t* dots = L"...";
-	const size_t dots_len = 3;
-	size_t filepath_len = wcslen(filepath);
+void			TrimCopy(PWSTR buf, size_t bufsize, PCWSTR filepath) {
+	PCWSTR 			dots = L"...";
+	const size_t	dots_len = WinStr::Len(dots);
+	size_t			filepath_len = WinStr::Len(filepath);
 	if (filepath_len < bufsize || filepath_len == 0) {
-		wcscpy(buf, filepath);
+		WinStr::Copy(buf, filepath);
 		return;
 	}
 
 	if (bufsize < (dots_len + 1)) {    // "...\0"
 		if (bufsize > 1)
-			*buf++ = '*';
+			*buf++ = L'*';
 		if (bufsize)
 			*buf++ = 0;
 		return;
 	}
 	--bufsize;
 
-	// looking fora prefix, such as "D:\", "\\?\D:\", "\\Host\"
+	// looking for a prefix, such as "D:\", "\\?\D:\", "\\Host\"
 	int prefix_len = 0;
-	if (filepath[0] == '\\' && filepath[1] == '\\') {
+	if (filepath[0] == L'\\' && filepath[1] == L'\\') {
 		prefix_len += 2;
-		if (filepath[2] == '?' && filepath[3] == '\\')
+		if (filepath[2] == L'?' && filepath[3] == L'\\')
 			prefix_len += 2;
 	}
-	while (filepath[prefix_len] != 0 && filepath[prefix_len] != '\\')
+	while (filepath[prefix_len] != 0 && filepath[prefix_len] != L'\\')
 		++prefix_len;
 	++prefix_len;
 
 	// search for a filename
-	const wchar_t* p = filepath + filepath_len - 1;
-	while (p > filepath && *p != '\\')
+	PCWSTR 		p = filepath + filepath_len - 1;
+	while (p > filepath && *p != L'\\')
 		--p;
 	size_t filename_len = filepath + filepath_len - p;
 
 	// check if <prefix> + "..." + <at least filename of filepath> is fit to the buffer
 	if ((prefix_len + dots_len + filename_len) >= bufsize) {
 		// overrun: don't use prefix
-		memcpy(buf, dots, dots_len * sizeof(wchar_t));
+		WinMem::Copy(buf, dots, dots_len * sizeof(wchar_t));
 		buf += dots_len;
 		bufsize -= dots_len;
 	} else {
-		memcpy(buf, filepath, prefix_len * sizeof(wchar_t));
+		WinMem::Copy(buf, filepath, prefix_len * sizeof(wchar_t));
 		buf += prefix_len;
-		memcpy(buf, dots, dots_len * sizeof(wchar_t));
+		WinMem::Copy(buf, dots, dots_len * sizeof(wchar_t));
 		buf += dots_len;
 		bufsize -= prefix_len + dots_len;
 
@@ -231,12 +233,12 @@ void TrimCopy(wchar_t* buf, size_t bufsize, const wchar_t* filepath) {
 	filepath += filepath_len;
 	if (filepath_len > bufsize)
 		filepath_len = bufsize;
-	memcpy(buf, filepath - filepath_len, bufsize * sizeof(wchar_t));
+	WinMem::Copy(buf, filepath - filepath_len, bufsize * sizeof(wchar_t));
 	buf[bufsize] = 0; // was "--bufsize"ed to fit a zero
 }
 
-void FormatHint(TCHAR *buf, size_t bufsize, const TCHAR *action, const TCHAR *filename, DWORD pr_value) {
-	int len = _snwprintf(buf, bufsize, L"%s - %d%%\n", action, pr_value);
+void			FormatHint(PWSTR buf, size_t bufsize, PCWSTR action, PCWSTR filename, DWORD pr_value) {
+	int len = ::_snwprintf(buf, bufsize, L"%s - %d%%\n", action, pr_value);
 	if (len == -1)
 		return;
 	TrimCopy(buf + len, bufsize - len - 1, filename);
@@ -267,9 +269,9 @@ namespace bcopy {
 						::ReadFile(hPipe, &rec_size, sizeof(rec_size), &dwBytesRead, NULL)) {
 					Result = true;
 					if (size) {
-						InfoList = (SmallInfoRec*)MemAlloc(sizeof(SmallInfoRec) * size);
-						if ((!(InfoList)) || (!::ReadFile(hPipe, InfoList, sizeof(struct SmallInfoRec)*(size), &dwBytesRead, NULL))) {
-							MemFree(InfoList);
+						InfoList = (SmallInfoRec*)WinMem::Alloc(sizeof(SmallInfoRec) * size);
+						if ((!(InfoList)) || (!::ReadFile(hPipe, InfoList, sizeof(SmallInfoRec)*(size), &dwBytesRead, NULL))) {
+							WinMem::Free(InfoList);
 							InfoList = NULL;
 							size = 0;
 							Result = false;
@@ -281,10 +283,11 @@ namespace bcopy {
 		return Result;
 	}
 	void		FreeList(SmallInfoRec* &InfoList) {
-		MemFree(InfoList);
+		WinMem::Free(InfoList);
+		InfoList = NULL;
 	}
 
-	bool			GetInfo(InfoRec *receive, DWORD ThreadId) {
+	bool		GetInfo(InfoRec *receive, DWORD ThreadId) {
 		bool Result = false;
 		DWORD dwBytesRead, dwBytesWritten, dwSize;
 		DWORD send[3] = {OPERATION_INFO, INFOFLAG_BYHANDLE, ThreadId};
@@ -310,15 +313,15 @@ class TbIcons {
 
 	bool		ShowBalloon(UINT uID, PCWSTR szInfoTitle, PCWSTR szInfo) {
 		NOTIFYICONDATA tnid;
-		MemZero(tnid);
+		WinMem::Zero(tnid);
 		tnid.cbSize = sizeof(NOTIFYICONDATA);
 		tnid.hWnd = hWnd;
 		tnid.uID = uID;
 		tnid.uVersion = NOTIFYICON_VERSION;
 		tnid.uFlags = NIF_INFO;
 		tnid.dwInfoFlags = NIIF_INFO;
-		lstrcpyn(tnid.szInfoTitle, szInfoTitle, sizeofa(tnid.szInfoTitle) - 1);
-		lstrcpyn(tnid.szInfo, szInfo, sizeofa(tnid.szInfo) - 1);
+		WinStr::Copy(tnid.szInfoTitle, szInfoTitle, sizeofa(tnid.szInfoTitle) - 1);
+		WinStr::Copy(tnid.szInfo, szInfo, sizeofa(tnid.szInfo) - 1);
 		return ::Shell_NotifyIcon(NIM_MODIFY, &tnid) != 0;
 	}
 	bool		TrayRefresh(UINT uID, HICON hIcon, PCWSTR szTip) {
@@ -329,7 +332,7 @@ class TbIcons {
 		hPrevIcon = hIcon;
 
 		NOTIFYICONDATA tnid;
-		MemZero(tnid);
+		WinMem::Zero(tnid);
 		tnid.cbSize = sizeof(NOTIFYICONDATA);
 		tnid.hWnd = hWnd;
 		tnid.uID = uID;
@@ -337,9 +340,9 @@ class TbIcons {
 			tnid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP | NIF_INFO;
 			tnid.uCallbackMessage = WM_TASKICON;
 			tnid.hIcon = hIcon;
-			lstrcpyn(tnid.szTip, szTip, sizeofa(tnid.szTip) - 1);
-			lstrcpyn(tnid.szInfoTitle, L"", sizeofa(tnid.szInfoTitle) - 1);
-			lstrcpyn(tnid.szInfo, L"", sizeofa(tnid.szInfo) - 1);
+			WinStr::Copy(tnid.szTip, szTip, sizeofa(tnid.szTip) - 1);
+			WinStr::Copy(tnid.szInfoTitle, L"", sizeofa(tnid.szInfoTitle) - 1);
+			WinStr::Copy(tnid.szInfo, L"", sizeofa(tnid.szInfo) - 1);
 			Result = ::Shell_NotifyIcon(NIM_MODIFY, &tnid) != 0;
 			if (!Result)
 				Result = ::Shell_NotifyIcon(NIM_ADD, &tnid) != 0;
@@ -348,7 +351,7 @@ class TbIcons {
 	}
 	bool		TrayDelete(UINT id) {
 		NOTIFYICONDATA nid;
-		MemZero(nid);
+		WinMem::Zero(nid);
 		nid.cbSize = sizeof(NOTIFYICONDATA);
 		nid.hWnd = hWnd;
 		nid.uID = id;
@@ -356,11 +359,11 @@ class TbIcons {
 	}
 
 	void		Refresh(const SmallInfoRec &InfoItem, size_t i) {
-		TCHAR	szTip[128] = {0};
+		WCHAR	szTip[128] = {0};
 		BYTE percent = (BYTE)(InfoItem.percent + 128 * InfoItem.pause);
 		if ((IconList[i].pr != percent)) {
 			IconList[i].pr = percent;
-			MemZero(x, sizeof(x));
+			WinMem::Zero(x, sizeof(x));
 			x[12] = (0xffff >> (InfoItem.percent * 145 / 1000 + 1)) & 0x7ffe;
 			XchgByte(x[12]);
 			x[13] = x[12];
@@ -384,14 +387,14 @@ class TbIcons {
 			::DeleteObject(bx);
 			TrayRefresh(IconList[i].id, hIcon, szTip);
 			if (!bNoBalloon && InfoItem.Ask) {
-				TCHAR	szInfo[3*MAX_PATH];
+				WCHAR	szInfo[3*MAX_PATH];
 				InfoRec info;
-				MemZero(info);
+				WinMem::Zero(info);
 				bcopy::GetInfo(&info, InfoItem.ThreadId);
 				if (InfoItem.Ask == 2)
-					_snwprintf(szInfo, sizeofa(szInfo), L"%s\n%s", MsgAsk[InfoItem.Ask], info.Src);
+					::_snwprintf(szInfo, sizeofa(szInfo), L"%s\n%s", MsgAsk[InfoItem.Ask], info.Src);
 				else
-					_snwprintf(szInfo, sizeofa(szInfo), L"%s\n%s", MsgAsk[InfoItem.Ask], info.Dest);
+					::_snwprintf(szInfo, sizeofa(szInfo), L"%s\n%s", MsgAsk[InfoItem.Ask], info.Dest);
 				ShowBalloon(IconList[i].id, MsgAsk[0], szInfo);
 			}
 		}
@@ -414,7 +417,7 @@ class TbIcons {
 	}
 	void		Delete(size_t i) {
 		TrayDelete(IconList[i].id);
-		if ((::GetTickCount() - IconList[i].start) >= TimeOut && ::lstrcmp(WavFile, L"") != 0)
+		if ((::GetTickCount() - IconList[i].start) >= TimeOut && WinStr::Cmpi(WavFile, L"") != 0)
 			::PlaySound(WavFile, NULL, SND_FILENAME | SND_NODEFAULT);
 		IconList[i] = IconList[--Size];
 	}
@@ -465,15 +468,15 @@ void			CreatePopUpMenu() {
 	::AppendMenu(puMenu, 0, cExit, MsgMenu[cExit]);
 }
 void			ShowInfo(DWORD id) {
-	TCHAR	szInfo[5*MAX_PATH] = {0};
+	WCHAR	szInfo[5*MAX_PATH] = {0};
 	InfoRec info;
-	MemZero(info);
+	WinMem::Zero(info);
 	bcopy::GetInfo(&info, id);
-	_snwprintf(szInfo, sizeofa(szInfo), InfoTemplate,
-			   MsgOut[info.info.type - 1],
-			   info.Src,
-			   info.info.Src,
-			   info.info.DestDir);
+	::_snwprintf(szInfo, sizeofa(szInfo), InfoTemplate,
+				 MsgOut[info.info.type - 1],
+				 info.Src,
+				 info.info.Src,
+				 info.info.DestDir);
 	::MessageBox(NULL, szInfo, MsgInfo, MB_ICONINFORMATION);
 }
 
@@ -525,37 +528,34 @@ BOOL CALLBACK	WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 int APIENTRY	wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int) {
 	a[4] = a[10] = a[15] = 0xffff;
 
-	int argc = 0;
-	PWSTR* argv = ::CommandLineToArgvW(pCmdLine, &argc);
+	int		argc = 0;
+	PWSTR	*argv = ::CommandLineToArgvW(pCmdLine, &argc);
 	for (int i = 1; i < argc; ++i) {
-		if ((::lstrcmp(argv[i], L"/s") == 0) && i < (argc - 1)) {
+		if ((WinStr::Cmpi(argv[i], L"/s") == 0) && i < (argc - 1)) {
 			WavFile = argv[i + 1];
 			continue;
 		}
-		if ((::lstrcmp(argv[i], L"/t") == 0) && i < (argc - 1)) {
-			wchar_t *err;
-			ULONG tmp = wcstoul(argv[i + 1], &err, 10);
-			if ((*err) == L'\0')
-				TimeOut = tmp * 1000;
+		if ((WinStr::Cmpi(argv[i], L"/t") == 0) && i < (argc - 1)) {
+			TimeOut = WinStr::AsULong(argv[i + 1]) * 1000;
 			continue;
 		}
-		if ((::lstrcmp(argv[i], L"/w") == 0)) {
+		if ((WinStr::Cmpi(argv[i], L"/w") == 0)) {
 			ColorWhite = true;
 			continue;
 		}
-		if ((::lstrcmp(argv[i], L"/r") == 0)) {
+		if ((WinStr::Cmpi(argv[i], L"/r") == 0)) {
 			bSendExit = true;
 			continue;
 		}
-		if ((::lstrcmp(argv[i], L"/e") == 0)) {
+		if ((WinStr::Cmpi(argv[i], L"/e") == 0)) {
 			bEnglishForced = true;
 			continue;
 		}
-		if ((::lstrcmp(argv[i], L"/nb") == 0)) {
+		if ((WinStr::Cmpi(argv[i], L"/nb") == 0)) {
 			bNoBalloon = true;
 			continue;
 		}
-		if ((::lstrcmp(argv[i], L"/?") == 0)) {
+		if ((WinStr::Cmpi(argv[i], L"/?") == 0)) {
 			bShowAbout = true;
 			continue;
 		}
@@ -589,7 +589,7 @@ int APIENTRY	wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int) {
 			CreatePopUpMenu();
 
 			WNDCLASS wndClass;
-			MemZero(wndClass);
+			WinMem::Zero(wndClass);
 			wndClass.lpfnWndProc = (WNDPROC)WndProc;
 			wndClass.hInstance = hInstance;
 			wndClass.lpszClassName = WindowClass;
@@ -629,12 +629,11 @@ int APIENTRY	wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int) {
 		}
 	}
 	::LocalFree(argv); // do not replace
-//	::ExitProcess(0);
 	return 0;
 }
 
 /// ========================================================================== Startup (entry point)
-extern "C" int			WinMainCRTStartup() {
+extern "C" int	WinMainCRTStartup() {
 	int		Result;
 	PWSTR	lpszCommandLine = ::GetCommandLineW();
 	STARTUPINFO StartupInfo = {sizeof(STARTUPINFO), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -656,7 +655,7 @@ extern "C" int			WinMainCRTStartup() {
 	while (*lpszCommandLine && (*lpszCommandLine <= L' '))
 		lpszCommandLine++;
 	Result = wWinMain(::GetModuleHandle(NULL), NULL, lpszCommandLine,
-					   StartupInfo.dwFlags & STARTF_USESHOWWINDOW ? StartupInfo.wShowWindow : SW_SHOWDEFAULT);
+					  StartupInfo.dwFlags & STARTF_USESHOWWINDOW ? StartupInfo.wShowWindow : SW_SHOWDEFAULT);
 	::ExitProcess(Result);
 	return	Result;
 }
