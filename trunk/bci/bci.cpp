@@ -20,39 +20,39 @@
 **/
 #define UNICODE
 #define _UNICODE
-#define _WIN32_IE 0x0600
 
 #include "win_def.h"
+#include "bcCommon.h"
+#include "bci.h"
 
-#include <windows.h>
 #include <shellapi.h>
 #include <mmsystem.h>
 #include <wchar.h>
 
-#include "bcCommon.h"
-#include "bci.h"
-
 ///========================================================================================== define
 enum			puMenuCommands {
-	cInfo = 1,
+	cAbout = 1,
+	cInfo,
 	cStop,
 	cPause,
-	cExit
+	cExit,
 };
 
 PCWSTR			MsgMenu1033[] = {
 	L"",
+	L"About",
 	L"Info",
 	L"Cancel",
 	L"Pause/Continue",
-	L"Exit"
+	L"Exit",
 };
 PCWSTR			MsgMenu1049[] = {
 	L"",
+	L"О программе",
 	L"Информация",
 	L"Отменить",
 	L"Пауза/Продолжить",
-	L"Выход"
+	L"Выход",
 };
 
 PCWSTR			MsgOut1033[] = {
@@ -61,7 +61,7 @@ PCWSTR			MsgOut1033[] = {
 	L"Moving",
 	L"Wiping",
 	L"Deleting",
-	L"Setting attributes"
+	L"Setting attributes",
 };
 PCWSTR			MsgOut1049[] = {
 //	L"Invalid",
@@ -69,7 +69,7 @@ PCWSTR			MsgOut1049[] = {
 	L"Перенос",
 	L"Стирание",
 	L"Удаление",
-	L"Установка атрибутов"
+	L"Установка атрибутов",
 };
 
 PCWSTR			MsgAsk1033[] = {
@@ -77,14 +77,14 @@ PCWSTR			MsgAsk1033[] = {
 	L"Destination already exists",
 	L"The process cannot access the file",
 	L"ASKGROUP_RETRYONLY",
-	L"Symbolic link found"
+	L"Symbolic link found",
 };
 PCWSTR			MsgAsk1049[] = {
 	L"Внимание",
 	L"Такой файл уже существует",
 	L"Нет доступа к файлу",
 	L"ASKGROUP_RETRYONLY",
-	L"Найдена символическая связь"
+	L"Найдена символическая связь",
 };
 
 PCWSTR			MsgInfo1033 = L"Info";
@@ -105,7 +105,7 @@ Extra options are available from icon' context menu (pause/resume, cancel, info)
 \n\
 Usage:\n\
 \n\
-bci.exe [/nb] [/s \"wav-file\" [/t \"seconds\"]] [/w]\n\
+bci.exe [/nb] [/s \"wav-file\" [/t \"seconds\"] [/spf \"hertz\"] [/spd \"millisec\"]] [/w]\n\
 bci.exe /r\n\
 bci.exe /?\n\
 \n\
@@ -115,10 +115,12 @@ bci.exe /?\n\
 /e		enforce english dialogs\n\
 /nb		do not display balloons\n\
 /s \"wav-file\"	play sound after finishing operation\n\
+		if file name is beep speaker will sound\n\
 		sound plays only if operation lasts > timout\n\
-/s beep		speaker will sound\n\
 /t \"seconds\"	set timeout 0..65535 (default 60)\n\
-/w		white tray icon (default - black)";
+/spf \"hertz\"	speaker frequency (default 1000)\n\
+/spd \"millisec\"	speaker duration (default 1000)\n\
+/w		white tray icon (default black)";
 PCWSTR			MsgAbout1049 = L"bci - Background Copy Indicator\n\
 	приложение для использования совместно с сервисом Background Copy\n\
 	(BCN.DLL должна находиться в той же директории что и BCSVC.EXE)\n\
@@ -132,7 +134,7 @@ PCWSTR			MsgAbout1049 = L"bci - Background Copy Indicator\n\
 \n\
 Использование:\n\
 \n\
-bci.exe [/nb] [/s \"имя_файла\" [/t \"секунды\"]] [/w]\n\
+bci.exe [/nb] [/s \"имя_файла\" [/t \"секунды\"] [/spf \"герц\"] [/spd \"милисек\"]] [/w]\n\
 bci.exe /r\n\
 bci.exe /?\n\
 \n\
@@ -142,18 +144,14 @@ bci.exe /?\n\
 /e		принудительно выводить все на английском языке\n\
 /nb		отключить всплывающие окна\n\
 /s \"имя_файла\"	Имя файла, для подачи сигнала при завершении операции\n\
-/s beep		Сигнал будет подаваться спикером\n\
+		Если в качестве имени файла указать beep cигнал будет подаваться спикером\n\
 		сигнал подается в случае если операция выполнялась дольше таймаут секунд\n\
 /t \"секунды\"	установить таймаут в секундах 0..65535 (по умолчанию 60)\n\
-/w		Рисовать иконку белым цветом (по умолчанию - черным)";
-
-PCWSTR			*MsgMenu;
-PCWSTR			*MsgOut;
-PCWSTR			*MsgAsk;
-PCWSTR			MsgInfo;
-PCWSTR			MsgAboutTitle;
-PCWSTR			MsgAbout;
-PCWSTR			InfoTemplate = L"%s\n%s\nиз\n%s\nв\n%s";
+/spf \"герц\"	частота спикера (по умолчанию 1000)\n\
+/spd \"милисек\"	продолжительность сигнала спикера (по умолчанию 1000)\n\
+/w		Рисовать иконку белым цветом (по умолчанию черным)";
+PCWSTR			InfoTemplate1033 = L"%s\n%s\nfrom\n%s\nto\n%s";
+PCWSTR			InfoTemplate1049 = L"%s\n%s\nиз\n%s\nв\n%s";
 
 /// ============================================================================================ var
 //#define WM_TASKICON (WM_USER+27)
@@ -172,7 +170,7 @@ BYTE n[11][5] = {
 	{15, 1, 2, 4, 8},
 	{6, 9, 6, 9, 6},
 	{6, 9, 7, 1, 14},
-	{25, 18, 4, 9, 19}
+	{25, 18, 4, 9, 19},
 };
 
 BYTE t[5][4] = {
@@ -180,7 +178,7 @@ BYTE t[5][4] = {
 	{0x44, 0x7c, 0x54, 0x44},
 	{0x44, 0x54, 0x54, 0x28},
 	{0x70, 0x48, 0x48, 0x70},
-	{0x30, 0x48, 0x78, 0x48}
+	{0x30, 0x48, 0x78, 0x48},
 };
 
 PCWSTR			WindowClass = L"BCI2Class";
@@ -191,19 +189,31 @@ PCWSTR			WavFile = L"";
 HWND			hWnd = 0;
 HANDLE			hEvent = 0;
 HMENU			puMenu = 0;
+LCID			lang = 1033;
 
 UINT const		WM_TASKICON = WM_USER + 27;
-UINT 			uiTIMER = 500;
+UINT			uiTIMER = 500;
 
 size_t			TimeOut = 60 * 1000;	// play sound timeout
-bool			ColorWhite = false;		// icon color
+size_t			SpeakerFreq = 1000;		// speaker frequency
+size_t			SpeakerDur = 1000;		// speaker duration
+bool			bColorWhite = false;	// icon color
 bool			bSendExit = false;
 bool			bNoBalloon = false;
 bool			bEnglishForced = false;
 bool			bShowAbout = false;
 
+PCWSTR			*MsgMenu;
+PCWSTR			*MsgOut;
+PCWSTR			*MsgAsk;
+PCWSTR			MsgInfo;
+PCWSTR			MsgAboutTitle;
+PCWSTR			MsgAbout;
+PCWSTR			InfoTemplate;
+
+/// ================================================================================================
 void			TrimCopy(PWSTR buf, size_t bufsize, PCWSTR filepath) {
-	PCWSTR 			dots = L"...";
+	PCWSTR			dots = L"...";
 	const size_t	dots_len = WinStr::Len(dots);
 	size_t			filepath_len = WinStr::Len(filepath);
 	if (filepath_len < bufsize || filepath_len == 0) {
@@ -232,7 +242,7 @@ void			TrimCopy(PWSTR buf, size_t bufsize, PCWSTR filepath) {
 	++prefix_len;
 
 	// search for a filename
-	PCWSTR 		p = filepath + filepath_len - 1;
+	PCWSTR		p = filepath + filepath_len - 1;
 	while (p > filepath && *p != L'\\')
 		--p;
 	size_t filename_len = filepath + filepath_len - p;
@@ -240,13 +250,13 @@ void			TrimCopy(PWSTR buf, size_t bufsize, PCWSTR filepath) {
 	// check if <prefix> + "..." + <at least filename of filepath> is fit to the buffer
 	if ((prefix_len + dots_len + filename_len) >= bufsize) {
 		// overrun: don't use prefix
-		WinMem::Copy(buf, dots, dots_len * sizeof(wchar_t));
+		WinMem::Copy(buf, dots, dots_len * sizeof(WCHAR));
 		buf += dots_len;
 		bufsize -= dots_len;
 	} else {
-		WinMem::Copy(buf, filepath, prefix_len * sizeof(wchar_t));
+		WinMem::Copy(buf, filepath, prefix_len * sizeof(WCHAR));
 		buf += prefix_len;
-		WinMem::Copy(buf, dots, dots_len * sizeof(wchar_t));
+		WinMem::Copy(buf, dots, dots_len * sizeof(WCHAR));
 		buf += dots_len;
 		bufsize -= prefix_len + dots_len;
 
@@ -257,7 +267,7 @@ void			TrimCopy(PWSTR buf, size_t bufsize, PCWSTR filepath) {
 	filepath += filepath_len;
 	if (filepath_len > bufsize)
 		filepath_len = bufsize;
-	WinMem::Copy(buf, filepath - filepath_len, bufsize * sizeof(wchar_t));
+	WinMem::Copy(buf, filepath - filepath_len, bufsize * sizeof(WCHAR));
 	buf[bufsize] = 0; // was "--bufsize"ed to fit a zero
 }
 
@@ -398,7 +408,7 @@ class TbIcons {
 				a[k+5] = 0xffff - n[InfoItem.percent / 10][k] * 0x1000 - n[InfoItem.percent % 10][k] * 0x80 - n[10][k];
 				XchgByte(a[k+5]);
 			}
-			if (ColorWhite)
+			if (bColorWhite)
 				for (size_t k = 0; k < 16; ++k)
 					x[k] = ~(a[k] | x[k]);
 
@@ -442,14 +452,17 @@ class TbIcons {
 	void		Delete(size_t i) {
 		TrayDelete(IconList[i].id);
 		if ((::GetTickCount() - IconList[i].start) >= TimeOut) {
-			if (WinStr::Cmpi(WavFile, L"beep") != 0) {
-				::Beep(294, 1000 / 8);
-				::Beep(440, 1000 / 4);
-				::Beep(262*2, 1000 / 4);
-				::Beep(330*2, 1000 / 4);
-				::Beep(415, 1000 / 8);
-				::Beep(440, 1000);
-			} else if (WinStr::Cmpi(WavFile, L"") != 0) {
+			if (WinStr::Eqi(WavFile, L"beep")) {
+				/*
+								::Beep(294, 1000 / 8);
+								::Beep(440, 1000 / 4);
+								::Beep(262*2, 1000 / 4);
+								::Beep(330*2, 1000 / 4);
+								::Beep(415, 1000 / 8);
+								::Beep(440, 1000);
+				*/
+				::Beep(SpeakerFreq, SpeakerDur);
+			} else if (!WinStr::Eqi(WavFile, L"")) {
 				::PlaySound(WavFile, NULL, SND_FILENAME | SND_NODEFAULT);
 			}
 		}
@@ -471,6 +484,7 @@ class TbIcons {
 public:
 	TbIcons(): Size(0) {}
 	void		Refresh(SmallInfoRec* InfoList, size_t InfoSize) {
+		DeleteEnded(InfoList, InfoSize);
 		for (size_t i = 0; i < InfoSize; ++i) {
 			size_t	pos = Find(InfoList[i]);
 			if (pos == (size_t)(-1))
@@ -478,7 +492,6 @@ public:
 			else
 				Refresh(InfoList[i], pos);
 		}
-		DeleteEnded(InfoList, InfoSize);
 	}
 	void		DeleteAll() {
 		for (size_t i = 0; i < Size; ++i) {
@@ -487,19 +500,23 @@ public:
 		Size = 0;
 	}
 	size_t		GetSize() const {
-		return Size;
+		return	Size;
 	}
 } Icons;
 
 /// ================================================================================================
 void			CreatePopUpMenu() {
 	puMenu = ::CreatePopupMenu();
+	::AppendMenu(puMenu, 0, cAbout, MsgMenu[cAbout]);
 	::AppendMenu(puMenu, 0, cInfo, MsgMenu[cInfo]);
 	::AppendMenu(puMenu, MF_SEPARATOR, 0, NULL);
 	::AppendMenu(puMenu, 0, cStop, MsgMenu[cStop]);
 	::AppendMenu(puMenu, 0, cPause, MsgMenu[cPause]);
 	::AppendMenu(puMenu, MF_SEPARATOR, 0, NULL);
 	::AppendMenu(puMenu, 0, cExit, MsgMenu[cExit]);
+}
+void			ShowAbout() {
+	::MessageBox(NULL, MsgAbout, MsgAboutTitle, MB_ICONINFORMATION);
 }
 void			ShowInfo(DWORD id) {
 	WCHAR	szInfo[5*MAX_PATH] = {0};
@@ -523,10 +540,13 @@ BOOL CALLBACK	WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 					bcopy::Command(INFOFLAG_PAUSE, static_cast<DWORD>(wParam));
 					break;
 				case WM_RBUTTONDOWN:
-					POINT cur;
+					POINT	cur;
 					::GetCursorPos(&cur);
 					::SetForegroundWindow(hWnd);
 					switch (::TrackPopupMenu(puMenu, ::GetSystemMetrics(SM_MENUDROPALIGNMENT) | TPM_RETURNCMD | TPM_NONOTIFY, cur.x, cur.y, 0, hWnd, 0)) {
+						case cAbout:
+							ShowAbout();
+							break;
 						case cInfo:
 							ShowInfo(static_cast<DWORD>(wParam));
 							break;
@@ -565,55 +585,66 @@ int APIENTRY	wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int) {
 	int		argc = 0;
 	PWSTR	*argv = ::CommandLineToArgvW(pCmdLine, &argc);
 	for (int i = 1; i < argc; ++i) {
-		if ((WinStr::Cmpi(argv[i], L"/s") == 0) && i < (argc - 1)) {
+		if (WinStr::Eqi(argv[i], L"/s") && i < (argc - 1)) {
 			WavFile = argv[i + 1];
 			continue;
 		}
-		if ((WinStr::Cmpi(argv[i], L"/t") == 0) && i < (argc - 1)) {
+		if (WinStr::Eqi(argv[i], L"/t") && i < (argc - 1)) {
 			TimeOut = WinStr::AsULong(argv[i + 1]) * 1000;
 			continue;
 		}
-		if ((WinStr::Cmpi(argv[i], L"/w") == 0)) {
-			ColorWhite = true;
+		if (WinStr::Eqi(argv[i], L"/spf") && i < (argc - 1)) {
+			SpeakerFreq = WinStr::AsULong(argv[i + 1]);
 			continue;
 		}
-		if ((WinStr::Cmpi(argv[i], L"/r") == 0)) {
+		if (WinStr::Eqi(argv[i], L"/spd") && i < (argc - 1)) {
+			SpeakerDur = WinStr::AsULong(argv[i + 1]);
+			continue;
+		}
+		if (WinStr::Eqi(argv[i], L"/w")) {
+			bColorWhite = true;
+			continue;
+		}
+		if (WinStr::Eqi(argv[i], L"/r")) {
 			bSendExit = true;
 			continue;
 		}
-		if ((WinStr::Cmpi(argv[i], L"/e") == 0)) {
+		if (WinStr::Eqi(argv[i], L"/e")) {
 			bEnglishForced = true;
 			continue;
 		}
-		if ((WinStr::Cmpi(argv[i], L"/nb") == 0)) {
+		if (WinStr::Eqi(argv[i], L"/nb")) {
 			bNoBalloon = true;
 			continue;
 		}
-		if ((WinStr::Cmpi(argv[i], L"/?") == 0)) {
+		if (WinStr::Eqi(argv[i], L"/?")) {
 			bShowAbout = true;
 			continue;
 		}
 	}
-
+// language setting
 	MsgMenu = MsgMenu1033;
 	MsgOut = MsgOut1033;
 	MsgAsk = MsgAsk1033;
 	MsgInfo = MsgInfo1033;
 	MsgAboutTitle = MsgAboutTitle1033;
 	MsgAbout = MsgAbout1033;
+	InfoTemplate = InfoTemplate1033;
 	if (!bEnglishForced) {
-		if (::GetUserDefaultLCID() == 1049) {
+		lang = ::GetUserDefaultLCID();
+		if (lang == 1049) {
 			MsgMenu = MsgMenu1049;
 			MsgOut = MsgOut1049;
 			MsgAsk = MsgAsk1049;
 			MsgInfo = MsgInfo1049;
 			MsgAboutTitle = MsgAboutTitle1049;
 			MsgAbout = MsgAbout1049;
+			InfoTemplate = InfoTemplate1049;
 		}
 	}
 
 	if (bShowAbout) {
-		::MessageBox(NULL, MsgAbout, MsgAboutTitle, MB_ICONINFORMATION);
+		ShowAbout();
 	} else {
 		hWnd = ::FindWindow(NULL, WindowName);
 		if (hWnd) {
@@ -662,8 +693,8 @@ int APIENTRY	wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int) {
 					}
 				}
 			}
-			Icons.DeleteAll();
 			::KillTimer(hWnd, 0);
+			Icons.DeleteAll();
 			if (hEvent)
 				::CloseHandle(hEvent);
 		}

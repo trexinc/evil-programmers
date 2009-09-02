@@ -1,21 +1,33 @@
-﻿/** win_def.hpp
- *	@main windows application include, always include first
- *	@author GrAnD, 2009
- *	@link ()
+﻿/**
+	win_def.h
+
+	main windows application include, always include first
+	Copyright (C) 2009 GrAnD
+	@link ()
 **/
+
 #ifndef WIN_DEF_HPP
 #define WIN_DEF_HPP
 
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT		0x0501		// Windows 2000 or later
-#define WINVER		0x0501		// Windows 2000 or later
-#else
-#if _WIN32_WINNT < 0x0501
+#if (_WIN32_WINNT < 0x0501)
 #undef _WIN32_WINNT
-#define _WIN32_WINNT		0x0501		// Windows 2000 or later
-#undef WINVER
-#define WINVER		0x0501		// Windows 2000 or later
 #endif
+#ifndef _WIN32_WINNT
+#define _WIN32_WINNT 0x0501		// Windows 2000 or later
+#endif
+
+#if (WINVER < 0x0501)
+#undef WINVER
+#endif
+#ifndef WINVER
+#define WINVER 0x0501
+#endif
+
+#if (_WIN32_IE < 0x0600)
+#undef _WIN32_IE
+#endif
+#ifndef _WIN32_IE
+#define _WIN32_IE 0x0600
 #endif
 
 #include <windows.h>
@@ -51,6 +63,18 @@ inline	void					Swp(Type &x, Type &y) {
 
 ///========================================================================================== WinStr
 namespace	WinStr {
+	inline bool					Eq(PCSTR in1, PCSTR in2) {
+		return	::strcmp(in1, in2) == 0;
+	}
+	inline bool					Eq(PCWSTR in1, PCWSTR in2) {
+		return	::wcscmp(in1, in2) == 0;
+	}
+	inline bool					Eqi(PCSTR in1, PCSTR in2) {
+		return	::_stricmp(in1, in2) == 0;
+	}
+	inline bool					Eqi(PCWSTR in1, PCWSTR in2) {
+		return	::_wcsicmp(in1, in2) == 0;
+	}
 	inline int					Cmp(PCSTR in1, PCSTR in2) {
 		return	::strcmp(in1, in2);
 	}
@@ -69,16 +93,16 @@ namespace	WinStr {
 	inline size_t				Len(PCWSTR in) {
 		return	::wcslen(in);
 	}
-	inline PSTR 				Copy(PSTR dest, PCSTR src) {
+	inline PSTR					Copy(PSTR dest, PCSTR src) {
 		return	::strcpy(dest, src);
 	}
-	inline PWSTR 				Copy(PWSTR dest, PCWSTR src) {
+	inline PWSTR				Copy(PWSTR dest, PCWSTR src) {
 		return	::wcscpy(dest, src);
 	}
-	inline PSTR 				Copy(PSTR dest, PCSTR src, size_t size) {
+	inline PSTR					Copy(PSTR dest, PCSTR src, size_t size) {
 		return	::strncpy(dest, src, size);
 	}
-	inline PWSTR 				Copy(PWSTR dest, PCWSTR src, size_t size) {
+	inline PWSTR				Copy(PWSTR dest, PCWSTR src, size_t size) {
 		return	::wcsncpy(dest, src, size);
 	}
 
