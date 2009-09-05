@@ -134,7 +134,7 @@ INT WINAPI ConfigureW(INT ItemNumber)
 		}
 		regKeys&=KEYSMASK;
 		HKEY hKey;
-		if(RegOpenKeyEx(HKEY_CURRENT_USER,RegKey,0,KEY_SET_VALUE,&hKey)==ERROR_SUCCESS)
+		if(RegCreateKeyEx(HKEY_CURRENT_USER,RegKey,0,NULL,0,KEY_SET_VALUE,NULL,&hKey,NULL)==ERROR_SUCCESS)
 		{
 			DWORD Data=regKeys;
 			RegSetValueEx(hKey,L"Keys",NULL,REG_DWORD,reinterpret_cast<LPCBYTE>(&Data),sizeof(Data));
