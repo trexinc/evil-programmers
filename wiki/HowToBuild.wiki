@@ -6,36 +6,38 @@
 The following files are needed:
 
 From http://sourceforge.net/projects/mingw/
+  * msysCORE-1.0.11-bin.tar.gz
   * bison-2.3-MSYS-1.0.11-1.tar.bz2
-  * msysCORE-1.0.11-20080826.tar.gz
-  * binutils-2.19.1-mingw32-bin.tar.tar
-  * mingw32-make-3.81-20080326-3.tar.tar
-  * mingwrt-3.15.2-mingw32-dev.tar.tar
+  * binutils-2.19.1-mingw32-bin.tar.gz
+  * mingwrt-3.16-mingw32-dev.tar.gz
+  * mingwrt-3.16-mingw32-dll.tar.gz
   * mingw-utils-0.3.tar.gz
   * w32api-3.13-mingw32-dev.tar.gz
+  * mingw32-make-3.81-20080326-3.tar.gz
 
 From http://www.tdragon.net/recentgcc/
-  * gcc-4.4.0-tdm-1-core-2.zip
-  * gcc-4.4.0-tdm-1-g++-2.zip
+  * gcc-4.4.1-tdm-1-core.zip
+  * gcc-4.4.1-tdm-1-g++.zip
 
 From http://sourceforge.net/projects/re2c
   * re2c-0.13.5-bin.zip
 
 Extract to *msys* folder:
   * bison-2.3-MSYS-1.0.11-1.tar.bz2
-  * msysCORE-1.0.11-20080826.tar.gz
+  * msysCORE-1.0.11-bin.tar.gz
 
 Extract to *msys/bin* folder:
   * re2c-0.13.5-bin.zip
 
 Extract to *mingw* folder:
-  * binutils-2.19.1-mingw32-bin.tar.tar
-  * mingw32-make-3.81-20080326-3.tar.tar
-  * mingwrt-3.15.2-mingw32-dev.tar.tar
+  * binutils-2.19.1-mingw32-bin.tar.gz
+  * mingw32-make-3.81-20080326-3.tar.gz
+  * mingwrt-3.16-mingw32-dev.tar.gz
+  * mingwrt-3.16-mingw32-dll.tar.gz
   * mingw-utils-0.3.tar.gz
   * w32api-3.13-mingw32-dev.tar.gz
-  * gcc-4.4.0-tdm-1-core-2.zip
-  * gcc-4.4.0-tdm-1-g++-2.zip
+  * gcc-4.4.1-tdm-1-core.zip
+  * gcc-4.4.1-tdm-1-g++.zip
 
 Add *mingw/bin* and *msys/bin* to *PATH*.
 
