@@ -32,6 +32,7 @@ enum
   mNameSearch,
   mNameReplace,
   mNameUndo,
+  mNameEdit,
   mLower,
   mUpper,
   mTitle,
@@ -79,6 +80,7 @@ extern void FilterUndo(HANDLE aDlg,int aMsg,int aParam1,LONG_PTR aParam2);
 extern void DoPaste(HANDLE aDlg);
 extern void DoSearch(HANDLE aDlg);
 extern void DoReplace(HANDLE aDlg);
+extern void DoEdit(HANDLE aDlg);
 
 extern int GetRegKey(HKEY hRoot,const TCHAR * root, const TCHAR *Key,const TCHAR *ValueName,TCHAR *ValueData,const TCHAR *Default,DWORD DataSize);
 

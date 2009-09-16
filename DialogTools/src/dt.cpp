@@ -82,8 +82,8 @@ void WINAPI EXP_NAME(GetPluginInfo)(struct PluginInfo* Info)
 {
   Info->StructSize=sizeof(*Info);
   Info->Flags=PF_DIALOG|PF_DISABLEPANELS;
-  static const TCHAR* PluginMenuStrings[7];
-  const int items[]={mNameCase,mNameFile,mNamePaste,mNamePwd,mNameSearch,mNameReplace,mNameUndo};
+  const int items[]={mNameCase,mNameFile,mNamePaste,mNamePwd,mNameSearch,mNameReplace,mNameUndo,mNameEdit};
+  static const TCHAR* PluginMenuStrings[ArraySize(items)];
   for(size_t ii=0;ii<ArraySize(items);ii++) PluginMenuStrings[ii]=GetMsg(items[ii]);
 
   Info->PluginMenuStrings=PluginMenuStrings;
@@ -120,6 +120,9 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom,INT_PTR Item)
         break;
       case mNameUndo:
         DoUndo(data->hDlg);
+        break;
+      case mNameEdit:
+        DoEdit(data->hDlg);
         break;
     }
   }
