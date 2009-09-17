@@ -42,6 +42,10 @@ void DoEdit(HANDLE aDlg)
         if(file!=INVALID_HANDLE_VALUE)
         {
           DWORD written;
+#ifdef UNICODE
+          short marker=0xfeff;
+          WriteFile(file,&marker,sizeof(marker),&written,NULL);
+#endif
           WriteFile(file,buffer,(length-1)*sizeof(TCHAR),&written,NULL);
           CloseHandle(file);
           Info.Editor(filename,_T(""),0,0,-1,-1,EF_DISABLEHISTORY,1,1
@@ -53,7 +57,13 @@ void DoEdit(HANDLE aDlg)
           if(file!=INVALID_HANDLE_VALUE)
           {
             DWORD size=SetFilePointer(file,0,NULL,FILE_END)/sizeof(TCHAR);
-            SetFilePointer(file,0,NULL,FILE_BEGIN);
+            SetFilePointer(file,
+#ifdef UNICODE
+            sizeof(marker)
+#else
+            0
+#endif
+            ,NULL,FILE_BEGIN);
             TCHAR* outBuffer=(TCHAR*)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,(size+1)*sizeof(TCHAR));
             if(outBuffer)
             {
