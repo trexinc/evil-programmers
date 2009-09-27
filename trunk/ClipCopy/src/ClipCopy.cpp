@@ -548,14 +548,19 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(INT OpenFrom, INT_PTR Item)
           {
             ci = (DWORD*)HeapAlloc(hHeap, HEAP_GENERATE_EXCEPTIONS | HEAP_ZERO_MEMORY,
               (count + 1) * (MY_MAX_PATH + 1) + sizeof(DWORD) + 2);
+#ifdef UNICODE
+            size += Info.Control(PANEL_ACTIVE, FCTL_GETCURRENTDIRECTORY, 
+              MY_MAX_PATH, (LONG_PTR)&ci[1]) + sizeof(DWORD) + 2 - 1;
+#else
             size += GetCurrentDirectory(MY_MAX_PATH, (LPTSTR)&ci[1]) + sizeof(DWORD) + 2;
+#endif
           }
 
           for (i = 0; i < count; i++)
           {
             if (ExitCode == DoPaste)
             {
-              size += DragQueryFile((HDROP)medium.hGlobal, i, &((TCHAR*)ci)[size], MAX_PATH) + 1;
+              size += DragQueryFile((HDROP)medium.hGlobal, i, &((TCHAR*)ci)[size], MY_MAX_PATH) + 1;
             }
             else
             {
@@ -649,7 +654,7 @@ VOID WINAPI EXP_NAME(SetStartupInfo)(CONST struct PluginStartupInfo *pInfo)
 INT WINAPI EXP_NAME(GetMinFarVersion)(VOID)
 {
 #ifdef UNICODE
-  return MAKEFARVERSION(2, 0, 1005);
+  return MAKEFARVERSION(2, 0, 1144);
 #endif
 }
 #endif
