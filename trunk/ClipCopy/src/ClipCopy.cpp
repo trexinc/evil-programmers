@@ -40,6 +40,7 @@ static CONST TCHAR szUsingThePlugin[] = TEXT("Use");
 static CONST TCHAR szLnk           [] = TEXT(".lnk");
 
 struct PluginStartupInfo Info;
+FARSTANDARDFUNCTIONS FSF;
 HANDLE hHeap;
 
 static HRESULT CreateLink(LPCTSTR lpszPathObj, LPCTSTR lpszPathLink);
@@ -398,7 +399,11 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(INT OpenFrom, INT_PTR Item)
 
           if (filename)
           {
+#ifdef UNICODE
+            FSF.ConvertNameToReal(filename, szName, MY_MAX_PATH);
+#else
             lstrcpyn(szName, filename, MY_MAX_PATH);
+#endif
           }
 
 #ifndef UNICODE
@@ -647,6 +652,8 @@ VOID WINAPI EXP_NAME(GetPluginInfo)(struct PluginInfo *Info)
 VOID WINAPI EXP_NAME(SetStartupInfo)(CONST struct PluginStartupInfo *pInfo)
 {
   Info = *pInfo;
+  FSF = *pInfo->FSF;
+  Info.FSF = &FSF;
   hHeap = GetProcessHeap();
 }
 
@@ -654,7 +661,7 @@ VOID WINAPI EXP_NAME(SetStartupInfo)(CONST struct PluginStartupInfo *pInfo)
 INT WINAPI EXP_NAME(GetMinFarVersion)(VOID)
 {
 #ifdef UNICODE
-  return MAKEFARVERSION(2, 0, 1144);
+  return MAKEFARVERSION(2, 0, 1145);
 #endif
 }
 #endif
