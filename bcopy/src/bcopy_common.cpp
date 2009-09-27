@@ -84,9 +84,9 @@ void UNCPath(TCHAR *path)
   }
   //extract symlinks only for local disk
   if((_tcslen(path)>2)&&(path[1]==':'))
-    if((unsigned int)FSF.ConvertNameToReal(path,NULL,0)<ArraySize(buff))
+    if((unsigned int)FSF.ConvertPath(CPM_REAL,path,NULL,0)<ArraySize(buff))
     {
-      FSF.ConvertNameToReal(path,buff,ArraySize(buff));
+      FSF.ConvertPath(CPM_REAL,path,buff,ArraySize(buff));
       _tcscpy(path,buff);
     }
   for(unsigned int i=0;i<_tcslen(path);i++) if(path[i]=='/') path[i]='\\';
