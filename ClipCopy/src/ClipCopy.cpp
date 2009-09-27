@@ -400,7 +400,7 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(INT OpenFrom, INT_PTR Item)
           if (filename)
           {
 #ifdef UNICODE
-            FSF.ConvertNameToReal(filename, szName, MY_MAX_PATH);
+            FSF.ConvertPath(CPM_FULL, filename, szName, MY_MAX_PATH);
 #else
             lstrcpyn(szName, filename, MY_MAX_PATH);
 #endif
@@ -554,7 +554,7 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(INT OpenFrom, INT_PTR Item)
             ci = (DWORD*)HeapAlloc(hHeap, HEAP_GENERATE_EXCEPTIONS | HEAP_ZERO_MEMORY,
               (count + 1) * (MY_MAX_PATH + 1) + sizeof(DWORD) + 2);
 #ifdef UNICODE
-            size += Info.Control(PANEL_ACTIVE, FCTL_GETCURRENTDIRECTORY, 
+            size += Info.Control(PANEL_ACTIVE, FCTL_GETCURRENTDIRECTORY,
               MY_MAX_PATH, (LONG_PTR)&ci[1]) + sizeof(DWORD) + 2 - 1;
 #else
             size += GetCurrentDirectory(MY_MAX_PATH, (LPTSTR)&ci[1]) + sizeof(DWORD) + 2;
@@ -661,7 +661,7 @@ VOID WINAPI EXP_NAME(SetStartupInfo)(CONST struct PluginStartupInfo *pInfo)
 INT WINAPI EXP_NAME(GetMinFarVersion)(VOID)
 {
 #ifdef UNICODE
-  return MAKEFARVERSION(2, 0, 1145);
+  return MAKEFARVERSION(2, 0, 1148);
 #endif
 }
 #endif
