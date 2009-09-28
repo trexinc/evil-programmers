@@ -1,35 +1,35 @@
-﻿/**
-    bci.cpp
-    Copyright (C) 2005 WhiteDragon
-    Copyright (C) 2009 DrKnS
-    Copyright (C) 2009 Std
-    Copyright (C) 2009 GrAnD
+/**
+	bci.cpp
+	Copyright (C) 2005 WhiteDragon
+	Copyright (C) 2009 DrKnS
+	Copyright (C) 2009 Std
+	Copyright (C) 2009 GrAnD
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-    GNU General Public License for more details.
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+	GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+	You should have received a copy of the GNU General Public License
+	along with this program. If not, see <http://www.gnu.org/licenses/>.
 **/
-#define UNICODE
-#define _UNICODE
+#define DynamicLink
 
 #include "win_def.h"
 #include "bcCommon.h"
 #include "bci.h"
 
-#include <shellapi.h>
 #include <mmsystem.h>
 #include <wchar.h>
 
 ///========================================================================================== define
+#include "strings.h"
+
 enum			puMenuCommands {
 	cAbout = 1,
 	cInfo,
@@ -38,126 +38,11 @@ enum			puMenuCommands {
 	cExit,
 };
 
-PCWSTR			MsgMenu1033[] = {
-	L"",
-	L"About",
-	L"Info",
-	L"Cancel",
-	L"Pause/Continue",
-	L"Exit",
-};
-PCWSTR			MsgMenu1049[] = {
-	L"",
-	L"О программе",
-	L"Информация",
-	L"Отменить",
-	L"Пауза/Продолжить",
-	L"Выход",
-};
-
-PCWSTR			MsgOut1033[] = {
-//	L"Invalid",
-	L"Copying",
-	L"Moving",
-	L"Wiping",
-	L"Deleting",
-	L"Setting attributes",
-};
-PCWSTR			MsgOut1049[] = {
-//	L"Invalid",
-	L"Копирование",
-	L"Перенос",
-	L"Стирание",
-	L"Удаление",
-	L"Установка атрибутов",
-};
-
-PCWSTR			MsgAsk1033[] = {
-	L"Attention",
-	L"Destination already exists",
-	L"The process cannot access the file",
-	L"ASKGROUP_RETRYONLY",
-	L"Symbolic link found",
-};
-PCWSTR			MsgAsk1049[] = {
-	L"Внимание",
-	L"Такой файл уже существует",
-	L"Нет доступа к файлу",
-	L"ASKGROUP_RETRYONLY",
-	L"Найдена символическая связь",
-};
-
-PCWSTR			MsgInfo1033 = L"Info";
-PCWSTR			MsgInfo1049 = L"Информация";
-
-PCWSTR			MsgAboutTitle1033 = L"About";
-PCWSTR			MsgAboutTitle1049 = L"О программе";
-PCWSTR			MsgAbout1033 = L"bci - Background Copy Indicator\n\
-	to use in conjunction with Background Copy service\n\
-	(BCN.DLL must be placed near BCSVC.EXE)\n\
-\n\
-Purpose:\n\
-	Displays BC operations' progressbar(s) in tray icons\n\
-\n\
-You can view operation' details in mouse hint\n\
-If some operation needs user input (eg if destination already exists) then balloon pops out\n\
-Extra options are available from icon' context menu (pause/resume, cancel, info)\n\
-\n\
-Usage:\n\
-\n\
-bci.exe [/nb] [/s \"wav-file\" [/t \"seconds\"] [/spf \"hertz\"] [/spd \"millisec\"]] [/w]\n\
-bci.exe /r\n\
-bci.exe /?\n\
-\n\
-/r		remove running bci.exe from memory\n\
-/?		this help\n\
-\n\
-/e		enforce english dialogs\n\
-/nb		do not display balloons\n\
-/s \"wav-file\"	play sound after finishing operation\n\
-		if file name is beep speaker will sound\n\
-		sound plays only if operation lasts > timout\n\
-/t \"seconds\"	set timeout 0..65535 (default 60)\n\
-/spf \"hertz\"	speaker frequency (default 1000)\n\
-/spd \"millisec\"	speaker duration (default 1000)\n\
-/w		white tray icon (default black)";
-PCWSTR			MsgAbout1049 = L"bci - Background Copy Indicator\n\
-	приложение для использования совместно с сервисом Background Copy\n\
-	(BCN.DLL должна находиться в той же директории что и BCSVC.EXE)\n\
-\n\
-Назначение:\n\
-	Отображает очередь задач BC в трее\n\
-\n\
-Вы можете посмотреть детали задачи, просто наведите курсор мыши на нужную иконку\n\
-Если какая либо из задач потребует вмешательства пользователя над ее иконкой появится всплывающее окно\n\
-Управлять задачами можно с помощью щелчка правой кнопкой мыши (Пауза/Продолжить, Отменить, Инфо)\n\
-\n\
-Использование:\n\
-\n\
-bci.exe [/nb] [/s \"имя_файла\" [/t \"секунды\"] [/spf \"герц\"] [/spd \"милисек\"]] [/w]\n\
-bci.exe /r\n\
-bci.exe /?\n\
-\n\
-/r		Завершить процесс bci.exe, выполняющийся в данный момент\n\
-/?		показать краткую справку\n\
-\n\
-/e		принудительно выводить все на английском языке\n\
-/nb		отключить всплывающие окна\n\
-/s \"имя_файла\"	Имя файла, для подачи сигнала при завершении операции\n\
-		Если в качестве имени файла указать beep cигнал будет подаваться спикером\n\
-		сигнал подается в случае если операция выполнялась дольше таймаут секунд\n\
-/t \"секунды\"	установить таймаут в секундах 0..65535 (по умолчанию 60)\n\
-/spf \"герц\"	частота спикера (по умолчанию 1000)\n\
-/spd \"милисек\"	продолжительность сигнала спикера (по умолчанию 1000)\n\
-/w		Рисовать иконку белым цветом (по умолчанию черным)";
-PCWSTR			InfoTemplate1033 = L"%s\n%s\nfrom\n%s\nto\n%s";
-PCWSTR			InfoTemplate1049 = L"%s\n%s\nиз\n%s\nв\n%s";
-
 /// ============================================================================================ var
 //#define WM_TASKICON (WM_USER+27)
 
 WORD a[16];//={0,0,0,0,0xffff,0,0,0,0,0,0xffff,0,0,0,0,0xffff};
-WORD x[16];//={0,0,0,0,0,     0,0,0,0,0,0,     0,0,0,0,0};
+WORD x[16];//={0,0,0,0,0,	 0,0,0,0,0,0,	 0,0,0,0,0};
 
 BYTE n[11][5] = {
 	{6, 9, 9, 9, 6},
@@ -186,17 +71,38 @@ PCWSTR			WindowName = L"BCI2";
 PCWSTR			EventName = L"Global\\BCI2";
 PCWSTR			WavFile = L"";
 
-HWND			hWnd = 0;
-HANDLE			hEvent = 0;
-HMENU			puMenu = 0;
+#ifdef DynamicLink
+namespace	DynLink {
+	HINSTANCE		hNtDll = NULL;
+	dl__snwprintf	my_snprintf = NULL;
+	bool			InitLib() {
+		hNtDll = ::LoadLibrary(L"ntdll.dll");
+		if (hNtDll) {
+			my_snprintf = (dl__snwprintf) ::GetProcAddress(hNtDll, "_snwprintf");
+		} else {
+			::MessageBox(NULL, L"Can`t load ntdll.dll", L"Critical error", MB_ICONERROR);
+			ExitThread(::GetLastError());
+			return	false;
+		}
+		return	true;
+	}
+	void			FreeLib() {
+		::FreeLibrary(hNtDll);
+	}
+}
+#endif
+
+HWND			hWnd = NULL;
+HANDLE			hEvent = NULL;
+HMENU			puMenu = NULL;
 LCID			lang = 1033;
 
 UINT const		WM_TASKICON = WM_USER + 27;
 UINT			uiTIMER = 500;
 
 size_t			TimeOut = 60 * 1000;	// play sound timeout
-size_t			SpeakerFreq = 1000;		// speaker frequency
-size_t			SpeakerDur = 1000;		// speaker duration
+DWORD			SpeakerFreq = 1000;		// speaker frequency
+DWORD			SpeakerDur = 1000;		// speaker duration
 bool			bColorWhite = false;	// icon color
 bool			bSendExit = false;
 bool			bNoBalloon = false;
@@ -221,7 +127,7 @@ void			TrimCopy(PWSTR buf, size_t bufsize, PCWSTR filepath) {
 		return;
 	}
 
-	if (bufsize < (dots_len + 1)) {    // "...\0"
+	if (bufsize < (dots_len + 1)) { // "...\0"
 		if (bufsize > 1)
 			*buf++ = L'*';
 		if (bufsize)
@@ -272,7 +178,7 @@ void			TrimCopy(PWSTR buf, size_t bufsize, PCWSTR filepath) {
 }
 
 void			FormatHint(PWSTR buf, size_t bufsize, PCWSTR action, PCWSTR filename, DWORD pr_value) {
-	int len = ::_snwprintf(buf, bufsize, L"%s - %d%%\n", action, pr_value);
+	int len = my_snwprintf(buf, bufsize, L"%s - %d%%\n", action, pr_value);
 	if (len == -1)
 		return;
 	TrimCopy(buf + len, bufsize - len - 1, filename);
@@ -314,7 +220,7 @@ namespace bcopy {
 				}
 			::CloseHandle(hPipe);
 		}
-		return Result;
+		return	Result;
 	}
 	void		FreeList(SmallInfoRec* &InfoList) {
 		WinMem::Free(InfoList);
@@ -335,7 +241,7 @@ namespace bcopy {
 		} else if (::GetLastError() == ERROR_PIPE_BUSY) {
 			Result = true;
 		}
-		return Result;
+		return	Result;
 	}
 }
 
@@ -356,7 +262,7 @@ class TbIcons {
 		tnid.dwInfoFlags = NIIF_INFO;
 		WinStr::Copy(tnid.szInfoTitle, szInfoTitle, sizeofa(tnid.szInfoTitle) - 1);
 		WinStr::Copy(tnid.szInfo, szInfo, sizeofa(tnid.szInfo) - 1);
-		return ::Shell_NotifyIcon(NIM_MODIFY, &tnid) != 0;
+		return	::Shell_NotifyIcon(NIM_MODIFY, &tnid) != 0;
 	}
 	bool		TrayRefresh(UINT uID, HICON hIcon, PCWSTR szTip) {
 		bool	Result = false;
@@ -381,7 +287,7 @@ class TbIcons {
 			if (!Result)
 				Result = ::Shell_NotifyIcon(NIM_ADD, &tnid) != 0;
 		}
-		return Result;
+		return	Result;
 	}
 	bool		TrayDelete(UINT id) {
 		NOTIFYICONDATA nid;
@@ -393,7 +299,8 @@ class TbIcons {
 	}
 
 	void		Refresh(const SmallInfoRec &InfoItem, size_t i) {
-		WCHAR	szTip[128] = {0};
+		WCHAR	szTip[128];
+		WinMem::Zero(szTip, sizeofa(szTip));
 		BYTE percent = (BYTE)(InfoItem.percent + 128 * InfoItem.pause);
 		if ((IconList[i].pr != percent)) {
 			IconList[i].pr = percent;
@@ -426,9 +333,9 @@ class TbIcons {
 				WinMem::Zero(info);
 				bcopy::GetInfo(&info, InfoItem.ThreadId);
 				if (InfoItem.Ask == 2)
-					::_snwprintf(szInfo, sizeofa(szInfo), L"%s\n%s", MsgAsk[InfoItem.Ask], info.Src);
+					my_snwprintf(szInfo, sizeofa(szInfo), L"%s\n%s", MsgAsk[InfoItem.Ask], info.Src);
 				else
-					::_snwprintf(szInfo, sizeofa(szInfo), L"%s\n%s", MsgAsk[InfoItem.Ask], info.Dest);
+					my_snwprintf(szInfo, sizeofa(szInfo), L"%s\n%s", MsgAsk[InfoItem.Ask], info.Dest);
 				ShowBalloon(IconList[i].id, MsgAsk[0], szInfo);
 			}
 		}
@@ -444,27 +351,29 @@ class TbIcons {
 	size_t		Find(const SmallInfoRec &InfoItem) {
 		for (size_t i = 0; i < Size; ++i) {
 			if (IconList[i].id == InfoItem.ThreadId) {
-				return i;
+				return	i;
 			}
 		}
-		return -1; //0xFFFFFFFF
+		return	(size_t) - 1; //0xFFFFFFFF
 	}
 	void		Delete(size_t i) {
 		TrayDelete(IconList[i].id);
 		if ((::GetTickCount() - IconList[i].start) >= TimeOut) {
-			if (WinStr::Eqi(WavFile, L"beep")) {
-				/*
-								::Beep(294, 1000 / 8);
-								::Beep(440, 1000 / 4);
-								::Beep(262*2, 1000 / 4);
-								::Beep(330*2, 1000 / 4);
-								::Beep(415, 1000 / 8);
-								::Beep(440, 1000);
-				*/
-				::Beep(SpeakerFreq, SpeakerDur);
-			} else if (!WinStr::Eqi(WavFile, L"")) {
-				::PlaySound(WavFile, NULL, SND_FILENAME | SND_NODEFAULT);
+			if (!WinStr::Eqi(WavFile, L"")) {
+				if (WinStr::Eqi(WavFile, L"beep")) {
+					::Beep(SpeakerFreq, SpeakerDur);
+				} else {
+					::PlaySound(WavFile, NULL, SND_FILENAME | SND_NODEFAULT);
+				}
 			}
+			/*
+			::Beep(294, 1000 / 8);
+			::Beep(440, 1000 / 4);
+			::Beep(262*2, 1000 / 4);
+			::Beep(330*2, 1000 / 4);
+			::Beep(415, 1000 / 8);
+			::Beep(440, 1000);
+			*/
 		}
 		IconList[i] = IconList[--Size];
 	}
@@ -519,72 +428,20 @@ void			ShowAbout() {
 	::MessageBox(NULL, MsgAbout, MsgAboutTitle, MB_ICONINFORMATION);
 }
 void			ShowInfo(DWORD id) {
-	WCHAR	szInfo[5*MAX_PATH] = {0};
+	WCHAR	szInfo[5*MAX_PATH];
+	WinMem::Zero(szInfo, sizeofa(szInfo));
 	InfoRec info;
 	WinMem::Zero(info);
 	bcopy::GetInfo(&info, id);
-	::_snwprintf(szInfo, sizeofa(szInfo), InfoTemplate,
+	my_snwprintf(szInfo, sizeofa(szInfo), InfoTemplate,
 				 MsgOut[info.info.type - 1],
 				 info.Src,
 				 info.info.Src,
 				 info.info.DestDir);
 	::MessageBox(NULL, szInfo, MsgInfo, MB_ICONINFORMATION);
 }
-
-/// ======================================================================================= CallBack
-BOOL CALLBACK	WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-	switch (uMsg) {
-		case WM_TASKICON:
-			switch (lParam) {
-				case WM_LBUTTONDOWN:
-					bcopy::Command(INFOFLAG_PAUSE, static_cast<DWORD>(wParam));
-					break;
-				case WM_RBUTTONDOWN:
-					POINT	cur;
-					::GetCursorPos(&cur);
-					::SetForegroundWindow(hWnd);
-					switch (::TrackPopupMenu(puMenu, ::GetSystemMetrics(SM_MENUDROPALIGNMENT) | TPM_RETURNCMD | TPM_NONOTIFY, cur.x, cur.y, 0, hWnd, 0)) {
-						case cAbout:
-							ShowAbout();
-							break;
-						case cInfo:
-							ShowInfo(static_cast<DWORD>(wParam));
-							break;
-						case cStop:
-							bcopy::Command(INFOFLAG_STOP, static_cast<DWORD>(wParam));
-							break;
-						case cPause:
-							bcopy::Command(INFOFLAG_PAUSE, static_cast<DWORD>(wParam));
-							break;
-						case cExit:
-							::PostQuitMessage(0);
-					}
-//					::PostMessage(hWnd, WM_NULL, 0, 0);
-			}
-			break;
-		case WM_TIMER: {
-			SmallInfoRec	*InfoList;
-			DWORD			InfoSize;
-			if (bcopy::GetList(InfoList, InfoSize)) {
-				if (!InfoSize) {
-					::KillTimer(hWnd, 0);
-					::ResetEvent(hEvent);
-				}
-				Icons.Refresh(InfoList, InfoSize);
-				bcopy::FreeList(InfoList);
-			}
-		}
-	}
-	return ::DefWindowProc(hWnd, uMsg, wParam, lParam) != 0;
-}
-
-/// =========================================================================================== main
-int APIENTRY	wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int) {
-	a[4] = a[10] = a[15] = 0xffff;
-
-	int		argc = 0;
-	PWSTR	*argv = ::CommandLineToArgvW(pCmdLine, &argc);
-	for (int i = 1; i < argc; ++i) {
+void			ParseCommandLine(size_t argc, PWSTR argv[]) {
+	for (size_t i = 1; i < argc; ++i) {
 		if (WinStr::Eqi(argv[i], L"/s") && i < (argc - 1)) {
 			WavFile = argv[i + 1];
 			continue;
@@ -622,24 +479,82 @@ int APIENTRY	wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int) {
 			continue;
 		}
 	}
+}
+
+/// ======================================================================================= CallBack
+BOOL CALLBACK	WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+	switch (uMsg) {
+		case WM_TASKICON:
+			switch (lParam) {
+				case WM_LBUTTONDOWN:
+					bcopy::Command(INFOFLAG_PAUSE, static_cast<DWORD>(wParam));
+					break;
+				case WM_RBUTTONDOWN:
+					POINT	cur;
+					::GetCursorPos(&cur);
+					::SetForegroundWindow(hWnd);
+					switch (::TrackPopupMenu(puMenu, ::GetSystemMetrics(SM_MENUDROPALIGNMENT) | TPM_RETURNCMD | TPM_NONOTIFY, cur.x, cur.y, 0, hWnd, 0)) {
+						case cAbout:
+							ShowAbout();
+							break;
+						case cInfo:
+							ShowInfo(static_cast<DWORD>(wParam));
+							break;
+						case cStop:
+							bcopy::Command(INFOFLAG_STOP, static_cast<DWORD>(wParam));
+							break;
+						case cPause:
+							bcopy::Command(INFOFLAG_PAUSE, static_cast<DWORD>(wParam));
+							break;
+						case cExit:
+							::PostQuitMessage(0);
+					}
+//					::PostMessage(hWnd, WM_NULL, 0, 0);
+			}
+			break;
+		case WM_TIMER: {
+			SmallInfoRec	*InfoList;
+			DWORD			InfoSize;
+			if (bcopy::GetList(InfoList, InfoSize)) {
+				Icons.Refresh(InfoList, InfoSize);
+				bcopy::FreeList(InfoList);
+			}
+			if (Icons.GetSize() == 0) {
+				::KillTimer(hWnd, 0);
+				::ResetEvent(hEvent);
+			}
+		}
+	}
+	return	::DefWindowProc(hWnd, uMsg, wParam, lParam) != 0;
+}
+
+/// =========================================================================================== main
+int APIENTRY	wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int) {
+	DynLink::InitLib();
+	a[4] = a[10] = a[15] = 0xffff;
+
+	int		argc = 0;
+	PWSTR	*argv = ::CommandLineToArgvW(pCmdLine, &argc);
+	ParseCommandLine(argc, argv);
+
 // language setting
-	MsgMenu = MsgMenu1033;
-	MsgOut = MsgOut1033;
-	MsgAsk = MsgAsk1033;
-	MsgInfo = MsgInfo1033;
-	MsgAboutTitle = MsgAboutTitle1033;
-	MsgAbout = MsgAbout1033;
-	InfoTemplate = InfoTemplate1033;
+	MsgMenu	= MsgMenu1033;
+	MsgOut	= MsgOut1033;
+	MsgAsk	= MsgAsk1033;
+	MsgInfo	= MsgInfo1033;
+	MsgAboutTitle	= MsgAboutTitle1033;
+	MsgAbout		= MsgAbout1033;
+	InfoTemplate	= InfoTemplate1033;
 	if (!bEnglishForced) {
 		lang = ::GetUserDefaultLCID();
 		if (lang == 1049) {
-			MsgMenu = MsgMenu1049;
-			MsgOut = MsgOut1049;
-			MsgAsk = MsgAsk1049;
-			MsgInfo = MsgInfo1049;
-			MsgAboutTitle = MsgAboutTitle1049;
-			MsgAbout = MsgAbout1049;
-			InfoTemplate = InfoTemplate1049;
+			MsgMenu	= MsgMenu1049;
+			MsgOut	= MsgOut1049;
+			MsgAsk	= MsgAsk1049;
+			MsgInfo	= MsgInfo1049;
+			MsgAboutTitle	= MsgAboutTitle1049;
+			MsgAbout		= MsgAbout1049;
+			InfoTemplate	= InfoTemplate1049;
 		}
 	}
 
@@ -655,10 +570,11 @@ int APIENTRY	wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int) {
 			if (!hEvent)
 				hEvent = ::OpenEvent(EVENT_MODIFY_STATE, false, EventName);
 			if (!hEvent)
-				return 1;
+				return	1;
 
 			CreatePopUpMenu();
-
+			if (puMenu == NULL)
+				return	2;
 			WNDCLASS wndClass;
 			WinMem::Zero(wndClass);
 			wndClass.lpfnWndProc = (WNDPROC)WndProc;
@@ -668,13 +584,13 @@ int APIENTRY	wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int) {
 
 			hWnd = ::CreateWindow(WindowClass, WindowName, 0, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, hInstance, NULL);
 			if (!hWnd)
-				return 1;
+				return	3;
 
 			::SetTimer(hWnd, 0, uiTIMER, 0);
 
 			MSG		msg;
 			HANDLE	pHandles[] = {hEvent};
-			DWORD	nCount = 1;
+			DWORD	nCount = sizeofa(pHandles);
 			bool	bNeedExit = false;
 			while (!bNeedExit) {
 				DWORD reason = ::MsgWaitForMultipleObjects(nCount, pHandles, false, INFINITE, QS_ALLINPUT);
@@ -697,35 +613,22 @@ int APIENTRY	wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int) {
 			Icons.DeleteAll();
 			if (hEvent)
 				::CloseHandle(hEvent);
+			::DestroyWindow(hWnd);
+			::DestroyMenu(puMenu);
 		}
 	}
 	::LocalFree(argv); // do not replace
-	return 0;
+	DynLink::FreeLib();
+	return	0;
 }
 
 /// ========================================================================== Startup (entry point)
 extern "C" int	WinMainCRTStartup() {
 	int		Result;
-	PWSTR	lpszCommandLine = ::GetCommandLineW();
 	STARTUPINFO StartupInfo = {sizeof(STARTUPINFO), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 	::GetStartupInfo(&StartupInfo);
 
-	// skip past program name (first token in command line).
-	if (*lpszCommandLine == L'"') {
-		// double-quote or a null is encountered
-		while (*lpszCommandLine && (*lpszCommandLine != L'"'))
-			lpszCommandLine++;
-		// if we stopped on a double-quote (usual case), skip over it.
-		if (*lpszCommandLine == L'"')
-			lpszCommandLine++;
-	} else {
-		// first token wasn't a quote
-		while (*lpszCommandLine > L' ')
-			lpszCommandLine++;
-	}
-	while (*lpszCommandLine && (*lpszCommandLine <= L' '))
-		lpszCommandLine++;
-	Result = wWinMain(::GetModuleHandle(NULL), NULL, lpszCommandLine,
+	Result = wWinMain(::GetModuleHandle(NULL), NULL, ::GetCommandLine(),
 					  StartupInfo.dwFlags & STARTF_USESHOWWINDOW ? StartupInfo.wShowWindow : SW_SHOWDEFAULT);
 	::ExitProcess(Result);
 	return	Result;

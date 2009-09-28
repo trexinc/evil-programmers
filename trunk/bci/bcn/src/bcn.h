@@ -26,20 +26,13 @@
 
 #include <windows.h>
 
-#define DLL_EXPORT __declspec(dllexport)
-
 struct BCSvcJob {
 	unsigned long StructSize;
 	wchar_t JobName[2*MAX_PATH];
 };
 
-#ifdef __cplusplus
 extern "C" {
-#endif
-//	int DLL_EXPORT WINAPI Notify(unsigned long Msg, void *Data);
 	int WINAPI Notify(unsigned long Msg, void *Data);
-#ifdef __cplusplus
 }
-#endif
 
 #endif
