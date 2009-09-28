@@ -71,6 +71,7 @@ typedef wchar_t UTCHAR;
 #define BOX1 0x2591
 #define BOX2 0x2588
 #define wc2mb(src,dst,dstsize) {_tcsncpy(dst,src,dstsize-1); dst[dstsize-1]=0;}
+#define ConvertNameToReal(a,b,c) FSF.ConvertPath(CPM_REAL,a,b,c)
 #else
 #define DM_GETDLGITEMSHORT DM_GETDLGITEM
 #define DM_SETDLGITEMSHORT DM_SETDLGITEM
@@ -109,6 +110,7 @@ typedef unsigned char UTCHAR;
 #define BOX1 '°'
 #define BOX2 'Û'
 #define wc2mb(src,dst,dstsize) WideCharToMultiByte(CP_OEMCP,0,src,-1,dst,dstsize,NULL,NULL);
+#define ConvertNameToReal(a,b,c) FSF.ConvertNameToReal(a,b,c)
 #endif
 
 #ifdef UNICODE
