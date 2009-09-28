@@ -1,0 +1,31 @@
+#include "winver.h"
+#define IDR_VERSION 1
+
+
+//LANGUAGE 25,1
+
+
+IDR_VERSION VERSIONINFO
+FILEVERSION 1,0,0,2
+PRODUCTVERSION 1,0,0,2
+FILEOS VOS_NT_WINDOWS32
+FILETYPE VFT_APP
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "000004E4"
+    BEGIN
+      VALUE "FileVersion", "1.0.0 build 2"
+      VALUE "FileDescription", "Background Copy Notifier"
+      VALUE "InternalName", "bcn.dll"
+      VALUE "LegalCopyright", "GNU GPL 2009 GrAnD"
+//      VALUE "LegalTrademarks", "LegalTrademarks"
+//      VALUE "OriginalFilename", "OriginalFilename"
+//      VALUE "ProductName", "ProductName"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0, 0x4e4
+  END
+END

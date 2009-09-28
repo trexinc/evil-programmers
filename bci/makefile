@@ -1,22 +1,67 @@
-TARGET = bci.exe
+# Target
+TARGET = bci
+APP_TP  =windows
+EXT     =exe
+DIR_BIN = bin32
+DIR_OBJ = obj32
+SRCS = $(TARGET).cpp resource.rc
+DEF     =
+TARGETFULLNAME =$(DIR_BIN)/$(TARGET).$(EXT)
 
-WFLAGS  =-Wall -W -Wpointer-arith -Wno-strict-aliasing #-Winline
-EFLAGS  =-fomit-frame-pointer -fstrict-aliasing -fno-exceptions -fno-rtti -fno-threadsafe-statics #-mtune=core2
-CXXFLAGS=-c -Os $(WFLAGS) $(EFLAGS)
-LFLAGS  =-s -nostartfiles -mwindows
-LIBS    =-lntdll -lgdi32 -lwinmm
+# Defines
+DEFINES=-D UNICODE -D _UNICODE
 
-CXX = g++
-RC  = windres
-RM  = rm -f
+# Flags
+FLG_WARN =-Wall -W
+FLG_COMM =-mno-cygwin
+FLG_OPTS =-Os -funsigned-char -fomit-frame-pointer -fstrict-aliasing -fno-rtti -fno-exceptions -fno-threadsafe-statics #-mtune=core2
+FLG_COMP =$(FLG_COMM) $(FLG_WARN) $(DEFINES) -I $(COM_INC) $(FLG_OPTS)
+FLG_TYPE =-m$(APP_TP)
+FLG_LIBS =-lgdi32 -lwinmm
+FLG_LINK =$(FLG_COMM) $(FLG_TYPE) -s -nostartfiles
 
-%.res: %.rc
-	$(RC) -i $< -J rc -o $@ -O coff
+# Include
+VPATH = ../inc/
+#COM_INC = D:\src\inc
+#COM_LIB = -L $(COMMON) -lCRT
 
-%.o: %.cpp %.hpp %.h
-	$(CXX) $(CXXFLAGS) $< -o $@
+# Commands
+CXX   = g++
+RCC   = windres
+DLLTL = dlltool
+RM    = rm -f
+RMD   = rmdir --ignore-fail-on-non-empty
+CP    = cp -f
+M4    = m4 -P
+MV    = mv -f
+MKDIR = mkdir -p
 
-%.exe: %.res %.o
-	$(CXX) $(LFLAGS) -o bin/$@ $^ $(LIBS)
+#
+OBJS = $(patsubst %.cpp, $(DIR_OBJ)/%.o,   $(filter %.cpp,$(SRCS)))
+RESS = $(patsubst %.rc,  $(DIR_OBJ)/%.res, $(filter %.rc, $(SRCS)))
 
-all: $(TARGET)
+# make objs
+$(DIR_OBJ)/%.o: %.cpp win_def.h
+	@echo compiling $<
+	@$(MKDIR) $(DIR_OBJ)
+	@$(CXX) $(FLG_COMP) -c -o $@ $<
+
+# make resources
+$(DIR_OBJ)/%.res: %.rc
+	@echo compiling $<
+	@$(MKDIR) $(DIR_OBJ)
+	@$(RCC) -i $< -J rc -o $@ -O coff
+
+# link
+$(TARGETFULLNAME): $(OBJS) $(RESS) $(DEF)
+	@echo linking $@
+	@$(MKDIR) $(@D)
+	@$(CXX) -o $(TARGETFULLNAME) $(FLG_LINK) $(OBJS) $(RESS) $(DEF) $(FLG_LIBS)
+
+all: $(TARGETFULLNAME)
+
+clean:
+	@echo cleaning...
+	@$(RM) $(TARGETFULLNAME)
+	@$(RMD) $(DIR_BIN)
+	@$(RM) -r $(DIR_OBJ)
