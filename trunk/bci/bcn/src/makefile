@@ -36,7 +36,6 @@ M4    = m4 -P
 MV    = mv -f
 MKDIR = mkdir -p
 
-#
 OBJS = $(patsubst %.cpp, $(DIR_OBJ)/%.o,   $(filter %.cpp,$(SRCS)))
 RESS = $(patsubst %.rc,  $(DIR_OBJ)/%.res, $(filter %.rc, $(SRCS)))
 

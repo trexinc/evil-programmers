@@ -1,4 +1,4 @@
-/**
+﻿/**
 	bci.cpp
 	Copyright (C) 2005 WhiteDragon
 	Copyright (C) 2009 DrKnS

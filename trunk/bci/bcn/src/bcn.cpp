@@ -20,9 +20,8 @@
 PCWSTR		WindowName	= L"BCI2";
 PCWSTR		EventName	= L"Global\\BCI2";
 
-int WINAPI Notify(unsigned long Msg, void*) {
+int WINAPI		Notify(unsigned long Msg, void*) {
 	HANDLE	hEvent = ::OpenEvent(EVENT_MODIFY_STATE, false, EventName);
-//	BCSvcJob*	job = (BCSvcJob*)Data;
 
 	if (hEvent) {
 		if (Msg == BCSVC_START_JOB)
@@ -32,7 +31,7 @@ int WINAPI Notify(unsigned long Msg, void*) {
 	return	0;
 }
 
-BOOL WINAPI DllMain(HINSTANCE, DWORD fdwReason, LPVOID) {
+BOOL WINAPI		DllMain(HINSTANCE, DWORD fdwReason, LPVOID) {
 	switch (fdwReason) {
 		case DLL_PROCESS_ATTACH:
 			break;
