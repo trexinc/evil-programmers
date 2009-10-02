@@ -90,6 +90,60 @@ inline	void					Swp(Type &x, Type &y) {
 	y = tmp;
 }
 
+///====================================================================================== Uncopyable
+class	Uncopyable {
+	Uncopyable(const Uncopyable&);
+	Uncopyable& operator=(const Uncopyable&);
+protected:
+	~Uncopyable() {
+	}
+	Uncopyable() {
+	}
+};
+
+///=================================================================================== WinErrorCheck
+class	WinErrorCheck {
+	HRESULT	mutable	m_err;
+protected:
+	~WinErrorCheck() {
+	}
+	WinErrorCheck(): m_err(NO_ERROR) {
+	}
+public:
+	HRESULT			err() const {
+		return	m_err;
+	}
+	HRESULT			err(HRESULT err) const {
+		return	m_err = err;
+	}
+	/*
+		HRESULT			GetErr() const {
+			return	m_err;
+		}
+		HRESULT			SetErr() const {
+			return	m_err = ::GetLastError();
+		}
+		HRESULT			SetErr(HRESULT err) const {
+			return	m_err = err;
+		}
+	*/
+	bool			IsOK() const {
+		return	m_err == NO_ERROR;
+	}
+	bool			ChkSucc(bool in) const {
+		if (!in)
+			err(::GetLastError());
+		else
+			err(NO_ERROR);
+		return	in;
+	}
+	template<typename Type>
+	void			SetIfFail(Type &in, const Type &value) {
+		if (m_err != NO_ERROR)
+			in = value;
+	}
+};
+
 ///========================================================================================== WinMem
 namespace	WinMem {
 	inline PVOID				Alloc(size_t size) {
@@ -100,6 +154,9 @@ namespace	WinMem {
 	}
 	inline void					Free(PCVOID in) {
 		::HeapFree(::GetProcessHeap(), 0, (PVOID)in);
+	}
+	inline size_t				Size(PCVOID in) {
+		return	::HeapSize(::GetProcessHeap(), 0, in);
 	}
 
 	inline PVOID				Copy(PVOID dest, PCVOID sour, size_t size) {
@@ -325,7 +382,7 @@ namespace	WinStr {
 }
 
 ///============================================================================================ CStr
-class	CStrA {
+class		CStrA {
 	typedef			CHAR	cType;
 	typedef			cType*	pType;
 	typedef	const	cType*	pcType;
@@ -396,18 +453,18 @@ public:
 			CheckSize(len1 + len2);
 			WinStr::Copy(st_ + len1, in, sz_ - len1);
 		}
-		return *this;
+		return	*this;
 	}
 	CStrA				operator+(const CStrA &in) const {
 		CStrA Result(*this);
-		return Result += in;
+		return	Result += in;
 	}
 
 	bool				operator==(const CStrA &in) const {
 		return	WinStr::Eq(st_, in.st_);
 	}
 	bool				operator!=(const CStrA &in) const {
-		return !operator==(in);
+		return	!operator==(in);
 	}
 	bool				operator<(const CStrA &in) const {
 		return	WinStr::Cmp(st_, in.st_) < 0;
@@ -416,14 +473,14 @@ public:
 		return	WinStr::Cmp(st_, in.st_) > 0;
 	}
 	bool				operator<=(const CStrA &in) const {
-		return operator==(in) || operator<(in);
+		return	operator==(in) || operator<(in);
 	}
 	bool				operator>=(const CStrA &in) const {
-		return operator==(in) || operator>(in);
+		return	operator==(in) || operator>(in);
 	}
 
 	cType&				operator[](int in) {
-		return st_[in];
+		return	st_[in];
 	}
 
 	operator			char*() {
@@ -458,7 +515,7 @@ public:
 	}
 
 };
-class	CStrW {
+class		CStrW {
 	typedef			WCHAR	cType;
 	typedef			cType*	pType;
 	typedef	const	cType*	pcType;
@@ -529,18 +586,18 @@ public:
 			CheckSize(len1 + len2);
 			WinStr::Copy(st_ + len1, in, sz_ - len1);
 		}
-		return *this;
+		return	*this;
 	}
 	CStrW				operator+(const CStrW &in) const {
 		CStrW Result(*this);
-		return Result += in;
+		return	Result += in;
 	}
 
 	bool				operator==(const CStrW &in) const {
 		return	WinStr::Eq(st_, in.st_);
 	}
 	bool				operator!=(const CStrW &in) const {
-		return !operator==(in);
+		return	!operator==(in);
 	}
 	bool				operator<(const CStrW &in) const {
 		return	WinStr::Cmp(st_, in.st_) < 0;
@@ -549,14 +606,14 @@ public:
 		return	WinStr::Cmp(st_, in.st_) > 0;
 	}
 	bool				operator<=(const CStrW &in) const {
-		return operator==(in) || operator<(in);
+		return	operator==(in) || operator<(in);
 	}
 	bool				operator>=(const CStrW &in) const {
-		return operator==(in) || operator>(in);
+		return	operator==(in) || operator>(in);
 	}
 
 	cType&				operator[](int in) {
-		return st_[in];
+		return	st_[in];
 	}
 
 	operator			wchar_t*() {
@@ -597,9 +654,27 @@ typedef	CStrW	CStr;
 typedef	CStrA	CStr;
 #endif
 
+template<typename Type>
+class		WinBuffer: private Uncopyable {
+	Type	buf;
+public:
+	~WinBuffer() {
+		WinMem::Free(buf);
+	}
+	WinBuffer(size_t size): buf(NULL) {
+		buf = (Type)WinMem::Alloc(size);
+	}
+	operator	Type() {
+		return	buf;
+	}
+	size_t		size() {
+		return	WinMem::Size(buf);
+	}
+};
+
 ///========================================================================================= WinFlag
 template<typename Type>
-class	WinFlag {
+class		WinFlag {
 public:
 	static bool			Check(Type in, Type flag) {
 		return	flag == (in & flag);
@@ -614,7 +689,7 @@ public:
 
 ///========================================================================================= WinFlag
 template<typename Type>
-class	WinBit {
+class		WinBit {
 	static size_t		BIT_LIMIT() {
 		return	sizeof(Type) * 8;
 	}
@@ -648,7 +723,7 @@ public:
 };
 
 ///======================================================================================== WinTimer
-class	WinTimer {
+class		WinTimer {
 	HANDLE			hTimer;
 	LARGE_INTEGER	liUTC;
 	long			lPeriod;
@@ -718,60 +793,203 @@ public:
 	}
 };
 
-///====================================================================================== Uncopyable
-class	Uncopyable {
-	Uncopyable(const Uncopyable&);
-	Uncopyable& operator=(const Uncopyable&);
-protected:
-	~Uncopyable() {
+///========================================================================================== WinEnv
+namespace	WinEnv {
+	inline CStrW	Get(PCWSTR name) {
+		CStrW	buf(::GetEnvironmentVariable(name, NULL, 0));
+		::GetEnvironmentVariable(name, buf, buf.Size());
+		return	buf;
 	}
-	Uncopyable() {
+	inline bool		Set(PCWSTR name, PCWSTR val) {
+		return	::SetEnvironmentVariable(name, val);
 	}
-};
+	inline bool		Add(PCWSTR name, PCWSTR val) {
+		CStrW	buf(::GetEnvironmentVariable(name, NULL, 0) + WinStr::Len(val));
+		::GetEnvironmentVariable(name, buf, buf.Size());
+		buf += val;
+		return	::SetEnvironmentVariable(name, buf.c_str());
+	}
+	inline bool		Del(PCWSTR name) {
+		return	::SetEnvironmentVariable(name, NULL);
+	}
+}
 
-///=================================================================================== WinErrorCheck
-class	WinErrorCheck {
-	HRESULT	mutable	m_err;
-protected:
-	~WinErrorCheck() {
+///========================================================================================== WinReg
+/*
+class	WinReg {
+	HKEY	mutable	hKeyOpend;
+	HKEY			hKeyReq;
+	CStrW			sPath;
+
+	void			CloseKey() const {
+		if (hKeyOpend) {
+			::RegCloseKey(hKeyOpend);
+			hKeyOpend = 0;
+		}
 	}
-	WinErrorCheck(): m_err(NO_ERROR) {
+	bool			OpenKey(UINT access) const {
+		return	OpenKey(hKeyReq, sPath, access);
+	}
+	bool			OpenKey(HKEY hkey, PCWSTR path, UINT access) const {
+		CloseKey();
+		bool	Result = false;
+		if (access == KEY_READ)
+			Result = ::RegOpenKeyEx(hkey, path, 0, access, &hKeyOpend) == ERROR_SUCCESS;
+		else
+			Result = ::RegCreateKeyEx(hkey, path, 0, NULL, 0, access, 0, &hKeyOpend, 0) == ERROR_SUCCESS;
+		return	Result;
+	}
+
+	template <typename Type>
+	void			SetRaw(PCWSTR name, const Type &value) const {
+		if (OpenKey(KEY_WRITE)) {
+			::RegSetValueEx(hKeyOpend, name, NULL, REG_BINARY, (PBYTE)(&value), sizeof(Type));
+			CloseKey();
+		}
+	}
+	template <typename Type>
+	bool			GetRaw(PCWSTR name, Type &value) const {
+		bool	Result = OpenKey(KEY_READ);
+		if (Result) {
+			DWORD len = sizeof(Type);
+			Result = ::RegQueryValueEx(hKeyOpend, name, NULL, NULL, (PBYTE)(&value), &len) == ERROR_SUCCESS;
+			CloseKey();
+		}
+		return	Result;
 	}
 public:
-	HRESULT			err() const {
-		return	m_err;
+	~WinReg() {
+		CloseKey();
 	}
-	HRESULT			err(HRESULT err) const {
-		return	m_err = err;
+	WinReg(): hKeyOpend(0), hKeyReq(HKEY_CURRENT_USER), sPath(TEXT("")) {
 	}
-	/*
-		HRESULT			GetErr() const {
-			return	m_err;
+	WinReg(PCWSTR path): hKeyOpend(0), hKeyReq(0), sPath(path) {
+		hKeyReq = HKEY_CURRENT_USER;
+		stringt	tmp = TEXT("HKEY_CURRENT_USER\\");
+		if (StrUtil::Find(sPath, tmp)) {
+			StrUtil::Cut(sPath, tmp);
+			return;
 		}
-		HRESULT			SetErr() const {
-			return	m_err = ::GetLastError();
+		tmp = TEXT("HKCU\\");
+		if (StrUtil::Find(sPath, tmp)) {
+			StrUtil::Cut(sPath, tmp);
+			return;
 		}
-		HRESULT			SetErr(HRESULT err) const {
-			return	m_err = err;
+		tmp = TEXT("HKEY_LOCAL_MACHINE\\");
+		if (StrUtil::Find(sPath, tmp)) {
+			StrUtil::Cut(sPath, tmp);
+			hKeyReq = HKEY_LOCAL_MACHINE;
+			return;
 		}
-	*/
-	bool			IsOK() const {
-		return	m_err == NO_ERROR;
+		tmp = TEXT("HKLM\\");
+		if (StrUtil::Find(sPath, tmp)) {
+			StrUtil::Cut(sPath, tmp);
+			hKeyReq = HKEY_LOCAL_MACHINE;
+			return;
+		}
+		tmp = TEXT("HKEY_USERS\\");
+		if (StrUtil::Find(sPath, tmp)) {
+			StrUtil::Cut(sPath, tmp);
+			hKeyReq = HKEY_USERS;
+			return;
+		}
+		tmp = TEXT("HKU\\");
+		if (StrUtil::Find(sPath, tmp)) {
+			StrUtil::Cut(sPath, tmp);
+			hKeyReq = HKEY_USERS;
+			return;
+		}
+		tmp = TEXT("HKEY_CLASSES_ROOT\\");
+		if (StrUtil::Find(sPath, tmp)) {
+			StrUtil::Cut(sPath, tmp);
+			hKeyReq = HKEY_CLASSES_ROOT;
+			return;
+		}
+		tmp = TEXT("HKCR\\");
+		if (StrUtil::Find(sPath, tmp)) {
+			StrUtil::Cut(sPath, tmp);
+			hKeyReq = HKEY_CLASSES_ROOT;
+			return;
+		}
 	}
-	bool			ChkSucc(bool in) const {
-		if (!in)
-			err(::GetLastError());
-		else
-			err(NO_ERROR);
-		return	in;
+	WinReg(HKEY hkey, PCWSTR path): hKeyOpend(0), hKeyReq(hkey), sPath(path) {
 	}
-	template<typename Type>
-	void			SetIfFail(Type &in, const Type &value) {
-		if (m_err != NO_ERROR)
-			in = value;
+
+	void			SetPath(PCWSTR path) {
+		sPath = path;
+	}
+	void			SetKey(HKEY hkey) {
+		hKeyReq = hkey;
+	}
+
+	bool			Add(PCWSTR name) const {
+		bool	Result = OpenKey(KEY_WRITE);
+		if (Result) {
+			HKEY tmp = 0;
+			Result = (::RegCreateKey(hKeyOpend, name, &tmp) == ERROR_SUCCESS);
+			if (Result) {
+				::RegCloseKey(tmp);
+			}
+			CloseKey();
+		}
+		return	Result;
+	}
+	bool			Del(PCWSTR name) const {
+		bool	Result = OpenKey(KEY_WRITE);
+		if (Result) {
+			Result = (::RegDeleteValue(hKeyOpend, name) == ERROR_SUCCESS);
+			CloseKey();
+		}
+		return	Result;
+	}
+
+	void			Set(PCWSTR name, PCWSTR value) const {
+		if (OpenKey(KEY_WRITE)) {
+			::RegSetValueEx(hKeyOpend, name, NULL, REG_SZ, (PBYTE)value, WinStr::Len(value) * sizeof(WCHAR));
+			CloseKey();
+		}
+	}
+
+	CStrW			Get(PCWSTR name) const {
+		CStrW	buf(4096);
+		Get(name, buf, L"");
+		return	buf;
+	}
+	CStrW			Get(PCWSTR name, PCWSTR def) const {
+		CStrW	buf(4096);
+		Get(name, buf, def);
+		return	buf;
+	}
+	bool			Get(PCWSTR name, CStrW &value, PCWSTR def) const {
+		bool	Result = OpenKey(KEY_READ);
+		value = def;
+		if (Result) {
+			CStr	buf(4096);
+			DWORD	size = buf.Size();
+			DWORD	type = 0;
+			if (::RegQueryValueEx(hKeyOpend, name, NULL, &type, (PBYTE)(buf.Data()), &size) == ERROR_SUCCESS) {
+				switch (type) {
+					case REG_DWORD:
+						value = n2s(*(PDWORD)buf.Data());
+						break;
+					case REG_QWORD:
+						value = n2s(*(LONGLONG*)buf.Data());
+						break;
+					default:
+						value = buf;
+				}
+				Result = true;
+			}
+			CloseKey();
+		}
+		return	Result;
+	}
+
+	CStrW			GetPath() const {
+		return	sPath;
 	}
 };
-
+*/
 ///========================================================================================== WinCom
 class	WinCOM {
 	bool		m_err;
@@ -789,17 +1007,17 @@ public:
 	}
 	static WinCOM&	the() {
 		static WinCOM com;
-		return com;
+		return	com;
 	}
 	static bool		Init() {
-		return the().IsOK();
+		return	the().IsOK();
 	}
 	static bool		Close() {
 		if (!the().m_err) {
 			::CoUninitialize();
 			the().m_err = true;
 		}
-		return true;
+		return	true;
 	}
 	static bool		IsOK() {
 		return	!the().m_err;

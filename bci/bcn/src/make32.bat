@@ -26,6 +26,7 @@ set LN1=%DIR_OBJ%\%APP%.obj
 set LN2=gdi32.lib kernel32.lib user32.lib shell32.lib
 set LN3=winmm.lib chkstk.obj
 
+
 mkdir	%DIR_BIN%
 mkdir	%DIR_OBJ%
 
