@@ -232,9 +232,19 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom,int Item)
   TCHAR *cmd=(TCHAR *)Item;
   if((OpenFrom==OPEN_COMMANDLINE)&&(_tcslen(cmd)))
   {
-    TCHAR Name[MAX_PATH],FullName[MAX_PATH],*File;
+    TCHAR Name[MAX_PATH],FullName[MAX_PATH];
+#ifndef UNICODE
+    TCHAR* File;
+#endif
     FSF.Unquote(FSF.Trim(_tcscpy(Name,cmd)));
-    if(GetFullPathName(Name,ArraySize(FullName),FullName,&File))
+    if
+    (
+#ifdef UNICODE
+      FSF.ConvertPath(CPM_FULL,Name,FullName,ArraySize(FullName))
+#else
+      GetFullPathName(Name,ArraySize(FullName),FullName,&File)
+#endif
+    )
       return RealOpenFilePlugin(FullName,NULL,0);
     else
       return RealOpenFilePlugin(Name,NULL,0);
