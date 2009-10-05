@@ -138,9 +138,9 @@ const char * GetColumnMes( char *buf )
  return NULL; // STR;
 }
 
-static void FillColumns( const char *titles[], char *type )
+static void FillColumns( const char *titles[], const char *type )
 {
- char *begin = type;
+ const char *begin = type;
  int nump = 0;
  char buf[512];
 

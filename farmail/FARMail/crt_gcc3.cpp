@@ -35,6 +35,7 @@ extern "C"
   int *_errno(void);
   int fflush(FILE *);
   p_atexit_fn __dllonexit(p_atexit_fn,p_atexit_fn **,p_atexit_fn **);
+  void write(void);
 #ifdef __cplusplus
 };
 #endif
@@ -154,6 +155,10 @@ int fflush(FILE *) //called
 p_atexit_fn __dllonexit(p_atexit_fn,p_atexit_fn **,p_atexit_fn **) //called
 {
   return NULL;
+}
+
+void write(void)
+{
 }
 
 #endif

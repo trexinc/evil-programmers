@@ -161,7 +161,7 @@ BOOL MailClient::IsError( char *buf )
  return FALSE;
 }
 
-BOOL MailClient::GetResponseBuffer(char *InitBuf,int initsize,char *endstr,char *progressname,long tsize,long isize)
+BOOL MailClient::GetResponseBuffer(char *InitBuf,int initsize,const char *endstr,char *progressname,long tsize,long isize)
 {
   char buf[BUFFER_SIZE];
   char *start_check; long endlstrlen=lstrlen(endstr),step,threshold;

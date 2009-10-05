@@ -157,7 +157,7 @@ Variant WINAPI blt_setline(long count,Variant *values,int *stop,void *ptr)
     ess.StringText=ect.Text=values[0].get();
     ect.TextLength=ess.StringLength=values[0].length();
   }
-  ess.StringEOL="";
+  ess.StringEOL=(char*)"";
   FInfo.EditorControl(ECTL_OEMTOEDITOR,&ect);
   FInfo.EditorControl(ECTL_SETSTRING,&ess);
   return 0;

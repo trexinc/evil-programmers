@@ -208,7 +208,7 @@ void IMAP::IncreaseTag( void )
 
 
 
-int IMAP::SendCommand( char *str )
+int IMAP::SendCommand( const char *str )
 {
  char buf[BUFFER_SIZE];
 
@@ -446,7 +446,7 @@ int IMAP::ReceiveResponse2( int tagflag )
 
 
 
-int IMAP::ExecCommand( char * str , long _size, long _startsize, const char *_name )
+int IMAP::ExecCommand( const char * str , long _size, long _startsize, const char *_name )
 {
  int stat;
 
@@ -464,7 +464,7 @@ int IMAP::ExecCommand( char * str , long _size, long _startsize, const char *_na
 
 
 
-int IMAP::ExecCommand2( char * str )
+int IMAP::ExecCommand2( const char * str )
 {
  int stat;
 
@@ -529,7 +529,7 @@ int IMAP::Connect( char * Host, int port)
 
 int IMAP::Disconnect( void )
 {
- char *command = "LOGOUT";
+ const char *command = "LOGOUT";
 
  int stat = ExecCommand( command , 0 , 0 , NULL );
 
@@ -548,7 +548,7 @@ int IMAP::Disconnect( void )
 
 int IMAP::Noop()
 {
- char *command = "NOOP";
+ const char *command = "NOOP";
 
  int stat = ExecCommand( command , 0 , 0 , NULL );
  switch ( stat ) {
@@ -589,7 +589,7 @@ int IMAP::Noop2()
 
 int IMAP::Capability()
 {
- char *command = "CAPABILITY";
+ const char *command = "CAPABILITY";
  int stat = ExecCommand( command , 0 , 0 , NULL );
  switch ( stat ) {
     case 0:
@@ -626,7 +626,7 @@ int IMAP::Capability()
 int IMAP::Login( char *user , char *pass )
 {
  char buf[BUFFER_SIZE];
- char *command = "LOGIN";
+ const char *command = "LOGIN";
  int stat;
 
  FSF.sprintf( buf, "%s %s %s", command, user, pass );
@@ -642,7 +642,7 @@ int IMAP::Login( char *user , char *pass )
 }
 
 
-int IMAP::List( char *reference, const char *mailbox )
+int IMAP::List( const char *reference, const char *mailbox )
 {
  char buf[BUFFER_SIZE];
 
@@ -664,7 +664,7 @@ int IMAP::List( char *reference, const char *mailbox )
 int IMAP::Select( const char *mailbox )
 {
  char buf[BUFFER_SIZE];
- char *command = "SELECT";
+ const char *command = "SELECT";
 
  FSF.sprintf( buf, "%s \"%s\"", command, mailbox );
 
@@ -702,7 +702,7 @@ int IMAP::Select( const char *mailbox )
 
 int IMAP::Close( void )
 {
- char *command = "CLOSE";
+ const char *command = "CLOSE";
 
  int stat = ExecCommand( command , 0 , 0 , NULL );
 
@@ -765,7 +765,7 @@ int IMAP::Status( const char *box, const char *type )
 int IMAP::Delete( int num )
 {
  char buf[BUFFER_SIZE];
- char *command = "STORE";
+ const char *command = "STORE";
 
  FSF.sprintf( buf, "%s %d +FLAGS.SILENT (\\Deleted)", command, num );
 
@@ -788,7 +788,7 @@ int IMAP::Delete( int num )
 int IMAP::DeleteUID( char * num )
 {
  char buf[BUFFER_SIZE];
- char *command = "UID STORE";
+ const char *command = "UID STORE";
 
  FSF.sprintf( buf, "%s %s +FLAGS.SILENT (\\Deleted)", command, num );
 
@@ -810,7 +810,7 @@ int IMAP::DeleteUID( char * num )
 
 int IMAP::Expunge( void )
 {
- char *cmd = "EXPUNGE";
+ const char *cmd = "EXPUNGE";
 
  int stat = ExecCommand( cmd , 0, 0, NULL );
 
@@ -1195,7 +1195,7 @@ void IMAP::FreeMsgText( void )
 int IMAP::Create(char *dir)
 {
  char buf[BUFFER_SIZE];
- char *command = "CREATE";
+ const char *command = "CREATE";
 
  FSF.sprintf( buf, "%s \"%s\"", command, dir );
 
@@ -1217,7 +1217,7 @@ int IMAP::Create(char *dir)
 int IMAP::DeleteBox( char *dir )
 {
  char buf[BUFFER_SIZE];
- char *command = "DELETE";
+ const char *command = "DELETE";
 
  FSF.sprintf( buf, "%s \"%s\"", command, dir );
 
@@ -1239,7 +1239,7 @@ int IMAP::DeleteBox( char *dir )
 int IMAP::Rename( char *olddir , char *newdir )
 {
  char buf[BUFFER_SIZE];
- char *command = "RENAME";
+ const char *command = "RENAME";
 
  FSF.sprintf( buf, "%s \"%s\" \"%s\"", command, olddir, newdir );
 
@@ -1262,7 +1262,7 @@ int IMAP::Rename( char *olddir , char *newdir )
 int IMAP::Copy( int num , char *dir )
 {
  char buf[BUFFER_SIZE];
- char *command = "COPY";
+ const char *command = "COPY";
 
  FSF.sprintf( buf, "%s %d \"%s\"", command, num, dir );
 
