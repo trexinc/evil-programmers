@@ -188,7 +188,7 @@ struct InitDialogItem
   const char *Data;
 };
 
-typedef struct PanelModeOptions {
+struct PanelModeOptions {
   char *lpColumnTypes;
   char *lpColumnWidths;
   char *lpStatusColumnTypes;
@@ -434,7 +434,7 @@ class MailClient
    char _Name[100];
    long _Size;
 
-   BOOL GetResponseBuffer( char *InitBuf, int initsize , char * endstr , char *pname , long tsize, long isize=0 );
+   BOOL GetResponseBuffer( char *InitBuf, int initsize , const char * endstr , char *pname , long tsize, long isize=0 );
    BOOL CheckResponse(int ResponseType);
    BOOL AddMessage( int n, int num, int len );
    int AddLog( const char *s );
@@ -489,11 +489,11 @@ class IMAP
    IMAP( BOOL _log , char *file , int interval );
    ~IMAP();
    void IncreaseTag( void );
-   int SendCommand( char *str );
+   int SendCommand( const char *str );
    int ReceiveResponse( int , long _size, long _startsize, const char *_name );
    int ReceiveResponse2( int );
-   int ExecCommand( char * str , long _size, long _startsize, const char *_name );
-   int ExecCommand2( char * str );
+   int ExecCommand( const char * str , long _size, long _startsize, const char *_name );
+   int ExecCommand2( const char * str );
 
 #ifdef FARMAIL_SSL
    int Connect(char *Host, int port, int type);
@@ -505,7 +505,7 @@ class IMAP
    int Noop2();
    int Capability();
    int Login( char *user , char *pass );
-   int List( char*, const char*);
+   int List( const char*, const char*);
    int Select( const char *mailbox );
    int Close( void );
    int Fetch( int num, const char *type , long _size, long _startsize, const char *_name );

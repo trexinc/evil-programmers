@@ -16,7 +16,7 @@ MV = mv -f
 MKDIR = mkdir -p
 DEBUG = -DTDEBUG
 CXXFLAGS = -Os -funsigned-char -fomit-frame-pointer -fstrict-aliasing -fno-rtti $(DEBUG)
-LNKFLAGS = -mdll -s -nodefaultlibs -lstdc++ -lgcc -lmingw32 -lkernel32 -luser32 -ladvapi32 -lwsock32
+LNKFLAGS = -mdll -s -nodefaultlibs -lstdc++ -lgcc -lgcc_eh -lmingw32 -lkernel32 -luser32 -ladvapi32 -lwsock32
 
 LNGS = farmaile.lng farmailr.lng
 TXTS = history.eng.txt history.rus.txt

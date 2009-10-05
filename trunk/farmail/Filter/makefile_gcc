@@ -40,7 +40,7 @@ $(OBJDIR)/%.o: %.cpp
 
 $(DLLFULLNAME): $(OBJS) $(DEF)
 	@echo linking $@
-	@$(CXX) -mdll -o nul -Xlinker --base-file -Xlinker $(DLLNAME).base $(OBJS) $(LNKFLAGS)
+	@$(CXX) -mdll -o $(DLLNAME) -Xlinker --base-file -Xlinker $(DLLNAME).base $(OBJS) $(LNKFLAGS)
 	@$(DLLTOOL) --dllname $(DLLNAME) --base-file $(DLLNAME).base --output-exp $(DLLNAME).exp --def $(DEF)
 	@$(CXX) -mdll -o $(DLLNAME) $(OBJS) $(DLLNAME).exp $(LNKFLAGS)
 	@$(MV) $(DLLNAME) $(DLLDIR)

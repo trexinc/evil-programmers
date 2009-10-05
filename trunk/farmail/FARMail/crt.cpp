@@ -304,4 +304,12 @@ int strcmp(const char *s1, const char *s2)
 {
   return lstrcmp(s1,s2);
 }
+
+#endif
+
+#if __GNUC__==4
+int atexit(void(*)(void))
+{
+  return 0;
+}
 #endif

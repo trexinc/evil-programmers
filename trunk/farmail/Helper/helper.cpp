@@ -27,6 +27,7 @@
 extern "C"{
 #endif
   BOOL WINAPI DllMainCRTStartup(HANDLE hDll,DWORD dwReason,LPVOID lpReserved);
+  int atexit(void(*)(void));
 #ifdef __cplusplus
 };
 #endif
@@ -51,6 +52,14 @@ void *memcpy(void * dst, const void * src, size_t count)
   }
   return(ret);
 }
+
+#if __GNUC__==4
+int atexit(void(*)(void))
+{
+  return 0;
+}
+#endif
+
 #endif
 
 static char strings[4][512];

@@ -112,7 +112,7 @@ int WINAPI _export Message(unsigned long Msg,void *InData,void *OutData)
 
     case FMMSG_MENU:
       {
-        static char *HName2="FARMailScriptRun";
+        static const char *HName2="FARMailScriptRun";
         int key;
         int choice;
         char script[MAX_PATH];

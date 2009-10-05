@@ -66,7 +66,7 @@ BOOL SMTP::AuthPlain( char *user, char *pwd )
  char  buf   [BUFFER_SIZE];
  char  buf2  [BUFFER_SIZE];
  char  pln   [BUFFER_SIZE];
- char *form = "AUTH %s %s\r\n";
+ const char *form = "AUTH %s %s\r\n";
 
  memset( pln, 0, BUFFER_SIZE );
  lstrcpy( pln, user );
