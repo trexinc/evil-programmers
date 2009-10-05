@@ -482,8 +482,15 @@ int parse_dir(TCHAR *root_oem,TCHAR *obj_oem,wchar_t *obj,int obj_type,unsigned 
 parse_dir_real:
       if(obj_type==pathtypeUnknown)
       {
+#ifndef UNICODE
         wchar_t *filename;
-        DWORD full_res=GetFullPathNameW(path,MAX_PATH,host,&filename);
+#endif
+        DWORD full_res=
+#ifdef UNICODE
+        FSF.ConvertPath(CPM_FULL,path,host,MAX_PATH);
+#else
+        GetFullPathNameW(path,MAX_PATH,host,&filename);
+#endif
         if(!full_res||full_res>=MAX_PATH) wcscpy(host,path);
       }
       else wcscpy(host,path);
@@ -507,13 +514,22 @@ parse_dir_plugin:
       }
       break;
     case pathtypeUnknown:
-      //if(GetFileAttributesW(path)!=0xffffffff)
-      if((testHandle=CreateFileW(path,0,FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,NULL,OPEN_EXISTING,FILE_FLAG_BACKUP_SEMANTICS,NULL))!=INVALID_HANDLE_VALUE)
       {
-        CloseHandle(testHandle);
-        goto parse_dir_real;
+        //if(GetFileAttributesW(path)!=0xffffffff)
+#ifdef UNICODE
+        wchar_t path_real[MAX_PATH];
+        FSF.ConvertPath(CPM_FULL,path,path_real,ArraySize(path_real));
+#else
+        wchar_t* path_real=path;
+#endif
+
+        if((testHandle=CreateFileW(path_real,0,FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,NULL,OPEN_EXISTING,FILE_FLAG_BACKUP_SEMANTICS,NULL))!=INVALID_HANDLE_VALUE)
+        {
+          CloseHandle(testHandle);
+          goto parse_dir_real;
+        }
+        goto parse_dir_plugin;
       }
-      goto parse_dir_plugin;
   }
   if((result>-1)&&host_oem)
   {
