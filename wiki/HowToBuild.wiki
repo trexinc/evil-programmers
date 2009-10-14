@@ -16,8 +16,8 @@ From http://sourceforge.net/projects/mingw/
   * mingw32-make-3.81-20080326-3.tar.gz
 
 From http://www.tdragon.net/recentgcc/
-  * gcc-4.4.1-tdm-1-core.zip
-  * gcc-4.4.1-tdm-1-g++.zip
+  * gcc-4.4.1-tdm-2-core.zip
+  * gcc-4.4.1-tdm-2-g++.zip
 
 From http://sourceforge.net/projects/re2c
   * re2c-0.13.5-bin.zip
