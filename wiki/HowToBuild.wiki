@@ -36,8 +36,8 @@ Extract to *mingw* folder:
   * mingwrt-3.16-mingw32-dll.tar.gz
   * mingw-utils-0.3.tar.gz
   * w32api-3.13-mingw32-dev.tar.gz
-  * gcc-4.4.1-tdm-1-core.zip
-  * gcc-4.4.1-tdm-1-g++.zip
+  * gcc-4.4.1-tdm-2-core.zip
+  * gcc-4.4.1-tdm-2-g++.zip
 
 Add *mingw/bin* and *msys/bin* to *PATH*.
 
