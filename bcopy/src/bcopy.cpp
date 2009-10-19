@@ -544,7 +544,12 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom,int Item)
               filename=eto;
             if(!(_tcscmp(filename,_T("."))&&_tcscmp(filename,_T(".."))))
               _tcscat(eto,_T("\\"));
-            DWORD full_res=GetFullPathName(eto,ArraySize(DestA),DestA,&filename);
+            DWORD full_res=
+#ifdef UNICODE
+            FSF.ConvertPath(CPM_FULL,eto,DestA,ArraySize(DestA));
+#else
+            GetFullPathName(eto,ArraySize(DestA),DestA,&filename);
+#endif
             if(!full_res||full_res>=ArraySize(DestA))
             {
               TCHAR err3[512];
