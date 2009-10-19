@@ -16,7 +16,9 @@ extern "C"
   void srand(unsigned x);
   long _lrand(void);
   char *strtok(char *string, const char *control);
-  int atexit(void(*)(void)); //gcc4
+#if __GNUC__>=4 && !defined(TDEBUG)
+  int atexit(void(*)(void));
+#endif
 };
 
 #endif

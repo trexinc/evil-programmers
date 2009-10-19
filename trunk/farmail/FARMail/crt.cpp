@@ -307,7 +307,7 @@ int strcmp(const char *s1, const char *s2)
 
 #endif
 
-#if __GNUC__==4
+#if __GNUC__>=4 && !defined(TDEBUG)
 int atexit(void(*)(void))
 {
   return 0;
