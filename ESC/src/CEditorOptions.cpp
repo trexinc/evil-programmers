@@ -130,13 +130,13 @@ int CEditorOptions::ApplyOption(EDITOR_SETPARAMETER_TYPES type)
           if(Data.Options2&E_WordSym_On)
           {
             MakeWordDiv(Data.Options2&E_AlphaNum_On,Data.AdditionalLetters.str,WordDiv);
-            ESPar.Param.cParam=WordDiv;
+            ESPar.Param.wszParam=WordDiv;
             _D(SysLog(L"ESPT_SETWORDDIV: ON [%s]", WordDiv));
           }
           else
           {
             _D(SysLog(L"ESPT_SETWORDDIV: OFF"));
-            ESPar.Param.cParam=NULL;
+            ESPar.Param.wszParam=NULL;
           }
           RetCode=EditorControl(ECTL_SETPARAM, &ESPar);
           _D(SysLog(L"ESPT_SETWORDDIV: retcode=%d",RetCode));
