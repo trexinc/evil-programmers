@@ -18,21 +18,23 @@ REOBJDIR = \.\.\/o$(SUFFIX)\/
 DLLDIR = ../bin$(SUFFIX)
 DLLNAME = runas.dll
 DLLFULLNAME = $(DLLDIR)/$(DLLNAME)
-SRCS = main.cpp #svc-mgr-opt.cpp win-reg.cpp win-svc.cpp #registry.cpp selcolor.cpp
+SRCS = main.cpp resource.rc #svc-mgr-opt.cpp win-reg.cpp win-svc.cpp #registry.cpp selcolor.cpp
 DEF = main$(SUFFIX).gcc.def
 
 CXX = g++
+RCC = windres
 DLLTOOL = dlltool
 RM = rm -f
 CP = cp -f
 M4 = m4 -P
 MV = mv -f
 MKDIR = mkdir -p
-CXXFLAGS = -mno-cygwin -Os -I $(COMMON) -I $(COMINC) -Wall -funsigned-char -fomit-frame-pointer -fstrict-aliasing -fno-rtti -fno-exceptions $(ADDDEFINES)
-LNKFLAGS = -mno-cygwin -mdll -s -nostartfiles -lgcc $(COMMONLIB)
+CXXFLAGS = -mno-cygwin -O3 -I $(COMMON) -I $(COMINC) -Wall -funsigned-char -fomit-frame-pointer -fstrict-aliasing -fno-rtti -fno-exceptions $(ADDDEFINES)
+LNKFLAGS = -mno-cygwin -mdll -s -nostartfiles -lntdll -lgcc $(COMMONLIB)
 
 OBJS = $(patsubst %.cpp,$(OBJDIR)/%.o,$(filter %.cpp,$(SRCS)))
 DEPS = $(patsubst %.cpp,$(OBJDIR)/%.d,$(filter %.cpp,$(SRCS)))
+RESS = $(patsubst %.rc, $(OBJDIR)/%.res, $(filter %.rc, $(SRCS)))
 MAP = $(patsubst %.dll,%.map,$(DLLFULLNAME))
 
 all: $(DLLFULLNAME)
@@ -43,17 +45,22 @@ $(OBJDIR)/%.d: %.cpp
 	@$(SHELL) -ec '$(CXX) -c -MM $(CXXFLAGS) $< \
                 | sed '\''s/\($*\)\.o[ :]*/$(REOBJDIR)\1.o $(REOBJDIR)\1.d: /g'\'' > $@; [ -s $@ ] || $(RM) $@'
 
+$(OBJDIR)/%.res: %.rc
+	@echo compiling $<
+	@$(MKDIR) $(@D)
+	@$(RCC) -i $< -J rc -o $@ -O coff
+
 $(OBJDIR)/%.o: %.cpp
 	@echo compiling $<
 	@$(MKDIR) $(@D)
 	@$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-$(DLLFULLNAME): $(OBJS) $(DEF)
+$(DLLFULLNAME): $(OBJS) $(RESS) $(DEF)
 	@echo linking $@
 	@$(MKDIR) $(@D)
 	@$(CXX) -mdll -o $(DLLNAME) -Xlinker --base-file -Xlinker $(DLLNAME).base $(OBJS) $(LNKFLAGS)
 	@$(DLLTOOL) --dllname $(DLLNAME) --base-file $(DLLNAME).base --output-exp $(DLLNAME).exp --def $(DEF)
-	@$(CXX) -mdll  -o $(DLLNAME) $(OBJS) $(DLLNAME).exp $(LNKFLAGS)	-Xlinker -Map -Xlinker $(MAP)
+	@$(CXX) -mdll  -o $(DLLNAME) $(OBJS) $(RESS) $(DLLNAME).exp $(LNKFLAGS)	-Xlinker -Map -Xlinker $(MAP)
 	@$(MV) $(DLLNAME) $(DLLDIR)
 	@$(RM) $(DLLNAME).base
 	@$(RM) $(DLLNAME).exp

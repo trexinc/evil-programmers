@@ -20,6 +20,7 @@
 
 #include <shlwapi.h>
 #include <lm.h>
+
 #include "plugin.hpp"
 #include "CRT/crt.hpp"
 
@@ -29,25 +30,12 @@
 #define MIN_FAR_BUILD     0
 
 extern "C" {
-	WINADVAPI
-	BOOL
-	WINAPI
-	IsTokenRestricted(HANDLE TokenHandle);
-
-	WINADVAPI
-	BOOL
-	APIENTRY
-	CreateRestrictedToken(
-		HANDLE ExistingTokenHandle,
-		DWORD Flags,
-		DWORD DisableSidCount,
-		PSID_AND_ATTRIBUTES SidsToDisable,
-		DWORD DeletePrivilegeCount,
-		PLUID_AND_ATTRIBUTES PrivilegesToDelete,
-		DWORD RestrictedSidCount,
-		PSID_AND_ATTRIBUTES SidsToRestrict,
-		PHANDLE NewTokenHandle
-	);
+	WINADVAPI BOOL WINAPI	IsTokenRestricted(HANDLE TokenHandle);
+	WINADVAPI BOOL APIENTRY	CreateRestrictedToken(HANDLE ExistingTokenHandle, DWORD Flags,
+			DWORD DisableSidCount, PSID_AND_ATTRIBUTES SidsToDisable,
+			DWORD DeletePrivilegeCount, PLUID_AND_ATTRIBUTES PrivilegesToDelete,
+			DWORD RestrictedSidCount, PSID_AND_ATTRIBUTES SidsToRestrict,
+			PHANDLE NewTokenHandle);
 };
 
 #define DISABLE_MAX_PRIVILEGE   0x1
@@ -99,7 +87,7 @@ void			InitDialogItems(struct InitDialogItem *Init, struct FarDialogItem *Item, 
 		Item[i].X2 = Init[i].X2;
 		Item[i].Y2 = Init[i].Y2;
 		Item[i].Focus = Init[i].Focus;
-		Item[i].History = (const TCHAR *)Init[i].Selected;
+		Item[i].History = (PCTSTR)Init[i].Selected;
 		Item[i].Flags = Init[i].Flags;
 		Item[i].DefaultButton = Init[i].DefaultButton;
 		Item[i].MaxLen = 0;
@@ -108,23 +96,6 @@ void			InitDialogItems(struct InitDialogItem *Init, struct FarDialogItem *Item, 
 		else
 			Item[i].PtrData = Init[i].Data;
 	}
-}
-
-CStrW			err2w(HRESULT in) {
-	CStrW	Result(4096);
-	PWSTR	buf = NULL;
-	::FormatMessageW(
-		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-		NULL,
-		in,
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-		(PWSTR)&buf, 0, NULL);
-	Result = (buf) ? buf : L"Unknown error\r\n";
-	::LocalFree(buf);
-	size_t	len = Result.Len() - 2;
-	if (len >= 0)
-		Result[len] = L'\0';
-	return	Result;
 }
 
 bool			InitUsers(FarList &users) {
@@ -165,15 +136,15 @@ bool			FreeUsers(FarList &users) {
 }
 
 HRESULT			ExecAsUser(PCWSTR app, PCWSTR user, PCWSTR pass) {
-	CStrW	cmd(MAX_PATH_LENGTH + MAX_PATH + 1);
-	WinFS::Expand(app, cmd);
+	CStrW	cmd = WinFS::Expand(app);
 
 	PROCESS_INFORMATION pi = {0};
 	STARTUPINFOW si = {0};
 	si.cb = sizeof(si);
-//	si.wShowWindow = SW_HIDE;
+	si.dwFlags = STARTF_USESHOWWINDOW;
+	si.wShowWindow = SW_SHOWNORMAL;
 
-	if (::CreateProcessWithLogonW(user, NULL, pass, LOGON_WITH_PROFILE, NULL, cmd,
+	if (::CreateProcessWithLogonW(user, NULL, pass, LOGON_WITH_PROFILE, NULL, (PWSTR)cmd.c_str(),
 								  CREATE_UNICODE_ENVIRONMENT | CREATE_DEFAULT_ERROR_MODE,
 								  NULL, NULL, &si, &pi)) {
 		::CloseHandle(pi.hThread);
@@ -183,8 +154,7 @@ HRESULT			ExecAsUser(PCWSTR app, PCWSTR user, PCWSTR pass) {
 	return	::GetLastError();
 }
 HRESULT			ExecRestricted(PCWSTR app) {
-	CStrW	cmd(MAX_PATH_LENGTH + MAX_PATH + 1);
-	WinFS::Expand(app, cmd);
+	CStrW	cmd = WinFS::Expand(app);
 
 	PROCESS_INFORMATION pi = {0};
 	STARTUPINFOW si = {0};
@@ -192,19 +162,20 @@ HRESULT			ExecRestricted(PCWSTR app) {
 	si.dwFlags = STARTF_USESHOWWINDOW;
 	si.wShowWindow = SW_SHOWNORMAL;
 
-	HANDLE	hOldToken = NULL;
-	if (::OpenProcessToken(::GetCurrentProcess(), TOKEN_ASSIGN_PRIMARY | TOKEN_DUPLICATE | TOKEN_QUERY | TOKEN_ADJUST_DEFAULT, &hOldToken)) {
-		HANDLE	hToken = NULL;
-		if (::CreateRestrictedToken(hOldToken, DISABLE_MAX_PRIVILEGE, 0, NULL, 0, NULL, 0, NULL, &hToken)) {
-			if (::CreateProcessAsUserW(hToken, NULL, cmd, NULL, NULL, false, NORMAL_PRIORITY_CLASS | CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi)) {
+	WinToken	hToken(TOKEN_ASSIGN_PRIMARY | TOKEN_DUPLICATE | TOKEN_QUERY | TOKEN_ADJUST_DEFAULT);
+	if (hToken.IsOK()) {
+		HANDLE	hTokenRest = NULL;
+		//TODO сделать restricted DACL и Deny only проверку
+		if (::CreateRestrictedToken(hToken, DISABLE_MAX_PRIVILEGE, 0, NULL, 0, NULL, 0, NULL, &hTokenRest)) {
+			if (::CreateProcessAsUserW(hTokenRest, NULL, (PWSTR)cmd.c_str(), NULL, NULL, false,
+									   NORMAL_PRIORITY_CLASS | CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi)) {
 				::CloseHandle(pi.hThread);
 				::CloseHandle(pi.hProcess);
-				::CloseHandle(hToken);
+				::CloseHandle(hTokenRest);
 				return	NO_ERROR;
 			}
-			::CloseHandle(hToken);
+			::CloseHandle(hTokenRest);
 		}
-		::CloseHandle(hOldToken);
 	}
 	return	::GetLastError();
 }
@@ -250,25 +221,23 @@ HANDLE	WINAPI	EXP_NAME(OpenFilePlugin)(const TCHAR *Name, const unsigned char *D
 HANDLE	WINAPI	EXP_NAME(OpenPlugin)(int OpenFrom, INT_PTR Item) {
 //	Options.Read();
 
-	PCWSTR	cline = NULL;
+	CStrW	cline;
 	if (OpenFrom == OPEN_PLUGINSMENU) {
 		PanelInfo pi;
 		if (Info.Control(PANEL_ACTIVE, FCTL_GETPANELINFO, sizeof(pi), (LONG_PTR)&pi)) {
-			CStrW buf(MAX_PATH_LENGTH + MAX_PATH + 1);
-			Info.Control(PANEL_ACTIVE, FCTL_GETCURRENTDIRECTORY, buf.Size(), (LONG_PTR)buf.Data());
-			if (buf.Len())
-				::PathAddBackslash(buf);
+			CStrW	buf(MAX_PATH_LENGTH + MAX_PATH + 1);
+			FSF.GetCurrentDirectory(buf.capacity(), (PWSTR)buf.c_str());
+//			Info.Control(PANEL_ACTIVE, FCTL_GETCURRENTDIRECTORY, buf.capacity(), (LONG_PTR)buf.c_str());
+			if (!buf.empty())
+				::PathAddBackslash((PWSTR)buf.c_str());
 
 			PluginPanelItem PPI;
 			Info.Control(PANEL_ACTIVE, FCTL_GETPANELITEM, pi.CurrentItem, (LONG_PTR)&PPI);
 			buf += PPI.FindData.lpwszFileName;
-			WinStr::Assign(cline, buf);
+			cline = buf;
 		}
 	} else if (OpenFrom == OPEN_COMMANDLINE) {
-		WinStr::Assign(cline, (PCWSTR)Item);
-	}
-	if (!cline) {
-		WinStr::Assign(cline, L"");
+		cline = (PCWSTR)Item;
 	}
 	FarList	users;
 	if (InitUsers(users)) {
@@ -281,7 +250,7 @@ HANDLE	WINAPI	EXP_NAME(OpenPlugin)(int OpenFrom, INT_PTR Item) {
 			{DI_CHECKBOX , 5, 6, 42, 0, 0, 0, 0, 0, GetMsg(MRestricted)},
 			{DI_TEXT, 0, 7, 0, 0, 0, 0, DIF_SEPARATOR, 0, L""},
 			{DI_TEXT, 5, 8, 0, 0, 0, 0, 0, 0, GetMsg(MCommandLine)},
-			{DI_EDIT, 5, 9, 42, 0, 0, (DWORD_PTR)L"ProcessList.Username", DIF_HISTORY, 0, cline},
+			{DI_EDIT, 5, 9, 42, 0, 0, (DWORD_PTR)L"runas.comline", DIF_HISTORY, 0, cline},
 			{DI_TEXT, 5, 10, 0, 0, 0, 0, DIF_BOXCOLOR | DIF_SEPARATOR, 0, L""},
 			{DI_BUTTON, 0, 11, 0, 0, 0, 0, DIF_CENTERGROUP, 1, GetMsg(buttonOk)},
 			{DI_BUTTON, 0, 11, 0, 0, 0, 0, DIF_CENTERGROUP, 0, GetMsg(buttonCancel)},
@@ -308,8 +277,7 @@ HANDLE	WINAPI	EXP_NAME(OpenPlugin)(int OpenFrom, INT_PTR Item) {
 				if (err == NO_ERROR) {
 					break;
 				} else {
-					CStrW	err_msg(err2w(err));
-					PCWSTR Msg[] = {GetMsg(MError), L"", GetMsg(buttonOk), };
+					PCWSTR Msg[] = {GetMsg(MError), cmd.c_str(), L"", GetMsg(buttonOk), };
 					::SetLastError(err);
 					Info.Message(Info.ModuleNumber, FMSG_WARNING | FMSG_ERRORTYPE,
 								 L"Contents", Msg, sizeofa(Msg), 1);
@@ -319,7 +287,6 @@ HANDLE	WINAPI	EXP_NAME(OpenPlugin)(int OpenFrom, INT_PTR Item) {
 		}
 		FreeUsers(users);
 	}
-	WinStr::Free(cline);
 
 	return	INVALID_HANDLE_VALUE;
 }
