@@ -396,7 +396,10 @@ VOID StartUpdate(bool Silent=false)
 		}
 		LocalFree(Argv);
 
-		FSF.sprintf(cmdline,TEXT("rundll32 \"%s\", RestartFAR %I64d %I64d"),ipc.PluginModule,reinterpret_cast<INT64>(ProcDup),reinterpret_cast<INT64>(&ipc));
+		TCHAR WinDir[MAX_PATH];
+		GetWindowsDirectory(WinDir,ARRAYSIZE(WinDir));
+		BOOL IsWow64=FALSE;
+		FSF.sprintf(cmdline,TEXT("%s\\%s\\rundll32.exe \"%s\", RestartFAR %I64d %I64d"),WinDir,ifn.IsWow64Process(GetCurrentProcess(),&IsWow64)&&IsWow64?TEXT("SysWOW64"):TEXT("System32"),ipc.PluginModule,reinterpret_cast<INT64>(ProcDup),reinterpret_cast<INT64>(&ipc));
 
 		STARTUPINFO si={sizeof(si)};
 		PROCESS_INFORMATION pi;
@@ -898,7 +901,10 @@ EXTERN_C VOID WINAPI EXP_NAME(RestartFAR)(HWND,HINSTANCE,LPCTSTR lpCmd,DWORD)
 						{
 							TextColor color(FOREGROUND_GREEN|FOREGROUND_INTENSITY);
 							mprintf(TEXT("OK\n"));
-							DeleteFile(local_arc);
+							if(GetPrivateProfileInt(TEXT("Update"),TEXT("Delete"),1,ipc.Config))
+							{
+								DeleteFile(local_arc);
+							}
 						}
 						else
 						{
@@ -960,21 +966,7 @@ EXTERN_C VOID WINAPI EXP_NAME(RestartFAR)(HWND,HINSTANCE,LPCTSTR lpCmd,DWORD)
 					mprintf(TEXT("Error %d"),GetLastError());
 				}
 				mprintf(TEXT("\n"));
-				
-				// шаманство для x64
-				DWORD ProcList[2];
-				for(;;)
-				{
-					DWORD ProcCount=ifn.GetConsoleProcessList(ProcList,2);
-					if(Count==1)
-					{
-						Sleep(1);
-					}
-					else
-					{
-						break;
-					}
-				}
+
 				CloseHandle(pi.hThread);
 				CloseHandle(pi.hProcess);
 			}

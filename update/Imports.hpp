@@ -3,17 +3,18 @@
 #include "headers.hpp"
 
 typedef BOOL (WINAPI *ATTACHCONSOLE)(DWORD dwProcessId);
-typedef DWORD (APIENTRY *GETCONSOLEPROCESSLIST)(LPDWORD lpdwProcessList,DWORD dwProcessCount);
+typedef BOOL (WINAPI *ISWOW64PROCESS)(HANDLE hProcess,PBOOL Wow64Process);
 
 struct ImportedFunctions
 {
 private:
 	ATTACHCONSOLE pAttachConsole;
-	GETCONSOLEPROCESSLIST pGetConsoleProcessList;
+	ISWOW64PROCESS pIsWow64Process;
+
 public:
 	VOID Load();
 	BOOL AttachConsole(DWORD dwProcessId);
-	DWORD GetConsoleProcessList(LPDWORD lpdwProcessList,DWORD dwProcessCount);
+	BOOL IsWow64Process(HANDLE hProcess,PBOOL Wow64Process);
 };
 
 extern ImportedFunctions ifn;

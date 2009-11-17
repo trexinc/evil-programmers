@@ -10,7 +10,7 @@ VOID ImportedFunctions::Load()
 	if(hKernel32)
 	{
 		pAttachConsole=reinterpret_cast<ATTACHCONSOLE>(GetProcAddress(hKernel32,"AttachConsole"));
-		pGetConsoleProcessList=reinterpret_cast<GETCONSOLEPROCESSLIST>(GetProcAddress(hKernel32,"GetConsoleProcessList"));
+		pIsWow64Process=reinterpret_cast<ISWOW64PROCESS>(GetProcAddress(hKernel32,"IsWow64Process"));
 	}
 }
 
@@ -28,12 +28,12 @@ BOOL ImportedFunctions::AttachConsole(DWORD dwProcessId)
 	return Ret;
 }
 
-DWORD ImportedFunctions::GetConsoleProcessList(LPDWORD lpdwProcessList,DWORD dwProcessCount)
+BOOL ImportedFunctions::IsWow64Process(HANDLE hProcess,PBOOL Wow64Process)
 {
-	DWORD Ret=0;
-	if(pGetConsoleProcessList)
+	BOOL Ret=0;
+	if(pIsWow64Process)
 	{
-		Ret=pGetConsoleProcessList(lpdwProcessList,dwProcessCount);
+		Ret=pIsWow64Process(hProcess,Wow64Process);
 	}
 	else
 	{
