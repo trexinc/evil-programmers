@@ -2,7 +2,7 @@
 	win_def
 	Main windows application include, always include first
 	@classes	(WinMem, WinStr, CStr, WinFlag, WinBit, WinTimer, WinErrorCheck, Uncopyable, WinCOM)
-	@author		Copyright © 2009 Grechkin Andrew
+	@author		Copyright © 2009 Andrew Grechkin
 	@link		()
 	@link		(ole32) for WinCom
 **/
@@ -14,7 +14,7 @@
 #undef _WIN32_WINNT
 #endif
 #ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0501		// Windows 2000 or later
+#define _WIN32_WINNT 0x0501
 #endif
 
 #if (WINVER < 0x0501)
@@ -32,15 +32,50 @@
 #endif
 
 #include <windows.h>
+//#include <wchar.h>
+
+class		CStrA;
+class		CStrW;
+
+#ifdef UNICODE
+typedef	CStrW	CStr;
+#else
+typedef	CStrA	CStr;
+#endif
+
+#ifdef DEBUG
+#include <iostream>
+#include <ostream>
+using	std::cout;
+using	std::ostream;
+using	std::endl;
+ostream			&operator<<(ostream &s, PCWSTR rhs);
+#endif
+
+#ifdef _DEBUG
+#define	DLOG(out) out;
+#else
+#define	DLOG(out)
+#endif
+
+EXTERN_C {
+	WINBASEAPI VOID WINAPI GetNativeSystemInfo(LPSYSTEM_INFO);
+	WINBASEAPI ULONGLONG WINAPI GetTickCount64();
+	WINBASEAPI DWORD WINAPI GetProcessId(HANDLE Process);
+	_CRTIMP int __cdecl __MINGW_NOTHROW	_snwprintf(wchar_t*, size_t, const wchar_t*, ...);
+}
 
 ///===================================================================================== definitions
 #define MAX_PATH_LENGTH			32768
 #define SPACE					L' '
 #define PATH_SEPARATOR			L"\\" // Path separator in the file system
 #define PATH_SEPARATOR_C		L'\\' // Path separator in the file system
-#define LONG_FILENAME_PREFIX	L"\\\\?\\" // Prefix to put ahead of a long path for Windows API
+#define PATH_PREFIX				L"\\\\?\\" // Prefix to put ahead of a long path for Windows API
+#define NORM_M_PREFIX(m)        (*(LPDWORD)m==0x5c005c)
+#define REV_M_PREFIX(m)         (*(LPDWORD)m==0x2f002f)
 
-#define sizeofa(array) (sizeof(array)/sizeof(array[0]))
+#define sizeofa(array)			(sizeof(array)/sizeof(array[0]))
+#define sizeofe(array)			(sizeof(array[0]))
 
 typedef const TCHAR			*PCTSTR;
 typedef const void			*PCVOID;
@@ -56,6 +91,7 @@ typedef	size_t(__cdecl *dl_wcslen)(const wchar_t *);
 typedef	wchar_t*(__cdecl *dl_wcscpy)(wchar_t *, const wchar_t *);
 typedef	wchar_t*(__cdecl *dl_wcsncpy)(wchar_t *, const wchar_t *, size_t);
 typedef	int(__cdecl *dl__snwprintf)(wchar_t *, size_t, const wchar_t *, ...);
+
 namespace	DynLink {
 	extern HINSTANCE		hNtDll;
 	extern dl__snwprintf	my_snprintf;
@@ -82,11 +118,11 @@ inline void						XchgWord(DWORD &inout) {
 }
 
 template <typename Type>
-inline	const Type&				Min(const Type &a, const Type &b) {
+inline	const Type				&Min(const Type &a, const Type &b) {
 	return	(a < b) ? a : b;
 }
 template <typename Type>
-inline	const Type&				Max(const Type &a, const Type &b) {
+inline	const Type				&Max(const Type &a, const Type &b) {
 	return	(a < b) ? b : a;
 }
 template <typename Type>
@@ -97,9 +133,10 @@ inline	void					Swp(Type &x, Type &y) {
 }
 
 ///====================================================================================== Uncopyable
+/// Базовый класс для наследования классами, объекты которых не должны копироваться
 class		Uncopyable {
 	Uncopyable(const Uncopyable&);
-	Uncopyable& operator=(const Uncopyable&);
+	Uncopyable &operator=(const Uncopyable&);
 protected:
 	~Uncopyable() {
 	}
@@ -108,6 +145,7 @@ protected:
 };
 
 ///=================================================================================== WinErrorCheck
+/// Базовый класс для проверки и хранения кода ошибки
 class		WinErrorCheck {
 	HRESULT	mutable	m_err;
 protected:
@@ -122,17 +160,6 @@ public:
 	HRESULT			err(HRESULT err) const {
 		return	m_err = err;
 	}
-	/*
-		HRESULT			GetErr() const {
-			return	m_err;
-		}
-		HRESULT			SetErr() const {
-			return	m_err = ::GetLastError();
-		}
-		HRESULT			SetErr(HRESULT err) const {
-			return	m_err = err;
-		}
-	*/
 	bool			IsOK() const {
 		return	m_err == NO_ERROR;
 	}
@@ -151,6 +178,7 @@ public:
 };
 
 ///========================================================================================== WinMem
+/// Функции работы с кучей
 namespace	WinMem {
 	inline PVOID				Alloc(size_t size) {
 		return	::HeapAlloc(::GetProcessHeap(), HEAP_ZERO_MEMORY, size);
@@ -199,6 +227,7 @@ namespace	WinMem {
 }
 
 ///========================================================================================== WinStr
+/// Функции работы символьными строками
 namespace	WinStr {
 	inline size_t				Len(PCSTR in) {
 		return	::strlen(in);
@@ -278,9 +307,17 @@ namespace	WinStr {
 #endif
 	}
 
+	inline PSTR					Cat(PSTR dest, PCSTR src) {
+		return	::strcat(dest, src);
+	}
+	inline PWSTR				Cat(PWSTR dest, PCWSTR src) {
+		return	::wcscat(dest, src);
+	}
+
 	inline PCWSTR				Assign(PCWSTR &dest, PCWSTR src) {
-		dest = (PCWSTR)WinMem::Alloc((WinStr::Len(src) + 1) * sizeof(WCHAR));
-		WinStr::Copy((PWSTR)dest, src);
+		size_t	len = WinStr::Len(src) + 1;
+		dest = (PCWSTR)WinMem::Alloc(len * sizeof(WCHAR));
+		WinStr::Copy((PWSTR)dest, src, len);
 		return	dest;
 	}
 	inline void					Free(PCWSTR in) {
@@ -339,22 +376,22 @@ namespace	WinStr {
 	}
 	inline PWSTR				CharLastOf(PCWSTR in, PCWSTR mask) {
 		size_t	len = Len(mask);
-		for (size_t i = Len(in) - 1; i >= 0; --i) {
+		for (size_t i = Len(in); i > 0; --i) {
 			for (size_t j = 0; j < len; ++j) {
-				if (in[i] == mask[j])
-					return	(PWSTR)&in[i];
+				if (in[i-1] == mask[j])
+					return	(PWSTR)&in[i-1];
 			}
 		}
 		return	NULL;
 	}
 	inline PWSTR				CharLastNotOf(PCWSTR in, PCWSTR mask) {
 		size_t	len = Len(mask);
-		for (size_t i = Len(in) - 1; i >= 0; --i) {
+		for (size_t i = Len(in); i > 0; --i) {
 			for (size_t j = 0; j < len; ++j) {
-				if (in[i] == mask[j])
+				if (in[i-1] == mask[j])
 					break;
 				if (j == len - 1)
-					return	(PWSTR)&in[i];
+					return	(PWSTR)&in[i-1];
 			}
 		}
 		return	NULL;
@@ -419,354 +456,721 @@ namespace	WinStr {
 	inline int					AsInt(PCWSTR in) {
 		return	(int)AsLongLong(in);
 	}
-
-	/*
-		inline bool					ToFile(PCWSTR path, PCWSTR in, bool bom = true) {
-			CHAR	bom16le[] = {0xFE, 0xFF, 0x0};
-			DWORD	dwWritten = 0;
-			HANDLE	hFile = ::CreateFileW(path, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, 0, 0);
-			if (bom)
-				::WriteFile(hFile, bom16le, Len(bom16le), &dwWritten, NULL);
-			::WriteFile(hFile, in, Len(in), &dwWritten, NULL);
-			::CloseHandle(hFile);
-			return	dwWritten != 0;
-		}
-	*/
 }
 
-///============================================================================================ CStr
-class		CStrA {
-	typedef			CHAR	cType;
-	typedef			cType*	pType;
-	typedef	const	cType*	pcType;
-	size_t	mutable			sz_;
-	pType	mutable			st_;
-
-	void				Assign(pcType in, size_t size = 0) {
-		Free();
-		size = Max(size, WinStr::Len(in));
-		Alloc(size);
-		WinStr::Copy(st_, in, sz_);
-	}
-
-	void				Alloc(size_t size) {
-		sz_ = size + 1;
-		st_ = (pType)WinMem::Alloc((sz_) * sizeof(cType));
-	}
-	void				Realloc(size_t size) const {
-		sz_ = size + 1;
-		st_ = (pType)WinMem::Realloc(st_, (sz_) * sizeof(cType));
-	}
-	void				Free() {
-		if (st_)
-			WinMem::Free(st_);
-		st_ = NULL;
-		sz_ = 0;
-	}
-public:
-	~CStrA() {
-		Free();
-	}
-	CStrA(size_t size = MAX_PATH): st_(NULL) {
-		Alloc(size);
-	}
-	CStrA(const CStrA &in): st_(NULL) {
-		Assign(in.st_);
-	}
-	CStrA(const CStrA &in, size_t size): st_(NULL) {
-		Assign(in.st_, size);
-	}
-	CStrA(pcType in): st_(NULL) {
-		Assign(in);
-	}
-	CStrA(const wchar_t* in, UINT cp_ = CP_ACP): st_(NULL) {
-		Alloc(WinStr::Len(in));
-		cp(in, cp_);
-	}
-	const CStrA&		operator=(const CStrA &in) {
-		Assign(in.st_, in.sz_);
-		return	*this;
-	}
-	const CStrA&		operator=(pcType in) {
-		Assign(in, WinStr::Len(in));
-		return	*this;
-	}
-
-	const CStrA&		operator+=(pcType in) {
-		if (st_ != in) {
-			size_t len1 = WinStr::Len(st_), len2 = WinStr::Len(in);
-			CheckSize(len1 + len2);
-			WinStr::Copy(st_ + len1, in, sz_ - len1);
-		}
-		return	*this;
-	}
-	CStrA				operator+(const CStrA &in) const {
-		CStrA Result(*this);
-		return	Result += in;
-	}
-
-	bool				operator==(const CStrA &in) const {
-		return	WinStr::Eq(st_, in.st_);
-	}
-	bool				operator!=(const CStrA &in) const {
-		return	!operator==(in);
-	}
-	bool				operator<(const CStrA &in) const {
-		return	WinStr::Cmp(st_, in.st_) < 0;
-	}
-	bool				operator>(const CStrA &in) const {
-		return	WinStr::Cmp(st_, in.st_) > 0;
-	}
-	bool				operator<=(const CStrA &in) const {
-		return	operator==(in) || operator<(in);
-	}
-	bool				operator>=(const CStrA &in) const {
-		return	operator==(in) || operator>(in);
-	}
-
-	bool				CheckSize(size_t size) const {
-		if (size >= sz_) {
-			sz_ = size;
-			Realloc(sz_);
-			return	false;
-		}
-		return	true;
-	}
-
-	cType&				operator[](int in) {
-		return	st_[in];
-	}
-	const cType&		operator[](int in) const {
-		return	st_[in];
-	}
-
-	operator			char*() {
-		return	st_;
-	}
-	operator			const char*() const {
-		return	st_;
-	}
-	size_t				Len() const {
-		return	WinStr::Len(st_);
-	}
-	size_t				Size() const {
-		return	sz_;
-	}
-	pcType				c_str() const {
-		return	(pcType)st_;
-	}
-	pType				Data() const {
-		return	(pType)st_;
-	}
-
-	const CStrA&		cp(const wchar_t* in, UINT cp = CP_ACP) {
-		CheckSize(::WideCharToMultiByte(cp, 0, in, -1, NULL, 0, NULL, NULL));
-		::WideCharToMultiByte(cp, 0, in, -1, st_, sz_, NULL, NULL);
-		return	*this;
-	}
-	const CStrA&		utf(const wchar_t* in) {
-		return	cp(in, CP_UTF8);
-	}
-	const CStrA&		oem(const wchar_t* in) {
-		return	cp(in, CP_OEMCP);
-	}
-
-};
-class		CStrW {
-	typedef			WCHAR	cType;
-	typedef			PWSTR	pType;
-	typedef			PCWSTR	pcType;
-	size_t	mutable			sz_;
-	pType	mutable			st_;
-
-	void				Assign(pcType in, size_t size = 0) {
-		Free();
-		size = Max(size, WinStr::Len(in));
-		Alloc(size);
-		WinStr::Copy(st_, in, sz_);
-	}
-
-	void				Alloc(size_t size) {
-		sz_ = size + 1;
-		st_ = (pType)WinMem::Alloc((sz_) * sizeof(cType));
-	}
-	void				Realloc(size_t size) const {
-		sz_ = size + 1;
-		st_ = (pType)WinMem::Realloc(st_, (sz_) * sizeof(cType));
-	}
-	void				Free() {
-		if (st_)
-			WinMem::Free(st_);
-		st_ = NULL;
-		sz_ = 0;
-	}
-public:
-	~CStrW() {
-		Free();
-	}
-	CStrW(size_t size = MAX_PATH): st_(NULL) {
-		Alloc(size);
-	}
-	CStrW(const CStrW &in): st_(NULL) {
-		Assign(in.st_);
-	}
-	CStrW(const CStrW &in, size_t size): st_(NULL) {
-		Assign(in.st_, size);
-	}
-	CStrW(pcType in): st_(NULL) {
-		Assign(in);
-	}
-	CStrW(const char* in, UINT cp_ = CP_ACP): st_(NULL) {
-		Alloc(WinStr::Len(in));
-		cp(in, cp_);
-	}
-	const CStrW&		operator=(const CStrW &in) {
-		Assign(in.st_, in.sz_);
-		return	*this;
-	}
-	const CStrW&		operator=(pcType in) {
-		Assign(in, WinStr::Len(in));
-		return	*this;
-	}
-
-	const CStrW&		operator+=(pcType in) {
-		if (st_ != in) {
-			size_t len1 = WinStr::Len(st_);
-			CheckSize(len1 + WinStr::Len(in));
-			WinStr::Copy(st_ + len1, in, sz_ - len1);
-		}
-		return	*this;
-	}
-	CStrW				operator+(const CStrW &in) const {
-		CStrW Result(*this);
-		return	Result += in;
-	}
-
-	bool				operator==(const CStrW &in) const {
-		return	WinStr::Eq(st_, in.st_);
-	}
-	bool				operator!=(const CStrW &in) const {
-		return	!operator==(in);
-	}
-	bool				operator<(const CStrW &in) const {
-		return	WinStr::Cmp(st_, in.st_) < 0;
-	}
-	bool				operator>(const CStrW &in) const {
-		return	WinStr::Cmp(st_, in.st_) > 0;
-	}
-	bool				operator<=(const CStrW &in) const {
-		return	operator==(in) || operator<(in);
-	}
-	bool				operator>=(const CStrW &in) const {
-		return	operator==(in) || operator>(in);
-	}
-
-	bool				CheckSize(size_t size) const {
-		if (size >= sz_) {
-			sz_ = size;
-			Realloc(sz_);
-			return	false;
-		}
-		return	true;
-	}
-
-	cType&				operator[](int in) {
-		return	st_[in];
-	}
-	const cType&		operator[](int in) const {
-		return	st_[in];
-	}
-
-	operator			wchar_t*() {
-		return	st_;
-	}
-	operator			const wchar_t*() const {
-		return	st_;
-	}
-	size_t				Len() const {
-		return	WinStr::Len(st_);
-	}
-	size_t				Size() const {
-		return	sz_;
-	}
-	pcType				c_str() const {
-		return	(pcType)st_;
-	}
-	pType				Data() const {
-		return	(pType)st_;
-	}
-
-	const CStrW&		cp(const char* in, UINT cp = CP_ACP) {
-		CheckSize(::MultiByteToWideChar(cp, 0, in, -1, NULL, 0));
-		::MultiByteToWideChar(cp, 0, in, -1, st_, sz_);
-		return	*this;
-	}
-	const CStrW&		utf(const char* in) {
-		return	cp(in, CP_UTF8);
-	}
-	const CStrW&		oem(const char* in) {
-		return	cp(in, CP_OEMCP);
-	}
-};
-
-#ifdef UNICODE
-typedef	CStrW	CStr;
-#else
-typedef	CStrA	CStr;
-#endif
-
+///======================================================================================= WinBuffer
+/// Обертка буфера
 template<typename Type>
 class		WinBuffer {
-	size_t	m_ctr;
-	Type	m_buf;
+	Type		m_buf;
+	size_t		m_load;
+
 	bool				Free() {
-		if (--m_ctr == 0) {
-			WinMem::Free(m_buf);
-			m_buf = NULL;
-		}
+		WinMem::Free(m_buf);
+		m_buf = NULL;
 		return	true;
 	}
 public:
 	~WinBuffer() {
 		Free();
 	}
-	WinBuffer(size_t size): m_ctr(0), m_buf(NULL) {
+	WinBuffer(size_t size): m_buf(NULL),  m_load(0) {
 		m_buf = (Type)WinMem::Alloc(size);
-		if (m_buf)
-			++m_ctr;
+	}
+	WinBuffer(const WinBuffer &in): m_buf(NULL),  m_load(0) {
+		size_t	size = in.Size();
+		m_load = in.m_load;
+		m_buf = (Type)WinMem::Alloc(size);
+		if (m_buf) {
+			WinMem::Copy(m_buf, in.m_buf, size);
+		}
 	}
 	operator			Type() {
+		return	m_buf;
+	}
+	Type				Buf() const {
 		return	m_buf;
 	}
 	Type				operator->() const {
 		return	m_buf;
 	}
-	const WinBuffer&	operator=(const WinBuffer &in) {
+	const WinBuffer	&operator=(const WinBuffer &in) {
 		if (this != &in) {
 			Free();
 			size_t	size = in.Size();
+			m_load = in.m_load;
 			m_buf = (Type)WinMem::Alloc(size);
 			if (m_buf) {
 				WinMem::Copy(m_buf, in.m_buf, size);
-				m_ctr = 1;
 			}
 		}
 		return	*this;
 	}
-	size_t				Size() {
+
+	size_t				capacity() {
 		return	WinMem::Size(m_buf);
+	}
+	bool				reserve(size_t size) {
+		if (capacity() < size) {
+			m_buf = (Type)WinMem::Realloc(m_buf, size);
+			return	false;
+		}
+		return	true;
+	}
+
+	size_t				size() {
+		return	WinMem::Size(m_buf);
+	}
+};
+
+/// Обертка буфера с подсчетом ссылок
+template<typename Type>
+class		WinBufferCtr: public Uncopyable {
+	Type		*m_buf;
+	size_t		m_ctr;
+
+public:
+	~WinBufferCtr() {
+		Dec();
+	}
+	WinBufferCtr(): m_buf(NULL),  m_ctr(0) {
+	}
+	bool				Init(size_t size) {
+		m_ctr = 1;
+		m_buf = (Type*)WinMem::Alloc(size * sizeof(Type));
+		return	true;
+	}
+	operator			Type*() const {
+		return	m_buf;
+	}
+	Type				*Buf() const {
+		return	m_buf;
+	}
+
+	size_t				capacity() const {
+		return	WinMem::Size(m_buf) / sizeof(Type);
+	}
+	bool				reserve(size_t size) {
+		if (capacity() < size) {
+			m_buf = (Type*)WinMem::Realloc(m_buf, size * sizeof(Type));
+			return	false;
+		}
+		return	true;
+	}
+
+	size_t				links() const {
+		return	m_ctr;
+	}
+	bool				IsSingle() const {
+		return	m_ctr == 1;
 	}
 	void				Inc() {
 		++m_ctr;
 	}
-	void				Dec() {
-		Free();
-	}
-	Type				Data() const {
-		return	m_buf;
+	bool				Dec() {
+		if (--m_ctr == 0) {
+			WinMem::Free(m_buf);
+			m_buf = NULL;
+			return	true;
+		}
+		return	false;
 	}
 };
 
+///============================================================================================ CStr
+/// Строки с счетчиком ссылок, передача по значению обходится очень дешево
+class		CStrA {
+	WinBufferCtr<CHAR>	*m_data;
+
+	void				Alloc(WinBufferCtr<CHAR>* &data, size_t size) {
+		DLOG((std::cout << "CStrA::Alloc\tSize: " << size << std::endl))
+		data = (WinBufferCtr<CHAR>*) WinMem::Alloc(sizeof(*data));
+		data->Init(size);
+	}
+	void				Assign(WinBufferCtr<CHAR>* &data, PCSTR in, size_t size) {
+		DLOG((std::cout << "CStrA::Assign\tSize: '" << size << "' \tData: '" << in << "'" << std::endl))
+		data = (WinBufferCtr<CHAR>*) WinMem::Alloc(sizeof(*data));
+		data->Init(size);
+		WinStr::Copy(data->Buf(), in, data->capacity());
+	}
+	void				Release(WinBufferCtr<CHAR>* &data) {
+		DLOG((std::cout << "CStrA::Release(\"" << data->Buf() << "\")"))
+		if (data && data->Dec()) {
+			DLOG((std::cout << "\tERASED"))
+			WinMem::Free(data);
+			data = NULL;
+		}
+		DLOG((std::cout << std::endl))
+	}
+
+public:
+	~CStrA() {
+		DLOG((std::cout << "CStrA::~CStrA(\"" << m_data->Buf() << "\")" << std::endl))
+		Release(m_data);
+	}
+	explicit CStrA(): m_data(NULL) {
+		DLOG((std::cout << "CStrA::CStrA()" << std::endl))
+		Assign(m_data, "", 1);
+	}
+	CStrA(const CStrA &in) {
+		DLOG((std::cout << "CStrA::CStrA(\"" << in << "\")" << std::endl))
+		in.m_data->Inc();
+		m_data = in.m_data;
+	}
+	CStrA(PCSTR in) {
+		DLOG((std::cout << "CStrA::CStrA(\"" << in << "\")" << std::endl))
+		Assign(m_data, in, WinStr::Len(in) + 1);
+	}
+	CStrA(PCWSTR in, UINT cp) {
+//		DLOG((std::cout << "CStrA::CStrA(\"" << in << "\", " << cp << ")" << std::endl))
+		Alloc(m_data, ::WideCharToMultiByte(cp, 0, in, -1, NULL, 0, NULL, NULL));
+		::WideCharToMultiByte(cp, 0, in, -1, m_data->Buf(), m_data->capacity(), NULL, NULL);
+	}
+	CStrA(size_t in) {
+		DLOG((std::cout << "CStrA::CStrA(\"" << in << "\")" << std::endl))
+		Alloc(m_data, in);
+	}
+
+	const CStrA			&operator=(const CStrA &in) {
+		DLOG((std::cout << "CStrA::operator=(\"" << in << "\")" << std::endl))
+		if (m_data != in.m_data) {
+			Release(m_data);
+			m_data = in.m_data;
+			m_data->Inc();
+		}
+		return	*this;
+	}
+	const CStrA			&operator=(PCSTR in) {
+		DLOG((std::cout << "CStrA::operator=(\"" << in << "\")" << std::endl))
+		WinBufferCtr<CHAR>	*tmp;
+		Assign(tmp, in, WinStr::Len(in) + 1);
+		Swp(m_data, tmp);
+		Release(tmp);
+		return	*this;
+	}
+	const CStrA			&operator=(CHAR in) {
+		DLOG((std::cout << "CStrA::operator=(\"" << in << "\")" << std::endl))
+		CHAR tmp[] = {in, '\0'};
+		operator+=(tmp);
+		return	*this;
+	}
+	CStrA				&operator+=(const CStrA &in) {
+		DLOG((std::cout << "CStrA::operator+=(\"" << in << "\")" << std::endl))
+		if (m_data != in.m_data) {
+			operator+=(in.m_data->Buf());
+		}
+		return	*this;
+	}
+	CStrA				&operator+=(PCSTR in) {
+		DLOG((std::cout << "CStrA::operator+=(\"" << in << "\")" << std::endl))
+		size_t	len = m_data->capacity();
+		if (m_data->IsSingle()) {
+			m_data->reserve(len + WinStr::Len(in));
+			WinStr::Cat(m_data->Buf(), in);
+		} else {
+			WinBufferCtr<CHAR>	*tmp;
+			Assign(tmp, m_data->Buf(), len + WinStr::Len(in));
+			WinStr::Cat(tmp->Buf(), in);
+			Swp(m_data, tmp);
+			Release(tmp);
+		}
+		return	*this;
+	}
+	CStrA				&operator+=(CHAR in) {
+		DLOG((std::cout << "CStrA::operator+=(\"" << in << "\")" << std::endl))
+		CHAR tmp[] = {in, '\0'};
+		operator+=(tmp);
+		return	*this;
+	}
+
+	CStrA				operator+(const CStrA &in) {
+		DLOG((std::cout << "CStrA::operator+(\"" << in << "\")" << std::endl))
+		CStrA	tmp(*this);
+		tmp += in;
+		return	tmp;
+	}
+	CStrA				operator+(PCSTR in) {
+		DLOG((std::cout << "CStrA::operator+(\"" << in << "\")" << std::endl))
+		CStrA	tmp(*this);
+		tmp += in;
+		return	tmp;
+	}
+	CStrA				operator+(CHAR in) {
+		DLOG((std::cout << "CStrA::operator+(\"" << in << "\")" << std::endl))
+		CStrA	tmp(*this);
+		tmp += in;
+		return	tmp;
+	}
+
+	bool				operator==(const CStrA &in) const {
+		DLOG((std::cout << "CStrA::operator==(\"" << in << "\")" << std::endl))
+		return	WinStr::Eq(m_data->Buf(), in.m_data->Buf());
+	}
+	bool				operator==(PCSTR in) const {
+		DLOG((std::cout << "CStrA::operator==(\"" << in << "\")" << std::endl))
+		return	WinStr::Eq(m_data->Buf(), in);
+	}
+
+	bool				operator!=(const CStrA &in) const {
+		DLOG((std::cout << "CStrA::operator!=(\"" << in << "\")" << std::endl))
+		return	!operator==(in);
+	}
+	bool				operator!=(PCSTR in) const {
+		DLOG((std::cout << "CStrA::operator!=(\"" << in << "\")" << std::endl))
+		return	!operator==(in);
+	}
+
+	bool				operator<(const CStrA &in) const {
+		DLOG((std::cout << "CStrA::operator<(\"" << in << "\")" << std::endl))
+		return	WinStr::Cmp(m_data->Buf(), in.m_data->Buf()) < 0;
+	}
+	bool				operator<(PCSTR in) const {
+		DLOG((std::cout << "CStrA::operator<(\"" << in << "\")" << std::endl))
+		return	WinStr::Cmp(m_data->Buf(), in) < 0;
+	}
+
+	bool				operator>(const CStrA &in) const {
+		DLOG((std::cout << "CStrA::operator>(\"" << in << "\")" << std::endl))
+		return	WinStr::Cmp(m_data->Buf(), in.m_data->Buf()) > 0;
+	}
+	bool				operator>(PCSTR in) const {
+		DLOG((std::cout << "CStrA::operator>(\"" << in << "\")" << std::endl))
+		return	WinStr::Cmp(m_data->Buf(), in) > 0;
+	}
+
+	bool				operator<=(const CStrA &in) const {
+		DLOG((std::cout << "CStrA::operator<=(\"" << in << "\")" << std::endl))
+		return	operator==(in) || operator<(in);
+	}
+	bool				operator<=(PCSTR in) const {
+		DLOG((std::cout << "CStrA::operator<=(\"" << in << "\")" << std::endl))
+		return	operator==(in) || operator<(in);
+	}
+
+	bool				operator>=(const CStrA &in) const {
+		DLOG((std::cout << "CStrA::operator>=(\"" << in << "\")" << std::endl))
+		return	operator==(in) || operator>(in);
+	}
+	bool				operator>=(PCSTR in) const {
+		DLOG((std::cout << "CStrA::operator>=(\"" << in << "\")" << std::endl))
+		return	operator==(in) || operator>(in);
+	}
+
+	CHAR				&operator[](int in) {
+		DLOG((std::cout << "CStrA::operator[" << in << "]" << std::endl))
+		if (!m_data->IsSingle()) {
+			WinBufferCtr<CHAR>	*tmp;
+			Assign(tmp, m_data->Buf(), m_data->capacity());
+			Swp(m_data, tmp);
+			Release(tmp);
+		}
+		return	m_data->Buf()[in];
+	}
+	const CHAR			&operator[](int in) const {
+		DLOG((std::cout << "CStrA::operator[" << in << "] const" << std::endl))
+		return	m_data->Buf()[in];
+	}
+
+	size_t				links() const {
+		return	m_data->links();
+	}
+	size_t				capacity() const {
+		return	m_data->capacity();
+	}
+	size_t				size() const {
+		return	WinStr::Len(m_data->Buf());
+	}
+	bool				empty() const {
+		return	(m_data && m_data->Buf() && (m_data->Buf()[0] == '\0'));
+	}
+	void				reserve(size_t size) {
+		if (!m_data->IsSingle()) {
+			WinBufferCtr<CHAR>	*tmp;
+			Assign(tmp, m_data->Buf(), Max(m_data->capacity(), size));
+			Swp(m_data, tmp);
+			Release(tmp);
+		}
+		m_data->reserve(size);
+	}
+
+	operator			PCSTR() const {
+		return	m_data->Buf();
+	}
+	PCSTR				c_str() const {
+		return	m_data->Buf();
+	}
+
+	CStrA				&cp(PCWSTR in, UINT cp) {
+		DLOG((std::cout << "CStrA::cp(\"PCWSTR in\", " << cp << ")" << std::endl))
+		size_t len = ::WideCharToMultiByte(cp, 0, in, -1, NULL, 0, NULL, NULL);
+		if (m_data->IsSingle()) {
+			m_data->reserve(len);
+		} else {
+			WinBufferCtr<CHAR>	*tmp;
+			tmp->Init(len);
+			Swp(m_data, tmp);
+			Release(tmp);
+		}
+		::WideCharToMultiByte(cp, 0, in, -1, m_data->Buf(), m_data->capacity(), NULL, NULL);
+		return	*this;
+	}
+};
+class		CStrW {
+	WinBufferCtr<WCHAR>	*m_data;
+
+	void				Alloc(WinBufferCtr<WCHAR>* &data, size_t size) {
+		DLOG(std::cout << "CStrW::Alloc\tSize: " << size << std::endl;)
+		data = (WinBufferCtr<WCHAR>*) WinMem::Alloc(sizeof(*data));
+		data->Init(size);
+	}
+	void				Assign(WinBufferCtr<WCHAR>* &data, PCWSTR in, size_t size) {
+		DLOG((std::cout << "CStrW::Assign\tSize: '" << size << "' \tData: '" << in << "'" << std::endl))
+		data = (WinBufferCtr<WCHAR>*) WinMem::Alloc(sizeof(*data));
+		data->Init(size);
+		WinStr::Copy(data->Buf(), in, data->capacity());
+	}
+	void				Release(WinBufferCtr<WCHAR>* &data) {
+		DLOG((std::cout << "CStrW::Release(\"" << data->Buf() << "\")"))
+		if (data && data->Dec()) {
+			DLOG((std::cout << "\tERASED"))
+			WinMem::Free(data);
+			data = NULL;
+		}
+		DLOG((std::cout << std::endl))
+	}
+
+public:
+	~CStrW() {
+		DLOG((std::cout << "CStrW::~CStrW(\"" << m_data->Buf() << "\")" << std::endl))
+		Release(m_data);
+	}
+	explicit CStrW(): m_data(NULL) {
+		DLOG((std::cout << "CStrW::CStrW()" << std::endl))
+		Assign(m_data, L"", 1);
+	}
+	CStrW(const CStrW &in) {
+		DLOG((std::cout << "CStrW::CStrW(\"" << in << "\")" << std::endl))
+		in.m_data->Inc();
+		m_data = in.m_data;
+	}
+	CStrW(PCWSTR in, size_t num = 0) {
+		DLOG((std::cout << "CStrW::CStrW(\"" << in << "\")" << std::endl))
+		if (num == 0)
+			num = WinStr::Len(in);
+		Assign(m_data, in, num + 1);
+	}
+	CStrW(PCSTR in, UINT cp) {
+//		DLOG((cout << "CStrW::CStrW(\"" << in << "\", " << cp << ")" << std::endl))
+		Alloc(m_data, ::MultiByteToWideChar(cp, 0, in, -1, NULL, 0));
+		::MultiByteToWideChar(cp, 0, in, -1, m_data->Buf(), m_data->capacity());
+	}
+	CStrW(size_t in) {
+		DLOG((std::cout << "CStrW::CStrW(\"" << in << "\")" << std::endl))
+		Alloc(m_data, in);
+	}
+
+	const CStrW			&operator=(const CStrW &in) {
+		DLOG((std::cout << "CStrW::operator=(\"" << in << "\")" << std::endl))
+		if (m_data != in.m_data) {
+			Release(m_data);
+			m_data = in.m_data;
+			m_data->Inc();
+		}
+		return	*this;
+	}
+	const CStrW			&operator=(PCWSTR in) {
+		DLOG((std::cout << "CStrW::operator=(\"" << in << "\")" << std::endl))
+		WinBufferCtr<WCHAR>	*tmp;
+		Assign(tmp, in, WinStr::Len(in) + 1);
+		Swp(m_data, tmp);
+		Release(tmp);
+		return	*this;
+	}
+	const CStrW			&operator=(WCHAR in) {
+		DLOG((std::cout << "CStrW::operator=(\"" << in << "\")" << std::endl))
+		WCHAR tmp[] = {in, L'\0'};
+		operator+=(tmp);
+		return	*this;
+	}
+	CStrW				&operator+=(const CStrW &in) {
+		DLOG((std::cout << "CStrW::operator+=(\"" << in << "\")" << std::endl))
+		if (m_data != in.m_data) {
+			operator+=(in.m_data->Buf());
+		}
+		return	*this;
+	}
+	CStrW				&operator+=(PCWSTR in) {
+		DLOG((std::cout << "CStrW::operator+=(\"" << in << "\")" << std::endl))
+		size_t	len = m_data->capacity();
+		if (m_data->IsSingle()) {
+			m_data->reserve(len + WinStr::Len(in));
+			WinStr::Cat(m_data->Buf(), in);
+		} else {
+			WinBufferCtr<WCHAR>	*tmp;
+			Assign(tmp, m_data->Buf(), len + WinStr::Len(in));
+			WinStr::Cat(tmp->Buf(), in);
+			Swp(m_data, tmp);
+			Release(tmp);
+		}
+		return	*this;
+	}
+	CStrW				&operator+=(WCHAR in) {
+		DLOG((std::cout << "CStrW::operator+=(\"" << in << "\")" << std::endl))
+		WCHAR tmp[] = {in, L'\0'};
+		operator+=(tmp);
+		return	*this;
+	}
+	CStrW				&operator+=(int in) {
+		DLOG((std::cout << "CStrW::operator+=(\"" << in << "\")" << std::endl))
+		CStrW	tmp(12);
+		::_itow(in, (PWSTR)tmp.c_str(), 10);
+		operator+=(tmp);
+		return	*this;
+	}
+	CStrW				&operator+=(size_t in) {
+		DLOG((std::cout << "CStrW::operator+=(\"" << in << "\")" << std::endl))
+		CStrW	tmp(12);
+		::_itow(in, (PWSTR)tmp.c_str(), 10);
+		operator+=(tmp);
+		return	*this;
+	}
+
+	CStrW				operator+(const CStrW &in) {
+		DLOG((std::cout << "CStrW::operator+(\"" << in << "\")" << std::endl))
+		CStrW	tmp(*this);
+		tmp += in;
+		return	tmp;
+	}
+	CStrW				operator+(PCWSTR in) {
+		DLOG((std::cout << "CStrW::operator+(\"" << in << "\")" << std::endl))
+		CStrW	tmp(*this);
+		tmp += in;
+		return	tmp;
+	}
+	CStrW				operator+(WCHAR in) {
+		DLOG((std::cout << "CStrW::operator+(\"" << in << "\")" << std::endl))
+		CStrW	tmp(*this);
+		tmp += in;
+		return	tmp;
+	}
+
+	bool				operator==(const CStrW &in) const {
+		DLOG((std::cout << "CStrW::operator==(\"" << in << "\")" << std::endl))
+		return	WinStr::Eq(m_data->Buf(), in.m_data->Buf());
+	}
+	bool				operator==(PCWSTR in) const {
+		DLOG((std::cout << "CStrW::operator==(\"" << in << "\")" << std::endl))
+		return	WinStr::Eq(m_data->Buf(), in);
+	}
+
+	bool				operator!=(const CStrW &in) const {
+		DLOG((std::cout << "CStrW::operator!=(\"" << in << "\")" << std::endl))
+		return	!operator==(in);
+	}
+	bool				operator!=(PCWSTR in) const {
+		DLOG((std::cout << "CStrW::operator!=(\"" << in << "\")" << std::endl))
+		return	!operator==(in);
+	}
+
+	bool				operator<(const CStrW &in) const {
+		DLOG((std::cout << "CStrW::operator<(\"" << in << "\")" << std::endl))
+		return	WinStr::Cmp(m_data->Buf(), in.m_data->Buf()) < 0;
+	}
+	bool				operator<(PCWSTR in) const {
+		DLOG((std::cout << "CStrW::operator<(\"" << in << "\")" << std::endl))
+		return	WinStr::Cmp(m_data->Buf(), in) < 0;
+	}
+
+	bool				operator>(const CStrW &in) const {
+		DLOG((std::cout << "CStrW::operator>(\"" << in << "\")" << std::endl))
+		return	WinStr::Cmp(m_data->Buf(), in.m_data->Buf()) > 0;
+	}
+	bool				operator>(PCWSTR in) const {
+		DLOG((std::cout << "CStrW::operator>(\"" << in << "\")" << std::endl))
+		return	WinStr::Cmp(m_data->Buf(), in) > 0;
+	}
+
+	bool				operator<=(const CStrW &in) const {
+		DLOG((std::cout << "CStrW::operator<=(\"" << in << "\")" << std::endl))
+		return	operator==(in) || operator<(in);
+	}
+	bool				operator<=(PCWSTR in) const {
+		DLOG((std::cout << "CStrW::operator<=(\"" << in << "\")" << std::endl))
+		return	operator==(in) || operator<(in);
+	}
+
+	bool				operator>=(const CStrW &in) const {
+		DLOG((std::cout << "CStrW::operator>=(\"" << in << "\")" << std::endl))
+		return	operator==(in) || operator>(in);
+	}
+	bool				operator>=(PCWSTR in) const {
+		DLOG((std::cout << "CStrW::operator>=(\"" << in << "\")" << std::endl))
+		return	operator==(in) || operator>(in);
+	}
+
+	WCHAR				&operator[](int in) {
+		DLOG((std::cout << "CStrW::operator[" << in << "]" << std::endl))
+		if (!m_data->IsSingle()) {
+			WinBufferCtr<WCHAR>	*tmp;
+			Assign(tmp, m_data->Buf(), m_data->capacity());
+			Swp(m_data, tmp);
+			Release(tmp);
+		}
+		return	m_data->Buf()[in];
+	}
+	const WCHAR			&operator[](int in) const {
+		DLOG((std::cout << "CStrW::operator[" << in << "] const" << std::endl))
+		return	m_data->Buf()[in];
+	}
+
+	size_t				links() const {
+		return	m_data->links();
+	}
+	size_t				capacity() const {
+		return	m_data->capacity();
+	}
+	size_t				size() const {
+		return	WinStr::Len(m_data->Buf());
+	}
+	bool				empty() const {
+		return	(m_data && m_data->Buf() && (m_data->Buf()[0] == '\0'));
+	}
+	void				reserve(size_t size) {
+		if (!m_data->IsSingle()) {
+			WinBufferCtr<WCHAR>	*tmp;
+			Assign(tmp, m_data->Buf(), Max(m_data->capacity(), size));
+			Swp(m_data, tmp);
+			Release(tmp);
+		}
+		m_data->reserve(size);
+	}
+
+	operator			PCWSTR() const {
+		return	m_data->Buf();
+	}
+	PCWSTR				c_str() const {
+		return	m_data->Buf();
+	}
+
+	CStrW				&cp(PCSTR in, UINT cp) {
+		DLOG((std::cout << "CStrW::cp(\"PCSTR in\", " << cp << ")" << std::endl))
+		size_t len = ::MultiByteToWideChar(cp, 0, in, -1, NULL, 0);
+		if (m_data->IsSingle()) {
+			m_data->reserve(len);
+		} else {
+			WinBufferCtr<WCHAR>	*tmp;
+			tmp->Init(len);
+			Swp(m_data, tmp);
+			Release(tmp);
+		}
+		::MultiByteToWideChar(cp, 0, in, -1, m_data->Buf(), m_data->capacity());
+		return	*this;
+	}
+	CStrA				utf8() {
+		CStrA	tmp(c_str(), CP_UTF8);
+		return	tmp;
+	}
+
+	bool				cout() const {
+		return	consoleout(*this, STD_OUTPUT_HANDLE);
+	}
+	bool				cerr() const {
+		return	consoleout(*this, STD_ERROR_HANDLE);
+	}
+
+// static
+	static CStrW		err(HRESULT err) {
+		CStrW	Result(16 * 1024);
+//		std::cout << "sixe: " << Result.capacity() << std::endl;
+		PWSTR	buf = NULL;
+		::FormatMessageW(
+			FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+			NULL,
+			err,
+			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+			(PWSTR)&buf, 0, NULL);
+		Result = (buf) ? buf : L"Unknown error\r\n";
+		::LocalFree(buf);
+		Result[Result.size()-2] = L'\0';
+		return	Result;
+	}
+	static CStrW		wmierr(HRESULT err) {
+		if (err == 0) {
+			return	CStrW::err(err);
+		}
+		PWSTR	buf = NULL;
+		static HMODULE	mod = ::LoadLibraryW(L"wmiutils.dll");
+		::FormatMessageW(
+			FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_HMODULE,
+			mod,
+			err,
+			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+			(PWSTR)&buf, 0, NULL);
+		CStrW	Result = (buf) ? buf : L"Unknown error\r\n";
+		::LocalFree(buf);
+		Result[Result.size()-2] = L'\0';
+		return	Result;
+	}
+	static CStrW		time(const SYSTEMTIME &in, bool tolocal = true) {
+		CStrW		Result(MAX_PATH);
+		SYSTEMTIME	stTime;
+		if (tolocal) {
+			::SystemTimeToTzSpecificLocalTime(NULL, (SYSTEMTIME*)&in, &stTime);
+		} else {
+			stTime = in;
+		}
+		_snwprintf((PWSTR)Result.c_str(), Result.capacity(), L"%04d-%02d-%02d %02d:%02d",
+				   stTime.wYear, stTime.wMonth, stTime.wDay,
+				   stTime.wHour, stTime.wMinute);
+		return	Result;
+	}
+	static CStrW		time(const FILETIME &in) {
+		SYSTEMTIME	stUTC;
+		::FileTimeToSystemTime(&in, &stUTC);
+		return	time(stUTC);
+	}
+	static bool			consoleout(PCWSTR in, DWORD h) {
+		HANDLE hStdOut = ::GetStdHandle(h);
+		if (hStdOut != INVALID_HANDLE_VALUE) {
+			DWORD	lpNumberOfCharsWritten;
+			return	::WriteConsoleW(hStdOut, in, WinStr::Len(in), &lpNumberOfCharsWritten, NULL);
+		}
+		return	false;
+	}
+	static bool			consoleout(const CStrW &in, DWORD h) {
+		HANDLE hStdOut = ::GetStdHandle(h);
+		if (hStdOut != INVALID_HANDLE_VALUE) {
+			DWORD	lpNumberOfCharsWritten;
+			return	::WriteConsoleW(hStdOut, in.c_str(), in.size(), &lpNumberOfCharsWritten, NULL);
+		}
+		return	false;
+	}
+	static bool			cout(const CStrW &in) {
+		return	consoleout(in, STD_OUTPUT_HANDLE);
+	}
+	bool				cerr(const CStrW &in) {
+		return	consoleout(in, STD_ERROR_HANDLE);
+	}
+};
+
+inline CStrW		Num2Str(int in, int base = 10) {
+	CStrW	buf(12);
+	::_itow(in, (PWSTR)buf.c_str(), base);
+	return	buf.c_str();
+}
+
+#ifdef DEBUG
+inline ostream		&operator<<(ostream &s, PCWSTR rhs) {
+	CStrA	oem(rhs, CP_OEMCP);
+	return	(s << oem.c_str());
+}
+inline ostream		&operator<<(ostream &s, const CStrW &rhs) {
+	CStrA	oem(rhs, CP_OEMCP);
+	return	(s << oem.c_str());
+}
+#endif
+
+/*
 class		BOM {
 public:
 	static	PCSTR	utf8() {
@@ -789,31 +1193,32 @@ public:
 		static	const char bom_utf32be[] = {'\0', '\0', '\xFE', '\xFF', '\xAA'};
 		return	bom_utf32be;
 	}
-	/*
-	00 00 FE FF	UTF-32, big-endian
-	FF FE 00 00	UTF-32, little-endian
-	FE FF	UTF-16, big-endian
-	FF FE	UTF-16, little-endian
-	EF BB BF	UTF-8
-	*/
+//	00 00 FE FF	UTF-32, big-endian
+//	FF FE 00 00	UTF-32, little-endian
+//	FE FF	UTF-16, big-endian
+//	FF FE	UTF-16, little-endian
+//	EF BB BF	UTF-8
 };
+*/
 
 ///========================================================================================= WinFlag
+/// Класс проверки и установки флагов
 template<typename Type>
 class		WinFlag {
 public:
 	static bool			Check(Type in, Type flag) {
 		return	flag == (in & flag);
 	}
-	static Type&		Set(Type &in, Type flag) {
+	static Type		&Set(Type &in, Type flag) {
 		return	in |= flag;
 	}
-	static Type&		UnSet(Type &in, Type flag) {
+	static Type		&UnSet(Type &in, Type flag) {
 		return	in &= ~flag;
 	}
 };
 
 ///========================================================================================= WinFlag
+/// Класс проверки и установки битов
 template<typename Type>
 class		WinBit {
 	static size_t		BIT_LIMIT() {
@@ -830,7 +1235,7 @@ public:
 		tmp <<= bit;
 		return	(in & tmp);
 	}
-	static Type&		Set(Type &in, size_t bit) {
+	static Type		&Set(Type &in, size_t bit) {
 		if (BadBit(bit))
 			return	in;
 		Type	tmp = 1;
@@ -838,7 +1243,7 @@ public:
 		in |= tmp;
 		return	in;
 	}
-	static Type&		UnSet(Type &in, size_t bit) {
+	static Type		&UnSet(Type &in, size_t bit) {
 		if (BadBit(bit))
 			return	in;
 		Type	tmp = 1;
@@ -849,6 +1254,7 @@ public:
 };
 
 ///======================================================================================== WinTimer
+/// Оконный таймер
 class		WinTimer {
 	HANDLE			hTimer;
 	LARGE_INTEGER	liUTC;
@@ -920,10 +1326,11 @@ public:
 };
 
 ///========================================================================================== WinEnv
+/// Функции работы с
 namespace	WinEnv {
 	inline CStrW	Get(PCWSTR name) {
 		CStrW	buf(::GetEnvironmentVariable(name, NULL, 0));
-		::GetEnvironmentVariable(name, buf, buf.Size());
+		::GetEnvironmentVariable(name, (PWSTR)buf.c_str(), buf.capacity());
 		return	buf;
 	}
 	inline bool		Set(PCWSTR name, PCWSTR val) {
@@ -931,7 +1338,7 @@ namespace	WinEnv {
 	}
 	inline bool		Add(PCWSTR name, PCWSTR val) {
 		CStrW	buf(::GetEnvironmentVariable(name, NULL, 0) + WinStr::Len(val));
-		::GetEnvironmentVariable(name, buf, buf.Size());
+		::GetEnvironmentVariable(name, (PWSTR)buf.c_str(), buf.capacity());
 		buf += val;
 		return	::SetEnvironmentVariable(name, buf.c_str());
 	}
@@ -941,9 +1348,12 @@ namespace	WinEnv {
 }
 
 ///=========================================================================================== WinFS
+/// Работа с файловой системой (неокончено)
 class		WinFilePos {
 	LARGE_INTEGER	m_pos;
 public:
+	WinFilePos(LARGE_INTEGER pos): m_pos(pos) {
+	}
 	WinFilePos(LONGLONG pos = 0LL) {
 		m_pos.QuadPart = pos;
 	}
@@ -960,6 +1370,23 @@ public:
 
 namespace	WinFS {
 	typedef		WIN32_FILE_ATTRIBUTE_DATA	FileInfo;
+	inline	CStrW	ExtractPath(PCWSTR path) {
+		size_t	len = WinStr::Len(path);
+		PWSTR	ch = WinStr::CharLast((PWSTR)path, PATH_SEPARATOR_C);
+		if (ch && ch < (path + len)) {
+			return	CStrW(path, ch - path);
+		}
+		return	L"";
+	}
+	inline	CStrW	ExtractFile(PCWSTR path) {
+		size_t	len = WinStr::Len(path);
+		PWSTR	ch = WinStr::CharLast((PWSTR)path, PATH_SEPARATOR_C);
+		if (ch && ++ch < (path + len)) {
+			return	CStrW(ch);
+		}
+		return	L"";
+	}
+
 	inline bool		ValidName(PCWSTR path) {
 		return	!(WinStr::Eq(path, L".") || WinStr::Eq(path, L"..") || WinStr::Eq(path, L"..."));
 	}
@@ -974,9 +1401,10 @@ namespace	WinFS {
 		return	::GetFileAttributesW(path) & FILE_ATTRIBUTE_REPARSE_POINT;
 	}
 
-	inline bool		Expand(PCWSTR path, CStrW&	buf) {
-		buf.CheckSize(::ExpandEnvironmentStringsW(path, NULL, 0));
-		return	::ExpandEnvironmentStringsW(path, buf, buf.Size());
+	inline CStrW	Expand(PCWSTR path) {
+		CStrW	tmp(::ExpandEnvironmentStringsW(path, NULL, 0));
+		::ExpandEnvironmentStringsW(path, (PWSTR)tmp.c_str(), tmp.capacity());
+		return	tmp;
 	}
 	inline DWORD	GetAttr(PCWSTR	path) {
 		return	::GetFileAttributesW(path);
@@ -1035,7 +1463,7 @@ namespace	WinFS {
 	}
 
 	inline bool		FileOpenRead(PCWSTR	path, HANDLE &hFile) {
-		hFile = ::CreateFileW(path, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_DELETE, NULL, OPEN_EXISTING,
+		hFile = ::CreateFileW(path, FILE_READ_DATA, FILE_SHARE_DELETE | FILE_SHARE_READ, NULL, OPEN_EXISTING,
 							  FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS, NULL);
 		return	hFile && hFile != INVALID_HANDLE_VALUE;
 	}
@@ -1049,6 +1477,11 @@ namespace	WinFS {
 		WinFilePos	pos;
 		return	::SetFilePointerEx(hFile, WinFilePos(0LL), pos, FILE_CURRENT);
 	}
+	inline LONGLONG	FileSize(HANDLE hFile) {
+		DWORD		dwFileSizeHigh;
+		LONGLONG	Result = ::GetFileSize(hFile, &dwFileSizeHigh);
+		return	Result += (((LONGLONG)dwFileSizeHigh) << 32);
+	}
 	inline bool		FileRead(HANDLE hFile, PBYTE buf, DWORD &size) {
 		return	::ReadFile(hFile, buf, size, &size, NULL);
 	}
@@ -1058,8 +1491,8 @@ namespace	WinFS {
 									 FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS, NULL);
 		if (hFile != INVALID_HANDLE_VALUE) {
 			DWORD	size = GetSize(hFile);
-			buf.CheckSize(size);
-			Result = ::ReadFile(hFile, buf, buf.Size() - 1, &size, NULL);
+			buf.reserve(size);
+			Result = ::ReadFile(hFile, (PSTR)buf.c_str(), buf.size(), &size, NULL);
 			::CloseHandle(hFile);
 		}
 		return	Result;
@@ -1070,262 +1503,346 @@ namespace	WinFS {
 									 FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS, NULL);
 		if (hFile != INVALID_HANDLE_VALUE) {
 			DWORD	written;
-			Result = ::WriteFile(hFile, buf, buf.Len(), &written, NULL);
+			Result = ::WriteFile(hFile, buf.c_str(), buf.size(), &written, NULL);
 			::CloseHandle(hFile);
 		}
 		return	Result;
 	}
 }
 
-///========================================================================================== WinReg
-/*
-
-class	WinReg {
-	HKEY	mutable	hKeyOpend;
-	HKEY			hKeyReq;
-	CStrW			sPath;
-
-	void			CloseKey() const {
-		if (hKeyOpend) {
-			::RegCloseKey(hKeyOpend);
-			hKeyOpend = 0;
-		}
-	}
-	bool			OpenKey(UINT access) const {
-		return	OpenKey(hKeyReq, sPath, access);
-	}
-	bool			OpenKey(HKEY hkey, PCWSTR path, UINT access) const {
-		CloseKey();
-		bool	Result = false;
-		if (access == KEY_READ)
-			Result = ::RegOpenKeyEx(hkey, path, 0, access, &hKeyOpend) == ERROR_SUCCESS;
-		else
-			Result = ::RegCreateKeyEx(hkey, path, 0, NULL, 0, access, 0, &hKeyOpend, 0) == ERROR_SUCCESS;
-		return	Result;
-	}
-
-	template <typename Type>
-	void			SetRaw(PCWSTR name, const Type &value) const {
-		if (OpenKey(KEY_WRITE)) {
-			::RegSetValueEx(hKeyOpend, name, NULL, REG_BINARY, (PBYTE)(&value), sizeof(Type));
-			CloseKey();
-		}
-	}
-	template <typename Type>
-	bool			GetRaw(PCWSTR name, Type &value) const {
-		bool	Result = OpenKey(KEY_READ);
-		if (Result) {
-			DWORD len = sizeof(Type);
-			Result = ::RegQueryValueEx(hKeyOpend, name, NULL, NULL, (PBYTE)(&value), &len) == ERROR_SUCCESS;
-			CloseKey();
-		}
-		return	Result;
-	}
+///========================================================================================= FileMap
+/// Отображение файла в память блоками
+class		FileMap : public Uncopyable, public WinErrorCheck {
+	HANDLE		m_hFile;
+	HANDLE		m_hSect;
+	PVOID		m_data;
+	LONGLONG	m_sizefull;
+	LONGLONG	m_offset;
+	size_t		m_binb;
+	bool		m_write;
 public:
-	~WinReg() {
-		CloseKey();
+	~FileMap() {
+		Close();
 	}
-	WinReg(): hKeyOpend(0), hKeyReq(HKEY_CURRENT_USER), sPath(TEXT("")) {
+	FileMap(): m_hFile(NULL), m_hSect(NULL), m_data(NULL), m_sizefull(0), m_offset(0) {
+		err(ERROR_FILE_NOT_FOUND);
 	}
-	WinReg(PCWSTR path): hKeyOpend(0), hKeyReq(0), sPath(path) {
-		hKeyReq = HKEY_CURRENT_USER;
-		stringt	tmp = TEXT("HKEY_CURRENT_USER\\");
-		if (StrUtil::Find(sPath, tmp)) {
-			StrUtil::Cut(sPath, tmp);
-			return;
-		}
-		tmp = TEXT("HKCU\\");
-		if (StrUtil::Find(sPath, tmp)) {
-			StrUtil::Cut(sPath, tmp);
-			return;
-		}
-		tmp = TEXT("HKEY_LOCAL_MACHINE\\");
-		if (StrUtil::Find(sPath, tmp)) {
-			StrUtil::Cut(sPath, tmp);
-			hKeyReq = HKEY_LOCAL_MACHINE;
-			return;
-		}
-		tmp = TEXT("HKLM\\");
-		if (StrUtil::Find(sPath, tmp)) {
-			StrUtil::Cut(sPath, tmp);
-			hKeyReq = HKEY_LOCAL_MACHINE;
-			return;
-		}
-		tmp = TEXT("HKEY_USERS\\");
-		if (StrUtil::Find(sPath, tmp)) {
-			StrUtil::Cut(sPath, tmp);
-			hKeyReq = HKEY_USERS;
-			return;
-		}
-		tmp = TEXT("HKU\\");
-		if (StrUtil::Find(sPath, tmp)) {
-			StrUtil::Cut(sPath, tmp);
-			hKeyReq = HKEY_USERS;
-			return;
-		}
-		tmp = TEXT("HKEY_CLASSES_ROOT\\");
-		if (StrUtil::Find(sPath, tmp)) {
-			StrUtil::Cut(sPath, tmp);
-			hKeyReq = HKEY_CLASSES_ROOT;
-			return;
-		}
-		tmp = TEXT("HKCR\\");
-		if (StrUtil::Find(sPath, tmp)) {
-			StrUtil::Cut(sPath, tmp);
-			hKeyReq = HKEY_CLASSES_ROOT;
-			return;
-		}
-	}
-	WinReg(HKEY hkey, PCWSTR path): hKeyOpend(0), hKeyReq(hkey), sPath(path) {
+	FileMap(PCWSTR in, bool write = false): m_hFile(NULL), m_hSect(NULL), m_data(NULL), m_sizefull(0), m_offset(0) {
+		Open(in, write);
 	}
 
-	void			SetPath(PCWSTR path) {
-		sPath = path;
+	bool			Close() {
+		if (m_data) {
+			::UnmapViewOfFile(m_data);
+			m_data = NULL;
+		}
+		if (m_hSect) {
+			::CloseHandle(m_hSect);
+			m_hSect = NULL;
+		}
+		if (m_hFile) {
+			::CloseHandle(m_hFile);
+			m_hFile = NULL;
+			return	true;
+		}
+		return	false;
 	}
-	void			SetKey(HKEY hkey) {
-		hKeyReq = hkey;
+	bool			Open(PCWSTR in, bool write) {
+		m_write	= write;
+		ACCESS_MASK	amask = (m_write) ? GENERIC_READ | GENERIC_WRITE : GENERIC_READ;
+		DWORD		share = (m_write) ? 0 : FILE_SHARE_DELETE | FILE_SHARE_READ;
+		DWORD		creat = (m_write) ? OPEN_EXISTING : OPEN_EXISTING;
+		DWORD		flags = (m_write) ? FILE_ATTRIBUTE_NORMAL : FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS;
+		Close();
+		Home();
+		m_hFile = ::CreateFileW(in, amask, share, NULL, creat, flags, NULL);
+		if (m_hFile && m_hFile != INVALID_HANDLE_VALUE) {
+			m_sizefull = WinFS::FileSize(m_hFile);
+			amask = (m_write) ? PAGE_READWRITE : PAGE_READONLY;
+			m_hSect = ::CreateFileMapping(m_hFile, NULL, amask, 0, 0, NULL);
+		}
+		return	ChkSucc(m_hSect);
+	}
+	bool			Create(PCWSTR in, LONGLONG size) {
+		m_write	= true;
+		ACCESS_MASK	amask = GENERIC_READ | GENERIC_WRITE;
+		DWORD		share = 0;
+		DWORD		creat = CREATE_ALWAYS;
+		DWORD		flags = FILE_ATTRIBUTE_NORMAL;
+		Close();
+		Home();
+		m_hFile = ::CreateFileW(in, amask, share, NULL, creat, flags, NULL);
+		if (m_hFile && m_hFile != INVALID_HANDLE_VALUE) {
+			m_sizefull = size;
+			LONG dwHigh = (m_sizefull >> 32);
+			::SetFilePointer(m_hFile, (LONG)(m_sizefull & 0xFFFFFFFF), &dwHigh, FILE_BEGIN);
+			::SetEndOfFile(m_hFile);
+			amask = (m_write) ? PAGE_READWRITE : PAGE_READONLY;
+			m_hSect = ::CreateFileMapping(m_hFile, NULL, amask, 0, 0, NULL);
+		}
+		return	ChkSucc(m_hSect);
 	}
 
-	bool			Add(PCWSTR name) const {
-		bool	Result = OpenKey(KEY_WRITE);
-		if (Result) {
-			HKEY tmp = 0;
-			Result = (::RegCreateKey(hKeyOpend, name, &tmp) == ERROR_SUCCESS);
-			if (Result) {
-				::RegCloseKey(tmp);
+	bool			Next() {
+		if (m_data) {
+			::UnmapViewOfFile(m_data);
+			m_data = NULL;
+		}
+		if ((m_sizefull - m_offset) > 0) {
+			if ((m_sizefull - m_offset) < m_binb)
+				m_binb = m_sizefull - m_offset;
+			if (m_hSect) {
+				ACCESS_MASK	amask = (m_write) ? FILE_MAP_WRITE : FILE_MAP_READ;
+				m_data = ::MapViewOfFile(m_hSect, amask, (DWORD)(m_offset >> 32), (DWORD)(m_offset & 0xFFFFFFFF), m_binb);
+				m_offset += m_binb;
+				return	ChkSucc(m_data);
 			}
-			CloseKey();
 		}
-		return	Result;
+		return	false;
 	}
-	bool			Del(PCWSTR name) const {
-		bool	Result = OpenKey(KEY_WRITE);
-		if (Result) {
-			Result = (::RegDeleteValue(hKeyOpend, name) == ERROR_SUCCESS);
-			CloseKey();
-		}
-		return	Result;
+	bool			Home() {
+		SYSTEM_INFO	info;
+		::GetSystemInfo(&info);
+		m_binb = info.dwAllocationGranularity * 1024;
+		m_offset = 0LL;
+		return	true;
 	}
 
-	void			Set(PCWSTR name, PCWSTR value) const {
-		if (OpenKey(KEY_WRITE)) {
-			::RegSetValueEx(hKeyOpend, name, NULL, REG_SZ, (PBYTE)value, WinStr::Len(value) * sizeof(WCHAR));
-			CloseKey();
-		}
+	LONGLONG		sizefile() const {
+		return	m_sizefull;
 	}
-
-	CStrW			Get(PCWSTR name) const {
-		CStrW	buf(4096);
-		Get(name, buf, L"");
-		return	buf;
+	size_t			size() const {
+		return	m_binb;
 	}
-	CStrW			Get(PCWSTR name, PCWSTR def) const {
-		CStrW	buf(4096);
-		Get(name, buf, def);
-		return	buf;
-	}
-	bool			Get(PCWSTR name, CStrW &value, PCWSTR def) const {
-		bool	Result = OpenKey(KEY_READ);
-		value = def;
-		if (Result) {
-			CStr	buf(4096);
-			DWORD	size = buf.Size();
-			DWORD	type = 0;
-			if (::RegQueryValueEx(hKeyOpend, name, NULL, &type, (PBYTE)(buf.Data()), &size) == ERROR_SUCCESS) {
-				switch (type) {
-					case REG_DWORD:
-						value = n2s(*(PDWORD)buf.Data());
-						break;
-					case REG_QWORD:
-						value = n2s(*(LONGLONG*)buf.Data());
-						break;
-					default:
-						value = buf;
-				}
-				Result = true;
-			}
-			CloseKey();
-		}
-		return	Result;
-	}
-
-	CStrW			GetPath() const {
-		return	sPath;
+	PVOID			data() const {
+		return	m_data;
 	}
 };
 
-*/
+///========================================================================================= WinPriv
+/// Функции работы с привилегиями
+namespace	WinPriv {
+	bool inline		IsExist(HANDLE hToken, LUID priv) {
+		bool	Result = false;
+
+		DWORD	dwSize = 0;
+		// определяем размер буфера, необходимый для получения всех привилегий
+		if (!::GetTokenInformation(hToken, TokenPrivileges, NULL, 0, &dwSize) && ::GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
+			// выделяем память для выходного буфера
+			WinBuffer<PTOKEN_PRIVILEGES>	ptp(dwSize);
+			if (::GetTokenInformation(hToken, TokenPrivileges, ptp, ptp.capacity(), &dwSize)) {
+				// проходим по списку привилегий и проверяем, есть ли в нем указанная привилегия
+				for (DWORD i = 0; i < ptp->PrivilegeCount; ++i) {
+					if (ptp->Privileges[i].Luid.LowPart == priv.LowPart && ptp->Privileges[i].Luid.HighPart == priv.HighPart) {
+						Result = true;
+						break;
+					}
+				}
+			}
+		}
+		return	Result;
+	}
+	bool inline		IsExist(HANDLE hToken, PCWSTR sPriv) {
+		LUID	luid;
+		if (::LookupPrivilegeValueW(NULL, sPriv, &luid))
+			return	IsExist(hToken, luid);
+		return	false;
+	}
+	bool inline		IsExist(HANDLE hToken, PCSTR sPriv) {
+		LUID	luid;
+		if (::LookupPrivilegeValueA(NULL, sPriv, &luid))
+			return	IsExist(hToken, luid);
+		return	false;
+	}
+
+	bool inline		IsEnabled(HANDLE hToken, LUID priv) {
+		BOOL	Result = false;
+
+		PRIVILEGE_SET		ps;
+		WinMem::Zero(ps);
+		ps.PrivilegeCount = 1;
+		ps.Privilege[0].Luid = priv;
+		::PrivilegeCheck(hToken, &ps, &Result);
+		return	Result;
+	}
+	bool inline		IsEnabled(HANDLE hToken, PCWSTR sPriv) {
+		LUID	luid;
+		// получаем идентификатор привилегии
+		if (::LookupPrivilegeValueW(NULL, sPriv, &luid))
+			return	IsEnabled(hToken, luid);
+		return	false;
+	}
+	bool inline		IsEnabled(HANDLE hToken, PCSTR sPriv) {
+		LUID	luid;
+		// получаем идентификатор привилегии
+		if (::LookupPrivilegeValueA(NULL, sPriv, &luid))
+			return	IsEnabled(hToken, luid);
+		return	false;
+	}
+
+	bool inline		Modify(HANDLE hToken, LUID priv, bool bEnable) {
+		bool	Result = false;
+		TOKEN_PRIVILEGES	tp;
+		WinMem::Zero(tp);
+		tp.PrivilegeCount = 1;
+		tp.Privileges[0].Luid = priv;
+		tp.Privileges[0].Attributes = (bEnable) ? SE_PRIVILEGE_ENABLED : 0;
+
+		if (::AdjustTokenPrivileges(hToken, false, &tp, sizeof(tp), NULL, NULL))
+			Result = true;
+		return	Result;
+	}
+	bool inline		Modify(HANDLE hToken, PCWSTR sPriv, bool bEnable) {
+		LUID	luid;
+		if (::LookupPrivilegeValueW(NULL, sPriv, &luid))
+			return	Modify(hToken, luid, bEnable);
+		return	false;
+	}
+	bool inline		Modify(HANDLE hToken, PCSTR	sPriv, bool bEnable) {
+		LUID	luid;
+		if (::LookupPrivilegeValueA(NULL, sPriv, &luid))
+			return	Modify(hToken, luid, bEnable);
+		return	false;
+	}
+}
+
+///======================================================================================== WinToken
+/// Обертка хэндла процесса
+class		WinProc: public Uncopyable, public WinErrorCheck {
+	HANDLE	m_handle;
+public:
+	~WinProc() {
+		::CloseHandle(m_handle);
+	}
+	WinProc() {
+		m_handle = ::GetCurrentProcess();
+	}
+	WinProc(ACCESS_MASK mask, DWORD pid): m_handle(NULL) {
+		m_handle = ::OpenProcess(mask, false, pid);
+		ChkSucc(m_handle);
+	}
+	operator		HANDLE() const {
+		return	m_handle;
+	}
+	DWORD			GetId() const {
+		return	::GetProcessId(m_handle);
+	}
+
+// static
+	static	DWORD	Id() {
+		return	::GetCurrentProcessId();
+	}
+	static	DWORD	Id(HANDLE hProc) {
+		return	::GetProcessId(hProc);
+	}
+	static	CStrW	User() {
+		DWORD	size = 0;
+		::GetUserNameW(NULL, &size);
+		CStrW	buf(size);
+		::GetUserNameW((PWSTR)buf.c_str(), &size);
+		return	buf;
+	}
+	static	CStrW	Path() {
+		CStrW	Result(MAX_PATH);
+		DWORD	size = ::GetModuleFileNameW(NULL, (PWSTR)Result.c_str(), Result.capacity());
+		if (size > Result.capacity()) {
+			Result.reserve(size);
+			::GetModuleFileNameW(NULL, (PWSTR)Result.c_str(), Result.capacity());
+		}
+		return	Result;
+	}
+};
+
+///======================================================================================== WinToken
+/// Обертка токена
+class		WinToken: public Uncopyable, public WinErrorCheck {
+	HANDLE	m_handle;
+public:
+	~WinToken() {
+		DLOG((std::cout << "WinToken::~WinToken()" << std::endl))
+		::CloseHandle(m_handle);
+	}
+	WinToken(ACCESS_MASK mask = TOKEN_ALL_ACCESS): m_handle(NULL) {
+		DLOG((std::cout << "WinToken::WinToken(\"" << mask << "\")" << std::endl))
+		ChkSucc(::OpenProcessToken(WinProc(), mask, &m_handle));
+	}
+	WinToken(ACCESS_MASK mask, HANDLE hProcess): m_handle(NULL) {
+		DLOG((std::cout << "WinToken::WinToken(\"" << mask << ", " << hProcess << "\")" << std::endl))
+		ChkSucc(::OpenProcessToken(hProcess, mask, &m_handle));
+	}
+	operator		HANDLE() const {
+		return	m_handle;
+	}
+};
+
+///=========================================================================================== Win64
+/// Функции работы с WOW64
+namespace	Win64 {
+	inline bool					DisableWOW() {
+		bool Result = false;
+		HINSTANCE hDLL = ::LoadLibraryA("Kernel32.dll");
+		if (hDLL != NULL) {
+			typedef bool (__cdecl * MYPROC)(PVOID*);
+			MYPROC func = (MYPROC)::GetProcAddress(hDLL, "Wow64DisableWow64FsRedirection");
+			if (func != NULL) {
+				PVOID OldValue;
+				(func)(&OldValue);
+				Result = true;
+			}
+			::FreeLibrary(hDLL);
+		}
+		return	Result;
+	}
+	inline bool					IsWOW64() {
+		typedef BOOL (WINAPI * PFN_ISWOW64PROCESS)(HANDLE, PBOOL);
+		BOOL	Result = false;
+		PFN_ISWOW64PROCESS fnIsWow64Process = (PFN_ISWOW64PROCESS) ::GetProcAddress(::GetModuleHandleW(L"kernel32"), "IsWow64Process");
+		if (fnIsWow64Process) {
+			if (!fnIsWow64Process(::GetCurrentProcess(), &Result)) {
+				return	false;
+			}
+		}
+		return	Result;
+	}
+}
+
 ///========================================================================================== WinCom
+namespace	WinNet {
+	bool inline	GetCompName(CStrW &buf, COMPUTER_NAME_FORMAT cnf) {
+		DWORD	size = 0;
+		::GetComputerNameExW(cnf, NULL, &size);
+		buf.reserve(size);
+		return	::GetComputerNameExW(cnf, (PWSTR)buf.c_str(), &size);
+	}
+	bool inline	SetCompName(const CStrW &in, COMPUTER_NAME_FORMAT cnf) {
+		return	::SetComputerNameExW(cnf, in.c_str());
+	}
+}
+
+///========================================================================================== WinCom
+/// Класс инициализации COM (объекты создавать запрещено, нужно использовать фукцию IsOK)
 class		WinCOM {
 	bool		m_err;
 
+	WinCOM(const WinCOM&);
 	WinCOM(): m_err(true) {
 		if (m_err) {
-			if (SUCCEEDED(::CoInitializeEx(NULL, COINIT_MULTITHREADED)))
-				m_err = false;
+			m_err = !SUCCEEDED(::CoInitializeEx(NULL, COINIT_MULTITHREADED));
 		}
 	}
-	WinCOM(const WinCOM&);
 public:
 	~WinCOM() {
-		Close();
-	}
-	static WinCOM&	the() {
-		static WinCOM com;
-		return	com;
-	}
-	static bool		Init() {
-		return	the().IsOK();
-	}
-	static bool		Close() {
-		if (!the().m_err) {
+		if (IsOK()) {
 			::CoUninitialize();
 			the().m_err = true;
 		}
-		return	true;
+	}
+	static WinCOM	&the() {
+		static WinCOM com;
+		return	com;
 	}
 	static bool		IsOK() {
 		return	!the().m_err;
-	}
-};
-
-///============================================================================================ Item
-template<typename Type>
-class		WinItem {		// Item of the collection. Each entry it of type Item
-	Type		m_data;
-	WinItem*	m_next;
-public:
-	~WinItem() {
-	}
-	WinItem(const Type &data, WinItem* next): m_data(data), m_next(next) {
-	}
-	Type&		data() {
-		return	m_data;
-	}
-	Type*		next() {
-		return	m_next;
-	}
-};
-
-template<typename Type>
-class		WinStack {
-	WinItem<Type>*	head;
-public:
-	~WinStack() {
-		while (head)
-			pop();
-	}
-	WinStack(): head(NULL) {
-	}
-	void		push(const Type &in) {
-		head = new WinItem<Type>(in, head);
-	}
-	Type		pop() {
-		Type	Result = head->data();
-		WinItem<Type>*	tmp = head;
-		head = head->next();
-		delete	tmp;
-		return	Result;
 	}
 };
 
