@@ -483,7 +483,6 @@ DWORD WINAPI ThreadProc(LPVOID /*lpParameter*/)
 					lstrcpy(Msg,MSG(MAvailableUpdates));
 					OemToCharBuff(Msg,Msg,lstrlen(Msg));
 					lstrcat(Msg,TEXT("\n\n"));
-					lstrcat(Msg,TEXT("Far Manager"));
 					DWORD NewMajor,NewMinor,NewBuild;
 					GetNewModuleVersion(NewMajor,NewMinor,NewBuild);
 					{
