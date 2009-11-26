@@ -141,6 +141,14 @@ int CEditorOptions::ApplyOption(EDITOR_SETPARAMETER_TYPES type)
           RetCode=EditorControl(ECTL_SETPARAM, &ESPar);
           _D(SysLog(L"ESPT_SETWORDDIV: retcode=%d",RetCode));
           break;
+     case ESPT_SHOWWHITESPACE:
+          if((Data.Options2&E_Show_White_Space_On) || (Data.Options2&E_Show_White_Space_Off))
+          {
+            ESPar.Type=ESPT_SHOWWHITESPACE;
+            ESPar.Param.iParam=(Data.Options2&E_Show_White_Space_On)?TRUE:FALSE;
+            RetCode=EditorControl(ECTL_SETPARAM, &ESPar);
+          }
+          break;
      default:
           break;
   }
@@ -158,6 +166,7 @@ void CEditorOptions::ApplyAllOptions()
   ApplyOption(ESPT_SAVEFILEPOSITION);
   ApplyOption(ESPT_LOCKMODE);
   ApplyOption(ESPT_SETWORDDIV);
+  ApplyOption(ESPT_SHOWWHITESPACE);
 }
 
 //FIXME: надо понять что тут происходит и правильно для юникода сделать

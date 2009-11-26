@@ -1462,6 +1462,11 @@ GetEditorSettingsW(int EditorID, const wchar_t *szName, void *Param)
   {
     wstrcpy(static_cast<wchar_t *>(Param), Data.AdditionalLetters.str);
   }
+  else if(!wstrcmp(szName, XMLStr.ShowWhiteSpace))
+  {
+     *static_cast<int *>(Param)=(Data.Options2&E_Show_White_Space_On)?1:
+       ((Data.Options2&E_Show_White_Space_Off)?0:2);
+  }
   else
     RetCode=FALSE;
 
@@ -1677,6 +1682,14 @@ SetEditorOptionW(int EditorID, const wchar_t *szName, void *Param)
   {
     Data.AdditionalLetters=Param?static_cast<wchar_t*>(Param):L"";
     Type=ESPT_SETWORDDIV;
+  }
+  else if(!wstrcmp(szName, XMLStr.ShowWhiteSpace))
+  {
+    Data.Options2&=~E_Show_White_Space_On;
+    Data.Options2&=~E_Show_White_Space_Off;
+    Data.Options2|=(param==1)?E_Show_White_Space_On:
+                  ((param==0)?E_Show_White_Space_Off:0);
+    Type=ESPT_SHOWWHITESPACE;
   }
   else
     RetCode=FALSE;

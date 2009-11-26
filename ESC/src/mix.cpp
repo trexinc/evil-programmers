@@ -849,6 +849,9 @@ int ParseFile(const wchar_t *filename,CRedBlackTree<ESCFileInfo>&FITree,
               N=n.GetItem(XMLStr.LockFile);
               SetOption(N.Attr(XMLStr.Value),node.Options,E_LockFile_On,Inherit,FALSE);
 
+              N=n.GetItem(XMLStr.ShowWhiteSpace);
+              SetOption(N.Attr(XMLStr.Value),node.Options2,(E_OPTIONS)E_Show_White_Space_On,(E_OPTIONS)E_Show_White_Space_Off,Inherit);
+
               macroI=NULL;
               if(n.EnumName(XMLStr.UserMacro, macroI, N))
                 SetOption(N.Attr(XMLStr.Value),node.Options,E_UserMacro_On,Inherit,FALSE);

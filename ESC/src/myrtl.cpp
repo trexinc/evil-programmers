@@ -348,7 +348,7 @@ a+  Open for append; open (or create if the file does not exist) for update at
    {
      //_D(SysLog("a - GENERIC_WRITE"));
      dwDesiredAccess|=GENERIC_WRITE;
-     dwCreationDistribution=CREATE_ALWAYS;
+     dwCreationDistribution=OPEN_ALWAYS;
      A=TRUE;
    }
    if(wstrchr(mode, L'+'))

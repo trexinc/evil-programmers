@@ -28,65 +28,68 @@
 
 enum E_OPTIONS
 {
-   E_AutoIndent_On       = 0x00000001,
-   E_AutoIndent_Off      = 0x00000002,
+   E_AutoIndent_On        = 0x00000001,
+   E_AutoIndent_Off       = 0x00000002,
 
-   E_KillSpaces_On       = 0x00000004,
-   E_KillEmptyLines_On   = 0x00000008,
+   E_KillSpaces_On        = 0x00000004,
+   E_KillEmptyLines_On    = 0x00000008,
 
-   E_ExpandTabs_On       = 0x00000010,
-   E_ExpandTabs_Off      = 0x00000020,
-   E_ExpandTabs_OnlyNew  = 0x00000040,
+   E_ExpandTabs_On        = 0x00000010,
+   E_ExpandTabs_Off       = 0x00000020,
+   E_ExpandTabs_OnlyNew   = 0x00000040,
 
-   E_CursorBeyondEOL_On  = 0x00000100,
-   E_CursorBeyondEOL_Off = 0x00000200,
+   E_CursorBeyondEOL_On   = 0x00000100,
+   E_CursorBeyondEOL_Off  = 0x00000200,
 
-   E_ProcessKeyEnd_On    = 0x00000400,
+   E_ProcessKeyEnd_On     = 0x00000400,
 
-   E_AutoWrap_On         = 0x00000800,
+   E_AutoWrap_On          = 0x00000800,
 
-   E_CharCodeBase_Oct    = 0x00001000,
-   E_CharCodeBase_Dec    = 0x00002000,
-   E_CharCodeBase_Hex    = 0x00004000,
+   E_CharCodeBase_Oct     = 0x00001000,
+   E_CharCodeBase_Dec     = 0x00002000,
+   E_CharCodeBase_Hex     = 0x00004000,
 
-   E_SmartHome_On        = 0x00008000,
+   E_SmartHome_On         = 0x00008000,
 
-   E_SkipPath_On         = 0x00010000,
+   E_SkipPath_On          = 0x00010000,
 
-   E_ProcessQuote_On     = 0x00020000,
+   E_ProcessQuote_On      = 0x00020000,
 
-   E_SaveFilePos_On      = 0x00040000,
-   E_SaveFilePos_Off     = 0x00080000,
+   E_SaveFilePos_On       = 0x00040000,
+   E_SaveFilePos_Off      = 0x00080000,
 
-   E_AddSymbol_On        = 0x00100000,
+   E_AddSymbol_On         = 0x00100000,
 
-   E_ForceKillEL_On      = 0x00200000,
+   E_ForceKillEL_On       = 0x00200000,
 
-   E_SmartTab_On         = 0x00400000,
-   E_SmartBackSpace_On   = 0x00800000,
+   E_SmartTab_On          = 0x00400000,
+   E_SmartBackSpace_On    = 0x00800000,
 
-   E_QuoteEOL_On         = 0x01000000,
+   E_QuoteEOL_On          = 0x01000000,
 
-   E_Process_Minuses_On  = 0x02000000,
+   E_Process_Minuses_On   = 0x02000000,
 
-   E_LockMode_On         = 0x04000000,
-   E_LockMode_Off        = 0x08000000,
+   E_LockMode_On          = 0x04000000,
+   E_LockMode_Off         = 0x08000000,
 
-   E_UserMacro_On        = 0x10000000,
+   E_UserMacro_On         = 0x10000000,
 
-   E_LockFile_On         = 0x20000000,
+   E_LockFile_On          = 0x20000000,
 
-   E_OverLoad_On         = 0x80000000,
+   E_OverLoad_On          = 0x80000000,
 };
 
 enum E2_OPTIONS
 {
-   E_WordSym_On          = 0x00000001,
+   E_WordSym_On           = 0x00000001,
 
-   E_AlphaNum_On         = 0x00000020,
+   E_AlphaNum_On          = 0x00000020,
 
-   E_Wrap_Justify        = 0x00000040,
-   E_Wrap_Percent        = 0x00000080,
+   E_Wrap_Justify         = 0x00000040,
+   E_Wrap_Percent         = 0x00000080,
+
+   E_Show_White_Space_On  = 0x00000100,
+   E_Show_White_Space_Off = 0x00000200,
 };
 
 class NODEDATA
