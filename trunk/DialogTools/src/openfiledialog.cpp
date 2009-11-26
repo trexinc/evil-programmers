@@ -54,7 +54,7 @@ void DoOpenFile(HANDLE aDlg)
     TCHAR path[MAX_PATH],filename[MAX_PATH];
     path[0]=0;
 #ifdef UNICODE
-    if(Info.Control(PANEL_ACTIVE,FCTL_GETCURRENTDIRECTORY,ArraySize(path),(LONG_PTR)path))
+    if(Info.Control(PANEL_ACTIVE,FCTL_GETPANELDIR,ArraySize(path),(LONG_PTR)path))
 #else
     if(GetCurrentDirectory(sizeof(path),path))
 #endif
