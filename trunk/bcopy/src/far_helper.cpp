@@ -59,8 +59,8 @@ CFarPanel::~CFarPanel()
 
 TCHAR* CFarPanel::CurDir(void)
 {
-  Realloc(iCurDir,iCurDirSize,Info.Control(iPlugin,FCTL_GETCURRENTDIRECTORY,0,0));
-  Info.Control(iPlugin,FCTL_GETCURRENTDIRECTORY,iCurDirSize,(LONG_PTR)iCurDir);
+  Realloc(iCurDir,iCurDirSize,Info.Control(iPlugin,FCTL_GETPANELDIR,0,0));
+  Info.Control(iPlugin,FCTL_GETPANELDIR,iCurDirSize,(LONG_PTR)iCurDir);
   return iCurDir;
 }
 
