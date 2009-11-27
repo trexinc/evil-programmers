@@ -1,4 +1,4 @@
-# awk -f ver.awk> esc.rc
+# awk -f ver.awk > esc.rc
 BEGIN {
   majorVer=2;
   minorVer=5;
