@@ -90,7 +90,7 @@ colorize_clear:
 /*!re2c
   "/*"
   { SET_CURR_STATE(PARSER_COMMENT); commentstart=yytok; goto colorize_comment; }
-  comment/(("?>")|([\000] [\000-\377]))
+  comment/(("?>")|([\000] [\U00000000-\U0000ffff]))
   {
     if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_COMMENT],colors[HC_COMMENT+1]); goto colorize_clear;
   }
