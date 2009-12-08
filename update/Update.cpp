@@ -45,6 +45,7 @@ struct IPC
 	TCHAR Config[MAX_PATH];
 	TCHAR UpdateList[MAX_PATH];
 	TCHAR SevenZip[MAX_PATH];
+	bool UseMsi;
 } ipc;
 
 LPCTSTR strVer=TEXT("1.0");
@@ -317,7 +318,7 @@ DWORD CheckUpdates()
 bool DownloadUpdates(bool Silent=false)
 {
 	TCHAR URL[1024],arc[MAX_PATH];
-	GetPrivateProfileString(TEXT("far"),TEXT("arc"),TEXT(""),arc,ARRAYSIZE(arc),ipc.UpdateList);
+	GetPrivateProfileString(TEXT("far"),ipc.UseMsi?TEXT("msi"):TEXT("arc"),TEXT(""),arc,ARRAYSIZE(arc),ipc.UpdateList);
 	FSF.sprintf(URL,TEXT("%s/%s"),RemotePath,arc);
 	if(!Silent)
 	{
@@ -598,8 +599,8 @@ VOID InitPaths()
 VOID ReadSettings()
 {
 	Mode=GetPrivateProfileInt(TEXT("update"),TEXT("Mode"),2,ipc.Config);
-
-	bUseProxy = GetPrivateProfileInt(TEXT("connect"),TEXT("proxy"), 0, ipc.Config) == 1;
+	ipc.UseMsi=(GetPrivateProfileInt(TEXT("update"),TEXT("Msi"),0,ipc.Config)!=0);
+	bUseProxy=GetPrivateProfileInt(TEXT("connect"),TEXT("proxy"),0,ipc.Config) == 1;
 	GetPrivateProfileString(TEXT("connect"),TEXT("srv"),TEXT(""),strProxyName,ARRAYSIZE(strProxyName),ipc.Config);
 	GetPrivateProfileString(TEXT("connect"),TEXT("user"), TEXT(""),strProxyUser,ARRAYSIZE(strProxyUser),ipc.Config);
 	GetPrivateProfileString(TEXT("connect"),TEXT("pass"), TEXT(""),strProxyPass,ARRAYSIZE(strProxyPass),ipc.Config);
@@ -755,8 +756,31 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(INT /*OpenFrom*/,INT_PTR /*item*/)
 
 bool Extract(LPCTSTR lpArc,LPCTSTR lpPath,LPCTSTR lpDestDir)
 {
-	SevenZipModuleManager ArchiveManager(lpArc);
-	return ArchiveManager.Extract(lpPath,lpDestDir);
+	bool Result=false;
+	if(!ipc.UseMsi)
+	{
+		SevenZipModuleManager ArchiveManager(lpArc);
+		Result=ArchiveManager.Extract(lpPath,lpDestDir);
+	}
+	else
+	{
+		STARTUPINFO si={sizeof(si)};
+		PROCESS_INFORMATION pi;
+		TCHAR cmdline[MAX_PATH];
+		wsprintf(cmdline,TEXT("msiexec.exe /promptrestart /qb /i \"%s\""),lpPath);
+		if(CreateProcess(NULL,cmdline,NULL,NULL,FALSE,0,NULL,NULL,&si,&pi))
+		{
+			WaitForSingleObject(pi.hProcess,INFINITE);
+			DWORD ExitCode=0;
+			if(GetExitCodeProcess(pi.hProcess,&ExitCode) && ExitCode==ERROR_SUCCESS)
+			{
+				Result=true;
+			}
+			CloseHandle(pi.hThread);
+			CloseHandle(pi.hProcess);
+		}
+	}
+	return Result;
 }
 
 #ifdef UNICODE
@@ -859,7 +883,7 @@ EXTERN_C VOID WINAPI EXP_NAME(RestartFAR)(HWND,HINSTANCE,LPCTSTR lpCmd,DWORD)
 				lstrcpy(destpath,ipc.FarDirectory);
 
 				TCHAR arc[MAX_PATH];
-				GetPrivateProfileString(TEXT("far"),TEXT("arc"),TEXT(""),arc,ARRAYSIZE(arc),ipc.UpdateList);
+				GetPrivateProfileString(TEXT("far"),ipc.UseMsi?TEXT("msi"):TEXT("arc"),TEXT(""),arc,ARRAYSIZE(arc),ipc.UpdateList);
 				if(*arc)
 				{
 					TCHAR local_arc[MAX_PATH];
