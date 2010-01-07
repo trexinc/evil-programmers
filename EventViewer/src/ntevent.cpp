@@ -366,22 +366,23 @@ int WINAPI EXP_NAME(GetFindData)(HANDLE hPlugin,struct PluginPanelItem **pPanelI
 #else
               FSF.sprintf((*pPanelItem)->FindData.cFileName,_T("%s"),_T(".."));
 #endif
-              (*pPanelItem)->CustomColumnData=(TCHAR **)malloc(sizeof(TCHAR *)*CUSTOM_COLUMN_COUNT);
-              if((*pPanelItem)->CustomColumnData)
+              TCHAR **CustomColumnData=(TCHAR **)malloc(sizeof(TCHAR *)*CUSTOM_COLUMN_COUNT);
+              if(CustomColumnData)
               {
-                (*pPanelItem)->CustomColumnData[0]=(TCHAR *)malloc(sizeof(TCHAR));
-                (*pPanelItem)->CustomColumnData[1]=(TCHAR *)malloc(sizeof(TCHAR));
-                (*pPanelItem)->CustomColumnData[2]=(TCHAR *)malloc(sizeof(TCHAR)*3);
-                if((*pPanelItem)->CustomColumnData[2])
-                  FSF.sprintf((*pPanelItem)->CustomColumnData[2],_T("%s"),_T(".."));
-                (*pPanelItem)->CustomColumnData[3]=(TCHAR *)malloc(sizeof(TCHAR));
-                (*pPanelItem)->CustomColumnData[4]=(TCHAR *)malloc(sizeof(TCHAR));
-                (*pPanelItem)->CustomColumnData[5]=(TCHAR*)_T("");
+                CustomColumnData[0]=(TCHAR *)malloc(sizeof(TCHAR));
+                CustomColumnData[1]=(TCHAR *)malloc(sizeof(TCHAR));
+                CustomColumnData[2]=(TCHAR *)malloc(sizeof(TCHAR)*3);
+                if(CustomColumnData[2])
+                  FSF.sprintf(CustomColumnData[2],_T("%s"),_T(".."));
+                CustomColumnData[3]=(TCHAR *)malloc(sizeof(TCHAR));
+                CustomColumnData[4]=(TCHAR *)malloc(sizeof(TCHAR));
+                CustomColumnData[5]=(TCHAR*)_T("");
                 for(int i=0;i<(CUSTOM_COLUMN_COUNT-1);i++)
-                  if(!(*pPanelItem)->CustomColumnData[i])
-                    (*pPanelItem)->CustomColumnData[i]=(TCHAR*)default_column_data;
+                  if(!CustomColumnData[i])
+                    CustomColumnData[i]=(TCHAR*)default_column_data;
                 (*pPanelItem)->CustomColumnNumber=CUSTOM_COLUMN_COUNT;
               }
+              (*pPanelItem)->CustomColumnData=CustomColumnData;
               for(int i=1;i<(*pItemsNumber);i++)
               {
 #ifdef UNICODE
@@ -427,14 +428,15 @@ int WINAPI EXP_NAME(GetFindData)(HANDLE hPlugin,struct PluginPanelItem **pPanelI
                       memcpy(user_data,curr_rec,curr_rec->Length);
                       ((*pPanelItem)+i)->UserData=(DWORD)user_data;
                       TCHAR *description=(TCHAR *)(((EVENTLOGRECORD *)user_data)+1);
-                      ((*pPanelItem)+i)->Description=(TCHAR *)malloc((_tcslen(description)+1)*sizeof(TCHAR));
-                      if(((*pPanelItem)+i)->Description)
+                      TCHAR* Description=(TCHAR *)malloc((_tcslen(description)+1)*sizeof(TCHAR));
+                      if(Description)
                       {
-                        FSF.sprintf(((*pPanelItem)+i)->Description,_T("%s"),description);
+                        FSF.sprintf(Description,_T("%s"),description);
 #ifndef UNICODE
-                        CharToOem(((*pPanelItem)+i)->Description,((*pPanelItem)+i)->Description);
+                        CharToOem(Description,Description);
 #endif
                       }
+                      ((*pPanelItem)+i)->Description=Description;
                     }
                     suffix=_T("");
                     switch(curr_rec->EventType)
@@ -469,37 +471,38 @@ int WINAPI EXP_NAME(GetFindData)(HANDLE hPlugin,struct PluginPanelItem **pPanelI
                     evt_date_time=curr_rec->TimeGenerated; evt_date_time=evt_date_time*10000000ULL+EVENT_START_TIME;
                     memcpy(&(((*pPanelItem)+i)->FindData.ftCreationTime),&evt_date_time,sizeof(evt_date_time));
                     FileTimeToLocalFileTime((FILETIME *)&evt_date_time,(FILETIME *)&evt_date_time_local);
-                    ((*pPanelItem)+i)->CustomColumnData=(TCHAR **)malloc(sizeof(TCHAR *)*CUSTOM_COLUMN_COUNT);
-                    if(((*pPanelItem)+i)->CustomColumnData)
+                    CustomColumnData=(TCHAR **)malloc(sizeof(TCHAR *)*CUSTOM_COLUMN_COUNT);
+                    if(CustomColumnData)
                     {
-                      ((*pPanelItem)+i)->CustomColumnData[0]=(TCHAR *)malloc(sizeof(TCHAR)*6);
-                      if(((*pPanelItem)+i)->CustomColumnData[0])
-                        FSF.sprintf(((*pPanelItem)+i)->CustomColumnData[0],_T("%5ld"),curr_rec->EventID&0xffff);
+                      CustomColumnData[0]=(TCHAR *)malloc(sizeof(TCHAR)*6);
+                      if(CustomColumnData[0])
+                        FSF.sprintf(CustomColumnData[0],_T("%5ld"),curr_rec->EventID&0xffff);
                       const TCHAR *category=GetCategory(curr_rec);
-                      ((*pPanelItem)+i)->CustomColumnData[1]=(TCHAR *)malloc((_tcslen(category)+1)*sizeof(TCHAR));
-                      if(((*pPanelItem)+i)->CustomColumnData[1])
-                        _tcscpy(((*pPanelItem)+i)->CustomColumnData[1],category);
-                      ((*pPanelItem)+i)->CustomColumnData[2]=(TCHAR *)malloc(sizeof(TCHAR)*20);
-                      if(((*pPanelItem)+i)->CustomColumnData[2])
+                      CustomColumnData[1]=(TCHAR *)malloc((_tcslen(category)+1)*sizeof(TCHAR));
+                      if(CustomColumnData[1])
+                        _tcscpy(CustomColumnData[1],category);
+                      CustomColumnData[2]=(TCHAR *)malloc(sizeof(TCHAR)*20);
+                      if(CustomColumnData[2])
                       {
                         SYSTEMTIME time;
                         FileTimeToSystemTime((FILETIME *)&evt_date_time_local,&time);
-                        FSF.sprintf(((*pPanelItem)+i)->CustomColumnData[2],_T("%02d.%02d.%04d %02d:%02d:%02d"),time.wDay,time.wMonth,time.wYear,time.wHour,time.wMinute,time.wSecond);
+                        FSF.sprintf(CustomColumnData[2],_T("%02d.%02d.%04d %02d:%02d:%02d"),time.wDay,time.wMonth,time.wYear,time.wHour,time.wMinute,time.wSecond);
                       }
                       TCHAR *compname=GetComputerName(curr_rec);
-                      ((*pPanelItem)+i)->CustomColumnData[3]=(TCHAR *)malloc(sizeof(TCHAR)*(_tcslen(compname)+1));
-                      if(((*pPanelItem)+i)->CustomColumnData[3])
-                        _tcscpy(((*pPanelItem)+i)->CustomColumnData[3],compname);
+                      CustomColumnData[3]=(TCHAR *)malloc(sizeof(TCHAR)*(_tcslen(compname)+1));
+                      if(CustomColumnData[3])
+                        _tcscpy(CustomColumnData[3],compname);
                       TCHAR *username=GetUserName(panel->computer_ptr,curr_rec);
-                      ((*pPanelItem)+i)->CustomColumnData[4]=(TCHAR *)malloc(sizeof(TCHAR)*(_tcslen(username)+1));
-                      if(((*pPanelItem)+i)->CustomColumnData[4])
-                        _tcscpy(((*pPanelItem)+i)->CustomColumnData[4],username);
-                      ((*pPanelItem)+i)->CustomColumnData[5]=((*pPanelItem)+i)->CustomColumnData[2];
+                      CustomColumnData[4]=(TCHAR *)malloc(sizeof(TCHAR)*(_tcslen(username)+1));
+                      if(CustomColumnData[4])
+                        _tcscpy(CustomColumnData[4],username);
+                      CustomColumnData[5]=CustomColumnData[2];
                       for(int j=0;j<(CUSTOM_COLUMN_COUNT-1);j++)
-                        if(!((*pPanelItem)+i)->CustomColumnData[j])
-                          ((*pPanelItem)+i)->CustomColumnData[j]=(TCHAR*)default_column_data;
+                        if(!CustomColumnData[j])
+                          CustomColumnData[j]=(TCHAR*)default_column_data;
                       ((*pPanelItem)+i)->CustomColumnNumber=CUSTOM_COLUMN_COUNT;
                     }
+                    ((*pPanelItem)+i)->CustomColumnData=CustomColumnData;
                     readed-=curr_rec->Length;
                     curr_rec=(EVENTLOGRECORD *)((char*)curr_rec+curr_rec->Length);
                     i++;
@@ -560,16 +563,16 @@ void WINAPI EXP_NAME(FreeFindData)(HANDLE hPlugin,struct PluginPanelItem *PanelI
 {
   for(int i=0;i<ItemsNumber;i++)
   {
-    free((void *)PanelItem[i].UserData);
-    free(PanelItem[i].Owner);
-    free(PanelItem[i].Description);
+    free((void*)PanelItem[i].UserData);
+    free((void*)PanelItem[i].Owner);
+    free((void*)PanelItem[i].Description);
     if(PanelItem[i].CustomColumnData)
       for(int j=0;j<(CUSTOM_COLUMN_COUNT-1);j++)
         if(PanelItem[i].CustomColumnData[j]!=(TCHAR*)default_column_data)
-          free(PanelItem[i].CustomColumnData[j]);
-    free(PanelItem[i].CustomColumnData);
+          free((void*)PanelItem[i].CustomColumnData[j]);
+    free((void*)PanelItem[i].CustomColumnData);
 #ifdef UNICODE
-    free(PanelItem[i].FindData.lpwszFileName);
+    free((void*)PanelItem[i].FindData.lpwszFileName);
 #endif
   }
   free(PanelItem);
@@ -698,7 +701,7 @@ static void GetFileAttr(TCHAR *file,unsigned long long *size,SYSTEMTIME *mod)
   }
 }
 
-static int CheckRetry(TCHAR *afrom,TCHAR *ato)
+static int CheckRetry(const TCHAR *afrom,const TCHAR *ato)
 {
   TCHAR from[512],to[512],buff[MAX_PATH];
   FSF.sprintf(buff,_T("%s"),afrom);
@@ -1243,7 +1246,7 @@ int WINAPI EXP_NAME(Compare)(HANDLE hPlugin,const struct PluginPanelItem *Item1,
 // C4: User
 // C5: Time
 // Z : Source
-static TCHAR *GetTitles(TCHAR *str)
+static TCHAR *GetTitles(const TCHAR *str)
 {
   TCHAR *Result=NULL;
   if((!_tcsncmp(str,_T("C0"),2))&&((!str[2])||(str[2]==',')))
@@ -1355,7 +1358,7 @@ void WINAPI EXP_NAME(GetOpenPluginInfo)(HANDLE hPlugin,struct OpenPluginInfo *In
       }
       if(panel->level)
       {
-        int j=0; TCHAR *scan=PanelModesArray[i].ColumnTypes;
+        int j=0; const TCHAR *scan=PanelModesArray[i].ColumnTypes;
         if(scan)
         {
           while(TRUE)
