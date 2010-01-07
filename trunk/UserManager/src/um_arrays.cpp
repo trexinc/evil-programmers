@@ -1719,13 +1719,13 @@ const int panel_modes[]=
   mUserPanelType0,
 };
 
-TCHAR *get_plain_panel_title(TCHAR *str)
+TCHAR *get_plain_panel_title(const TCHAR *str)
 {
   TCHAR *Result=NULL;
   return Result;
 }
 
-TCHAR *get_access_panel_title(TCHAR *str)
+TCHAR *get_access_panel_title(const TCHAR *str)
 {
   TCHAR *Result=NULL;
   if((!_tcsncmp(str,_T("C0"),2))&&((!str[2])||(str[2]==',')))
@@ -1739,7 +1739,7 @@ TCHAR *get_access_panel_title(TCHAR *str)
   return Result;
 }
 
-TCHAR *get_audit_panel_title(TCHAR *str)
+TCHAR *get_audit_panel_title(const TCHAR *str)
 {
   TCHAR *Result=NULL;
   if((!_tcsncmp(str,_T("C0"),2))&&((!str[2])||(str[2]==',')))
@@ -1753,7 +1753,7 @@ TCHAR *get_audit_panel_title(TCHAR *str)
   return Result;
 }
 
-TCHAR *get_share_panel_title(TCHAR *str)
+TCHAR *get_share_panel_title(const TCHAR *str)
 {
   TCHAR *Result=NULL;
   if((!_tcsncmp(str,_T("C0"),2))&&((!str[2])||(str[2]==',')))
@@ -1771,7 +1771,7 @@ TCHAR *get_share_panel_title(TCHAR *str)
   return Result;
 }
 
-TCHAR *get_user_panel_title(TCHAR *str)
+TCHAR *get_user_panel_title(const TCHAR *str)
 {
   TCHAR *Result=NULL;
   if((!_tcsncmp(str,_T("C1"),2))&&((!str[2])||(str[2]==',')))

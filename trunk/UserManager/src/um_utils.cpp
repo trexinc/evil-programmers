@@ -450,7 +450,7 @@ void wcsaddendslash(wchar_t *string)
   return;
 }
 
-int parse_dir(TCHAR *root_oem,TCHAR *obj_oem,wchar_t *obj,int obj_type,unsigned long *param,wchar_t *host,TCHAR *host_oem)
+int parse_dir(TCHAR *root_oem,const TCHAR *obj_oem,wchar_t *obj,int obj_type,unsigned long *param,wchar_t *host,TCHAR *host_oem)
 {
   int result=-1;
   HANDLE testHandle;

@@ -572,7 +572,7 @@ typedef bool (*CheckType)(unsigned char Param,unsigned char Type,unsigned char *
 typedef bool (*PressButton)(UserManager *panel);
 typedef bool (*PressButton2)(UserManager *panel,bool selection);
 typedef bool (*PressButton3)(UserManager *panel,UserManager *anotherpanel,bool selection);
-typedef TCHAR * (*ParseColumns)(TCHAR *columns);
+typedef TCHAR * (*ParseColumns)(const TCHAR *columns);
 typedef bool (*GetOwner)(UserManager *panel,PSID *sid,wchar_t **owner,TCHAR **owner_oem);
 
 #define PERM_NO    0
@@ -658,7 +658,7 @@ extern TCHAR *get_access_string(int level,int mask);
 extern TCHAR *get_sid_string(PSID sid);
 extern void wcsaddendslash(wchar_t *string);
 extern bool GetWideName(TCHAR *root,const FAR_FIND_DATA *src,wchar_t *name);
-extern int parse_dir(TCHAR *root_oem,TCHAR *obj_oem,wchar_t *obj,int obj_type,unsigned long *param,wchar_t *host,TCHAR *host_oem);
+extern int parse_dir(TCHAR *root_oem,const TCHAR *obj_oem,wchar_t *obj,int obj_type,unsigned long *param,wchar_t *host,TCHAR *host_oem);
 
 extern LONG RegOpenBackupKeyExW(HKEY hKey,LPCWSTR lpSubKey,REGSAM samDesired,PHKEY phkResult);
 
