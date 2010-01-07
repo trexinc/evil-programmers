@@ -73,6 +73,28 @@ void WINAPI GetOpenPluginInfoW(HANDLE hPlugin, struct OpenPluginInfo *Info)
     Info->CurDir = L"Services";
   else if (sm->GetType() == SERVICE_DRIVER)
     Info->CurDir = L"Drivers";
+
+  static PanelMode PanelModesArray[10];
+  memset(&PanelModesArray, 0, sizeof (PanelModesArray));
+  Info->PanelModesArray=PanelModesArray;
+  Info->PanelModesNumber=ArraySize(PanelModesArray);
+  if(sm->GetType() == 0)
+  {
+    PanelModesArray[0].ColumnTypes = L"N";
+    PanelModesArray[0].ColumnWidths = L"0";
+    PanelModesArray[0].StatusColumnTypes = L"N";
+    PanelModesArray[0].StatusColumnWidths = L"0";
+  }
+  else
+  {
+    static const wchar_t* ColumnTitles[]={NULL,L"Status",L"Startup"};
+    PanelModesArray[0].ColumnTypes = L"N,C0,C1";
+    PanelModesArray[0].ColumnWidths = L"0,8,8";
+    PanelModesArray[0].StatusColumnTypes = L"N";
+    PanelModesArray[0].StatusColumnWidths = L"0";
+    PanelModesArray[0].ColumnTitles = ColumnTitles;
+  }
+  Info->StartPanelMode='0';
 }
 
 int WINAPI GetFindDataW(HANDLE hPlugin, struct PluginPanelItem **pPanelItem, int *pItemsNumber, int OpMode)
@@ -103,7 +125,37 @@ int WINAPI GetFindDataW(HANDLE hPlugin, struct PluginPanelItem **pPanelItem, int
 
     for (int i = 0; i < *pItemsNumber; i++)
     {
-      (*pPanelItem)[i].FindData.lpwszFileName = (wchar_t *)(*sm)[i].lpDisplayName;
+      (*pPanelItem)[i].FindData.lpwszFileName = (*sm)[i].lpDisplayName;
+      const wchar_t** CustomColumnData=(const wchar_t**)calloc(2,sizeof(const wchar_t*));
+      if(CustomColumnData)
+      {
+        switch((*sm)[i].ServiceStatusProcess.dwCurrentState)
+        {
+          case SERVICE_CONTINUE_PENDING:
+            CustomColumnData[0]=L"continue";
+            break;
+          case SERVICE_PAUSE_PENDING:
+            CustomColumnData[0]=L"pausing";
+            break;
+          case SERVICE_PAUSED:
+            CustomColumnData[0]=L"paused";
+            break;
+          case SERVICE_RUNNING:
+            CustomColumnData[0]=L"running";
+            break;
+          case SERVICE_START_PENDING:
+            CustomColumnData[0]=L"starting";
+            break;
+          case SERVICE_STOP_PENDING:
+            CustomColumnData[0]=L"stopping";
+            break;
+          case SERVICE_STOPPED:
+            CustomColumnData[0]=L"stopped";
+            break;
+        }
+        (*pPanelItem)[i].CustomColumnData=CustomColumnData;
+        (*pPanelItem)[i].CustomColumnNumber=2;
+      }
       (*pPanelItem)[i].UserData = i;
     }
   }
@@ -114,6 +166,10 @@ int WINAPI GetFindDataW(HANDLE hPlugin, struct PluginPanelItem **pPanelItem, int
 void WINAPI FreeFindDataW(HANDLE hPlugin, struct PluginPanelItem *PanelItem, int ItemsNumber)
 {
   free(PanelItem);
+  for(int i=0;i<ItemsNumber;i++)
+  {
+    free((void*)PanelItem[i].CustomColumnData);
+  }
 }
 
 int WINAPI SetDirectoryW(HANDLE hPlugin, const wchar_t *Dir, int OpMode)

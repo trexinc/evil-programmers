@@ -16,6 +16,10 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+
+#ifndef __SERVICEMANAGER_HPP__
+#define __SERVICEMANAGER_HPP__
+
 class ServiceManager
 {
   private:
@@ -99,3 +103,7 @@ class ServiceManager
   private:
     ServiceManager(const ServiceManager &copy) { }
 };
+
+#define ArraySize(a) (sizeof(a)/sizeof(a[0]))
+
+#endif
