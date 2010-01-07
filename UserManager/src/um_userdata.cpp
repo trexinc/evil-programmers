@@ -33,10 +33,11 @@ struct PluginUserData
 void AddDefaultUserdata(PluginPanelItem *Item,int level,int sortorder,int itemtype,PSID sid,wchar_t *wide_name,const TCHAR *oem_name,const TCHAR* filename)
 {
 #ifdef UNICODE
-  Item->FindData.lpwszFileName=(TCHAR*)malloc((_tcslen(filename)+1)*sizeof(TCHAR));
-  if(Item->FindData.lpwszFileName)
+  TCHAR* item_filename=(TCHAR*)malloc((_tcslen(filename)+1)*sizeof(TCHAR));
+  Item->FindData.lpwszFileName=item_filename;
+  if(item_filename)
   {
-    if(Item->FindData.lpwszFileName) _tcscpy(Item->FindData.lpwszFileName,filename);
+    if(item_filename) _tcscpy(item_filename,filename);
   }
 #else
   _tcscpy(Item->FindData.cFileName,filename);

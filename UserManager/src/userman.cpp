@@ -411,7 +411,7 @@ static void NormalizeCustomColumns(PluginPanelItem *tmpItem)
 {
   for(int i=0;i<CUSTOM_COLUMN_COUNT;i++)
     if(!tmpItem->CustomColumnData[i])
-      tmpItem->CustomColumnData[i]=(TCHAR*)default_column_data;
+      ((TCHAR**)tmpItem->CustomColumnData)[i]=(TCHAR*)default_column_data; //FIXME
   tmpItem->CustomColumnNumber=CUSTOM_COLUMN_COUNT;
 }
 
@@ -421,7 +421,7 @@ static void SetDescription(PluginPanelItem *tmpItem,wchar_t *Description)
   if(tmpItem->Description)
   {
 #ifdef UNICODE
-    _tcscpy(tmpItem->Description,Description);
+    _tcscpy((TCHAR*)tmpItem->Description,Description); //FIXME
 #else
     WideCharToMultiByte(CP_OEMCP,0,Description,-1,tmpItem->Description,wcslen(Description)+1,NULL,NULL);
 #endif
@@ -504,13 +504,14 @@ int WINAPI EXP_NAME(GetFindData)(HANDLE hPlugin,struct PluginPanelItem **pPanelI
                 break;
             }
             _tcscat(new_filename,username_oem);
-            tmpItem->CustomColumnData=(TCHAR **)malloc(sizeof(TCHAR *)*CUSTOM_COLUMN_COUNT);
-            if(tmpItem->CustomColumnData)
+            TCHAR** CustomColumnData=(TCHAR**)malloc(sizeof(TCHAR *)*CUSTOM_COLUMN_COUNT);
+            tmpItem->CustomColumnData=CustomColumnData;
+            if(CustomColumnData)
             {
-              tmpItem->CustomColumnData[0]=(TCHAR *)malloc(7*sizeof(TCHAR));
-              if(tmpItem->CustomColumnData[0])
-                _tcscpy(tmpItem->CustomColumnData[0],get_access_string(panel->level,tmpAce->ace_mask));
-              tmpItem->CustomColumnData[1]=get_sid_string(tmpAce->user);
+              CustomColumnData[0]=(TCHAR *)malloc(7*sizeof(TCHAR));
+              if(CustomColumnData[0])
+                _tcscpy(CustomColumnData[0],get_access_string(panel->level,tmpAce->ace_mask));
+              CustomColumnData[1]=get_sid_string(tmpAce->user);
               NormalizeCustomColumns(tmpItem);
             }
             AddDefaultUserdata(tmpItem,tmpAce->ace_mask,cur_sortorder++,GetAclState(panel->level,tmpAce->ace_type,tmpAce->ace_flags),tmpAce->user,username,NULL,new_filename);
@@ -580,27 +581,28 @@ int WINAPI EXP_NAME(GetFindData)(HANDLE hPlugin,struct PluginPanelItem **pPanelI
               (*pPanelItem)[j].FindData.dwFileAttributes=FILE_ATTRIBUTE_DIRECTORY;
               SetDescription((*pPanelItem)+j,(wchar_t *)shares[i].shi502_remark);
               AddDefaultUserdata((*pPanelItem+j),levelSharedIn,0,0,NULL,(wchar_t *)shares[i].shi502_netname,NULL,new_filename);
-              (*pPanelItem)[j].CustomColumnData=(TCHAR **)malloc(sizeof(TCHAR *)*CUSTOM_COLUMN_COUNT);
-              if((*pPanelItem)[j].CustomColumnData)
+              TCHAR** CustomColumnData=(TCHAR**)malloc(sizeof(TCHAR *)*CUSTOM_COLUMN_COUNT);
+              (*pPanelItem)[j].CustomColumnData=CustomColumnData;
+              if(CustomColumnData)
               {
-                (*pPanelItem)[j].CustomColumnData[0]=(TCHAR *)malloc(11*sizeof(TCHAR));
-                if((*pPanelItem)[j].CustomColumnData[0])
+                CustomColumnData[0]=(TCHAR *)malloc(11*sizeof(TCHAR));
+                if(CustomColumnData[0])
                 {
                   if(shares[i].shi502_max_uses==0xffffffff)
-                    _tcscpy((*pPanelItem)[j].CustomColumnData[0],_T("maximum"));
+                    _tcscpy(CustomColumnData[0],_T("maximum"));
                   else
-                    FSF.sprintf((*pPanelItem)[j].CustomColumnData[0],_T("%ld"),shares[i].shi502_max_uses);
+                    FSF.sprintf(CustomColumnData[0],_T("%ld"),shares[i].shi502_max_uses);
                 }
-                (*pPanelItem)[j].CustomColumnData[1]=(TCHAR *)malloc(11*sizeof(TCHAR));
-                if((*pPanelItem)[j].CustomColumnData[1])
-                  FSF.sprintf((*pPanelItem)[j].CustomColumnData[1],_T("%ld"),shares[i].shi502_current_uses);
-                (*pPanelItem)[j].CustomColumnData[2]=(TCHAR *)malloc((wcslen((wchar_t *)shares[i].shi502_path)+1)*sizeof(TCHAR));
-                if((*pPanelItem)[j].CustomColumnData[2])
+                CustomColumnData[1]=(TCHAR *)malloc(11*sizeof(TCHAR));
+                if(CustomColumnData[1])
+                  FSF.sprintf(CustomColumnData[1],_T("%ld"),shares[i].shi502_current_uses);
+                CustomColumnData[2]=(TCHAR *)malloc((wcslen((wchar_t *)shares[i].shi502_path)+1)*sizeof(TCHAR));
+                if(CustomColumnData[2])
                 {
 #ifdef UNICODE
-                  _tcscpy((*pPanelItem)[j].CustomColumnData[2],shares[i].shi502_path);
+                  _tcscpy(CustomColumnData[2],shares[i].shi502_path);
 #else
-                  WideCharToMultiByte(CP_OEMCP,0,(wchar_t *)shares[i].shi502_path,-1,(*pPanelItem)[j].CustomColumnData[2],wcslen((wchar_t *)shares[i].shi502_path)+1,NULL,NULL);
+                  WideCharToMultiByte(CP_OEMCP,0,(wchar_t *)shares[i].shi502_path,-1,CustomColumnData[2],wcslen((wchar_t *)shares[i].shi502_path)+1,NULL,NULL);
 #endif
                 }
                 NormalizeCustomColumns((*pPanelItem)+j);
@@ -636,8 +638,9 @@ int WINAPI EXP_NAME(GetFindData)(HANDLE hPlugin,struct PluginPanelItem **pPanelI
                   {
                     *pItemsNumber=1;
 #ifdef UNICODE
-                    (*pPanelItem)[0].FindData.PANEL_FILENAME=(TCHAR*)malloc((_tcslen(data->pShareName)+1)*sizeof(TCHAR));
-                    if((*pPanelItem)[0].FindData.PANEL_FILENAME) _tcscpy((*pPanelItem)[0].FindData.PANEL_FILENAME,data->pShareName);
+                    TCHAR* item_filename=(TCHAR*)malloc((_tcslen(data->pShareName)+1)*sizeof(TCHAR));
+                    if(item_filename) _tcscpy(item_filename,data->pShareName);
+                    (*pPanelItem)[0].FindData.PANEL_FILENAME=item_filename;
 #else
                     WideCharToMultiByte(CP_OEMCP,0,data->pShareName,-1,(*pPanelItem)[0].FindData.PANEL_FILENAME,MAX_PATH,NULL,NULL);
 #endif
@@ -744,18 +747,20 @@ int WINAPI EXP_NAME(GetFindData)(HANDLE hPlugin,struct PluginPanelItem **pPanelI
           }
           for(unsigned int i=0;i<(entriesread1+entriesread2+sizeof(AddSID)/sizeof(AddSID[0]));i++)
           {
-            (*pPanelItem)[i].CustomColumnData=(TCHAR **)malloc(sizeof(TCHAR *)*CUSTOM_COLUMN_COUNT);
-            if((*pPanelItem)[i].CustomColumnData)
+            TCHAR** CustomColumnData=(TCHAR**)malloc(sizeof(TCHAR *)*CUSTOM_COLUMN_COUNT);
+            (*pPanelItem)[i].CustomColumnData=CustomColumnData;
+            if(CustomColumnData)
             {
               if((*pPanelItem)[i].Flags&PPIF_USERDATA)
-                (*pPanelItem)[i].CustomColumnData[1]=get_sid_string(GetSidFromUserData((*pPanelItem)[i].UserData));
+                CustomColumnData[1]=get_sid_string(GetSidFromUserData((*pPanelItem)[i].UserData));
               NormalizeCustomColumns((*pPanelItem)+i);
             }
           }
 #ifdef UNICODE
-          (*pPanelItem)[entriesread1+entriesread2+sizeof(AddSID)/sizeof(AddSID[0])].FindData.PANEL_FILENAME=(TCHAR*)malloc(6);
-          if((*pPanelItem)[entriesread1+entriesread2+sizeof(AddSID)/sizeof(AddSID[0])].FindData.PANEL_FILENAME)
-            _tcscpy((*pPanelItem)[entriesread1+entriesread2+sizeof(AddSID)/sizeof(AddSID[0])].FindData.PANEL_FILENAME,_T(".."));
+          TCHAR* item_filename=(TCHAR*)malloc(6);
+          (*pPanelItem)[entriesread1+entriesread2+sizeof(AddSID)/sizeof(AddSID[0])].FindData.PANEL_FILENAME=item_filename;
+          if(item_filename)
+            _tcscpy(item_filename,_T(".."));
 #else
           _tcscpy((*pPanelItem)[entriesread1+entriesread2+sizeof(AddSID)/sizeof(AddSID[0])].FindData.PANEL_FILENAME,_T(".."));
 #endif
@@ -809,18 +814,20 @@ int WINAPI EXP_NAME(GetFindData)(HANDLE hPlugin,struct PluginPanelItem **pPanelI
 #endif
               AddDefaultUserdata((*pPanelItem)+i,-1,0,0,localMembers[i].lgrmi1_sid,localMembers[i].lgrmi1_name,NULL,new_filename);
               if(is_current_user(localMembers[i].lgrmi1_sid)) (*pPanelItem)[i].FindData.dwFileAttributes=FILE_ATTRIBUTE_READONLY;
-              (*pPanelItem)[i].CustomColumnData=(TCHAR **)malloc(sizeof(TCHAR *)*CUSTOM_COLUMN_COUNT);
-              if((*pPanelItem)[i].CustomColumnData)
+              TCHAR** CustomColumnData=(TCHAR**)malloc(sizeof(TCHAR *)*CUSTOM_COLUMN_COUNT);
+              (*pPanelItem)[i].CustomColumnData=CustomColumnData;
+              if(CustomColumnData)
               {
-                (*pPanelItem)[i].CustomColumnData[1]=get_sid_string(localMembers[i].lgrmi1_sid);
+                CustomColumnData[1]=get_sid_string(localMembers[i].lgrmi1_sid);
                 NormalizeCustomColumns((*pPanelItem)+i);
               }
             }
           }
 #ifdef UNICODE
-          (*pPanelItem)[entriesread].FindData.PANEL_FILENAME=(TCHAR*)malloc(6);
-          if((*pPanelItem)[entriesread].FindData.PANEL_FILENAME)
-            _tcscpy((*pPanelItem)[entriesread].FindData.PANEL_FILENAME,_T(".."));
+          TCHAR* item_filename=(TCHAR*)malloc(6);
+          (*pPanelItem)[entriesread].FindData.PANEL_FILENAME=item_filename;
+          if(item_filename)
+            _tcscpy(item_filename,_T(".."));
 #else
           _tcscpy((*pPanelItem)[entriesread].FindData.PANEL_FILENAME,_T(".."));
 #endif
@@ -880,15 +887,15 @@ void WINAPI EXP_NAME(FreeFindData)(HANDLE hPlugin,struct PluginPanelItem *PanelI
   for(int i=0;i<ItemsNumber;i++)
   {
     free((void *)PanelItem[i].UserData);
-    free(PanelItem[i].Description);
-    free(PanelItem[i].Owner);
+    free((void*)PanelItem[i].Description);
+    free((void*)PanelItem[i].Owner);
     if(PanelItem[i].CustomColumnData)
       for(int j=0;j<CUSTOM_COLUMN_COUNT;j++)
         if(PanelItem[i].CustomColumnData[j]!=default_column_data)
-          free(PanelItem[i].CustomColumnData[j]);
-    free(PanelItem[i].CustomColumnData);
+          free((void*)PanelItem[i].CustomColumnData[j]);
+    free((void*)PanelItem[i].CustomColumnData);
 #ifdef UNICODE
-    free(PanelItem[i].FindData.lpwszFileName);
+    free((void*)PanelItem[i].FindData.lpwszFileName);
 #endif
   }
   free(PanelItem);
@@ -998,7 +1005,7 @@ void WINAPI EXP_NAME(GetOpenPluginInfo)(HANDLE hPlugin,struct OpenPluginInfo *In
               break;
           }
       }
-      int j=0; TCHAR *scan=PanelModesArray[i].ColumnTypes;
+      int j=0; const TCHAR *scan=PanelModesArray[i].ColumnTypes;
       if(scan)
       {
         while(TRUE)
