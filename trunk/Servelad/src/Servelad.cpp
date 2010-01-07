@@ -94,7 +94,7 @@ void WINAPI GetOpenPluginInfoW(HANDLE hPlugin, struct OpenPluginInfo *Info)
     PanelModesArray[0].StatusColumnWidths = L"0";
     PanelModesArray[0].ColumnTitles = ColumnTitles;
   }
-  Info->StartPanelMode='0';
+  Info->StartPanelMode=L'0';
 }
 
 int WINAPI GetFindDataW(HANDLE hPlugin, struct PluginPanelItem **pPanelItem, int *pItemsNumber, int OpMode)
@@ -165,11 +165,11 @@ int WINAPI GetFindDataW(HANDLE hPlugin, struct PluginPanelItem **pPanelItem, int
 
 void WINAPI FreeFindDataW(HANDLE hPlugin, struct PluginPanelItem *PanelItem, int ItemsNumber)
 {
-  free(PanelItem);
   for(int i=0;i<ItemsNumber;i++)
   {
     free((void*)PanelItem[i].CustomColumnData);
   }
+  free(PanelItem);
 }
 
 int WINAPI SetDirectoryW(HANDLE hPlugin, const wchar_t *Dir, int OpMode)
