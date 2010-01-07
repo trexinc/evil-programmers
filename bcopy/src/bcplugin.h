@@ -306,7 +306,7 @@ extern FARSTANDARDFUNCTIONS FSF;
 extern void InitDialogItems(InitDialogItem *Init,FarDialogItem *Item,int ItemsNumber);
 extern const TCHAR *GetMsg(int MsgId);
 extern void UNCPath(TCHAR *path);
-extern void NormalizeName(int width,int msg,TCHAR *filename,TCHAR *dest);
+extern void NormalizeName(int width,int msg,const TCHAR *filename,TCHAR *dest);
 extern void NormalizeNameW(int width,int msg,wchar_t *filename,wchar_t *dest);
 extern wchar_t *TruncPathStrW(wchar_t *Str,int MaxLength);
 extern void ShowError(int Message,bool SysError);
