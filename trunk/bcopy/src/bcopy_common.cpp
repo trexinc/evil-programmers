@@ -93,7 +93,7 @@ void UNCPath(TCHAR *path)
 }
 #undef MY_COMBINE_PATH
 
-void NormalizeName(int width,int msg,TCHAR *filename,TCHAR *dest)
+void NormalizeName(int width,int msg,const TCHAR *filename,TCHAR *dest)
 {
   int msg_len=(int)_tcslen(GetMsg(msg))-2;
   TCHAR truncated[MAX_PATH];
