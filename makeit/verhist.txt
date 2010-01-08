@@ -1,0 +1,51 @@
+1.31
+  + alt-del will leave errors only (remove even warnings)
+1.3
+  + autosave option
+  - crash after process creation error
+  - several fixes in RegExp library
+  + support for xml comments in commands
+  ! filename for "Make current" command changed to fullpath.
+1.21
+  + some additions to defailt makeit.xml
+  - fixed log lines numeration
+  - fixed help file (col->pos).
+1.2
+  ! lines with 0x0d end of line are ignored. (f.e. Delphi output)
+  - list of parsers displayed again when parser autodetection fails.
+  + support for logs without filename in error line
+1.11
+  - fixed bug with automatic log reload when log is not in current directory.
+  - fixed regexp for cl: prefix in makeit.xml
+1.1
+  ! cursor hide/unhide algorithm slightly changed
+1.09
+  - N*Z bug workaround.
+1.08
+  - stupid bug with WindowInfo fixed, thanx to IS :)
+1.07
+  ! if wavefile doesn't contain absolute path,
+     file is searched in directory where plugin located.
+1.06
+  + beep and wavefile options
+  - not hidden cursor bug reincarnation fixed
+1.05
+  + colors in config file
+  + options in config file
+1.04
+  - errors only fix.
+  | cursor will not be hidden when called from editor.
+1.03
+  + when using 'Open log file', modifications of log file are tracked,
+    and it will be reloaded automatically.
+  | hide cursor during compiler execution and errors navigation.
+1.02:
+  + "only errors" filter (del key)
+  + help now can be invoked from log with F1 key :)
+1.01:
+  + parser type autodetection for "open log" operation.
+  - bugfixes
+  ! readme.txt renamed to makeitrus.hlf and some corresponding
+    changes were made ;)
+1.0:
+  ! first version ;)
