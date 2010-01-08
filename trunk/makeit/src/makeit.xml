@@ -1,0 +1,118 @@
+<makeit-config>
+  <colors background="0" error="12" warning="10" text="7" numbers="15"/>
+  <!--colors background="15" error="4" warning="2" text="0" numbers="8"/-->
+  <!--options shownumbers="yes" autodelete="yes"/-->
+  <options shownumbers="no" autodelete="no" beep="yes" beeptime="15"
+  wavefile="completed.wav"/>
+
+  <parsers>
+
+    <delphi>
+      <error pattern="/(.*?)\((\d+)\)\s+Error:\s+.*/" file="1" line="2"/>
+      <warning pattern="/(.*?)\((\d+)\)\s+Warning:\s+.*/" file="1" line="2"/>
+      <warning pattern="/(.*?)\((\d+)\)\s+Hint:\s+.*/" file="1" line="2"/>
+    </delphi>
+
+    <vcpp>
+      <error pattern="/(.*?)\((\d+)\)\s+:\s+error.*?:(.*)/" file="1" line="2"/>
+      <error pattern="/(.*?)\((\d+)\)\s+:\s+fatal error.*?:(.*)/" file="1" line="2"/>
+      <warning pattern="/(.*?)\((\d+)\)\s+:\s+warning.*?:(.*)/" file="1" line="2"/>
+    </vcpp>
+
+    <bcc32>
+      <error pattern="/^Error\s+(E\d+\s+)?(.*?)\s+(\d+)/" file="2" line="3"/>
+      <warning pattern="/^Warning\s+(W\d+\s+)?(.*?)\s+(\d+)/" file="2" line="3"/>
+    </bcc32>
+
+    <perl>
+      <error pattern="/(.*)at (.*?) line (\d+)/" file="2" line="3"/>
+    </perl>
+
+    <gcc>
+      <error pattern="/\s?((\w:)?[^:]*?):(\d+)[:,]/" file="1" line="3"/>
+    </gcc>
+
+    <python>
+      <error pattern="/\s+File\s+\&quot;([^&lt;&gt;]*?)&quot;,\s+line\s+(\d)/" file="1" line="2"/>
+      <error pattern="/\s+File\s+\&quot;&lt;.*?&gt;&quot;,\s+line\s+(\d)/" file="" line="2"/>
+    </python>
+
+    <wsh>
+      <error pattern="/(.*?)\((\d+),\s*(\d+)\).*/" file="1" line="2" pos="3"/>
+    </wsh>
+
+  </parsers>
+  <types>
+
+    <filetype filename="/^((cl|bcc32|gcc)(.exe)?)?(.*?\.c(pp|xx)?(\s|$).*)$/i">
+
+      <command name="CL - release" parser="vcpp" prefix="cl">
+        cl /O2 /Ox /GX /Gs $4
+      </command>
+
+      <command name="CL - debug" parser="vcpp" prefix="cld">
+        cl /Od /Zi /GX /GZ $4
+      </command>
+
+      <command name="BC - debug" parser="bcc32" prefix="bcc">
+        bcc32 -v- $4
+      </command>
+
+      <command name="BC - release" parser="bcc32" prefix="bccd">
+        bcc32 -v $4
+      </command>
+    </filetype>
+
+    <filetype filename="/^(cl|nmake)(\.exe)?.*$/i">
+      <command name="VC++ - custom" parser="vcpp" prefix="mk">
+        $0
+      </command>
+    </filetype>
+
+    <filetype filename="/^\s*$/i">
+      <command name="makefile" parser="vcpp">
+        nmake
+      </command>
+    </filetype>
+
+    <filetype filename="/^makefile.*?$/i">
+      <command name="makefile VC++" parser="vcpp">
+        nmake /f $0
+      </command>
+      <command name="makefile BC" parser="bcc32">
+        make /f $0
+      </command>
+    </filetype>
+
+    <!--filetype filename="/^(bcc32|make)(\.exe)?\b.*$/i"-->
+    <filetype filename="/^(bcc32|make)(\s|\.exe|$)(\s*|$).*$/i">
+      <command name="Borland - custom" parser="bcc32" prefix="bmk">
+        $0
+      </command>
+    </filetype>
+
+    <filetype filename="/.*?\.(pl|pm|cgi)/i">
+      <command name="Perl - check" parser="perl" prefix="pl">
+        perl -cw $0
+      </command>
+    </filetype>
+
+    <filetype filename="/.*?\.(pas|dpr)/i">
+      <command name="Delphi" parser="delphi" prefix="dcc">
+        dcc32 $0
+      </command>
+    </filetype>
+
+    <filetype filename="/.*?\.py/i">
+      <command name="Python" parser="python" prefix="py">
+        python $0
+      </command>
+    </filetype>
+
+    <filetype filename="/.*\.(js|vbs)/i">
+      <command name="WSH Scripts" parser="wsh" prefix="wsh">
+        cscript //NOLOGO $0
+      </command>
+    </filetype>
+  </types>
+</makeit-config>
