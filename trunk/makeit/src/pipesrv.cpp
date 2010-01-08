@@ -1,5 +1,6 @@
 /*
-  Copyright (C) 2000 Konstantin Stupnik
+  Copyright (C) 2001 by Nikolay Redko
+  Copyright (C) 2010 by Alex Yaroslavsky
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by

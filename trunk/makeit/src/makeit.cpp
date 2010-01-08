@@ -1,10 +1,4 @@
 /*
-  Copyright (C)2001 by Nikolay Redko <nike@sendmail.ru>
-  Distribute this text freely under the terms of
-  GNU General public license
-
-*/
-/*
   Copyright (C) 2000 Konstantin Stupnik
 
   This program is free software; you can redistribute it and/or modify
