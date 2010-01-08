@@ -65,6 +65,7 @@ struct Options
   int ShowScrollbar;
   int ShowCrossOnTop;
   int ShowTabSymbol;
+  int TabSymbol;
   int ShowBookmarks;
   int ShowStackBookmarks;
   int ColorOfRightBorder;
@@ -98,6 +99,7 @@ enum ENUMEOL
   EOL_ON,
   EOL_MARKALL,
   EOL_MARKALLWITHSYMBOLS,
+  EOL_MARKWITHSYMBOL,
 
   EOL_MAX,
 };
@@ -236,6 +238,7 @@ void ReadRegistry()
 
   GetRegKey(_T("ShowCrossOnTop"),&Opt.ShowCrossOnTop,0);
   GetRegKey(_T("ShowTabSymbol"),&Opt.ShowTabSymbol,0);
+  GetRegKey(_T("TabSymbol"),&Opt.TabSymbol,DEFTABSYMBOL);
   GetRegKey(_T("ShowBookmarks"),&Opt.ShowBookmarks,1);
   GetRegKey(_T("ShowStackBookmarks"),&Opt.ShowStackBookmarks,1);
 
@@ -282,6 +285,7 @@ void WriteRegistry()
 
   SetRegKey(_T("ShowCrossOnTop"),Opt.ShowCrossOnTop);
   SetRegKey(_T("ShowTabSymbol"),Opt.ShowTabSymbol);
+  SetRegKey(_T("TabSymbol"),Opt.TabSymbol);
   SetRegKey(_T("ShowBookmarks"),Opt.ShowBookmarks);
   SetRegKey(_T("ShowStackBookmarks"),Opt.ShowStackBookmarks);
 
@@ -512,6 +516,7 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom, INT_PTR Item)
     DLG_TABCHK,
     DLG_TABCMB,
     DLG_TABSHOWSYMBOLCHK,
+    DLG_TABSHOWSYMBOLNUM,
 
     DLG_CROSSCHK,
     DLG_CROSSCMB,
@@ -557,6 +562,7 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom, INT_PTR Item)
     {DI_CHECKBOX    ,5  ,10 ,0  ,0  ,0          ,MTabs},
     {DI_COMBOBOX    ,8  ,11 ,60 ,0  ,DIF_DROPDOWNLIST|DIF_LISTAUTOHIGHLIGHT|DIF_LISTNOAMPERSAND, -1},
     {DI_CHECKBOX    ,8  ,12 ,0  ,0  ,0          ,MTabsShowSymbol},
+    {DI_FIXEDIT     ,56 ,12 ,60 ,0  ,DIF_MASKEDIT, -1}, //          ,(int)_T("HHHH"),     DIF_MASKEDIT,   0},
 
     {DI_CHECKBOX    ,5  ,13 ,0  ,0  ,0          ,MCross},
     {DI_COMBOBOX    ,8  ,14 ,60 ,0  ,DIF_DROPDOWNLIST|DIF_LISTAUTOHIGHLIGHT|DIF_LISTNOAMPERSAND, -1},
@@ -601,6 +607,10 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom, INT_PTR Item)
 
   DialogItems[DLG_CROSSONTOPCHK].Selected    = Opt.ShowCrossOnTop;
   DialogItems[DLG_TABSHOWSYMBOLCHK].Selected = Opt.ShowTabSymbol;
+  DialogItems[DLG_TABSHOWSYMBOLNUM].Mask     = _T("xHHHH");
+  TCHAR TabSymbolNum[5];
+  FSF.sprintf(TabSymbolNum, _T("%04X"), (DWORD)(0xFFFF & Opt.TabSymbol));
+  SetText(DLG_TABSHOWSYMBOLNUM, TabSymbolNum);
 
   DialogItems[DLG_BOOKMARKSCHK].Selected      = Opt.ShowBookmarks;
   DialogItems[DLG_STACKBOOKMARKSCHK].Selected = Opt.ShowStackBookmarks;
@@ -686,6 +696,10 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom, INT_PTR Item)
 
       Opt.ShowTabsOn=GetCheck(DLG_TABCHK);
       Opt.ShowTabSymbol=GetCheck(DLG_TABSHOWSYMBOLCHK);
+      const TCHAR *pszHex = GetDataPtr(DLG_TABSHOWSYMBOLNUM);
+      TCHAR *pszEnd;
+      Opt.TabSymbol = _tcstol(pszHex+1,&pszEnd,16);
+      if (Opt.TabSymbol < 32) Opt.TabSymbol = DEFTABSYMBOL;
 
       Opt.ShowCrossOn=GetCheck(DLG_CROSSCHK);
       Opt.ShowCrossOnTop=GetCheck(DLG_CROSSONTOPCHK);
@@ -762,10 +776,12 @@ void VisualizeEndOfLine(int ShowEOL, int StringLength,const TCHAR *StringEOL, in
     ecp.DestPos = 0;
   c.Y = Line;
   c.X = ecp.DestPos - LeftPos;
-  if (ShowEOL==EOL_ON)
+  if (ShowEOL==EOL_ON || ShowEOL==EOL_MARKWITHSYMBOL)
   {
     ec.Color = Opt.ColorOfEOLNormal;
     Info.EditorControl(ECTL_ADDCOLOR,(void *)&ec);
+    if (ShowEOL==EOL_MARKWITHSYMBOL)
+      WriteConsoleOutputCharacterW(GetStdHandle(STD_OUTPUT_HANDLE),L"\x2193",1,c,&w);
   }
   else if (*StringEOL)
   {
@@ -774,14 +790,14 @@ void VisualizeEndOfLine(int ShowEOL, int StringLength,const TCHAR *StringEOL, in
       ec.Color = Opt.ColorOfEOLCR;
       Info.EditorControl(ECTL_ADDCOLOR,(void *)&ec);
       if (ShowEOL==EOL_MARKALLWITHSYMBOLS)
-        WriteConsoleOutputCharacter(GetStdHandle(STD_OUTPUT_HANDLE),_T("\r"),1,c,&w);
+        WriteConsoleOutputCharacterW(GetStdHandle(STD_OUTPUT_HANDLE),L"\x266A",1,c,&w);
     }
     else
     {
       ec.Color = Opt.ColorOfEOLLF;
       Info.EditorControl(ECTL_ADDCOLOR,(void *)&ec);
       if (ShowEOL==EOL_MARKALLWITHSYMBOLS)
-        WriteConsoleOutputCharacter(GetStdHandle(STD_OUTPUT_HANDLE),_T("\n"),1,c,&w);
+        WriteConsoleOutputCharacterW(GetStdHandle(STD_OUTPUT_HANDLE),L"\x25D9",1,c,&w);
     }
     if (StringEOL[1])
     {
@@ -793,14 +809,14 @@ void VisualizeEndOfLine(int ShowEOL, int StringLength,const TCHAR *StringEOL, in
         ec.Color = Opt.ColorOfEOLCR;
         Info.EditorControl(ECTL_ADDCOLOR,(void *)&ec);
         if (ShowEOL==EOL_MARKALLWITHSYMBOLS)
-          WriteConsoleOutputCharacter(GetStdHandle(STD_OUTPUT_HANDLE),_T("\r"),1,c,&w);
+          WriteConsoleOutputCharacterW(GetStdHandle(STD_OUTPUT_HANDLE),L"\x266A",1,c,&w);
       }
       else
       {
         ec.Color = Opt.ColorOfEOLLF;
         Info.EditorControl(ECTL_ADDCOLOR,(void *)&ec);
         if (ShowEOL==EOL_MARKALLWITHSYMBOLS)
-          WriteConsoleOutputCharacter(GetStdHandle(STD_OUTPUT_HANDLE),_T("\n"),1,c,&w);
+          WriteConsoleOutputCharacterW(GetStdHandle(STD_OUTPUT_HANDLE),L"\x25D9",1,c,&w);
       }
     }
   }
@@ -822,7 +838,7 @@ void VisualizeEndOfFile(int StringLength, int CurLine, int TotalLines)
   }
 }
 
-void VisualizeTabs(int ShowTabs, int ShowTabSymbol, const TCHAR *StringText, int StringLength, int Line, int LeftPos)
+void VisualizeTabs(int ShowTabs, int ShowTabSymbol, wchar_t TabSymbol, const TCHAR *StringText, int StringLength, int Line, int LeftPos)
 {
   static struct EditorConvertPos ecp = {-1, 0, 0};
   static struct EditorColor ec = {-1, 0, 0, 0, 0};
@@ -847,7 +863,7 @@ void VisualizeTabs(int ShowTabs, int ShowTabSymbol, const TCHAR *StringText, int
         Info.EditorControl(ECTL_REALTOTAB,(void *)&ecp);
         c.X = ecp.DestPos - LeftPos;
         c.Y = Line;
-        WriteConsoleOutputCharacter(GetStdHandle(STD_OUTPUT_HANDLE),_T("\t"),1,c,&w);
+        WriteConsoleOutputCharacterW(GetStdHandle(STD_OUTPUT_HANDLE),&TabSymbol,1,c,&w);
       }
     }
   }
@@ -1087,7 +1103,7 @@ int WINAPI EXP_NAME(ProcessEditorEvent)(int Event, void *Param)
           VisualizeEndOfFile(egs.StringLength,i,ei.TotalLines);
 
         if (Opt.ShowTabsOn)
-          VisualizeTabs(Opt.ShowTabs,Opt.ShowTabSymbol,egs.StringText,egs.StringLength,i-ei.TopScreenLine+1,ei.LeftPos);
+          VisualizeTabs(Opt.ShowTabs,Opt.ShowTabSymbol,(wchar_t)Opt.TabSymbol,egs.StringText,egs.StringLength,i-ei.TopScreenLine+1,ei.LeftPos);
 
         if (Opt.ShowCrossOn && Opt.ShowCrossOnTop)
           VisualizeCross(Opt.ShowCross,i,ei.CurLine,ei.CurTabPos,ei.LeftPos,ei.WindowSizeX);

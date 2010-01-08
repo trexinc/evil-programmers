@@ -1,0 +1,29 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Visualizer", "Visualizer_VS2008.vcproj", "{1ACF3616-9976-4661-9847-AAB4D9812C04}"
+EndProject
+Global
+	GlobalSection(DPCodeReviewSolutionGUID) = preSolution
+		DPCodeReviewSolutionGUID = {00000000-0000-0000-0000-000000000000}
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug_Unicode|Win32 = Debug_Unicode|Win32
+		Debug|Win32 = Debug|Win32
+		Release_Unicode|Win32 = Release_Unicode|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1ACF3616-9976-4661-9847-AAB4D9812C04}.Debug_Unicode|Win32.ActiveCfg = Debug_Unicode|Win32
+		{1ACF3616-9976-4661-9847-AAB4D9812C04}.Debug_Unicode|Win32.Build.0 = Debug_Unicode|Win32
+		{1ACF3616-9976-4661-9847-AAB4D9812C04}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1ACF3616-9976-4661-9847-AAB4D9812C04}.Debug|Win32.Build.0 = Debug|Win32
+		{1ACF3616-9976-4661-9847-AAB4D9812C04}.Release_Unicode|Win32.ActiveCfg = Release_Unicode|Win32
+		{1ACF3616-9976-4661-9847-AAB4D9812C04}.Release_Unicode|Win32.Build.0 = Release_Unicode|Win32
+		{1ACF3616-9976-4661-9847-AAB4D9812C04}.Release|Win32.ActiveCfg = Release|Win32
+		{1ACF3616-9976-4661-9847-AAB4D9812C04}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

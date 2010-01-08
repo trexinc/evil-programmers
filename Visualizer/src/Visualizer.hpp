@@ -37,6 +37,7 @@ enum
   MEOLOn,
   MEOLMarkAll,
   MEOLMarkAllWithSymbols,
+  MEOLMarkWithSymbol,
 
   MEOF,
 
@@ -110,10 +111,16 @@ const TCHAR *GetMsg(int MsgId);
 void InitDialogItems(const struct InitDialogItem *Init, struct FarDialogItem *Item, int ItemsNumber);
 bool SelectColor(int *fg,int *bg);
 
+#define DEFTABSYMBOL 0x25CB
+
 #ifndef UNICODE
 #define GetCheck(i) DialogItems[i].Selected
 #define GetListPos(i) DialogItems[i].ListPos
+#define GetDataPtr(i) DialogItems[i].Data
+#define SetText(i,txt) lstrcpy(DialogItems[i].Data, txt)
 #else
 #define GetCheck(i) (int)Info.SendDlgMessage(hDlg,DM_GETCHECK,i,0)
 #define GetListPos(i) ((int)Info.SendDlgMessage(hDlg,DM_LISTGETCURPOS,i,0))
+#define GetDataPtr(i) ((const wchar_t *)Info.SendDlgMessage(hDlg,DM_GETCONSTTEXTPTR,i,0))
+#define SetText(i,txt) DialogItems[i].PtrData = txt
 #endif
