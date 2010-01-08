@@ -20,88 +20,77 @@
 #ifndef __SERVICEMANAGER_HPP__
 #define __SERVICEMANAGER_HPP__
 
-class ServiceManager
+#include <vector>
+#include <string>
+
+struct SServiceInfo
+{
+  const wchar_t* iDescription;
+  const wchar_t* iPath;
+  const wchar_t* iLoadOrderGroup;
+  const wchar_t* iDependencies;
+  DWORD iStartType;
+  DWORD iErrorControl;
+  DWORD iTagId;
+  const ENUM_SERVICE_STATUS_PROCESS* iStatus;
+};
+
+class CServiceManager
 {
   private:
-    SC_HANDLE hSCManager;
-    DWORD ServiceType;
-    ENUM_SERVICE_STATUS_PROCESS *Services;
-    DWORD ServiceCount;
-
-  public:
-    ServiceManager(const wchar_t *RemoteMachine=NULL) { Services=NULL; ServiceCount=0; ServiceType=0; hSCManager=OpenSCManager(RemoteMachine, SERVICES_ACTIVE_DATABASE, SC_MANAGER_ALL_ACCESS); }
-    ~ServiceManager() { Clear(); if (hSCManager) CloseServiceHandle(hSCManager); }
-
-    bool ManagerStatus() const { return hSCManager!=NULL; }
-
-    void Reset(DWORD NewServiceType=0) { ServiceType=NewServiceType; Clear(); }
-
-    bool ListServices() { ServiceType=SERVICE_WIN32; return RefreshList(); }
-    bool ListDrivers()  { ServiceType=SERVICE_DRIVER; return RefreshList(); }
-
-    DWORD GetType() const { return ServiceType; }
-    DWORD GetCount() const { return ServiceCount; }
-    const ENUM_SERVICE_STATUS_PROCESS &operator [](size_t i) const { return Services[i]; }
-
-    bool RefreshList()
+    class CServiceInfo
     {
-      if (ServiceType == 0)
-      {
-        Clear();
-        return true;
-      }
-
-      DWORD cbBytesNeeded=0;
-      DWORD dwServicesReturned=0;
-      DWORD dwResumeHandle=0;
-
-      BOOL ret = EnumServicesStatusEx(hSCManager,
-                                      SC_ENUM_PROCESS_INFO,
-                                      ServiceType,
-                                      SERVICE_STATE_ALL,
-                                      NULL,
-                                      0,
-                                      &cbBytesNeeded,
-                                      &dwServicesReturned,
-                                      &dwResumeHandle,
-                                      NULL);
-
-      if (!ret && GetLastError() == ERROR_MORE_DATA)
-      {
-        if (Services) free(Services);
-
-        Services = (ENUM_SERVICE_STATUS_PROCESS *) malloc(cbBytesNeeded);
-
-        if (Services)
-        {
-          ret = EnumServicesStatusEx(hSCManager,
-                                    SC_ENUM_PROCESS_INFO,
-                                    ServiceType,
-                                    SERVICE_STATE_ALL,
-                                    (LPBYTE)Services,
-                                    cbBytesNeeded,
-                                    &cbBytesNeeded,
-                                    &dwServicesReturned,
-                                    &dwResumeHandle,
-                                    NULL);
-
-          if (ret)
-          {
-            ServiceCount = dwServicesReturned;
-            return true;
-          }
-        }
-      }
-
-      Clear();
-      return false;
-    }
-
+      private:
+        std::wstring iDescription;
+        std::wstring iPath;
+        std::wstring iLoadOrderGroup;
+        std::wstring iDependencies;
+        DWORD iStartType;
+        DWORD iErrorControl;
+        DWORD iTagId;
+        ENUM_SERVICE_STATUS_PROCESS* iStatus;
+      private:
+        CServiceInfo();
+      public:
+        CServiceInfo(const std::wstring& aDescription,const std::wstring& aPath,const std::wstring& aLoadOrderGroup,const std::wstring& aDependencies,DWORD aStartType,DWORD aErrorControl,DWORD aTagId,ENUM_SERVICE_STATUS_PROCESS* aStatus);
+        SServiceInfo Data(void)const;
+    };
+    class CServiceList
+    {
+      private:
+        SC_HANDLE iSCManager;
+        ENUM_SERVICE_STATUS_PROCESS* iServices;
+        DWORD iServiceCount;
+        std::vector<CServiceInfo> iServicesInfo;
+      private:
+        CServiceList(const CServiceList& copy);
+      public:
+        CServiceList(const std::wstring& aRemoteMachine=L"");
+        ~CServiceList();
+      public:
+        bool ManagerStatus(void)const {return iSCManager!=NULL;};
+        bool Fill(DWORD aServiceType);
+        void Clear(void);
+        DWORD ServiceCount(void)const {return iServiceCount;};
+        SServiceInfo operator[](size_t anIndex)const {return iServicesInfo[anIndex].Data();};
+    };
   private:
-    void Clear() { if (Services) { free(Services); Services=NULL; } ServiceCount=0; }
+    CServiceList iServiceList;
+    DWORD iServiceType;
+  public:
+    CServiceManager(const std::wstring& aRemoteMachine=L""): iServiceList(aRemoteMachine),iServiceType(0) {};
+    bool ManagerStatus() const {return iServiceList.ManagerStatus();}
+    void Reset(DWORD aServiceType=0) {iServiceType=aServiceType;Clear();}
 
+    DWORD GetType()const {return iServiceType;}
+    DWORD GetCount()const {return iServiceList.ServiceCount();}
+    SServiceInfo operator[](size_t anIndex)const {return iServiceList[anIndex];};
+
+    bool RefreshList(void) {return iServiceList.Fill(iServiceType);}
   private:
-    ServiceManager(const ServiceManager &copy) { }
+    void Clear(void) {iServiceList.Clear();}
+  private:
+    CServiceManager(const CServiceManager &copy);
 };
 
 #define ArraySize(a) (sizeof(a)/sizeof(a[0]))
