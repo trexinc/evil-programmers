@@ -1,0 +1,1 @@
+Plugin for managing windows services
