@@ -1,19 +1,19 @@
 #path to the common folder from far plugins SVN
 ifndef COMMON
-COMMON = ../../../FAR/fardev/plugins/common
+COMMON = ../../common
 endif
 
 ADDDEFINES=-D UNICODE -D _UNICODE
 COMINC = $(COMMON)/unicode
 
-COMMONLIB = -L $(COMMON) -lCRT
+COMMONLIB =
 
 OBJDIR = ../o
 REOBJDIR = \.\.\/o\/
 DLLDIR = ../bin
 DLLNAME = Servelad.dll
 DLLFULLNAME = $(DLLDIR)/$(DLLNAME)
-SRCS = Servelad.cpp
+SRCS = Servelad.cpp ServiceManager.cpp
 DEF = Servelad.gcc.def
 
 CXX = g++
@@ -23,8 +23,8 @@ CP = cp -f
 M4 = m4 -P
 MV = mv -f
 MKDIR = mkdir -p
-CXXFLAGS = -mno-cygwin -Os -I $(COMMON) -I $(COMINC) -Wall -funsigned-char -fomit-frame-pointer -fstrict-aliasing -fno-rtti -fno-exceptions $(ADDDEFINES)
-LNKFLAGS = -mno-cygwin -mdll -s -nostartfiles -lgcc $(COMMONLIB)
+CXXFLAGS = -mno-cygwin -Os -I $(COMMON) -I $(COMINC) -Wall -funsigned-char -fomit-frame-pointer -fstrict-aliasing -fno-rtti $(ADDDEFINES)
+LNKFLAGS = -mno-cygwin -mdll -s $(COMMONLIB)
 
 OBJS = $(patsubst %.cpp,$(OBJDIR)/%.o,$(filter %.cpp,$(SRCS)))
 DEPS = $(patsubst %.cpp,$(OBJDIR)/%.d,$(filter %.cpp,$(SRCS)))
