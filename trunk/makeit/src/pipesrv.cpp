@@ -22,7 +22,7 @@
 
 #define BUFSIZE 4096
 
-static HANDLE hChildStdoutRd, hChildStdoutWr, hSaveStdout, hSaveStderr;
+static HANDLE hChildStdoutRd, hChildStdoutWr;
 
 BOOL CreateChildProcess(const char*);
 int ReadFromPipe(void);
@@ -35,45 +35,30 @@ pipesrv(const char* command)
     attr.nLength = sizeof(SECURITY_ATTRIBUTES);
     attr.bInheritHandle = TRUE;
     attr.lpSecurityDescriptor = NULL;
-    hSaveStdout = GetStdHandle(STD_OUTPUT_HANDLE);
-    hSaveStderr = GetStdHandle(STD_ERROR_HANDLE);
 
     if (!CreatePipe(&hChildStdoutRd, &hChildStdoutWr, &attr, 0))
         return MPipeError;
-    if (!SetStdHandle(STD_OUTPUT_HANDLE, hChildStdoutWr))
-    {
-        CloseHandle(hChildStdoutRd);
-        CloseHandle(hChildStdoutWr);
-        return MPipeError;
-    }
-    if (!SetStdHandle(STD_ERROR_HANDLE, hChildStdoutWr))
-    {
-        SetStdHandle(STD_OUTPUT_HANDLE, hSaveStdout);
-        CloseHandle(hChildStdoutRd);
-        CloseHandle(hChildStdoutWr);
-        return MPipeError;
-    }
+
     if (!CreateChildProcess(command))
     {
-        SetStdHandle(STD_OUTPUT_HANDLE, hSaveStdout);
-        SetStdHandle(STD_ERROR_HANDLE, hSaveStderr);
+        CloseHandle(hChildStdoutWr);
+        CloseHandle(hChildStdoutRd);
         return MProcessError;
     }
+
     CloseHandle(hChildStdoutWr);
 
     ReadFromPipe();
 
     CloseHandle(hChildStdoutRd);
 
-    SetStdHandle(STD_OUTPUT_HANDLE, hSaveStdout);
-    SetStdHandle(STD_ERROR_HANDLE, hSaveStderr);
     return 0;
 }
 
 BOOL CreateChildProcess(const char*command)
 {
-    PROCESS_INFORMATION pi;
-    STARTUPINFO si;
+    PROCESS_INFORMATION pi = {0};
+    STARTUPINFO si = {0};
 
     si.cb = sizeof(STARTUPINFO);
     si.lpReserved = NULL;
@@ -81,8 +66,20 @@ BOOL CreateChildProcess(const char*command)
     si.cbReserved2 = 0;
     si.lpDesktop = NULL;
     si.lpTitle = NULL;
-    si.dwFlags = 0;
-    return CreateProcess(NULL,const_cast<char*>(command),NULL,NULL,TRUE,0,NULL,NULL,&si,&pi);
+    si.dwFlags = STARTF_USESTDHANDLES;
+    si.hStdError = hChildStdoutWr;
+    si.hStdOutput = hChildStdoutWr;
+    si.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
+
+    BOOL ret = CreateProcess(NULL,const_cast<char*>(command),NULL,NULL,TRUE,0,NULL,NULL,&si,&pi);
+
+    if (ret)
+    {
+      CloseHandle(pi.hProcess);
+      CloseHandle(pi.hThread);
+    }
+
+    return ret;
 }
 
 int ReadFromPipe(void)

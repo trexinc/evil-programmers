@@ -219,44 +219,33 @@ void Draw(int from,int cursor=0);
 
 class HideCur{
   CONSOLE_CURSOR_INFO  ci;
-  HANDLE in,out;
 public:
-  HideCur(HANDLE conin,HANDLE conout,int hide)
+  HideCur(int hide)
   {
-    GetConsoleCursorInfo(conout,&ci);
+    GetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE),&ci);
     CONSOLE_CURSOR_INFO newci;
     newci.dwSize=25;
     newci.bVisible=0;
     if(hide)
     {
-      SetConsoleCursorInfo(conout,&newci);
+      SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE),&newci);
     }
-    in=conin;
-    out=conout;
   }
   HideCur()
   {
-    HANDLE conin=CreateFile("CONIN$",GENERIC_READ|GENERIC_WRITE,
-            FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
-    HANDLE conout=CreateFile("CONOUT$",GENERIC_READ|GENERIC_WRITE,
-            FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
-    GetConsoleCursorInfo(conout,&ci);
+    GetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE),&ci);
     CONSOLE_CURSOR_INFO newci;
     newci.dwSize=25;
     newci.bVisible=0;
-    SetConsoleCursorInfo(conout,&newci);
-    in=conin;
-    out=conout;
+    SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE),&newci);
   }
   void Restore()
   {
-    SetConsoleCursorInfo(out,&ci);
+    SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE),&ci);
   }
   ~HideCur()
   {
-    SetConsoleCursorInfo(out,&ci);
-    CloseHandle(in);
-    CloseHandle(out);
+    SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE),&ci);
   }
 };
 
@@ -908,13 +897,9 @@ void DeleteNonErrors(bool errorsonly=false)
 
 void Scroll()
 {
-  HANDLE h=CreateFile("CONIN$",GENERIC_READ|GENERIC_WRITE,
-          FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
-  HANDLE wr=CreateFile("CONOUT$",GENERIC_READ|GENERIC_WRITE,
-          FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
   INPUT_RECORD ir;
   DWORD rd;
-  HideCur hc(h,wr,1);
+  HideCur hc(1);
   if(opt.autodelete)DeleteNonErrors();
 
   if(linepos>log.Count()-1)
@@ -936,7 +921,7 @@ void Scroll()
       ll<<NULL;
     }
     Draw(toppos,1);
-    if(ReadConsoleInput(h,&ir,1,&rd) && rd==1)
+    if(ReadConsoleInput(GetStdHandle(STD_INPUT_HANDLE),&ir,1,&rd) && rd==1)
     {
       //DebugBreak();
       if(ir.EventType==KEY_EVENT && ir.Event.KeyEvent.bKeyDown)
@@ -1084,12 +1069,10 @@ void Scroll()
               file=cmddir+"\\"+file;
             hc.Restore();
             if(!SetPos(file,ll[linepos]->line,ll[linepos]->col))wasswitch=0;
-            //CloseHandle(h);
             return;
           }break;
           case VK_ESCAPE:
           {
-            //CloseHandle(h);
             return;
           }break;
         }
@@ -1097,7 +1080,6 @@ void Scroll()
     }
 
   }
-  //CloseHandle(h);
 }
 
 /*

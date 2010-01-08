@@ -1,7 +1,7 @@
 .Language=Russian, Russian
 .PluginContents=MakeIt
 @Contents
-$ #Far plugin MakeIt 1.31#
+$ #Far plugin MakeIt#
 
      Этот плагин предназначен для обработки вывода компилятора
 с целью нахождения сообщений об ошибках для последующей

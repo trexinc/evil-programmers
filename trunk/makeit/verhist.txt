@@ -1,5 +1,14 @@
+1.33
+  ! Plugin is now open source
+  ! Works fine in Far 2.0.1294 and newer
+  - no more double last line
+  - some handle leaks fixed
+1.32
+  + alt-del will remove all non-errors lines
+  ! after compilation set position to first _error_
 1.31
-  + alt-del will leave errors only (remove even warnings)
+  - filenames compare now ignores slashes difference '/' vs '\'
+  - some fixes in RegExp library.
 1.3
   + autosave option
   - crash after process creation error
