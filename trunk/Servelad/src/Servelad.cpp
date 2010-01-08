@@ -22,8 +22,11 @@
 
 struct PluginStartupInfo Info;
 FARSTANDARDFUNCTIONS FSF;
+const wchar_t PluginName[] = L"Servelad";
+const wchar_t DriversDirName[] = L"Drivers";
+const wchar_t ServicesDirName[] = L"Services";
 
-const TCHAR* GetMsg(int MsgId)
+const wchar_t *GetMsg(int MsgId)
 {
   return Info.GetMsg(Info.ModuleNumber,MsgId);
 }
@@ -53,21 +56,25 @@ void WINAPI GetPluginInfoW(PluginInfo* pi)
 
   pi->StructSize=sizeof(PluginInfo);
   pi->Flags=0;
-  MenuStrings[0]=L"Servelad";
+  MenuStrings[0]=PluginName;
   pi->PluginMenuStrings=MenuStrings;
   pi->PluginMenuStringsNumber=ArraySize(MenuStrings);
 }
 
 void WINAPI GetOpenPluginInfoW(HANDLE hPlugin, struct OpenPluginInfo *Info)
 {
+  static wchar_t PanelTitle[50];
   CServiceManager* sm=(CServiceManager*)hPlugin;
   Info->StructSize=sizeof(*Info);
-  Info->Flags=OPIF_ADDDOTS|OPIF_USEHIGHLIGHTING|OPIF_USEFILTER;
+  Info->Flags=OPIF_ADDDOTS|OPIF_SHOWPRESERVECASE|OPIF_USEHIGHLIGHTING|OPIF_USEFILTER;
   Info->CurDir=NULL;
   if(sm->GetType()==SERVICE_WIN32)
-    Info->CurDir=L"Services";
+    Info->CurDir=ServicesDirName;
   else if(sm->GetType()==SERVICE_DRIVER)
-    Info->CurDir=L"Drivers";
+    Info->CurDir=DriversDirName;
+
+  FSF.snprintf(PanelTitle,ArraySize(PanelTitle)-1,L"%s%s%s",PluginName,Info->CurDir?L": ":L"",Info->CurDir?Info->CurDir:L"");
+  Info->PanelTitle=PanelTitle;
 
   static PanelMode PanelModesArray[10];
   memset(&PanelModesArray, 0, sizeof (PanelModesArray));
@@ -105,9 +112,9 @@ int WINAPI GetFindDataW(HANDLE hPlugin, struct PluginPanelItem **pPanelItem, int
     memset(*pPanelItem, 0, sizeof(PluginPanelItem)*2);
     *pItemsNumber=2;
 
-    (*pPanelItem)[0].FindData.lpwszFileName=(wchar_t *)L"Drivers";
+    (*pPanelItem)[0].FindData.lpwszFileName=DriversDirName;
     (*pPanelItem)[0].FindData.dwFileAttributes=FILE_ATTRIBUTE_DIRECTORY;
-    (*pPanelItem)[1].FindData.lpwszFileName=(wchar_t *)L"Services";
+    (*pPanelItem)[1].FindData.lpwszFileName=ServicesDirName;
     (*pPanelItem)[1].FindData.dwFileAttributes=FILE_ATTRIBUTE_DIRECTORY;
   }
   else
@@ -123,6 +130,8 @@ int WINAPI GetFindDataW(HANDLE hPlugin, struct PluginPanelItem **pPanelItem, int
       SServiceInfo info=(*sm)[i];
       (*pPanelItem)[i].FindData.lpwszFileName=info.iStatus->lpDisplayName;
       (*pPanelItem)[i].FindData.lpwszAlternateFileName=info.iStatus->lpServiceName;
+      if (info.iStartType == SERVICE_DISABLED)
+        (*pPanelItem)[i].FindData.dwFileAttributes=FILE_ATTRIBUTE_HIDDEN;
       const wchar_t** CustomColumnData=(const wchar_t**)calloc(2,sizeof(const wchar_t*));
       if(CustomColumnData)
       {
@@ -198,11 +207,11 @@ int WINAPI SetDirectoryW(HANDLE hPlugin, const wchar_t *Dir, int OpMode)
   {
     sm->Reset();
   }
-  else if (!wcscmp(Dir,L"Services"))
+  else if (!wcscmp(Dir,ServicesDirName))
   {
     sm->Reset(SERVICE_WIN32);
   }
-  else if (!wcscmp(Dir,L"Drivers"))
+  else if (!wcscmp(Dir,DriversDirName))
   {
     sm->Reset(SERVICE_DRIVER);
   }
