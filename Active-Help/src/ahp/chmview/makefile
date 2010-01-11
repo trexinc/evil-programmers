@@ -26,24 +26,29 @@ MAP = $(patsubst %.ahp,%.map,$(DLLFULLNAME))
 
 $(OBJDIR)/%.d: %.c
 	@echo making depends for $<
+	@$(MKDIR) $(@D)
 	@$(SHELL) -ec '$(CC) -c -MM $(CCFLAGS) $< \
                 | sed '\''s/\($*\)\.o[ :]*/$(REOBJDIR)\1.o $(REOBJDIR)\1.d: /g'\'' > $@; [ -s $@ ] || $(RM) $@'
 
 $(OBJDIR)/%.d: %.cpp
 	@echo making depends for $<
+	@$(MKDIR) $(@D)
 	@$(SHELL) -ec '$(CXX) -c -MM $(CXXFLAGS) $< \
                 | sed '\''s/\($*\)\.o[ :]*/$(REOBJDIR)\1.o $(REOBJDIR)\1.d: /g'\'' > $@; [ -s $@ ] || $(RM) $@'
 
 $(OBJDIR)/%.o: %.c
 	@echo compiling $<
+	@$(MKDIR) $(@D)
 	@$(CC) $(CCFLAGS) -c -o $@ $<
 
 $(OBJDIR)/%.o: %.cpp
 	@echo compiling $<
+	@$(MKDIR) $(@D)
 	@$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 $(DLLFULLNAME): $(OBJS) $(DEF)
 	@echo linking $@
+	@$(MKDIR) $(@D)
 	@$(CXX) -mdll -o $(DLLNAME) -Xlinker --base-file -Xlinker $(DLLNAME).base $(OBJS) $(LNKFLAGS)
 	@$(DLLTOOL) --dllname $(DLLNAME) --base-file $(DLLNAME).base --output-exp $(DLLNAME).exp --def $(DEF)
 	@$(CXX) -mdll  -o $(DLLNAME) $(OBJS) $(DLLNAME).exp $(LNKFLAGS)
