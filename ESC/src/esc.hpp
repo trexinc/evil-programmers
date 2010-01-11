@@ -20,7 +20,7 @@
 struct PluginStartupInfo Info;
 struct FarStandardFunctions FSF;
 
-wchar_t PluginRootKey[NM], XMLFilePath[NM];
+wchar_t PluginRootKey[MAX_PATH], XMLFilePath[MAX_PATH];
 
 BOOL IsOldFar=TRUE, XMLLoadedOK=FALSE;
 #include "e_options.hpp"

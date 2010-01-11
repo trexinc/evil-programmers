@@ -29,7 +29,7 @@
 
 extern OPTIONS Opt;
 extern FarStandardFunctions FSF;
-extern wchar_t PluginRootKey[NM];
+extern wchar_t PluginRootKey[MAX_PATH];
 const wchar_t *REGStrSSS=L"%s%s%s", *REGStrOptions=L"Options";
 wchar_t REGFullKeyName[512];
 

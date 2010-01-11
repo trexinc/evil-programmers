@@ -36,7 +36,7 @@ extern TArray<NODEDATA> *NodeData;
 extern CRedBlackTree<ESCFileInfo> *FileInfoTree;
 extern PluginStartupInfo Info;
 extern FarStandardFunctions FSF;
-extern wchar_t XMLFilePath[NM];
+extern wchar_t XMLFilePath[MAX_PATH];
 extern BOOL XMLLoadedOK, IsOldFar;
 extern XMLStrings XMLStr;
 extern struct OPTIONS Opt;
