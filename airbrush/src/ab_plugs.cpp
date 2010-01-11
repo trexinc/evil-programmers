@@ -146,7 +146,7 @@ void LoadPlugs(const TCHAR* ModuleName)
   int Done=((FindHandle=FindFirstFile(PluginsMask,&fdata))==INVALID_HANDLE_VALUE);
   while(!Done)
   {
-    TCHAR PluginName[NM];
+    TCHAR PluginName[MAX_PATH];
     FSF.sprintf(PluginName,_T("%s%s"),PluginsFolder,fdata.cFileName);
     HMODULE hModule=LoadLibrary(PluginName);
     if (hModule!=NULL)
