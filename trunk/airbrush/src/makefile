@@ -20,7 +20,7 @@ DLLTOOL=dlltool
 MAKE=make
 M4=m4
 WINDRES=windres
-WINDRESPRE=--preprocessor \"\\\"gcc -E -xc -DRC_INVOKED\\\"\"
+WINDRESPRE=
 CP=cp
 MKDIR=mkdir -p
 
