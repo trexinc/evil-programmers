@@ -1,24 +1,23 @@
-/* A Bison parser, made by GNU Bison 2.3.  */
+
+/* A Bison parser, made by GNU Bison 2.4.1.  */
 
 /* Skeleton interface for Bison's Yacc-like parsers in C
-
-   Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005, 2006
+   
+      Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005, 2006
    Free Software Foundation, Inc.
-
-   This program is free software; you can redistribute it and/or modify
+   
+   This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2, or (at your option)
-   any later version.
-
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+   
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
-
+   
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110-1301, USA.  */
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -29,9 +28,10 @@
    special exception, which will cause the skeleton and the resulting
    Bison output files to be licensed under the GNU General Public
    License without this special exception.
-
+   
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
+
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -68,54 +68,31 @@
      UNARYMINUS = 284
    };
 #endif
-/* Tokens.  */
-#define _NUMBER 258
-#define _VAR 259
-#define _FUNC 260
-#define _STRING 261
-#define _IF 262
-#define _ELSE 263
-#define _ENDIF 264
-#define _WHILE 265
-#define _WEND 266
-#define _CONTINUE 267
-#define _BREAK 268
-#define _GOSUB 269
-#define _SUB 270
-#define _ENDSUB 271
-#define _OR 272
-#define _AND 273
-#define _NE 274
-#define _EQ 275
-#define _LQ 276
-#define _LE 277
-#define _LT 278
-#define _GE 279
-#define _GT 280
-#define _DEC 281
-#define _INC 282
-#define _NOT 283
-#define UNARYMINUS 284
-
 
 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 30 "parser_grammar.y"
 {
+
+/* Line 1740 of scripts.c  */
+#line 30 "parser_grammar.y"
+
   __INT64 number; //numbers
   long variable; //variables, functions, custom functions
   long ptr; //internal use
   char *string; //strings
-}
-/* Line 1529 of yacc.c.  */
-#line 114 "parser_grammar.hpp"
-	YYSTYPE;
+
+
+
+/* Line 1740 of scripts.c  */
+#line 90 "parser_grammar.hpp"
+} YYSTYPE;
+# define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
-# define YYSTYPE_IS_TRIVIAL 1
 #endif
+
 
 
 

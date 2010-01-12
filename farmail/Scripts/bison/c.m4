@@ -1,99 +1,74 @@
-m4_divert(-1)                                               -*- Autoconf -*-
+                                                            -*- Autoconf -*-
 
 # C M4 Macros for Bison.
-# Copyright (C) 2002, 2004, 2005, 2006 Free Software Foundation, Inc.
+# Copyright (C) 2002, 2004, 2005, 2006, 2007, 2008 Free Software
+# Foundation, Inc.
 
-# This program is free software; you can redistribute it and/or modify
+# This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
+# the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-
+#
 # You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-# 02110-1301  USA
-
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ## ---------------- ##
 ## Identification.  ##
 ## ---------------- ##
 
-# b4_copyright(TITLE, YEARS)
-# --------------------------
-m4_define([b4_copyright],
-[/* A Bison parser, made by GNU Bison b4_version.  */
-
-/* $1
-
-m4_text_wrap([Copyright (C) $2 Free Software Foundation, Inc.], [   ])
-
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2, or (at your option)
-   any later version.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110-1301, USA.  */
-
-/* As a special exception, you may create a larger work that contains
-   part or all of the Bison parser skeleton and distribute that work
-   under terms of your choice, so long as that work isn't itself a
-   parser generator using the skeleton or a modified version thereof
-   as a parser skeleton.  Alternatively, if you modify or redistribute
-   the parser skeleton itself, you may (at your option) remove this
-   special exception, which will cause the skeleton and the resulting
-   Bison output files to be licensed under the GNU General Public
-   License without this special exception.
-
-   This special exception was added by the Free Software Foundation in
-   version 2.2 of Bison.  */])
-
+# b4_comment(TEXT)
+# ----------------
+m4_define([b4_comment], [/* m4_bpatsubst([$1], [
+], [
+   ])  */])
 
 # b4_identification
 # -----------------
+# Depends on individual skeletons to define b4_pure_flag, b4_push_flag, or
+# b4_pull_flag if they use the values of the %define variables api.pure or
+# api.push_pull.
 m4_define([b4_identification],
-[/* Identify Bison output.  */
-[#]define YYBISON 1
+[[/* Identify Bison output.  */
+#define YYBISON 1
 
 /* Bison version.  */
-[#]define YYBISON_VERSION "b4_version"
+#define YYBISON_VERSION "]b4_version["
 
 /* Skeleton name.  */
-[#]define YYSKELETON_NAME b4_skeleton
+#define YYSKELETON_NAME ]b4_skeleton[]m4_ifdef([b4_pure_flag], [[
 
 /* Pure parsers.  */
-[#]define YYPURE b4_pure_flag
+#define YYPURE ]b4_pure_flag])[]m4_ifdef([b4_push_flag], [[
+
+/* Push parsers.  */
+#define YYPUSH ]b4_push_flag])[]m4_ifdef([b4_pull_flag], [[
+
+/* Pull parsers.  */
+#define YYPULL ]b4_pull_flag])[
 
 /* Using locations.  */
-[#]define YYLSP_NEEDED b4_locations_flag
-])
-
+#define YYLSP_NEEDED ]b4_locations_flag[
+]])
 
 
 ## ---------------- ##
 ## Default values.  ##
 ## ---------------- ##
 
-m4_define_default([b4_epilogue], [])
+# If the %union is not named, its name is YYSTYPE.
+m4_define_default([b4_union_name], [YYSTYPE])
 
-
+# If the %name-prefix is not given, it is yy.
+m4_define_default([b4_prefix], [yy])
 
 ## ------------------------ ##
 ## Pure/impure interfaces.  ##
 ## ------------------------ ##
-
 
 # b4_user_args
 # ------------
@@ -105,9 +80,8 @@ m4_define([b4_user_args],
 # --------------
 # If defined, b4_parse_param arrives double quoted, but below we prefer
 # it to be single quoted.
-m4_define_default([b4_parse_param])
 m4_define([b4_parse_param],
-b4_parse_param))
+b4_parse_param)
 
 
 # b4_parse_param_for(DECL, FORMAL, BODY)
@@ -116,7 +90,7 @@ b4_parse_param))
 # the formal name to FORMAL, and evaluating the BODY.
 m4_define([b4_parse_param_for],
 [m4_foreach([$1_$2], m4_defn([b4_parse_param]),
-[m4_pushdef([$1], m4_fst($1_$2))dnl
+[m4_pushdef([$1], m4_unquote(m4_car($1_$2)))dnl
 m4_pushdef([$2], m4_shift($1_$2))dnl
 $3[]dnl
 m4_popdef([$2])dnl
@@ -131,17 +105,10 @@ m4_define([b4_parse_param_use],
 ])dnl
 ])
 
+
 ## ------------ ##
 ## Data Types.  ##
 ## ------------ ##
-
-
-# b4_ints_in(INT1, INT2, LOW, HIGH)
-# ---------------------------------
-# Return 1 iff both INT1 and INT2 are in [LOW, HIGH], 0 otherwise.
-m4_define([b4_ints_in],
-[m4_eval([$3 <= $1 && $1 <= $4 && $3 <= $2 && $2 <= $4])])
-
 
 # b4_int_type(MIN, MAX)
 # ---------------------
@@ -167,46 +134,17 @@ m4_define([b4_int_type_for],
 [b4_int_type($1_min, $1_max)])
 
 
-## ------------------ ##
-## Decoding options.  ##
-## ------------------ ##
 
-# b4_flag_if(FLAG, IF-TRUE, IF-FALSE)
-# -----------------------------------
-# Run IF-TRUE if b4_FLAG_flag is 1, IF-FALSE if FLAG is 0, otherwise fail.
-m4_define([b4_flag_if],
-[m4_case(b4_$1_flag,
-         [0], [$3],
-	 [1], [$2],
-	 [m4_fatal([invalid $1 value: ]$1)])])
+## ---------##
+## Values.  ##
+## ---------##
 
+# b4_null
+---------
+# Return a null pointer constant.  NULL infringes on the user name
+# space in C, so use 0 rather than NULL.
+m4_define([b4_null], [0])
 
-# b4_define_flag_if(FLAG)
-# -----------------------
-# Define "b4_FLAG_if(IF-TRUE, IF-FALSE)" that depends on the
-# value of the Boolean FLAG.
-m4_define([b4_define_flag_if],
-[_b4_define_flag_if($[1], $[2], [$1])])
-
-# _b4_define_flag_if($1, $2, FLAG)
-# --------------------------------
-# This macro works around the impossibility to define macros
-# inside macros, because issuing `[$1]' is not possible in M4 :(.
-# This sucks hard, GNU M4 should really provide M5 like $$1.
-m4_define([_b4_define_flag_if],
-[m4_if([$1$2], $[1]$[2], [],
-       [m4_fatal([$0: Invalid arguments: $@])])dnl
-m4_define([b4_$3_if], 
-          [b4_flag_if([$3], [$1], [$2])])])
-
-
-# b4_FLAG_if(IF-TRUE, IF-FALSE)
-# -----------------------------
-# Expand IF-TRUE, if FLAG is true, IF-FALSE otherwise.
-b4_define_flag_if([defines])        # Whether headers are requested.
-b4_define_flag_if([error_verbose])  # Wheter error are verbose.
-b4_define_flag_if([locations])      # Whether locations are tracked.
-b4_define_flag_if([pure])           # Whether the interface is pure.
 
 
 
@@ -226,7 +164,7 @@ m4_define([b4_token_define],
 # -------------------------------------------------------
 # Output the definition of the tokens (if there are) as #defines.
 m4_define([b4_token_defines],
-[m4_if([$@], [[]], [],
+[m4_if([$#$1], [1], [],
 [/* Tokens.  */
 m4_map([b4_token_define], [$@])])
 ])
@@ -243,7 +181,7 @@ m4_define([b4_token_enum],
 # -----------------------------------------------------
 # Output the definition of the tokens (if there are) as enums.
 m4_define([b4_token_enums],
-[m4_if([$@], [[]], [],
+[m4_if([$#$1], [1], [],
 [/* Tokens.  */
 #ifndef YYTOKENTYPE
 # define YYTOKENTYPE
@@ -260,9 +198,10 @@ m4_map_sep([     b4_token_enum], [,
 
 # b4_token_enums_defines(LIST-OF-PAIRS-TOKEN-NAME-TOKEN-NUMBER)
 # -------------------------------------------------------------
-# Output the definition of the tokens (if there are) as enums and #defines.
+# Output the definition of the tokens (if there are any) as enums and, if POSIX
+# Yacc is enabled, as #defines.
 m4_define([b4_token_enums_defines],
-[b4_token_enums($@)b4_token_defines($@)
+[b4_token_enums($@)b4_yacc_if([b4_token_defines($@)], [])
 ])
 
 
@@ -294,8 +233,8 @@ m4_define([b4_c_function_def],
 b4_c_ansi_function_def($@)
 #else
 $2
-$1 (b4_c_knr_formal_names(m4_shiftn(2, $@)))
-b4_c_knr_formal_decls(m4_shiftn(2, $@))
+$1 (b4_c_knr_formal_names(m4_shift2($@)))
+b4_c_knr_formal_decls(m4_shift2($@))
 #endif[]dnl
 ])
 
@@ -305,7 +244,7 @@ b4_c_knr_formal_decls(m4_shiftn(2, $@))
 # Declare the function NAME in ANSI.
 m4_define([b4_c_ansi_function_def],
 [$2
-$1 (b4_c_ansi_formals(m4_shiftn(2, $@)))[]dnl
+$1 (b4_c_ansi_formals(m4_shift2($@)))[]dnl
 ])
 
 
@@ -313,9 +252,8 @@ $1 (b4_c_ansi_formals(m4_shiftn(2, $@)))[]dnl
 # --------------------------------------
 # Output the arguments ANSI-C definition.
 m4_define([b4_c_ansi_formals],
-[m4_case([$@],
-	 [],   [void],
-	 [[]], [void],
+[m4_if([$#], [0], [void],
+       [$#$1], [1], [void],
 	       [m4_map_sep([b4_c_ansi_formal], [, ], [$@])])])
 
 m4_define([b4_c_ansi_formal],
@@ -367,7 +305,7 @@ $2 $1 ();
 # ----------------------------------------------------------------
 # Declare the function NAME.
 m4_define([b4_c_ansi_function_decl],
-[$2 $1 (b4_c_ansi_formals(m4_shiftn(2, $@)));[]dnl
+[$2 $1 (b4_c_ansi_formals(m4_shift2($@)));[]dnl
 ])
 
 
@@ -382,7 +320,7 @@ m4_define([b4_c_ansi_function_decl],
 # -----------------------------------------------------------
 # Call the function NAME with arguments NAME1, NAME2 etc.
 m4_define([b4_c_function_call],
-[$1 (b4_c_args(m4_shiftn(2, $@)))[]dnl
+[$1 (b4_c_args(m4_shift2($@)))[]dnl
 ])
 
 
@@ -400,16 +338,21 @@ m4_define([b4_c_arg],
 ## Synclines.  ##
 ## ----------- ##
 
-# b4_syncline(LINE, FILE)
+# b4_sync_start(LINE, FILE)
 # -----------------------
-m4_define([b4_syncline],
-[b4_flag_if([synclines], [[#]line $1 $2])])
-
+m4_define([b4_sync_start], [[#]line $1 $2])
 
 
 ## -------------- ##
 ## User actions.  ##
 ## -------------- ##
+
+# b4_case(LABEL, STATEMENTS)
+# --------------------------
+m4_define([b4_case],
+[  case $1:
+$2
+    break;])
 
 # b4_symbol_actions(FILENAME, LINENO,
 #                   SYMBOL-TAG, SYMBOL-NUM,

@@ -64,7 +64,7 @@ $(DLLFULLNAME): $(OBJS) $(DEF)
 
 parser_grammar.hpp parser_grammar.cpp: parser_grammar.y ./bison/scripts.c
 	@echo generating parser
-	@bison parser_grammar.y -o parser_grammar.cpp -S scripts.c -d
+	@bison parser_grammar.y -o parser_grammar.cpp -S ./bison/scripts.c -d
 
 parser_lex.cpp: parser_lex.re
 	@echo generating lexer
