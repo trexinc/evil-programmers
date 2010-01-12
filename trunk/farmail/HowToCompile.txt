@@ -2,47 +2,33 @@ I. To compile FARMail and sub-plugins you will need the following tools:
 ------------------------------------------------------------------------
 
 1. GNU M4.
-2. GNU Bison v2.3 for Scripts sub-plugin.
-3. Re2C v0.13.1 for Scripts sub-plugin.
+2. GNU Bison v2.4.1 for Scripts sub-plugin.
+3. Re2C v0.13.5 for Scripts sub-plugin.
 4. OpenSSL libraries to compile with SSL support.
 
 II. To compile with MingW (GCC):
 --------------------------------
-1. GNU GCC v3.4.2 and accompanying tools (it is possible to compile with GCC
-   v2.9.x too, newer versions of GCC should also work).
+1. GNU GCC v4.4.1 and accompanying tools (it should be possible to compile with
+   older GCC versions too).
 2. MSYS or any other unix tools distribution.
 
-III. To compile with Borland C++ Compiler:
-------------------------------------------
-1. BCC v5.5.1 (or maybe other).
-2. Borland Turbo (or other) assembler for Windows.
-3. You will probably have to edit some standard headers as Borland doesn't
-   support function name overloading very well.
-4. As the BCC make files were not used for a long time now there might be some
-   unexpected problems.
-
-IV. To compile with MS Visual C++:
-----------------------------------
-1. There is a project file for FARMail (without sub-plugins) for VS2003.
-
-V. Other compilers:
+II. Other compilers:
 --------------------
 No support for other compilers has been made. Your are welcomed to add it
 yourself.
 
-VI. How to do it:
+IV. How to do it:
 ----------------
 In every folder there is a selection of make files, just pick the one you need
 and run the make utility of your compiler.
 The binaries and objects will be saved to "bin" and "obj" folders
-correspondingly, those folders will be on the same level as the folder
-containing the contents of this archive.
+correspondingly.
 
-VII. Links:
+V. Links:
 ----------
+http://code.google.com/p/evil-programmers/wiki/HowToBuild
 http://www.mingw.org/ - MingW and MSYS (including GCC and more)
-http://www.borland.com/ - BCC v5.5.1 free C/C++ compiler
-http://msdn.microsoft.com/visualc - MS Visual C++
+http://www.tdragon.net/recentgcc/ - GCC 4
 http://gnuwin32.sf.net/ - GNU tools compiled for Windows (M4, Bison)
 http://re2c.sf.net/ - Re2C
 http://www.openssl.org/ - OpenSSL sources
