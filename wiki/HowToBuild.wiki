@@ -6,14 +6,19 @@
 The following files are needed:
 
 From http://sourceforge.net/projects/mingw/
-  * msysCORE-1.0.11-bin.tar.gz
-  * bison-2.3-MSYS-1.0.11-1.tar.bz2
-  * binutils-2.19.1-mingw32-bin.tar.gz
-  * mingwrt-3.16-mingw32-dev.tar.gz
-  * mingwrt-3.16-mingw32-dll.tar.gz
-  * mingw-utils-0.3.tar.gz
-  * w32api-3.13-mingw32-dev.tar.gz
-  * mingw32-make-3.81-20080326-3.tar.gz
+  * make-3.81-20090914-mingw32-bin.tar.gz
+  * mingwrt-3.17-mingw32-dev.tar.gz
+  * mingwrt-3.17-mingw32-dll.tar.gz
+  * w32api-3.14-mingw32-dev.tar.gz
+  * bash-3.1.17-2-msys-1.0.11-bin.tar.lzma
+  * binutils-2.19.51-2-msys-1.0.12-bin.tar.lzma
+  * bison-2.4.1-1-msys-1.0.11-bin.tar.lzma
+  * coreutils-5.97-2-msys-1.0.11-bin.tar.lzma
+  * m4-1.4.13-1-msys-1.0.11-bin.tar.lzma
+  * make-3.81-2-msys-1.0.11-bin.tar.lzma
+  * mingw-utils-0.4-1-mingw32-bin.tar.lzma
+  * msysCORE-1.0.12-1-msys-1.0.12-bin.tar.lzma
+  * sed-4.2.1-1-msys-1.0.11-bin.tar.lzma
 
 From http://www.tdragon.net/recentgcc/
   * gcc-4.4.1-tdm-2-core.zip
@@ -22,27 +27,9 @@ From http://www.tdragon.net/recentgcc/
 From http://sourceforge.net/projects/re2c
   * re2c-0.13.5-bin.zip
 
-Extract to *msys* folder:
-  * bison-2.3-MSYS-1.0.11-1.tar.bz2
-  * msysCORE-1.0.11-bin.tar.gz
+Extract all archives to *mingw* folder (note: re2c-0.13.5-bin.zip needs to be extracted to *mingw/bin*)
 
-Extract to *msys/bin* folder:
-  * re2c-0.13.5-bin.zip
-
-Extract to *mingw* folder:
-  * binutils-2.19.1-mingw32-bin.tar.gz
-  * mingw32-make-3.81-20080326-3.tar.gz
-  * mingwrt-3.16-mingw32-dev.tar.gz
-  * mingwrt-3.16-mingw32-dll.tar.gz
-  * mingw-utils-0.3.tar.gz
-  * w32api-3.13-mingw32-dev.tar.gz
-  * gcc-4.4.1-tdm-2-core.zip
-  * gcc-4.4.1-tdm-2-g++.zip
-
-Add *mingw/bin* and *msys/bin* to *PATH*.
-
-Create a file called *fstab* under *msys/etc* with the following contents:
-`Drive:/path_to/mingw /mingw`
+Add *mingw/bin* to *PATH*.
 
 Now, to compile the plugins you need to use the following command:
 `mingw32-make -f makefile WIDE=1 COMMON=../path_to_common/from_far_svn`
