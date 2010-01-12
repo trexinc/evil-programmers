@@ -1,24 +1,23 @@
-/* A Bison parser, made by GNU Bison 2.3.  */
+
+/* A Bison parser, made by GNU Bison 2.4.1.  */
 
 /* Skeleton implementation for Bison's Yacc-like parsers in C
-
-   Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005, 2006
+   
+      Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005, 2006
    Free Software Foundation, Inc.
-
-   This program is free software; you can redistribute it and/or modify
+   
+   This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2, or (at your option)
-   any later version.
-
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+   
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
-
+   
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110-1301, USA.  */
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -29,7 +28,7 @@
    special exception, which will cause the skeleton and the resulting
    Bison output files to be licensed under the GNU General Public
    License without this special exception.
-
+   
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
@@ -47,17 +46,77 @@
 #define YYBISON 1
 
 /* Bison version.  */
-#define YYBISON_VERSION "2.3"
+#define YYBISON_VERSION "2.4.1"
 
 /* Skeleton name.  */
-#define YYSKELETON_NAME "scripts.c"
+#define YYSKELETON_NAME "./bison/scripts.c"
 
 /* Pure parsers.  */
 #define YYPURE 1
 
+/* Push parsers.  */
+#define YYPUSH 0
+
+/* Pull parsers.  */
+#define YYPULL 1
+
 /* Using locations.  */
 #define YYLSP_NEEDED 0
 
+
+
+/* Copy the first part of user declarations.  */
+
+/* Line 189 of scripts.c  */
+#line 1 "parser_grammar.y"
+
+/*
+    Scripts sub-plugin for FARMail
+    Copyright (C) 2002-2004 FARMail Group
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
+#include "parser.hpp"
+#include "language.hpp"
+
+#if defined(__BORLANDC__)
+#define malloc(size) HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,size)
+#define free(ptr) ((ptr)?HeapFree(GetProcessHeap(),0,ptr):0)
+#endif
+
+
+/* Line 189 of scripts.c  */
+#line 102 "parser_grammar.cpp"
+
+/* Enabling traces.  */
+#ifndef YYDEBUG
+# define YYDEBUG 0
+#endif
+
+/* Enabling verbose error messages.  */
+#ifdef YYERROR_VERBOSE
+# undef YYERROR_VERBOSE
+# define YYERROR_VERBOSE 1
+#else
+# define YYERROR_VERBOSE 0
+#endif
+
+/* Enabling the token table.  */
+#ifndef YYTOKEN_TABLE
+# define YYTOKEN_TABLE 0
+#endif
 
 
 /* Tokens.  */
@@ -95,113 +154,42 @@
      UNARYMINUS = 284
    };
 #endif
-/* Tokens.  */
-#define _NUMBER 258
-#define _VAR 259
-#define _FUNC 260
-#define _STRING 261
-#define _IF 262
-#define _ELSE 263
-#define _ENDIF 264
-#define _WHILE 265
-#define _WEND 266
-#define _CONTINUE 267
-#define _BREAK 268
-#define _GOSUB 269
-#define _SUB 270
-#define _ENDSUB 271
-#define _OR 272
-#define _AND 273
-#define _NE 274
-#define _EQ 275
-#define _LQ 276
-#define _LE 277
-#define _LT 278
-#define _GE 279
-#define _GT 280
-#define _DEC 281
-#define _INC 282
-#define _NOT 283
-#define UNARYMINUS 284
 
 
-
-
-/* Copy the first part of user declarations.  */
-#line 1 "parser_grammar.y"
-
-/*
-    Scripts sub-plugin for FARMail
-    Copyright (C) 2002-2004 FARMail Group
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*/
-#include "parser.hpp"
-#include "language.hpp"
-
-#if defined(__BORLANDC__)
-#define malloc(size) HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,size)
-#define free(ptr) ((ptr)?HeapFree(GetProcessHeap(),0,ptr):0)
-#endif
-
-
-/* Enabling traces.  */
-#ifndef YYDEBUG
-# define YYDEBUG 0
-#endif
-
-/* Enabling verbose error messages.  */
-#ifdef YYERROR_VERBOSE
-# undef YYERROR_VERBOSE
-# define YYERROR_VERBOSE 1
-#else
-# define YYERROR_VERBOSE 0
-#endif
-
-/* Enabling the token table.  */
-#ifndef YYTOKEN_TABLE
-# define YYTOKEN_TABLE 0
-#endif
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 30 "parser_grammar.y"
 {
+
+/* Line 222 of scripts.c  */
+#line 30 "parser_grammar.y"
+
   __INT64 number; //numbers
   long variable; //variables, functions, custom functions
   long ptr; //internal use
   char *string; //strings
-}
-/* Line 193 of yacc.c.  */
-#line 189 "parser_grammar.cpp"
-	YYSTYPE;
+
+
+
+/* Line 222 of scripts.c  */
+#line 176 "parser_grammar.cpp"
+} YYSTYPE;
+# define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
-# define YYSTYPE_IS_TRIVIAL 1
 #endif
 
 
-
 /* Copy the second part of user declarations.  */
+
+/* Line 264 of scripts.c  */
 #line 54 "parser_grammar.y"
 
 #define YYPARSE_PARAM
 
 
-/* Line 216 of yacc.c.  */
-#line 205 "parser_grammar.cpp"
+/* Line 264 of scripts.c  */
+#line 193 "parser_grammar.cpp"
 
 #ifdef short
 # undef short
@@ -276,14 +264,14 @@ typedef short int yytype_int16;
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 static int
-YYID (int i)
+YYID (int yyi)
 #else
 static int
-YYID (i)
-    int i;
+YYID (yyi)
+    int yyi;
 #endif
 {
-  return i;
+  return yyi;
 }
 #endif
 
@@ -364,9 +352,9 @@ void free (void *); /* INFRINGES ON USER NAME SPACE */
 /* A type that is properly aligned for any stack member.  */
 union yyalloc
 {
-  yytype_int16 yyss;
-  YYSTYPE yyvs;
-  };
+  yytype_int16 yyss_alloc;
+  YYSTYPE yyvs_alloc;
+};
 
 /* The size of the maximum gap between one aligned stack and the next.  */
 # define YYSTACK_GAP_MAXIMUM (sizeof (union yyalloc) - 1)
@@ -400,12 +388,12 @@ union yyalloc
    elements in the stack, and YYPTR gives the new location of the
    stack.  Advance YYPTR to a properly aligned location for the next
    stack.  */
-# define YYSTACK_RELOCATE(Stack)					\
+# define YYSTACK_RELOCATE(Stack_alloc, Stack)				\
     do									\
       {									\
 	YYSIZE_T yynewbytes;						\
-	YYCOPY (&yyptr->Stack, Stack, yysize);				\
-	Stack = &yyptr->Stack;						\
+	YYCOPY (&yyptr->Stack_alloc, Stack, yysize);			\
+	Stack = &yyptr->Stack_alloc;					\
 	yynewbytes = yystacksize * sizeof (*Stack) + YYSTACK_GAP_MAXIMUM; \
 	yyptr += yynewbytes / sizeof (*yyptr);				\
       }									\
@@ -890,17 +878,20 @@ yy_symbol_print (yyoutput, yytype, yyvaluep)
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 static void
-yy_stack_print (yytype_int16 *bottom, yytype_int16 *top)
+yy_stack_print (yytype_int16 *yybottom, yytype_int16 *yytop)
 #else
 static void
-yy_stack_print (bottom, top)
-    yytype_int16 *bottom;
-    yytype_int16 *top;
+yy_stack_print (yybottom, yytop)
+    yytype_int16 *yybottom;
+    yytype_int16 *yytop;
 #endif
 {
   YYFPRINTF (stderr, "Stack now");
-  for (; bottom <= top; ++bottom)
-    YYFPRINTF (stderr, " %d", *bottom);
+  for (; yybottom <= yytop; yybottom++)
+    {
+      int yybot = *yybottom;
+      YYFPRINTF (stderr, " %d", yybot);
+    }
   YYFPRINTF (stderr, "\n");
 }
 
@@ -934,11 +925,11 @@ yy_reduce_print (yyvsp, yyrule)
   /* The symbols being reduced.  */
   for (yyi = 0; yyi < yynrhs; yyi++)
     {
-      fprintf (stderr, "   $%d = ", yyi + 1);
+      YYFPRINTF (stderr, "   $%d = ", yyi + 1);
       yy_symbol_print (stderr, yyrhs[yyprhs[yyrule] + yyi],
 		       &(yyvsp[(yyi + 1) - (yynrhs)])
 		       		       );
-      fprintf (stderr, "\n");
+      YYFPRINTF (stderr, "\n");
     }
 }
 
@@ -1218,10 +1209,8 @@ yydestruct (yymsg, yytype, yyvaluep)
 	break;
     }
 }
-
 
 /* Prevent warnings from -Wmissing-prototypes.  */
-
 #ifdef YYPARSE_PARAM
 #if defined __STDC__ || defined __cplusplus
 int yyparse (void *YYPARSE_PARAM);
@@ -1240,10 +1229,9 @@ int yyparse ();
 
 
 
-
-/*----------.
-| yyparse.  |
-`----------*/
+/*-------------------------.
+| yyparse or yypush_parse.  |
+`-------------------------*/
 
 #ifdef YYPARSE_PARAM
 #if (defined __STDC__ || defined __C99__FUNC__ \
@@ -1267,22 +1255,46 @@ yyparse ()
 #endif
 #endif
 {
-  /* The look-ahead symbol.  */
+/* The lookahead symbol.  */
 int yychar;
 
-/* The semantic value of the look-ahead symbol.  */
+/* The semantic value of the lookahead symbol.  */
 YYSTYPE yylval;
 
-/* Number of syntax errors so far.  */
-int yynerrs;
+    /* Number of syntax errors so far.  */
+    int yynerrs;
 
-  int yystate;
+    int yystate;
+    /* Number of tokens to shift before error messages enabled.  */
+    int yyerrstatus;
+
+    /* The stacks and their tools:
+       `yyss': related to states.
+       `yyvs': related to semantic values.
+
+       Refer to the stacks thru separate pointers, to allow yyoverflow
+       to reallocate them elsewhere.  */
+
+    /* The state stack.  */
+    yytype_int16 yyssa[YYINITDEPTH];
+    yytype_int16 *yyss;
+    yytype_int16 *yyssp;
+
+    /* The semantic value stack.  */
+    YYSTYPE yyvsa[YYINITDEPTH];
+    YYSTYPE *yyvs;
+    YYSTYPE *yyvsp;
+
+    YYSIZE_T yystacksize;
+
   int yyn;
   int yyresult;
-  /* Number of tokens to shift before error messages enabled.  */
-  int yyerrstatus;
-  /* Look-ahead token as an internal (translated) token number.  */
-  int yytoken = 0;
+  /* Lookahead token as an internal (translated) token number.  */
+  int yytoken;
+  /* The variables used to return semantic value and location from the
+     action routines.  */
+  YYSTYPE yyval;
+
 #if YYERROR_VERBOSE
   /* Buffer for error messages, and its allocated size.  */
   char yymsgbuf[128];
@@ -1290,51 +1302,28 @@ int yynerrs;
   YYSIZE_T yymsg_alloc = sizeof yymsgbuf;
 #endif
 
-  /* Three stacks and their tools:
-     `yyss': related to states,
-     `yyvs': related to semantic values,
-     `yyls': related to locations.
-
-     Refer to the stacks thru separate pointers, to allow yyoverflow
-     to reallocate them elsewhere.  */
-
-  /* The state stack.  */
-  yytype_int16 yyssa[YYINITDEPTH];
-  yytype_int16 *yyss = yyssa;
-  yytype_int16 *yyssp;
-
-  /* The semantic value stack.  */
-  YYSTYPE yyvsa[YYINITDEPTH];
-  YYSTYPE *yyvs = yyvsa;
-  YYSTYPE *yyvsp;
-
-
-
 #define YYPOPSTACK(N)   (yyvsp -= (N), yyssp -= (N))
-
-  YYSIZE_T yystacksize = YYINITDEPTH;
-
-  /* The variables used to return semantic value and location from the
-     action routines.  */
-  YYSTYPE yyval;
-
 
   /* The number of symbols on the RHS of the reduced rule.
      Keep to zero when no symbol should be popped.  */
   int yylen = 0;
+
+  yytoken = 0;
+  yyss = yyssa;
+  yyvs = yyvsa;
+  yystacksize = YYINITDEPTH;
 
   YYDPRINTF ((stderr, "Starting parse\n"));
 
   yystate = 0;
   yyerrstatus = 0;
   yynerrs = 0;
-  yychar = YYEMPTY;		/* Cause a token to be read.  */
+  yychar = YYEMPTY; /* Cause a token to be read.  */
 
   /* Initialize stack pointers.
      Waste one element of value and location stack
      so that they stay on the same level as the state stack.
      The wasted elements are never initialized.  */
-
   yyssp = yyss;
   yyvsp = yyvs;
 
@@ -1364,7 +1353,6 @@ int yynerrs;
 	YYSTYPE *yyvs1 = yyvs;
 	yytype_int16 *yyss1 = yyss;
 
-
 	/* Each stack pointer address is followed by the size of the
 	   data in use in that stack, in bytes.  This used to be a
 	   conditional around just the two extra args, but that might
@@ -1372,7 +1360,6 @@ int yynerrs;
 	yyoverflow (YY_("memory exhausted"),
 		    &yyss1, yysize * sizeof (*yyssp),
 		    &yyvs1, yysize * sizeof (*yyvsp),
-
 		    &yystacksize);
 
 	yyss = yyss1;
@@ -1395,9 +1382,8 @@ int yynerrs;
 	  (union yyalloc *) YYSTACK_ALLOC (YYSTACK_BYTES (yystacksize));
 	if (! yyptr)
 	  goto yyexhaustedlab;
-	YYSTACK_RELOCATE (yyss);
-	YYSTACK_RELOCATE (yyvs);
-
+	YYSTACK_RELOCATE (yyss_alloc, yyss);
+	YYSTACK_RELOCATE (yyvs_alloc, yyvs);
 #  undef YYSTACK_RELOCATE
 	if (yyss1 != yyssa)
 	  YYSTACK_FREE (yyss1);
@@ -1408,7 +1394,6 @@ int yynerrs;
       yyssp = yyss + yysize - 1;
       yyvsp = yyvs + yysize - 1;
 
-
       YYDPRINTF ((stderr, "Stack size increased to %lu\n",
 		  (unsigned long int) yystacksize));
 
@@ -1418,6 +1403,9 @@ int yynerrs;
 
   YYDPRINTF ((stderr, "Entering state %d\n", yystate));
 
+  if (yystate == YYFINAL)
+    YYACCEPT;
+
   goto yybackup;
 
 /*-----------.
@@ -1426,16 +1414,16 @@ int yynerrs;
 yybackup:
 
   /* Do appropriate processing given the current state.  Read a
-     look-ahead token if we need one and don't already have one.  */
+     lookahead token if we need one and don't already have one.  */
 
-  /* First try to decide what to do without reference to look-ahead token.  */
+  /* First try to decide what to do without reference to lookahead token.  */
   yyn = yypact[yystate];
   if (yyn == YYPACT_NINF)
     goto yydefault;
 
-  /* Not known => get a look-ahead token if don't already have one.  */
+  /* Not known => get a lookahead token if don't already have one.  */
 
-  /* YYCHAR is either YYEMPTY or YYEOF or a valid look-ahead symbol.  */
+  /* YYCHAR is either YYEMPTY or YYEOF or a valid lookahead symbol.  */
   if (yychar == YYEMPTY)
     {
       YYDPRINTF ((stderr, "Reading a token: "));
@@ -1467,20 +1455,16 @@ yybackup:
       goto yyreduce;
     }
 
-  if (yyn == YYFINAL)
-    YYACCEPT;
-
   /* Count tokens shifted since error; after three, turn off error
      status.  */
   if (yyerrstatus)
     yyerrstatus--;
 
-  /* Shift the look-ahead token.  */
+  /* Shift the lookahead token.  */
   YY_SYMBOL_PRINT ("Shifting", yytoken, &yylval, &yylloc);
 
-  /* Discard the shifted token unless it is eof.  */
-  if (yychar != YYEOF)
-    yychar = YYEMPTY;
+  /* Discard the shifted token.  */
+  yychar = YYEMPTY;
 
   yystate = yyn;
   *++yyvsp = yylval;
@@ -1520,26 +1504,36 @@ yyreduce:
   switch (yyn)
     {
         case 4:
+
+/* Line 1455 of scripts.c  */
 #line 65 "parser_grammar.y"
-    { (yyval.ptr)=code.GetPosition(); ;}
+    { (yyval.ptr)=code.GetPosition(); }
     break;
 
   case 5:
+
+/* Line 1455 of scripts.c  */
 #line 66 "parser_grammar.y"
-    { (yyval.ptr)=(yyvsp[(1) - (2)].ptr); AddCode(opPOP); ;}
+    { (yyval.ptr)=(yyvsp[(1) - (2)].ptr); AddCode(opPOP); }
     break;
 
   case 6:
+
+/* Line 1455 of scripts.c  */
 #line 67 "parser_grammar.y"
-    { (yyval.ptr)=(yyvsp[(1) - (3)].ptr); SolveIfFrame((yyvsp[(3) - (3)].ptr),code.GetPosition()); ;}
+    { (yyval.ptr)=(yyvsp[(1) - (3)].ptr); SolveIfFrame((yyvsp[(3) - (3)].ptr),code.GetPosition()); }
     break;
 
   case 7:
+
+/* Line 1455 of scripts.c  */
 #line 68 "parser_grammar.y"
-    { (yyval.ptr)=(yyvsp[(1) - (5)].ptr); SolveIfFrame((yyvsp[(4) - (5)].ptr),code.GetPosition()); ;}
+    { (yyval.ptr)=(yyvsp[(1) - (5)].ptr); SolveIfFrame((yyvsp[(4) - (5)].ptr),code.GetPosition()); }
     break;
 
   case 8:
+
+/* Line 1455 of scripts.c  */
 #line 69 "parser_grammar.y"
     {
                                           (yyval.ptr)=(yyvsp[(1) - (3)].ptr);
@@ -1547,10 +1541,12 @@ yyreduce:
                                           AddXRef(&pLoopFrame->Cond,code.GetPosition());
                                           AddCode(0);
                                           SolveLoopFrame((yyvsp[(2) - (3)].ptr),(yyvsp[(1) - (3)].ptr),code.GetPosition());
-                                        ;}
+                                        }
     break;
 
   case 9:
+
+/* Line 1455 of scripts.c  */
 #line 76 "parser_grammar.y"
     {
                                           (yyval.ptr)=code.GetPosition();
@@ -1560,10 +1556,12 @@ yyreduce:
                                             AddXRef(&pLoopFrame->Follow,code.GetPosition());
                                             AddCode(0);
                                           }
-                                        ;}
+                                        }
     break;
 
   case 10:
+
+/* Line 1455 of scripts.c  */
 #line 85 "parser_grammar.y"
     {
                                           (yyval.ptr)=code.GetPosition();
@@ -1573,19 +1571,23 @@ yyreduce:
                                             AddXRef(&pLoopFrame->Cond,code.GetPosition());
                                             AddCode(0);
                                           }
-                                        ;}
+                                        }
     break;
 
   case 11:
+
+/* Line 1455 of scripts.c  */
 #line 94 "parser_grammar.y"
     {
                                           (yyval.ptr)=(yyvsp[(1) - (3)].ptr);
                                           AddCode(opRET);
                                           SolveIfFrame(code.GetPosition(),code.GetPosition());
-                                        ;}
+                                        }
     break;
 
   case 12:
+
+/* Line 1455 of scripts.c  */
 #line 99 "parser_grammar.y"
     {
                                           (yyval.ptr)=code.GetPosition();
@@ -1594,200 +1596,260 @@ yyreduce:
                                             AddCode(opCALL);
                                             AddCode(symbols[(yyvsp[(2) - (2)].variable)].Value().getcodepos());
                                           }
-                                        ;}
+                                        }
     break;
 
   case 13:
+
+/* Line 1455 of scripts.c  */
 #line 109 "parser_grammar.y"
     {
                                           (yyval.ptr)=(yyvsp[(1) - (3)].ptr);
                                           (pFunctionFrame->Count)++;
-                                        ;}
+                                        }
     break;
 
   case 14:
+
+/* Line 1455 of scripts.c  */
 #line 113 "parser_grammar.y"
     {
                                           (yyval.ptr)=(yyvsp[(1) - (1)].ptr);
                                           (pFunctionFrame->Count)++;
-                                        ;}
+                                        }
     break;
 
   case 15:
+
+/* Line 1455 of scripts.c  */
 #line 117 "parser_grammar.y"
-    { (yyval.ptr)=code.GetPosition(); ;}
+    { (yyval.ptr)=code.GetPosition(); }
     break;
 
   case 16:
+
+/* Line 1455 of scripts.c  */
 #line 120 "parser_grammar.y"
-    { CreateFunctionFrame(); ;}
+    { CreateFunctionFrame(); }
     break;
 
   case 17:
+
+/* Line 1455 of scripts.c  */
 #line 123 "parser_grammar.y"
     {
                                           (yyval.ptr)=AddCode(opPUSHV);
                                           AddCode((yyvsp[(1) - (1)].variable));
-                                        ;}
+                                        }
     break;
 
   case 18:
+
+/* Line 1455 of scripts.c  */
 #line 127 "parser_grammar.y"
     {
                                           (yyval.ptr)=AddCode(opPUSHD);
                                           AddInt64((yyvsp[(1) - (1)].number));
-                                        ;}
+                                        }
     break;
 
   case 19:
+
+/* Line 1455 of scripts.c  */
 #line 131 "parser_grammar.y"
     {
                                           (yyval.ptr)=AddCode(opPUSHD);
                                           temp_string=(yyvsp[(1) - (1)].string);
                                           HeapFree(heap,0,(yyvsp[(1) - (1)].string));
                                           AddString(temp_string);
-                                        ;}
+                                        }
     break;
 
   case 20:
+
+/* Line 1455 of scripts.c  */
 #line 137 "parser_grammar.y"
     {
                                           (yyval.ptr)=(yyvsp[(3) - (4)].ptr);
                                           AddCode(opPUSHS);
                                           AddCode((yyvsp[(1) - (4)].variable));
-                                        ;}
+                                        }
     break;
 
   case 21:
+
+/* Line 1455 of scripts.c  */
 #line 142 "parser_grammar.y"
     {
                                           AddCode(opMOV);
                                           AddCode((yyvsp[(1) - (3)].variable));
                                           (yyval.ptr)=(yyvsp[(3) - (3)].ptr);
-                                        ;}
+                                        }
     break;
 
   case 22:
+
+/* Line 1455 of scripts.c  */
 #line 147 "parser_grammar.y"
     {
                                           (yyval.ptr)=(yyvsp[(3) - (6)].ptr);
                                           AddCode(opMOVS);
                                           AddCode((yyvsp[(1) - (6)].variable));
-                                        ;}
+                                        }
     break;
 
   case 23:
+
+/* Line 1455 of scripts.c  */
 #line 152 "parser_grammar.y"
     {
                                           (yyval.ptr)=code.GetPosition();
                                           AddCode(opDEC);
                                           AddCode((yyvsp[(2) - (2)].variable));
-                                        ;}
+                                        }
     break;
 
   case 24:
+
+/* Line 1455 of scripts.c  */
 #line 157 "parser_grammar.y"
     {
                                           (yyval.ptr)=code.GetPosition();
                                           AddCode(opPOSTDEC);
                                           AddCode((yyvsp[(1) - (2)].variable));
-                                        ;}
+                                        }
     break;
 
   case 25:
+
+/* Line 1455 of scripts.c  */
 #line 162 "parser_grammar.y"
     {
                                           (yyval.ptr)=code.GetPosition();
                                           AddCode(opINC);
                                           AddCode((yyvsp[(2) - (2)].variable));
-                                        ;}
+                                        }
     break;
 
   case 26:
+
+/* Line 1455 of scripts.c  */
 #line 167 "parser_grammar.y"
     {
                                           (yyval.ptr)=code.GetPosition();
                                           AddCode(opPOSTINC);
                                           AddCode((yyvsp[(1) - (2)].variable));
-                                        ;}
+                                        }
     break;
 
   case 27:
+
+/* Line 1455 of scripts.c  */
 #line 172 "parser_grammar.y"
-    { (yyval.ptr)=(yyvsp[(2) - (3)].ptr); ;}
+    { (yyval.ptr)=(yyvsp[(2) - (3)].ptr); }
     break;
 
   case 28:
+
+/* Line 1455 of scripts.c  */
 #line 173 "parser_grammar.y"
-    { (yyval.ptr)=(yyvsp[(1) - (3)].ptr); AddCode(opADD); ;}
+    { (yyval.ptr)=(yyvsp[(1) - (3)].ptr); AddCode(opADD); }
     break;
 
   case 29:
+
+/* Line 1455 of scripts.c  */
 #line 174 "parser_grammar.y"
-    { (yyval.ptr)=(yyvsp[(1) - (3)].ptr); AddCode(opSUB); ;}
+    { (yyval.ptr)=(yyvsp[(1) - (3)].ptr); AddCode(opSUB); }
     break;
 
   case 30:
+
+/* Line 1455 of scripts.c  */
 #line 175 "parser_grammar.y"
-    { (yyval.ptr)=(yyvsp[(1) - (3)].ptr); AddCode(opMUL); ;}
+    { (yyval.ptr)=(yyvsp[(1) - (3)].ptr); AddCode(opMUL); }
     break;
 
   case 31:
+
+/* Line 1455 of scripts.c  */
 #line 176 "parser_grammar.y"
-    { (yyval.ptr)=(yyvsp[(1) - (3)].ptr); AddCode(opDIV); ;}
+    { (yyval.ptr)=(yyvsp[(1) - (3)].ptr); AddCode(opDIV); }
     break;
 
   case 32:
+
+/* Line 1455 of scripts.c  */
 #line 177 "parser_grammar.y"
-    { (yyval.ptr)=(yyvsp[(2) - (2)].ptr); AddCode(opNEG);;}
+    { (yyval.ptr)=(yyvsp[(2) - (2)].ptr); AddCode(opNEG);}
     break;
 
   case 33:
+
+/* Line 1455 of scripts.c  */
 #line 178 "parser_grammar.y"
-    { (yyval.ptr)=(yyvsp[(1) - (3)].ptr); AddCode(opGT); ;}
+    { (yyval.ptr)=(yyvsp[(1) - (3)].ptr); AddCode(opGT); }
     break;
 
   case 34:
+
+/* Line 1455 of scripts.c  */
 #line 179 "parser_grammar.y"
-    { (yyval.ptr)=(yyvsp[(1) - (3)].ptr); AddCode(opGE); ;}
+    { (yyval.ptr)=(yyvsp[(1) - (3)].ptr); AddCode(opGE); }
     break;
 
   case 35:
+
+/* Line 1455 of scripts.c  */
 #line 180 "parser_grammar.y"
-    { (yyval.ptr)=(yyvsp[(1) - (3)].ptr); AddCode(opLT); ;}
+    { (yyval.ptr)=(yyvsp[(1) - (3)].ptr); AddCode(opLT); }
     break;
 
   case 36:
+
+/* Line 1455 of scripts.c  */
 #line 181 "parser_grammar.y"
-    { (yyval.ptr)=(yyvsp[(1) - (3)].ptr); AddCode(opLE); ;}
+    { (yyval.ptr)=(yyvsp[(1) - (3)].ptr); AddCode(opLE); }
     break;
 
   case 37:
+
+/* Line 1455 of scripts.c  */
 #line 182 "parser_grammar.y"
-    { (yyval.ptr)=(yyvsp[(1) - (3)].ptr); AddCode(opEQ); ;}
+    { (yyval.ptr)=(yyvsp[(1) - (3)].ptr); AddCode(opEQ); }
     break;
 
   case 38:
+
+/* Line 1455 of scripts.c  */
 #line 183 "parser_grammar.y"
-    { (yyval.ptr)=(yyvsp[(1) - (3)].ptr); AddCode(opNE); ;}
+    { (yyval.ptr)=(yyvsp[(1) - (3)].ptr); AddCode(opNE); }
     break;
 
   case 39:
+
+/* Line 1455 of scripts.c  */
 #line 184 "parser_grammar.y"
-    { (yyval.ptr)=(yyvsp[(1) - (3)].ptr); AddCode(opAND); ;}
+    { (yyval.ptr)=(yyvsp[(1) - (3)].ptr); AddCode(opAND); }
     break;
 
   case 40:
+
+/* Line 1455 of scripts.c  */
 #line 185 "parser_grammar.y"
-    { (yyval.ptr)=(yyvsp[(1) - (3)].ptr); AddCode(opOR); ;}
+    { (yyval.ptr)=(yyvsp[(1) - (3)].ptr); AddCode(opOR); }
     break;
 
   case 41:
+
+/* Line 1455 of scripts.c  */
 #line 186 "parser_grammar.y"
-    { (yyval.ptr)=(yyvsp[(2) - (2)].ptr); AddCode(opNOT); ;}
+    { (yyval.ptr)=(yyvsp[(2) - (2)].ptr); AddCode(opNOT); }
     break;
 
   case 42:
+
+/* Line 1455 of scripts.c  */
 #line 187 "parser_grammar.y"
     {
                                           (yyval.ptr)=(yyvsp[(3) - (4)].ptr);
@@ -1796,15 +1858,19 @@ yyreduce:
                                           SolveFunctionFrame();
                                           AddCode(opFUNC);
                                           AddCode((yyvsp[(1) - (4)].variable));
-                                        ;}
+                                        }
     break;
 
   case 43:
+
+/* Line 1455 of scripts.c  */
 #line 197 "parser_grammar.y"
-    { (yyval.ptr)=code.GetPosition(); ;}
+    { (yyval.ptr)=code.GetPosition(); }
     break;
 
   case 45:
+
+/* Line 1455 of scripts.c  */
 #line 201 "parser_grammar.y"
     {
                                           CreateIfFrame();
@@ -1812,40 +1878,50 @@ yyreduce:
                                           AddXRef(&pIfFrame->Other,code.GetPosition());
                                           AddCode(0);
                                           (yyval.ptr)=(yyvsp[(3) - (4)].ptr);
-                                        ;}
+                                        }
     break;
 
   case 46:
+
+/* Line 1455 of scripts.c  */
 #line 210 "parser_grammar.y"
     {
                                           (yyval.ptr)=(yyvsp[(1) - (2)].ptr);
                                           AddCode(opJMP);
                                           AddXRef(&pIfFrame->Follow,code.GetPosition());
                                           AddCode(0);
-                                        ;}
+                                        }
     break;
 
   case 47:
+
+/* Line 1455 of scripts.c  */
 #line 218 "parser_grammar.y"
-    { (yyval.ptr)=code.GetPosition(); ;}
+    { (yyval.ptr)=code.GetPosition(); }
     break;
 
   case 48:
+
+/* Line 1455 of scripts.c  */
 #line 221 "parser_grammar.y"
     {
                                           (yyval.ptr)=(yyvsp[(1) - (1)].ptr);
                                           AddCode(opJMP);
                                           AddXRef(&pIfFrame->Follow,code.GetPosition());
                                           AddCode(0);
-                                        ;}
+                                        }
     break;
 
   case 49:
+
+/* Line 1455 of scripts.c  */
 #line 229 "parser_grammar.y"
-    { (yyval.ptr)=(yyvsp[(1) - (1)].ptr); ;}
+    { (yyval.ptr)=(yyvsp[(1) - (1)].ptr); }
     break;
 
   case 50:
+
+/* Line 1455 of scripts.c  */
 #line 232 "parser_grammar.y"
     {
                                           CreateLoopFrame();
@@ -1853,10 +1929,12 @@ yyreduce:
                                           AddXRef(&pLoopFrame->Follow,code.GetPosition());
                                           AddCode(0);
                                           (yyval.ptr)=(yyvsp[(3) - (4)].ptr);
-                                        ;}
+                                        }
     break;
 
   case 51:
+
+/* Line 1455 of scripts.c  */
 #line 241 "parser_grammar.y"
     {
                                           (yyval.ptr)=code.GetPosition();
@@ -1865,12 +1943,13 @@ yyreduce:
                                           AddXRef(&pIfFrame->Other,code.GetPosition());
                                           AddCode(0);
                                           symbols[(yyvsp[(2) - (2)].variable)].Value().setcodepos(code.GetPosition());
-                                        ;}
+                                        }
     break;
 
 
-/* Line 1267 of yacc.c.  */
-#line 1874 "parser_grammar.cpp"
+
+/* Line 1455 of scripts.c  */
+#line 1953 "parser_grammar.cpp"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1880,7 +1959,6 @@ yyreduce:
   YY_STACK_PRINT (yyss, yyssp);
 
   *++yyvsp = yyval;
-
 
   /* Now `shift' the result of the reduction.  Determine what state
      that goes to, based on the state we popped back to and the rule
@@ -1946,7 +2024,7 @@ yyerrlab:
 
   if (yyerrstatus == 3)
     {
-      /* If just tried and failed to reuse look-ahead token after an
+      /* If just tried and failed to reuse lookahead token after an
 	 error, discard it.  */
 
       if (yychar <= YYEOF)
@@ -1963,7 +2041,7 @@ yyerrlab:
 	}
     }
 
-  /* Else will try to reuse look-ahead token after shifting the error
+  /* Else will try to reuse lookahead token after shifting the error
      token.  */
   goto yyerrlab1;
 
@@ -2020,9 +2098,6 @@ yyerrlab1:
       YY_STACK_PRINT (yyss, yyssp);
     }
 
-  if (yyn == YYFINAL)
-    YYACCEPT;
-
   *++yyvsp = yylval;
 
 
@@ -2047,7 +2122,7 @@ yyabortlab:
   yyresult = 1;
   goto yyreturn;
 
-#ifndef yyoverflow
+#if !defined(yyoverflow) || YYERROR_VERBOSE
 /*-------------------------------------------------.
 | yyexhaustedlab -- memory exhaustion comes here.  |
 `-------------------------------------------------*/
@@ -2058,7 +2133,7 @@ yyexhaustedlab:
 #endif
 
 yyreturn:
-  if (yychar != YYEOF && yychar != YYEMPTY)
+  if (yychar != YYEMPTY)
      yydestruct ("Cleanup: discarding lookahead",
 		 yytoken, &yylval);
   /* Do not reclaim the symbols of the rule which action triggered
@@ -2084,6 +2159,8 @@ yyreturn:
 }
 
 
+
+/* Line 1675 of scripts.c  */
 #line 251 "parser_grammar.y"
 
 void Parser::yyerror(int msg)
