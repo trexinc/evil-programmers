@@ -97,7 +97,7 @@ XMLStrings XMLStr=
   L"wordsym",L"alphanum",L"additional",
   L"overload",
   L"oncreate",L"onload",L"auto",
-  L"margin",L"quote",L"tab",L"value",L"smartkey",L"backspace",L"home",L"kill",L"showwhitespace",
+  L"margin",L"quote",L"tab",L"value",L"smartkey",L"backspace",L"home",L"kill",L"showwhitespace",L"bom",
 };
 
 #include "InitDialogItem.hpp"

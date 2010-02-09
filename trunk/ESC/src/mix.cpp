@@ -121,7 +121,7 @@ int FARPostMacro(const KeySequence *KS)
   static ActlKeyMacro KeyMacro;
   memset(&KeyMacro,0,sizeof(KeyMacro));
   KeyMacro.Command=MCMD_POSTMACROSTRING;
-  KeyMacro.Param.PlainText.SequenceText=reinterpret_cast<wchar_t *>(KS->Sequence);
+  KeyMacro.Param.PlainText.SequenceText=const_cast<wchar_t *>(reinterpret_cast<const wchar_t *>(KS->Sequence));
   KeyMacro.Param.PlainText.Flags=KS->Flags;
   _D(int res=Info.AdvControl(ModuleNumber,ACTL_KEYMACRO,&KeyMacro));
   _D(SysLog(L"FARPostMacro: [%s] Flags=%p, ExitCode=%d",
@@ -851,6 +851,9 @@ int ParseFile(const wchar_t *filename,CRedBlackTree<ESCFileInfo>&FITree,
 
               N=n.GetItem(XMLStr.ShowWhiteSpace);
               SetOption(N.Attr(XMLStr.Value),node.Options2,(E_OPTIONS)E_Show_White_Space_On,(E_OPTIONS)E_Show_White_Space_Off,Inherit);
+
+              N=n.GetItem(XMLStr.Bom);
+              SetOption(N.Attr(XMLStr.Value),node.Options2,(E_OPTIONS)E_Bom_On,(E_OPTIONS)E_Bom_Off,Inherit);
 
               macroI=NULL;
               if(n.EnumName(XMLStr.UserMacro, macroI, N))
