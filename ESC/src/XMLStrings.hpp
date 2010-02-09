@@ -35,5 +35,5 @@ struct XMLStrings
   *WordSym, *AlphaNum, *Additional,
   *OverLoad,
   *onCreate,*onLoad, *Auto,
-  *Margin,*Quote,*Tab,*Value,*SmartKey,*BackSpace,*Home,*Kill,*ShowWhiteSpace;
+  *Margin,*Quote,*Tab,*Value,*SmartKey,*BackSpace,*Home,*Kill,*ShowWhiteSpace,*Bom;
 };

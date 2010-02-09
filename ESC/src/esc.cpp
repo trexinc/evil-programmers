@@ -640,6 +640,14 @@ int WINAPI _export ProcessEditorEventW(int Event, void *Param)
               EditorControl(ECTL_SETPARAM, &espar);
             }
 
+            if((nodedata.Options2&E_Bom_On) || (nodedata.Options2&E_Bom_Off))
+            {
+              memset(&espar, 0, sizeof(espar));
+              espar.Type=ESPT_SETBOM;
+              espar.Param.iParam=(nodedata.Options2&E_Bom_On)?TRUE:FALSE;
+              EditorControl(ECTL_SETPARAM, &espar);
+            }
+
             _D(SysLog(L"PEE: auto-macros / OnCreate - start"));
             nodedata.OnCreateMacros.toBegin();
             do
@@ -1467,6 +1475,11 @@ GetEditorSettingsW(int EditorID, const wchar_t *szName, void *Param)
      *static_cast<int *>(Param)=(Data.Options2&E_Show_White_Space_On)?1:
        ((Data.Options2&E_Show_White_Space_Off)?0:2);
   }
+  else if(!wstrcmp(szName, XMLStr.Bom))
+  {
+     *static_cast<int *>(Param)=(Data.Options2&E_Bom_On)?1:
+       ((Data.Options2&E_Bom_Off)?0:2);
+  }
   else
     RetCode=FALSE;
 
@@ -1690,6 +1703,14 @@ SetEditorOptionW(int EditorID, const wchar_t *szName, void *Param)
     Data.Options2|=(param==1)?E_Show_White_Space_On:
                   ((param==0)?E_Show_White_Space_Off:0);
     Type=ESPT_SHOWWHITESPACE;
+  }
+  else if(!wstrcmp(szName, XMLStr.Bom))
+  {
+    Data.Options2&=~E_Bom_On;
+    Data.Options2&=~E_Bom_Off;
+    Data.Options2|=(param==1)?E_Bom_On:
+                  ((param==0)?E_Bom_Off:0);
+    Type=ESPT_SETBOM;
   }
   else
     RetCode=FALSE;

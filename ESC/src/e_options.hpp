@@ -90,6 +90,9 @@ enum E2_OPTIONS
 
    E_Show_White_Space_On  = 0x00000100,
    E_Show_White_Space_Off = 0x00000200,
+
+   E_Bom_On               = 0x00000400,
+   E_Bom_Off              = 0x00000800,
 };
 
 class NODEDATA

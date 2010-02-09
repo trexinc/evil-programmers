@@ -66,7 +66,7 @@ void KeySequenceStorage::Free()
 {
   if(Sequence.Sequence)
   {
-    free(Sequence.Sequence);
+    free((void*)Sequence.Sequence);
     Sequence.Sequence=NULL;
   }
   Sequence.Count=0;
@@ -84,7 +84,7 @@ void KeySequenceStorage::Copy(const KeySequenceStorage& Value)
     {
       Stop=Value.Stop;
       Sequence.Count=Value.Sequence.Count;
-      memcpy(Sequence.Sequence,Value.Sequence.Sequence,(Value.Sequence.Count+1)*sizeof(wchar_t));
+      memcpy((void*)Sequence.Sequence,Value.Sequence.Sequence,(Value.Sequence.Count+1)*sizeof(wchar_t));
     }
   }
 }
@@ -114,15 +114,15 @@ bool KeySequenceStorage::compile(const wchar_t *BufPtr, bool silent, DWORD total
   {
     for(DWORD I=1;I<=total;++I)
     {
-      memcpy(reinterpret_cast<wchar_t *>(Sequence.Sequence)+Sequence.Count,BufPtr,tmpSize*sizeof(wchar_t));
+      memcpy(const_cast<wchar_t *>(reinterpret_cast<const wchar_t *>(Sequence.Sequence))+Sequence.Count,BufPtr,tmpSize*sizeof(wchar_t));
       if(I<total)
       {
-        *(reinterpret_cast<wchar_t *>(Sequence.Sequence)+Sequence.Count+tmpSize)=0x20;
+        *(const_cast<wchar_t *>(reinterpret_cast<const wchar_t *>(Sequence.Sequence))+Sequence.Count+tmpSize)=0x20;
         ++Sequence.Count;
       }
       Sequence.Count+=tmpSize;
     }
-    *(reinterpret_cast<wchar_t *>(Sequence.Sequence)+Sequence.Count)=0;
+    *(const_cast<wchar_t *>(reinterpret_cast<const wchar_t *>(Sequence.Sequence))+Sequence.Count)=0;
     _D(SysLog(L"compile: compile newmacro [%s])", Sequence.Sequence));
     return true;
   }
