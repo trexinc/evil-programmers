@@ -36,6 +36,7 @@ void GetLanguage(char *lang, DWORD size)
 PluginManager::PluginManager(char *plug_dir)
 {
   //FIXME: Show message here
+  ItemsNumber=0;
   TypesList.ItemsNumber=0;
   TypesList.Items=NULL;
   TypesListItems=NULL;
@@ -94,6 +95,7 @@ void PluginManager::LoadPluginsData(void)
         TypesListItems=(struct FarListItem *)realloc(TypesListItems,sizeof(struct FarListItem)*(ItemsNumber+PluginsData[i].TypesNumber));
         for (int j=0; j<PluginsData[i].TypesNumber; j++)
         {
+          memset(&TypesListItems[ItemsNumber+j],0,sizeof(struct FarListItem));
           lstrcpy(TypesListItems[ItemsNumber+j].Text,PluginsData[i].TypesInfo[j].TypeString);
         }
         ItemsNumber+=PluginsData[i].TypesNumber;

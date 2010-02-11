@@ -6,6 +6,10 @@ Legend:  + added
          * changed
          ! fixed
 
+version 3.11
+------------
+ ! Some uninitialized variables. Fixed by Maximus5.
+
 version 3.1
 -----------
  ! By a funny coincidence HtmlHelp sub-plugin did not work  in  x86
