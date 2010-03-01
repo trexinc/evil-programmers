@@ -20,6 +20,7 @@
 #ifndef __FAR_HELPER_H__
 #define __FAR_HELPER_H__
 
+#include "win_def.h"
 #include "plugin.hpp"
 
 ///======================================================================================== external
