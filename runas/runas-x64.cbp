@@ -57,7 +57,7 @@
 			<Add option="-nostartfiles" />
 			<Add option="-nodefaultlibs" />
 			<Add option="-nostdlib" />
-			<Add option="-Wl,-Map=runas-x64.map" />
+			<Add option="-Wl,-Map=bin/runas-x64.map" />
 			<Add library="gcc" />
 			<Add library="ntdll" />
 			<Add library="msvcrt" />

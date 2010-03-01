@@ -3,9 +3,6 @@
 #include "far/far_helper.hpp"
 #include "far/farkeys.hpp"
 
-PluginStartupInfo		Info;
-FarStandardFunctions	FSF;
-
 enum		{
 	MTitle,
 	DTitle,
@@ -13,6 +10,11 @@ enum		{
 	buttonCancel,
 };
 
+///======================================================================================= implement
+PluginStartupInfo		Info;
+FarStandardFunctions	FSF;
+
+///========================================================================================= DlgProc
 LONG_PTR WINAPI		DlgProc(HANDLE hDlg, int Msg, int Param1, LONG_PTR Param2) {
 	static int		Key, KeyCount;
 	static DWORD	TickCount;
@@ -34,7 +36,7 @@ LONG_PTR WINAPI		DlgProc(HANDLE hDlg, int Msg, int Param1, LONG_PTR Param2) {
 					return TRUE;
 				}
 			}
-			if (Param2 == KEY_ENTER) {
+			if (Param2 == KEY_ENTER || Param2 == KEY_NUMENTER) {
 				Info.SendDlgMessage(hDlg, DM_USER, 0, Param2);
 				return TRUE;
 			}
@@ -50,7 +52,7 @@ LONG_PTR WINAPI		DlgProc(HANDLE hDlg, int Msg, int Param1, LONG_PTR Param2) {
 					for (int i = 0; i < pi.ItemsNumber(); ++i) {
 						pi.Select(i, false);
 					}
-				else if (Param2 == KEY_ENTER) {
+				else if (Param2 == KEY_ENTER || Param2 == KEY_NUMENTER) {
 					PCWSTR	Mask = GetDataPtr(hDlg, 1);
 					for (int i = 0; i < pi.ItemsNumber(); ++i) {
 						PluginPanelItem	&ppi = pi[i];
@@ -88,17 +90,21 @@ LONG_PTR WINAPI		DlgProc(HANDLE hDlg, int Msg, int Param1, LONG_PTR Param2) {
 
 HANDLE				Select(int Code) {
 	InitDialogItem	InitItems[] = {
-		{DI_DOUBLEBOX, 3, 1, 41, 4, 0, 0, 0, 0, L"Select"},
+		{DI_DOUBLEBOX, 3, 1, 41, 6, 0, 0, 0, 0, L"Select"},
 		{DI_EDIT,      5, 2, 39, 0, 1, (DWORD_PTR)L"Masks", DIF_HISTORY, 0, L"*.*"},
 		{DI_CHECKBOX,  5, 3, 0,  0, 0, 0, 0, 0, L"Select folders"},
+		{DI_TEXT,      5, 4, 0,  0,  0, 0, DIF_BOXCOLOR | DIF_SEPARATOR, 0, L""},
+		{DI_BUTTON,    0, 5, 0,  0,  0, 0, DIF_CENTERGROUP, 1, GetMsg(buttonOk)},
+		{DI_BUTTON,    0, 5, 0,  0,  0, 0, DIF_CENTERGROUP, 0, GetMsg(buttonCancel)},
 	};
 	FarDialogItem	Items[sizeofa(InitItems)];
 	InitDialogItems(InitItems, Items, sizeofa(InitItems));
 	CFarDialog	dlg;
-	dlg.Execute(Info.ModuleNumber, -1, -1, 45, 6, NULL, Items, sizeofa(Items), 0, 0, DlgProc, Code);
+	dlg.Execute(Info.ModuleNumber, -1, -1, 45, 8, NULL, Items, sizeofa(Items), 0, 0, DlgProc, Code);
 	return	INVALID_HANDLE_VALUE;
 }
 
+///========================================================================================== Export
 void WINAPI			EXP_NAME(GetPluginInfo)(PluginInfo *Info) {
 	Info->StructSize = sizeof(PluginInfo);
 	static PCWSTR	PluginMenuStrings[1];
@@ -140,6 +146,7 @@ void WINAPI			EXP_NAME(SetStartupInfo)(const PluginStartupInfo *Info) {
 	::Info.FSF = &FSF;
 }
 
+///========================================================================================= WinMain
 extern "C" {
 	BOOL WINAPI		DllMainCRTStartup(HANDLE hDll, DWORD dwReason, LPVOID lpReserved) {
 		return	TRUE;
