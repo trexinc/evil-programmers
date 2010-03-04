@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_layout_file>
+	<ActiveTarget name="Release" />
+	<File name="SortStr.cpp" open="0" top="0" tabpos="0">
+		<Cursor position="155" topLine="5" />
+	</File>
+	<File name="version.h" open="0" top="0" tabpos="0">
+		<Cursor position="36" topLine="0" />
+	</File>
+</CodeBlocks_layout_file>

@@ -31,6 +31,7 @@ PCWSTR prefix = L"fver";
 enum		eMessage {
 	MTitle,
 	DTitle,
+	DlgTitle,
 	MbuttonOk,
 	MbuttonCancel,
 
@@ -293,7 +294,7 @@ HANDLE	WINAPI	EXP_NAME(OpenPlugin)(int OpenFrom, INT_PTR Item) {
 				{DI_EDIT, 28, y++, x - 2, 0, 1, (DWORD_PTR)L"ProcessList.Computer", DIF_READONLY, 1, FileInfo[i++].data},
 //			{DI_TEXT, 5, y++, 26, 0, 0, 0, 0, 0, CurDir},
 				{DI_BUTTON, 0, (++y)++, 0, 0, 0, 0, DIF_CENTERGROUP, 1, GetMsg(MbuttonOk)},
-				{DI_DOUBLEBOX, 3, 1, x, y, 0, 0, 0, 0, GetMsg(MTitle)},
+				{DI_DOUBLEBOX, 3, 1, x, y, 0, 0, 0, 0, GetMsg(DlgTitle)},
 			};
 
 			FarDialogItem FarItems[sizeofa(Items)];
