@@ -349,14 +349,27 @@ static long WINAPI OFDProc(HANDLE hDlg,int Msg,int Param1,long Param2)
         HANDLE console=CreateFile(_T("CONOUT$"),GENERIC_READ,FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
         if(console!=INVALID_HANDLE_VALUE)
         {
+          COORD console_size={80,25};
+#ifdef UNICODE
+          SMALL_RECT console_rect;
+          if(Info.AdvControl(Info.ModuleNumber,ACTL_GETFARRECT,(void*)&console_rect))
+          {
+            console_size.X=console_rect.Right-console_rect.Left+1;
+            console_size.Y=console_rect.Bottom-console_rect.Top+1;
+          }
+#else
           CONSOLE_SCREEN_BUFFER_INFO console_info;
-          GetConsoleScreenBufferInfo(console,&console_info);
-          width=console_info.dwSize.X*3/5;
+          if(GetConsoleScreenBufferInfo(console,&console_info))
+          {
+            console_size=console_info.dwSize;
+          }
+#endif
+          width=console_size.X*3/5;
           if(width<minimal_width) width=minimal_width;
-          height=console_info.dwSize.Y*2/3;
+          height=console_size.Y*2/3;
           if(height<minimal_height) height=minimal_height;
-          if(width>(console_info.dwSize.X-11)) width=console_info.dwSize.X-11;
-          if(height>(console_info.dwSize.Y-4)) height=console_info.dwSize.Y-4;
+          if(width>(console_size.X-11)) width=console_size.X-11;
+          if(height>(console_size.Y-4)) height=console_size.Y-4;
           CloseHandle(console);
         }
         Info.SendDlgMessage(hDlg,DM_ENABLEREDRAW,FALSE,0);
