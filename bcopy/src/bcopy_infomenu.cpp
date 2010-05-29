@@ -206,12 +206,25 @@ static LONG_PTR WINAPI InfoMenuProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Para
               width+=12;
               height=size+4;
               { //normalize according console size
+                COORD console_size={80,25};
+#ifdef UNICODE
+                SMALL_RECT console_rect;
+                if(Info.AdvControl(Info.ModuleNumber,ACTL_GETFARRECT,(void*)&console_rect))
+                {
+                  console_size.X=console_rect.Right-console_rect.Left+1;
+                  console_size.Y=console_rect.Bottom-console_rect.Top+1;
+                }
+#else
                 CONSOLE_SCREEN_BUFFER_INFO console_info;
-                GetConsoleScreenBufferInfo(console,&console_info);
-                if(width>(DWORD)(console_info.dwSize.X-4))
-                  width=console_info.dwSize.X-4;
-                if(height>(DWORD)(console_info.dwSize.Y-2))
-                  height=console_info.dwSize.Y-2;
+                if(GetConsoleScreenBufferInfo(console,&console_info))
+                {
+                  console_size=console_info.dwSize;
+                }
+#endif
+                if(width>(DWORD)(console_size.X-4))
+                  width=console_size.X-4;
+                if(height>(DWORD)(console_size.Y-2))
+                  height=console_size.Y-2;
               }
               //calculate path width
               path_width=WidthToPathWidth(width);
