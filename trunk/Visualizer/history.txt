@@ -1,6 +1,11 @@
 History:
 --------
 
+v0.9
+----
+ from Maximus5:
+ + Support for "far /w".
+
 v0.8
 ----
  from Maximus5:

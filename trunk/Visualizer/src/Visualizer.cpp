@@ -403,7 +403,7 @@ void ConfigColor(struct Options *Opt)
 #ifndef UNICODE
     ExitCode = Info.Dialog(Info.ModuleNumber,-1,-1,44,21,NULL,DialogItems,sizeofa(DialogItems));
 #else
-    HANDLE hDlg = Info.DialogInit(Info.ModuleNumber,-1,-1,44,21,NULL,DialogItems,sizeofa(DialogItems),0,0,NULL,NULL);
+    HANDLE hDlg = Info.DialogInit(Info.ModuleNumber,-1,-1,44,21,NULL,DialogItems,sizeofa(DialogItems),0,0,NULL,0);
     if (hDlg == INVALID_HANDLE_VALUE)
       break;
 
@@ -657,7 +657,7 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom, INT_PTR Item)
 #ifndef UNICODE
     ExitCode = Info.Dialog(Info.ModuleNumber,-1,-1,66,26,NULL,DialogItems,sizeofa(DialogItems));
 #else
-    HANDLE hDlg = Info.DialogInit(Info.ModuleNumber,-1,-1,66,26,NULL,DialogItems,sizeofa(DialogItems),0,0,NULL,NULL);
+    HANDLE hDlg = Info.DialogInit(Info.ModuleNumber,-1,-1,66,26,NULL,DialogItems,sizeofa(DialogItems),0,0,NULL,0);
     if (hDlg == INVALID_HANDLE_VALUE)
       break;
 
@@ -774,8 +774,16 @@ void VisualizeEndOfLine(int ShowEOL, int StringLength,const TCHAR *StringEOL, in
   }
   else
     ecp.DestPos = 0;
-  c.Y = Line;
-  c.X = ecp.DestPos - LeftPos;
+  int nXShift = 0, nYShift = 0;
+#ifdef _UNICODE
+  SMALL_RECT rcFar = {0};
+  if (Info.AdvControl(Info.ModuleNumber, 32/*ACTL_GETFARRECT*/, &rcFar))
+  {
+    nXShift = rcFar.Left; nYShift = rcFar.Top;
+  }
+#endif
+  c.Y = Line + nYShift;
+  c.X = ecp.DestPos - LeftPos + nXShift;
   if (ShowEOL==EOL_ON || ShowEOL==EOL_MARKWITHSYMBOL)
   {
     ec.Color = Opt.ColorOfEOLNormal;
@@ -849,6 +857,14 @@ void VisualizeTabs(int ShowTabs, int ShowTabSymbol, wchar_t TabSymbol, const TCH
   if (ShowTabs!=TAB_WHOLE && ShowTabs!=TAB_TWOCOLORS)
     ec.Color|=ECF_TAB1;
   ec2.Color = Opt.ColorOfTabs2|ECF_TAB1;
+  int nXShift = 0, nYShift = 0;
+#ifdef _UNICODE
+  SMALL_RECT rcFar = {0};
+  if (Info.AdvControl(Info.ModuleNumber, 32/*ACTL_GETFARRECT*/, &rcFar))
+  {
+    nXShift = rcFar.Left; nYShift = rcFar.Top;
+  }
+#endif
   for (int i=0; i<StringLength; i++)
   {
     if (StringText[i] == _T('\t'))
@@ -861,8 +877,8 @@ void VisualizeTabs(int ShowTabs, int ShowTabSymbol, wchar_t TabSymbol, const TCH
       {
         ecp.SrcPos = i;
         Info.EditorControl(ECTL_REALTOTAB,(void *)&ecp);
-        c.X = ecp.DestPos - LeftPos;
-        c.Y = Line;
+        c.X = ecp.DestPos - LeftPos + nXShift;
+        c.Y = Line + nYShift;
         WriteConsoleOutputCharacterW(GetStdHandle(STD_OUTPUT_HANDLE),&TabSymbol,1,c,&w);
       }
     }
@@ -1077,6 +1093,14 @@ int WINAPI EXP_NAME(ProcessEditorEvent)(int Event, void *Param)
     else
     */
     {
+      int nXShift = 0, nYShift = 0;
+#ifdef _UNICODE
+      SMALL_RECT rcFar = {0};
+      if (Info.AdvControl(Info.ModuleNumber, 32/*ACTL_GETFARRECT*/, &rcFar))
+      {
+        nXShift = rcFar.Left; nYShift = rcFar.Top;
+      }
+#endif
       int limit = min(ei.TopScreenLine+ei.WindowSizeY,ei.TotalLines);
       for (int i=ei.TopScreenLine; i<limit; i++)
       {
@@ -1121,8 +1145,8 @@ int WINAPI EXP_NAME(ProcessEditorEvent)(int Event, void *Param)
           TCHAR tmp[50];
           FSF.sprintf(tmp,_T("%d"),ei.TotalLines);
           FSF.sprintf(tmp,_T(":%*.*d"),lstrlen(tmp),lstrlen(tmp),i+1);
-          c.X = ei.WindowSizeX-lstrlen(tmp);
-          c.Y = i-ei.TopScreenLine+1;
+          c.X = ei.WindowSizeX-lstrlen(tmp)+nXShift;
+          c.Y = i-ei.TopScreenLine+1+nYShift;
           WriteConsoleOutputCharacter(GetStdHandle(STD_OUTPUT_HANDLE),tmp,lstrlen(tmp),c,&w);
         }
 

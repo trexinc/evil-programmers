@@ -15,10 +15,7 @@ etc.
 To decide where the right border is this plugin uses another plugin called ESC.
 ESC is an excellent creation by Ivan Sintyurin <spinoza@mail.ru>.
 To get hold of your own copy of ESC visit:
-http://www.moris.ru/~spinoza - The author's home page
-or
-http://plugring.farmanager.com/ - The PlugRinG
-
+http://code.google.com/p/evil-programmers/
 
 License
 -------
