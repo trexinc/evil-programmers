@@ -3,8 +3,8 @@ REOBJDIR = \.\.\/o\/
 DLLDIR = ../bin
 DLLNAME = Active-Help.dll
 DLLFULLNAME = $(DLLDIR)/$(DLLNAME)
-SRCS = active-help.cpp common.cpp tree.cpp memory.cpp crt.cpp registry.cpp ahp_api.cpp ahp_class.cpp
-DEF = active-help.gcc.def
+SRCS = Active-Help.cpp common.cpp tree.cpp memory.cpp crt.cpp registry.cpp ahp_api.cpp ahp_class.cpp
+DEF = Active-Help.gcc.def
 
 CXX = g++
 DLLTOOL = dlltool

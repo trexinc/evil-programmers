@@ -169,19 +169,26 @@ int MSHelp2(const char *Keyword, const char *FileName, char *Error)
   return ret;
 }
 
-int MSHelp2DE(const char *Keyword, const char *FileName)
+int MSHelp2DE(const char *Keyword, const char *FileName, char *Error)
 {
+  HRESULT hr = S_OK;
   if (!OleInitialized)
   {
     OleInitialized=true;
-    CoInitialize(NULL);
+    hr = CoInitialize(NULL);
   }
   if (!pHelp)
   {
-    CoCreateInstance(CLSID_DExploreAppObj,0,CLSCTX_LOCAL_SERVER,IID_Help,(void**)&pHelp);
+    CLSID clsid; // Class ID
+   hr = CLSIDFromProgID(L"DExplore.AppObj", &clsid);
+   if (SUCCEEDED(hr))
+      hr = CoCreateInstance(clsid,0,CLSCTX_LOCAL_SERVER,IID_Help,(void**)&pHelp);
   }
   if (!pHelp)
-    return FALSE;
+  {
+    if (SUCCEEDED(hr)) hr=ERROR_CLASS_DOES_NOT_EXIST;
+  }
+  else
   {
     wchar_t *uCollection = (wchar_t*)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,(lstrlen(FileName)+1)*sizeof(wchar_t));
     MultiByteToWideChar(CP_ACP,0,FileName,-1,uCollection,lstrlen(FileName)+1);
@@ -190,22 +197,41 @@ int MSHelp2DE(const char *Keyword, const char *FileName)
     SysFreeString(tmp);
     if (uCollection)
       HeapFree(GetProcessHeap(),0,uCollection);
+    if (*Keyword)
+    {
+      wchar_t *uKeyword = (wchar_t*)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,(lstrlen(Keyword)+1)*sizeof(wchar_t));
+      MultiByteToWideChar(CP_ACP,0,Keyword,-1,uKeyword,lstrlen(Keyword)+1);
+      BSTR tmp=SysAllocString(uKeyword);
+      HRESULT hr1=pHelp->Index();
+      HRESULT hr2=pHelp->DisplayTopicFromKeyword(tmp);
+      HRESULT hr3=pHelp->DisplayTopicFromF1Keyword(tmp);
+      SysFreeString(tmp);
+      if (uKeyword)
+        HeapFree(GetProcessHeap(),0,uKeyword);
+      if (FAILED(hr1) && FAILED(hr2) && FAILED(hr3))
+        hr = hr3;
+      else
+        hr = S_OK;
+    }
+    else
+    {
+      hr = pHelp->Contents();
+    }
   }
-  if (*Keyword)
+  if (FAILED(hr) && Error)
   {
-    wchar_t *uKeyword = (wchar_t*)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,(lstrlen(Keyword)+1)*sizeof(wchar_t));
-    MultiByteToWideChar(CP_ACP,0,Keyword,-1,uKeyword,lstrlen(Keyword)+1);
-    BSTR tmp=SysAllocString(uKeyword);
-    pHelp->Index();
-    pHelp->DisplayTopicFromKeyword(tmp);
-    pHelp->DisplayTopicFromF1Keyword(tmp);
-    SysFreeString(tmp);
-    if (uKeyword)
-      HeapFree(GetProcessHeap(),0,uKeyword);
+    LPSTR MessageBuffer;
+    DWORD dwFormatFlags = FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_IGNORE_INSERTS|FORMAT_MESSAGE_FROM_SYSTEM;
+    DWORD dwBufferLength = FormatMessageA(dwFormatFlags,NULL,hr,MAKELANGID(LANG_NEUTRAL,SUBLANG_DEFAULT),(LPSTR)&MessageBuffer,0,NULL);
+    lstrcpyn(Error,MessageBuffer,dwBufferLength>128?128:dwBufferLength);
+    CharToOem(Error,Error);
+    char *pszR = strchr(Error,'\r');
+    while (pszR)
+    {
+      *pszR = ' '; pszR = strchr(Error,'\r');
+    }
   }
-  else
-    pHelp->Contents();
-  return TRUE;
+  return SUCCEEDED(hr);
 }
 
 int WINAPI _export Start(const struct PluginStartupInfo *FarInfo,const struct AHPluginStartupInfo *AHInfo)
@@ -263,7 +289,7 @@ int WINAPI _export Message(unsigned long Msg,void *InData,void *OutData)
       if (data->TypeNumber == 0)
         ret = MSHelp2(data->Keyword,data->FileName,odata->Error);
       else
-        ret = MSHelp2DE(data->Keyword,data->FileName);
+        ret = MSHelp2DE(data->Keyword,data->FileName,odata->Error);
       return ret;
     }
 

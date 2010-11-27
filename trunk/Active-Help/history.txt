@@ -6,6 +6,12 @@ Legend:  + added
          * changed
          ! fixed
 
+
+version 3.12
+------------
+ ! MS-Help2 sub-plugin wasn't working  properly  with  newer  MSDN.
+   Fixed by Maximus5.
+
 version 3.11
 ------------
  ! Some uninitialized variables. Fixed by Maximus5.
@@ -14,7 +20,7 @@ version 3.1
 -----------
  ! By a funny coincidence HtmlHelp sub-plugin did not work  in  x86
    Far (with the fs redirection hook) running under x64 Windows.
- * HtmlHelp sub-plugin in some  case  was  not  working  well  with
+ * HtmlHelp sub-plugin in some  cases was  not  working  well  with
    Conman (because of a problem in Conman or Windows).
  * Minor build system changes.
 
