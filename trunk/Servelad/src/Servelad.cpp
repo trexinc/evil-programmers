@@ -19,6 +19,11 @@
 
 #include "plugin.hpp"
 #include "ServiceManager.hpp"
+#include <initguid.h>
+// {E7AC8DB1-6ED1-4eb9-8698-01C4498C74C3}
+DEFINE_GUID(MainGuid, 0xe7ac8db1, 0x6ed1, 0x4eb9, 0x86, 0x98, 0x1, 0xc4, 0x49, 0x8c, 0x74, 0xc3);
+// {DBA0D540-58DF-47fa-BC85-BE11029F7FEE}
+DEFINE_GUID(MenuGuid, 0xdba0d540, 0x58df, 0x47fa, 0xbc, 0x85, 0xbe, 0x11, 0x2, 0x9f, 0x7f, 0xee);
 
 struct PluginStartupInfo Info;
 FARSTANDARDFUNCTIONS FSF;
@@ -31,6 +36,17 @@ const wchar_t *GetMsg(int MsgId)
   return Info.GetMsg(Info.ModuleNumber,MsgId);
 }
 
+void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
+{
+  Info->StructSize=sizeof(GlobalInfo);
+  Info->MinFarVersion=FARMANAGERVERSION;
+  Info->Version=0x00010001;
+  Info->Guid=MainGuid;
+  Info->Title=L"Servelad";
+  Info->Description=L"Service manager plugin";
+  Info->Author=L"FARMail Team";
+}
+
 void WINAPI SetStartupInfoW(const struct PluginStartupInfo *psi)
 {
   Info=*psi;
@@ -38,7 +54,7 @@ void WINAPI SetStartupInfoW(const struct PluginStartupInfo *psi)
   Info.FSF=&FSF;
 }
 
-HANDLE WINAPI OpenPluginW(int OpenFrom,INT_PTR Item)
+HANDLE WINAPI OpenPluginW(int OpenFrom,GUID Guid,INT_PTR Item)
 {
   CServiceManager* sm=new CServiceManager();
   return (HANDLE)sm;
@@ -53,12 +69,12 @@ void WINAPI ClosePluginW(HANDLE hPlugin)
 void WINAPI GetPluginInfoW(PluginInfo* pi)
 {
   static const wchar_t* MenuStrings[1];
-
   pi->StructSize=sizeof(PluginInfo);
   pi->Flags=0;
   MenuStrings[0]=PluginName;
-  pi->PluginMenuStrings=MenuStrings;
-  pi->PluginMenuStringsNumber=ArraySize(MenuStrings);
+  pi->PluginMenu.Guid=&MenuGuid;
+  pi->PluginMenu.Strings=MenuStrings;
+  pi->PluginMenu.Count=ArraySize(MenuStrings);
 }
 
 void WINAPI GetOpenPluginInfoW(HANDLE hPlugin, struct OpenPluginInfo *Info)
@@ -66,7 +82,7 @@ void WINAPI GetOpenPluginInfoW(HANDLE hPlugin, struct OpenPluginInfo *Info)
   static wchar_t PanelTitle[50];
   CServiceManager* sm=(CServiceManager*)hPlugin;
   Info->StructSize=sizeof(*Info);
-  Info->Flags=OPIF_ADDDOTS|OPIF_SHOWPRESERVECASE|OPIF_USEHIGHLIGHTING|OPIF_USEFILTER;
+  Info->Flags=OPIF_ADDDOTS|OPIF_SHOWPRESERVECASE;
   Info->CurDir=NULL;
   if(sm->GetType()==SERVICE_WIN32)
     Info->CurDir=ServicesDirName;
@@ -112,10 +128,10 @@ int WINAPI GetFindDataW(HANDLE hPlugin, struct PluginPanelItem **pPanelItem, int
     memset(*pPanelItem, 0, sizeof(PluginPanelItem)*2);
     *pItemsNumber=2;
 
-    (*pPanelItem)[0].FindData.lpwszFileName=DriversDirName;
-    (*pPanelItem)[0].FindData.dwFileAttributes=FILE_ATTRIBUTE_DIRECTORY;
-    (*pPanelItem)[1].FindData.lpwszFileName=ServicesDirName;
-    (*pPanelItem)[1].FindData.dwFileAttributes=FILE_ATTRIBUTE_DIRECTORY;
+    (*pPanelItem)[0].FileName=DriversDirName;
+    (*pPanelItem)[0].FileAttributes=FILE_ATTRIBUTE_DIRECTORY;
+    (*pPanelItem)[1].FileName=ServicesDirName;
+    (*pPanelItem)[1].FileAttributes=FILE_ATTRIBUTE_DIRECTORY;
   }
   else
   {
@@ -128,10 +144,10 @@ int WINAPI GetFindDataW(HANDLE hPlugin, struct PluginPanelItem **pPanelItem, int
     for (int i=0; i < *pItemsNumber; i++)
     {
       SServiceInfo info=(*sm)[i];
-      (*pPanelItem)[i].FindData.lpwszFileName=info.iStatus->lpDisplayName;
-      (*pPanelItem)[i].FindData.lpwszAlternateFileName=info.iStatus->lpServiceName;
+      (*pPanelItem)[i].FileName=info.iStatus->lpDisplayName;
+      (*pPanelItem)[i].AlternateFileName=info.iStatus->lpServiceName;
       if (info.iStartType == SERVICE_DISABLED)
-        (*pPanelItem)[i].FindData.dwFileAttributes=FILE_ATTRIBUTE_HIDDEN;
+        (*pPanelItem)[i].FileAttributes=FILE_ATTRIBUTE_HIDDEN;
       const wchar_t** CustomColumnData=(const wchar_t**)calloc(2,sizeof(const wchar_t*));
       if(CustomColumnData)
       {

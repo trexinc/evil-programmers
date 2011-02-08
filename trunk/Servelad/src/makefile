@@ -4,7 +4,7 @@ COMMON = ../../common
 endif
 
 ADDDEFINES=-D UNICODE -D _UNICODE
-COMINC = $(COMMON)/unicode
+COMINC = $(COMMON)
 
 COMMONLIB =
 
