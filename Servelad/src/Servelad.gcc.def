@@ -1,12 +1,13 @@
 EXPORTS 
    GetPluginInfoW=GetPluginInfoW@4
-   OpenPluginW=OpenPluginW@8
+   OpenPluginW=OpenPluginW@24
    SetStartupInfoW=SetStartupInfoW@4
    ClosePluginW=ClosePluginW@4
    GetFindDataW=GetFindDataW@16
    GetOpenPluginInfoW=GetOpenPluginInfoW@8
    FreeFindDataW=FreeFindDataW@12
    SetDirectoryW=SetDirectoryW@12
+   GetGlobalInfoW=GetGlobalInfoW@4
 ;   ProcessKeyW=ProcessKeyW@12
 ;   ConfigureW=ConfigureW@4
 ;   ExitFARW=ExitFARW@0
