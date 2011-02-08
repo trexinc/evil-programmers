@@ -21,6 +21,9 @@
 #include "open_file_dialog.hpp"
 #include "farcolor.hpp"
 #include "farkeys.hpp"
+#include <initguid.h>
+// {6FF19CDE-E672-4887-81A0-05D49C96E42D}
+DEFINE_GUID(FileDialogGuid, 0x6ff19cde, 0xe672, 0x4887, 0x81, 0xa0, 0x5, 0xd4, 0x9c, 0x96, 0xe4, 0x2d);
 
 #define malloc(size) HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,size)
 #define free(ptr) ((ptr)?HeapFree(GetProcessHeap(),0,ptr):0)
@@ -115,12 +118,7 @@ static int TryLoadDir(HANDLE hDlg, OFDData *DlgParams, TCHAR *newdir)
     for(size_t ii=0;ii<count;ii++)
     {
       Items[ii].Flags=newnames[ii].Flags;
-#ifdef UNICODE
       Items[ii].Text=newnames[ii].Text;
-#else
-      lstrcpyn(Items[ii].Text,newnames[ii].Text,sizeof(Items[ii].Text));
-      Items[ii].Text[sizeof(Items[ii].Text)-1]=0;
-#endif
     }
     //clear name list
     if (DlgParams->names)
@@ -155,7 +153,7 @@ static int TryLoadDir(HANDLE hDlg, OFDData *DlgParams, TCHAR *newdir)
 
 #define DM_UPDATESIZE DM_USER+1
 
-static long WINAPI OFDProc(HANDLE hDlg,int Msg,int Param1,long Param2)
+static INT_PTR WINAPI OFDProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
 {
   OFDData *DlgParams=(OFDData *)Info.SendDlgMessage(hDlg,DM_GETDLGDATA,0,0);
   TCHAR newdir[MAX_PATH];
@@ -177,6 +175,7 @@ static long WINAPI OFDProc(HANDLE hDlg,int Msg,int Param1,long Param2)
   switch(Msg)
   {
     case DN_KEY:
+      Param2=FSF.FarInputRecordToKey((const INPUT_RECORD*)Param2);
       if(Param2==KEY_ENTER||Param2==KEY_CTRLENTER||Param2==KEY_CTRLBACKSLASH)
       {
         bool bRoot = Param2==KEY_CTRLBACKSLASH;
@@ -242,9 +241,6 @@ static long WINAPI OFDProc(HANDLE hDlg,int Msg,int Param1,long Param2)
       {
         if(ItemPresent)
         {
-#ifndef UNICODE
-          OemToChar(newcurdir,newcurdir);
-#endif
           SHELLEXECUTEINFO info;
           ZeroMemory(&info,sizeof(info));
           info.cbSize=sizeof(info);
@@ -350,20 +346,12 @@ static long WINAPI OFDProc(HANDLE hDlg,int Msg,int Param1,long Param2)
         if(console!=INVALID_HANDLE_VALUE)
         {
           COORD console_size={80,25};
-#ifdef UNICODE
           SMALL_RECT console_rect;
           if(Info.AdvControl(Info.ModuleNumber,ACTL_GETFARRECT,(void*)&console_rect))
           {
             console_size.X=console_rect.Right-console_rect.Left+1;
             console_size.Y=console_rect.Bottom-console_rect.Top+1;
           }
-#else
-          CONSOLE_SCREEN_BUFFER_INFO console_info;
-          if(GetConsoleScreenBufferInfo(console,&console_info))
-          {
-            console_size=console_info.dwSize;
-          }
-#endif
           width=console_size.X*3/5;
           if(width<minimal_width) width=minimal_width;
           height=console_size.Y*2/3;
@@ -405,6 +393,6 @@ bool open_file_dialog(const TCHAR *curr_dir,TCHAR *filename)
   ZeroMemory(DialogItems,sizeof(DialogItems));
   DialogItems[0].Type=DI_LISTBOX; //DialogItems[0].Flags=DIF_LISTWRAPMODE;
   CFarDialog dialog;
-  dialog.Execute(Info.ModuleNumber,-1,-1,0,0,NULL,DialogItems,ArraySize(DialogItems),0,0,OFDProc,(DWORD)&params);
+  dialog.Execute(Info.ModuleNumber,FileDialogGuid,-1,-1,0,0,NULL,DialogItems,ArraySize(DialogItems),0,0,OFDProc,(DWORD)&params);
   return params.result;
 }

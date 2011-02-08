@@ -32,38 +32,22 @@ void DoEdit(HANDLE aDlg)
     {
       Info.SendDlgMessage(aDlg,DM_GETTEXTPTR,itemID,(LONG_PTR)buffer);
       TCHAR filename[MAX_PATH];
-      if(FSF.MkTemp(filename,
-#ifdef UNICODE
-      ArraySize(filename),
-#endif
-      _T("DTE")))
+      if(FSF.MkTemp(filename,ArraySize(filename),_T("DTE")))
       {
         HANDLE file=CreateFile(filename,GENERIC_WRITE,FILE_SHARE_READ,NULL,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,NULL);
         if(file!=INVALID_HANDLE_VALUE)
         {
           DWORD written;
-#ifdef UNICODE
           short marker=0xfeff;
           WriteFile(file,&marker,sizeof(marker),&written,NULL);
-#endif
           WriteFile(file,buffer,(length-1)*sizeof(TCHAR),&written,NULL);
           CloseHandle(file);
-          Info.Editor(filename,_T(""),0,0,-1,-1,EF_DISABLEHISTORY,1,1
-#ifdef UNICODE
-          ,CP_AUTODETECT
-#endif
-          );
+          Info.Editor(filename,_T(""),0,0,-1,-1,EF_DISABLEHISTORY,1,1,CP_AUTODETECT);
           file=CreateFile(filename,GENERIC_READ,FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
           if(file!=INVALID_HANDLE_VALUE)
           {
             DWORD size=SetFilePointer(file,0,NULL,FILE_END)/sizeof(TCHAR);
-            SetFilePointer(file,
-#ifdef UNICODE
-            sizeof(marker)
-#else
-            0
-#endif
-            ,NULL,FILE_BEGIN);
+            SetFilePointer(file,sizeof(marker),NULL,FILE_BEGIN);
             TCHAR* outBuffer=(TCHAR*)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,(size+1)*sizeof(TCHAR));
             if(outBuffer)
             {
@@ -74,12 +58,7 @@ void DoEdit(HANDLE aDlg)
               {
                 if(outBuffer[ii]==13&&outBuffer[ii+1]==10)
                 {
-#ifdef UNICODE
-                  wmemcpy
-#else
-                  memcpy
-#endif
-                  (outBuffer+ii,outBuffer+ii+1,size-ii);
+                  wmemcpy(outBuffer+ii,outBuffer+ii+1,size-ii);
                   outBuffer[ii]=0x20;
                   size--;
                 }

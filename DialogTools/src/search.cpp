@@ -18,8 +18,12 @@
 */
 
 #include "dt.hpp"
+#include <initguid.h>
+#include <stdio.h>
+// {7452904C-CFD7-49b2-AE24-7ED22A9AAB99}
+DEFINE_GUID(SearchDialogGuid, 0x7452904c, 0xcfd7, 0x49b2, 0xae, 0x24, 0x7e, 0xd2, 0x2a, 0x9a, 0xab, 0x99);
 
-LONG_PTR WINAPI SearchDialogProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2)
+INT_PTR WINAPI SearchDialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
 {
   return Info.DefDlgProc(hDlg,Msg,Param1,Param2);
 }
@@ -40,22 +44,22 @@ void DoSearch(HANDLE aDlg)
       int c=GetRegKey(HKEY_CURRENT_USER,_T(""),_T("CaseSensitive"),0);
       int p=GetRegKey(HKEY_CURRENT_USER,_T(""),_T("SearchFromCurPos"),1);
       struct InitDialogItem InitItems[]=
-      {//       Type            X1 Y1 X2 Y2 Fo Se Fl                                    DB      Data */
-       /*00*/ { DI_DOUBLEBOX,   3, 1,55, 9, 0, 0, DIF_BOXCOLOR,                         0,      (const TCHAR*)mSearchCaption},
-       /*01*/ { DI_TEXT,        5, 2, 0, 2, 0, 0, 0,                                    0,      (const TCHAR*)mSearch},
-       /*02*/ { DI_EDIT,        5, 3,53, 3, 0, 0, DIF_HISTORY|DIF_USELASTHISTORY,       0,      _T("")},
-       /*03*/ { DI_TEXT,        0, 4, 0, 4, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR,           0,      _T("")},
-       /*04*/ { DI_CHECKBOX,    5, 5, 0, 5, 0, c, 0,                                    0,      (const TCHAR*)mCase},
-       /*05*/ { DI_CHECKBOX,    5, 6, 0, 6, 0, p, 0,                                    0,      (const TCHAR*)mCurPos},
-       /*06*/ { DI_TEXT,        0, 7, 0, 7, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR,           0,      _T("")},
-       /*07*/ { DI_BUTTON,      0, 8, 0, 8, 0, 0, DIF_CENTERGROUP,                      1,      (const TCHAR*)mOk},
-       /*08*/ { DI_BUTTON,      0, 8, 0, 8, 0, 0, DIF_CENTERGROUP,                      0,      (const TCHAR*)mCancel}
+      {//       Type            X1 Y1 X2 Y2 Se Fl                                     Data */
+       /*00*/ { DI_DOUBLEBOX,   3, 1,55, 9, 0, DIF_BOXCOLOR,                          (const TCHAR*)mSearchCaption},
+       /*01*/ { DI_TEXT,        5, 2, 0, 2, 0, 0,                                     (const TCHAR*)mSearch},
+       /*02*/ { DI_EDIT,        5, 3,53, 3, 0, DIF_HISTORY|DIF_USELASTHISTORY,        _T("")},
+       /*03*/ { DI_TEXT,        0, 4, 0, 4, 0, DIF_BOXCOLOR|DIF_SEPARATOR,            _T("")},
+       /*04*/ { DI_CHECKBOX,    5, 5, 0, 5, c, 0,                                     (const TCHAR*)mCase},
+       /*05*/ { DI_CHECKBOX,    5, 6, 0, 6, p, 0,                                     (const TCHAR*)mCurPos},
+       /*06*/ { DI_TEXT,        0, 7, 0, 7, 0, DIF_BOXCOLOR|DIF_SEPARATOR,            _T("")},
+       /*07*/ { DI_BUTTON,      0, 8, 0, 8, 0, DIF_CENTERGROUP|DIF_DEFAULTBUTTON,     (const TCHAR*)mOk},
+       /*08*/ { DI_BUTTON,      0, 8, 0, 8, 0, DIF_CENTERGROUP,                       (const TCHAR*)mCancel}
       };
       struct FarDialogItem DialogItems[(sizeof(InitItems)/sizeof(InitItems[0]))];
       InitDialogItems(InitItems,DialogItems,(sizeof(InitItems)/sizeof(InitItems[0])));
       DialogItems[2].History=_T("DialogManager.Search");
       CFarDialog dialog;
-      int n=dialog.Execute(Info.ModuleNumber,-1,-1,59,11,NULL,DialogItems,ArraySize(InitItems),0,0,SearchDialogProc,0);
+      int n=dialog.Execute(Info.ModuleNumber,SearchDialogGuid,-1,-1,59,11,NULL,DialogItems,ArraySize(InitItems),0,0,SearchDialogProc,0);
       if (n==7)
       {
         c=(DialogItems[4].Selected==TRUE)?1:0;

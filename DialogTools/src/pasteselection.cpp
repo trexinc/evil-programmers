@@ -26,11 +26,7 @@ inline TCHAR hex(TCHAR c)
   return ('A'+c-10);
 }
 
-#ifdef UNICODE
 #define MACRO_LEN 6
-#else
-#define MACRO_LEN 4
-#endif
 
 void DoPaste(HANDLE aDlg)
 {
@@ -54,12 +50,6 @@ void DoPaste(HANDLE aDlg)
           if (text)
           {
             memcpy(text,egs.StringText+egs.SelStart,len*sizeof(TCHAR));
-#ifndef UNICODE
-            EditorConvertText ect;
-            ect.Text=(TCHAR *)text;
-            ect.TextLength=len;
-            Info.EditorControl(ECTL_EDITORTOOEM,&ect);
-#endif
             text[len]=0;
             len=_tcslen(text);
             if (len)
@@ -72,7 +62,6 @@ void DoPaste(HANDLE aDlg)
                 {
                   buffer[i++]='\\';
                   buffer[i++]='x';
-#ifdef UNICODE
                   unsigned value=text[j];
                   buffer[i++]=hex(value/4096);
                   value%=4096;
@@ -80,10 +69,6 @@ void DoPaste(HANDLE aDlg)
                   value%=256;
                   buffer[i++]=hex(value/16);
                   buffer[i++]=hex(value%16);
-#else
-                  buffer[i++]=hex(((TCHAR)text[j])/16);
-                  buffer[i++]=hex(((TCHAR)text[j])%16);
-#endif
                 }
                 _tcscpy(buffer+len*MACRO_LEN+7,_T("\""));
                 ActlKeyMacro seq;

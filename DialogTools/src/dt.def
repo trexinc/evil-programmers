@@ -1,8 +1,8 @@
 
 EXPORTS 
-  SetStartupInfo=SetStartupInfo@4
-  GetPluginInfo=GetPluginInfo@4
-  GetMinFarVersion=GetMinFarVersion@0
-  OpenPlugin=OpenPlugin@8
-  ExitFAR=ExitFAR@0
-  ProcessDialogEvent=ProcessDialogEvent@8
+  SetStartupInfoW=SetStartupInfoW@4
+  GetPluginInfoW=GetPluginInfoW@4
+  OpenPluginW=OpenPluginW@24
+  ExitFARW=ExitFARW@0
+  ProcessDialogEventW=ProcessDialogEventW@8
+  GetGlobalInfoW=GetGlobalInfoW@4

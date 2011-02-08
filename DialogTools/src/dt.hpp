@@ -58,10 +58,8 @@ struct InitDialogItem
 {
   int Type;
   int X1, Y1, X2, Y2;
-  int Focus;
   int Selected;
-  unsigned int Flags;
-  int DefaultButton;
+  unsigned __int64 Flags;
   const TCHAR *Data;
 };
 

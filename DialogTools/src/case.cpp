@@ -21,11 +21,7 @@
 #include "dt.hpp"
 #include <limits.h>
 
-#ifdef UNICODE
 #define t_memchr wmemchr
-#else
-#define t_memchr memchr
-#endif
 
 enum
 {
@@ -63,13 +59,13 @@ void DoCase(HANDLE aDlg)
 {
   FarMenuItem MenuItems[7];
   memset(MenuItems,0,sizeof(MenuItems));
-  MenuItems[0].Selected=1;
+  MenuItems[0].Flags|=MIF_SELECTED;
   INIT_MENU_TEXT(0,GetMsg(mLower));
   INIT_MENU_TEXT(1,GetMsg(mUpper));
   INIT_MENU_TEXT(2,GetMsg(mTitle));
   INIT_MENU_TEXT(3,GetMsg(mToggle));
   INIT_MENU_TEXT(4,GetMsg(mCyclic));
-  MenuItems[5].Separator=1;
+  MenuItems[5].Flags|=MIF_SEPARATOR;
   INIT_MENU_TEXT(6,GetMsg(mProcessWholeLine));
   HKEY hKey;
   if(RegOpenKeyEx(HKEY_CURRENT_USER,PluginRootKey,0,KEY_READ,&hKey)==ERROR_SUCCESS)
@@ -78,23 +74,23 @@ void DoCase(HANDLE aDlg)
     RegQueryValueEx(hKey,_T("ProcessWholeLine"),0,&Type,(BYTE *)&ProcessWholeLine,&DataSize);
     RegCloseKey(hKey);
   }
-  MenuItems[6].Checked=(ProcessWholeLine?1:0);
+  MenuItems[6].Flags|=(ProcessWholeLine?MIF_CHECKED:0);
   int BreakKeys[2]={VK_SPACE,0};
   int MenuCode;
   while (6==(MenuCode=Info.Menu(Info.ModuleNumber,-1,-1,0,FMENU_WRAPMODE,GetMsg(mNameCase),NULL,NULL,BreakKeys,NULL,MenuItems,ArraySize(MenuItems))))
   {
-    if (MenuItems[6].Checked)
+    if (MenuItems[6].Flags&MIF_CHECKED)
     {
       ProcessWholeLine=FALSE;
-      MenuItems[6].Checked=0;
+      MenuItems[6].Flags&=~MIF_CHECKED;
     }
     else
     {
       ProcessWholeLine=TRUE;
-      MenuItems[6].Checked=1;
+      MenuItems[6].Flags|=MIF_CHECKED;
     }
-    MenuItems[0].Selected=0;
-    MenuItems[6].Selected=1;
+    MenuItems[0].Flags&=~MIF_SELECTED;
+    MenuItems[6].Flags|=MIF_SELECTED;
   }
   DWORD Disposition;
   if(RegCreateKeyEx(HKEY_CURRENT_USER,PluginRootKey,0,NULL,0,KEY_WRITE,NULL,&hKey,&Disposition)==ERROR_SUCCESS)

@@ -53,11 +53,7 @@ void DoOpenFile(HANDLE aDlg)
   {
     TCHAR path[MAX_PATH],filename[MAX_PATH];
     path[0]=0;
-#ifdef UNICODE
     if(Info.Control(PANEL_ACTIVE,FCTL_GETPANELDIR,ArraySize(path),(LONG_PTR)path))
-#else
-    if(GetCurrentDirectory(sizeof(path),path))
-#endif
       FSF.AddEndSlash(path);
     if(open_file_dialog(path,filename))
     {

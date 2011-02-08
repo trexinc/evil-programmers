@@ -24,7 +24,6 @@
 extern PluginStartupInfo Info;
 #define ArraySize(a) (sizeof(a)/sizeof(a[0]))
 
-#ifdef UNICODE
 #define INIT_DLG_DATA(item,str) item.PtrData=str
 #define INIT_MENU_TEXT(index,str) MenuItems[index].Text=str
 class CFarDialog
@@ -34,9 +33,9 @@ class CFarDialog
   public:
     inline CFarDialog(): iDlg(INVALID_HANDLE_VALUE) {};
     inline ~CFarDialog() {Info.DialogFree(iDlg);};
-    inline int Execute(INT_PTR PluginNumber,int X1,int Y1,int X2,int Y2,const TCHAR* HelpTopic,struct FarDialogItem* Item,int ItemsNumber,DWORD Reserved,DWORD Flags,FARWINDOWPROC DlgProc,LONG_PTR Param)
+    inline int Execute(INT_PTR PluginNumber,const GUID& Id,int X1,int Y1,int X2,int Y2,const TCHAR* HelpTopic,struct FarDialogItem* Item,int ItemsNumber,DWORD Reserved,DWORD Flags,FARWINDOWPROC DlgProc,LONG_PTR Param)
     {
-      iDlg=Info.DialogInit(PluginNumber,X1,Y1,X2,Y2,HelpTopic,Item,ItemsNumber,Reserved,Flags,DlgProc,Param);
+      iDlg=Info.DialogInit(PluginNumber,Id,X1,Y1,X2,Y2,HelpTopic,Item,ItemsNumber,Reserved,Flags,DlgProc,Param);
       return Info.DialogRun(iDlg);
     };
     inline HANDLE Handle(void) {return iDlg;};
@@ -55,30 +54,5 @@ class CFarDialog
       return 0;
     };
 };
-#define EXP_NAME(p) _export p ## W
-#else
-#define DM_GETDLGITEMSHORT DM_GETDLGITEM
-#define DM_SETDLGITEMSHORT DM_SETDLGITEM
-#define INIT_DLG_DATA(item,str) _tcscpy(item.Data,str)
-#define INIT_MENU_TEXT(index,str) _tcscpy(MenuItems[index].Text,str)
-class CFarDialog
-{
-  private:
-    FarDialogItem* iItems;
-  public:
-    inline CFarDialog() {};
-    inline int Execute(INT_PTR PluginNumber,int X1,int Y1,int X2,int Y2,const TCHAR* HelpTopic,struct FarDialogItem* Item,int ItemsNumber,DWORD Reserved,DWORD Flags,FARWINDOWPROC DlgProc,LONG_PTR Param)
-    {
-      iItems=Item;
-      return Info.DialogEx(PluginNumber,X1,Y1,X2,Y2,HelpTopic,Item,ItemsNumber,Reserved,Flags,DlgProc,Param);
-    };
-    inline FarDialogItem* Handle(void) {return iItems;};
-    inline int Check(int index) {return iItems[index].Selected;};
-    inline const char* Str(int index) {return iItems[index].Data;};
-    inline DWORD Flags(int index) {return iItems[index].Flags;};
-    inline DWORD Type(int index) {return iItems[index].Type;};
-};
-#define EXP_NAME(p) _export p
-#endif
 
 #endif
