@@ -18,8 +18,11 @@
 */
 
 #include "dt.hpp"
+#include <initguid.h>
+// {44769AF2-E33D-4c76-9EA4-A0E5B795A604}
+DEFINE_GUID(ReplaceDialogGuid, 0x44769af2, 0xe33d, 0x4c76, 0x9e, 0xa4, 0xa0, 0xe5, 0xb7, 0x95, 0xa6, 0x4);
 
-LONG_PTR WINAPI ReplaceDialogProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2)
+INT_PTR WINAPI ReplaceDialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
 {
   return Info.DefDlgProc(hDlg,Msg,Param1,Param2);
 }
@@ -40,25 +43,25 @@ void DoReplace(HANDLE aDlg)
       int c=GetRegKey(HKEY_CURRENT_USER,_T(""),_T("CaseSensitive"),0);
       int p=GetRegKey(HKEY_CURRENT_USER,_T(""),_T("SearchFromCurPos"),1);
       struct InitDialogItem InitItems[]=
-      {//       Type            X1 Y1 X2 Y2 Fo Se Fl                                    DB      Data */
-       /*00*/ { DI_DOUBLEBOX,   3, 1,55,11, 0, 0, DIF_BOXCOLOR,                         0,      (const TCHAR*)mReplaceCaption},
-       /*01*/ { DI_TEXT,        5, 2, 0, 2, 0, 0, 0,                                    0,      (const TCHAR*)mSearch},
-       /*02*/ { DI_EDIT,        5, 3,53, 3, 0, 0, DIF_HISTORY|DIF_USELASTHISTORY,       0,      _T("")},
-       /*03*/ { DI_TEXT,        5, 4, 0, 4, 0, 0, 0,                                    0,      (const TCHAR*)mReplace},
-       /*04*/ { DI_EDIT,        5, 5,53, 5, 0, 0, DIF_HISTORY|DIF_USELASTHISTORY,       0,      _T("")},
-       /*05*/ { DI_TEXT,        0, 6, 0, 6, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR,           0,      _T("")},
-       /*06*/ { DI_CHECKBOX,    5, 7, 0, 7, 0, c, 0,                                    0,      (const TCHAR*)mCase},
-       /*07*/ { DI_CHECKBOX,    5, 8, 0, 8, 0, p, 0,                                    0,      (const TCHAR*)mCurPos},
-       /*08*/ { DI_TEXT,        0, 9, 0, 9, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR,           0,      _T("")},
-       /*09*/ { DI_BUTTON,      0,10, 0,10, 0, 0, DIF_CENTERGROUP,                      1,      (const TCHAR*)mOk},
-       /*10*/ { DI_BUTTON,      0,10, 0,10, 0, 0, DIF_CENTERGROUP,                      0,      (const TCHAR*)mCancel}
+      {//       Type            X1 Y1 X2 Y2 Se Fl                                     Data */
+       /*00*/ { DI_DOUBLEBOX,   3, 1,55,11, 0, DIF_BOXCOLOR,                          (const TCHAR*)mReplaceCaption},
+       /*01*/ { DI_TEXT,        5, 2, 0, 2, 0, 0,                                     (const TCHAR*)mSearch},
+       /*02*/ { DI_EDIT,        5, 3,53, 3, 0, DIF_HISTORY|DIF_USELASTHISTORY,        _T("")},
+       /*03*/ { DI_TEXT,        5, 4, 0, 4, 0, 0,                                     (const TCHAR*)mReplace},
+       /*04*/ { DI_EDIT,        5, 5,53, 5, 0, DIF_HISTORY|DIF_USELASTHISTORY,        _T("")},
+       /*05*/ { DI_TEXT,        0, 6, 0, 6, 0, DIF_BOXCOLOR|DIF_SEPARATOR,            _T("")},
+       /*06*/ { DI_CHECKBOX,    5, 7, 0, 7, c, 0,                                     (const TCHAR*)mCase},
+       /*07*/ { DI_CHECKBOX,    5, 8, 0, 8, p, 0,                                     (const TCHAR*)mCurPos},
+       /*08*/ { DI_TEXT,        0, 9, 0, 9, 0, DIF_BOXCOLOR|DIF_SEPARATOR,            _T("")},
+       /*09*/ { DI_BUTTON,      0,10, 0,10, 0, DIF_CENTERGROUP|DIF_DEFAULTBUTTON,     (const TCHAR*)mOk},
+       /*10*/ { DI_BUTTON,      0,10, 0,10, 0, DIF_CENTERGROUP,                       (const TCHAR*)mCancel}
       };
       struct FarDialogItem DialogItems[(sizeof(InitItems)/sizeof(InitItems[0]))];
       InitDialogItems(InitItems,DialogItems,(sizeof(InitItems)/sizeof(InitItems[0])));
       DialogItems[2].History=_T("DialogManager.Search");
       DialogItems[4].History=_T("DialogManager.Replace");
       CFarDialog dialog;
-      int n=dialog.Execute(Info.ModuleNumber,-1,-1,59,13,NULL,DialogItems,ArraySize(InitItems),0,0,ReplaceDialogProc,0);
+      int n=dialog.Execute(Info.ModuleNumber,ReplaceDialogGuid,-1,-1,59,13,NULL,DialogItems,ArraySize(InitItems),0,0,ReplaceDialogProc,0);
       if (n==9)
       {
         c=(DialogItems[6].Selected==TRUE)?1:0;
