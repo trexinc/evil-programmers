@@ -139,14 +139,12 @@ struct InitDialogItem
 {
   int Type;
   int X1,Y1,X2,Y2;
-  int Focus;
   DWORD_PTR Selected;
-  unsigned int Flags;
-  int DefaultButton;
+  unsigned __int64 Flags;
   const TCHAR* Data;
 };
 
-extern void InitDialogItems(InitDialogItem *Init,FarDialogItem *Item,int ItemsNumber);
+extern void InitDialogItems(const InitDialogItem *Init,FarDialogItem *Item,int ItemsNumber);
 extern bool SelectColor(int *fg,int *bg);
 
 struct Options
@@ -158,11 +156,5 @@ struct Options
 
 extern struct Options Opt;
 extern bool fatal;
-
-#ifndef UNICODE
-#define EXP_NAME(p) _export p
-#else
-#define EXP_NAME(p) _export p ## W
-#endif
 
 #endif
