@@ -21,11 +21,10 @@
 #include "EditCmpl.hpp"
 #include <stdio.h>
 #include <tchar.h>
-
-#ifndef UNICODE
-#define DM_GETDLGITEMSHORT DM_GETDLGITEM
-#define DM_SETDLGITEMSHORT DM_SETDLGITEM
-#endif
+#include "guid.hpp"
+#include <initguid.h>
+// {E456CA5B-3A02-445f-A217-3BD52ABC3057}
+DEFINE_GUID(ColorGuid, 0xe456ca5b, 0x3a02, 0x445f, 0xa2, 0x17, 0x3b, 0xd5, 0x2a, 0xbc, 0x30, 0x57);
 
 enum
 {
@@ -40,7 +39,7 @@ enum
   color_sep    = 40,
 };
 
-static long WINAPI ColorDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
+static INT_PTR WINAPI ColorDialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
 {
   int color=0;
   FarDialogItem DialogItem;
@@ -140,7 +139,7 @@ bool SelectColor(int *fg,int *bg)
     DialogItems[color_set+i].Type=DI_BUTTON;
     DialogItems[color_set+i].Y1=12;
     DialogItems[color_set+i].Flags=DIF_CENTERGROUP;
-    DialogItems[color_set+i].DefaultButton=!i;
+    DialogItems[color_set+i].Flags|=(!i)?DIF_DEFAULTBUTTON:0;
     INIT_DLG_DATA(DialogItems[color_set+i],GetMsg(MColorSet+i));
   }
   for(int i=0;i<3;i++)
@@ -162,10 +161,11 @@ bool SelectColor(int *fg,int *bg)
   DialogItems[color_sep].Y1=11;
   DialogItems[color_sep].Flags=DIF_SEPARATOR;
 
-  DialogItems[color_translate[*fg]+1].Focus=DialogItems[color_translate[*fg]+1].Selected=true;
+  DialogItems[color_translate[*fg]+1].Flags|=DIF_FOCUS;
+  DialogItems[color_translate[*fg]+1].Selected=true;
   DialogItems[color_translate[*bg]+18].Selected=true;
   CFarDialog dialog;
-  int DlgCode=dialog.Execute(Info.ModuleNumber,-1,-1,39,15,NULL,DialogItems,(sizeof(DialogItems)/sizeof(DialogItems[0])),0,0,ColorDialogProc,0);
+  int DlgCode=dialog.Execute(MainGuid,ColorGuid,-1,-1,39,15,NULL,DialogItems,(sizeof(DialogItems)/sizeof(DialogItems[0])),0,0,ColorDialogProc,0);
   if(DlgCode==color_set)
   {
     for(int i=1;i<17;i++)

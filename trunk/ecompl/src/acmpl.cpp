@@ -20,6 +20,10 @@
 #include "acmpl.hpp"
 #include "EditCmpl.hpp"
 #include "language.hpp"
+#include "guid.hpp"
+#include <initguid.h>
+// {A28F2DC4-C362-4a82-AB2C-0081161171DD}
+DEFINE_GUID(ACmplGuid, 0xa28f2dc4, 0xc362, 0x4a82, 0xab, 0x2c, 0x0, 0x81, 0x16, 0x11, 0x71, 0xdd);
 
 TAutoCompletion::TAutoCompletion(const TCHAR *RegRoot): TCompletion(RegRoot)
 {
@@ -147,12 +151,6 @@ bool TAutoCompletion::CheckText(int Pos,int Row,avl_window_data *Window)
   if(gs.StringLength>Pos)
   {
     string Line((const UTCHAR*)gs.StringText,gs.StringLength);
-#ifndef UNICODE
-    EditorConvertText ct;
-    ct.TextLength=Line.length();
-    ct.Text=(TCHAR *)Line.get();
-    Info.EditorControl(ECTL_EDITORTOOEM,&ct);
-#endif
     if(!_tcsncmp((const TCHAR *)(const UTCHAR*)Line+Pos,(const TCHAR *)(const UTCHAR*)Window->Inserted,Window->Inserted.length()))
     {
       //set position to word start
@@ -369,7 +367,7 @@ int TAutoCompletion::DialogHeight(void)
   return 25;
 }
 
-long WINAPI GetKey(HANDLE hDlg,int Msg,int Param1,long Param2)
+INT_PTR WINAPI GetKey(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
 {
   if(Msg==DN_INITDIALOG)
   {
@@ -384,7 +382,7 @@ long WINAPI GetKey(HANDLE hDlg,int Msg,int Param1,long Param2)
   return Info.DefDlgProc(hDlg,Msg,Param1,Param2);
 }
 
-long TAutoCompletion::DialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
+INT_PTR TAutoCompletion::DialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
 {
   if(Msg==DN_BTNCLICK)
   {
@@ -400,13 +398,11 @@ long TAutoCompletion::DialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
       DialogFrame.Y1=1;
       DialogFrame.X2=_tcslen(DLG_DATA(DialogFrame))+4;
       DialogFrame.Y2=3;
-      DialogFrame.Focus=1;
       DialogFrame.Selected=1;
-      DialogFrame.Flags=DIF_BOXCOLOR;
-      DialogFrame.DefaultButton=1;
+      DialogFrame.Flags=DIF_BOXCOLOR|DIF_FOCUS|DIF_DEFAULTBUTTON;
       int width=_tcslen(DLG_DATA(DialogFrame))+6;
       CFarDialog dialog;
-      dialog.Execute(Info.ModuleNumber,-1,-1,width,5,ConfigHelpTopic,&DialogFrame,1,0,0,GetKey,(DWORD)KeyName);
+      dialog.Execute(MainGuid,ACmplGuid,-1,-1,width,5,ConfigHelpTopic,&DialogFrame,1,0,0,GetKey,(DWORD)KeyName);
       Info.SendDlgMessage(hDlg,DM_SETTEXTPTR,(Param1==IAcceptKeyCfg)?IAcceptKey:IDeleteKey,(long)&KeyName);
       Info.SendDlgMessage(hDlg,DM_SHOWDIALOG,TRUE,0);
       return TRUE;
@@ -422,7 +418,7 @@ long TAutoCompletion::DialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
   }
   else if(Msg==DN_INITDIALOG)
   {
-    Info.SendDlgMessage(hDlg,DM_SETTEXTLENGTH,IAcceptChars,sizeof(AcceptChars)-1);
+    Info.SendDlgMessage(hDlg,DM_SETMAXTEXTLENGTH,IAcceptChars,sizeof(AcceptChars)-1);
   }
   return Info.DefDlgProc(hDlg,Msg,Param1,Param2);
 }
@@ -462,10 +458,8 @@ void TAutoCompletion::InitItems(FarDialogItem *DialogItems)
     DialogItems[i+CMPL_DIALOG_ITEMS].Y1=DialogElements[i][2];
     DialogItems[i+CMPL_DIALOG_ITEMS].X2=DialogElements[i][3];
     DialogItems[i+CMPL_DIALOG_ITEMS].Y2=0;
-    DialogItems[i+CMPL_DIALOG_ITEMS].Focus=0;
     DialogItems[i+CMPL_DIALOG_ITEMS].Selected=0;
     DialogItems[i+CMPL_DIALOG_ITEMS].Flags=0;
-    DialogItems[i+CMPL_DIALOG_ITEMS].DefaultButton=0;
     INIT_DLG_DATA(DialogItems[i+CMPL_DIALOG_ITEMS],GetMsg(Msgs[i])); // Надписи на эл-тах диалога
   }
 
@@ -484,23 +478,15 @@ void TAutoCompletion::InitItems(FarDialogItem *DialogItems)
   DialogItems[IAcceptKey].X2=DialogWidth()-_tcslen(GetMsg(MKeyCfg))-9;
   DialogItems[IAcceptKeyCfg].X1=DialogWidth()-_tcslen(GetMsg(MKeyCfg))-7;
   DialogItems[IAcceptKeyCfg].Flags=DIF_NOBRACKETS;
-#ifdef UNICODE
   FSF.sprintf(AcceptKeyCfgText,_T("&[ %s ]"),GetMsg(MKeyCfg));
   DialogItems[IAcceptKeyCfg].PtrData=AcceptKeyCfgText;
-#else
-  FSF.sprintf(DialogItems[IAcceptKeyCfg].Data,_T("&[ %s ]"),GetMsg(MKeyCfg));
-#endif
 
   DLG_DATA_FARKEYTONAME(DialogItems[IDeleteKey],DeleteKey);
   DialogItems[IDeleteKey].X2=DialogWidth()-_tcslen(GetMsg(MKeyCfg))-9;
   DialogItems[IDeleteKeyCfg].X1=DialogWidth()-_tcslen(GetMsg(MKeyCfg))-7;
   DialogItems[IDeleteKeyCfg].Flags=DIF_NOBRACKETS;
-#ifdef UNICODE
   FSF.sprintf(DeleteKeyCfgText,_T("[ %s &]"),GetMsg(MKeyCfg));
   DialogItems[IDeleteKeyCfg].PtrData=DeleteKeyCfgText;
-#else
-  FSF.sprintf(DialogItems[IDeleteKeyCfg].Data,_T("[ %s &]"),GetMsg(MKeyCfg));
-#endif
 
   INIT_DLG_DATA(DialogItems[ICfg],GetMsg(MAutoCfg)); // Заголовок
   INIT_DLG_DATA(DialogItems[IAdditional],GetMsg(MColor));

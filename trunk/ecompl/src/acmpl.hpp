@@ -52,7 +52,7 @@ class TAutoCompletion: public TCompletion
     int GetItemCount(void);
     int DialogWidth(void);
     int DialogHeight(void);
-    long DialogProc(HANDLE hDlg,int Msg,int Param1,long Param2);
+    INT_PTR DialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2);
     void InitItems(FarDialogItem *DialogItems);
     void StoreItems(CFarDialog& Dialog);
   public:

@@ -23,7 +23,6 @@
 extern PluginStartupInfo Info;
 #define ArraySize(a) (sizeof(a)/sizeof(a[0]))
 
-#ifdef UNICODE
 typedef unsigned short UTCHAR;
 #define t_FarKeyToName(Key,KeyText,Size) FSF.FarKeyToName(Key,KeyText,Size)
 #define t_KEY_CHAR UnicodeChar
@@ -39,9 +38,9 @@ class CFarDialog
   public:
     inline CFarDialog(): iDlg(INVALID_HANDLE_VALUE) {};
     inline ~CFarDialog() {Info.DialogFree(iDlg);};
-    inline int Execute(INT_PTR PluginNumber,int X1,int Y1,int X2,int Y2,const TCHAR* HelpTopic,struct FarDialogItem* Item,int ItemsNumber,DWORD Reserved,DWORD Flags,FARWINDOWPROC DlgProc,LONG_PTR Param)
+    inline int Execute(const GUID& PluginId,const GUID& Id,int X1,int Y1,int X2,int Y2,const TCHAR* HelpTopic,struct FarDialogItem* Item,int ItemsNumber,DWORD Reserved,DWORD Flags,FARWINDOWPROC DlgProc,LONG_PTR Param)
     {
-      iDlg=Info.DialogInit(PluginNumber,X1,Y1,X2,Y2,HelpTopic,Item,ItemsNumber,Reserved,Flags,DlgProc,Param);
+      iDlg=Info.DialogInit(&PluginId,&Id,X1,Y1,X2,Y2,HelpTopic,Item,ItemsNumber,Reserved,Flags,DlgProc,Param);
       return Info.DialogRun(iDlg);
     };
     inline HANDLE Handle(void) {return iDlg;};
@@ -54,33 +53,5 @@ class CFarDialog
       return 0;
     };
 };
-#define EXP_NAME(p) _export p ## W
-#else
-typedef unsigned char UTCHAR;
-#define t_FarKeyToName(Key,KeyText,Size) FSF.FarKeyToName(Key,KeyText,Size-1)
-#define t_KEY_CHAR AsciiChar
-#define INIT_DLG_DATA(item,str) _tcscpy(item.Data,str)
-#define DLG_DATA(item) item.Data
-#define DLG_DATA_SPRINTF(item,val,mask) FSF.sprintf(item.Data,mask,val)
-#define DLG_DATA_FARKEYTONAME(item,val) t_FarKeyToName(val,item.Data,ArraySize(item.Data));
-#define DLG_DATA_ITOA(item,val) FSF.itoa(val,item.Data,10);
-class CFarDialog
-{
-  private:
-    FarDialogItem* iItems;
-  public:
-    inline CFarDialog() {};
-    inline int Execute(INT_PTR PluginNumber,int X1,int Y1,int X2,int Y2,const TCHAR* HelpTopic,struct FarDialogItem* Item,int ItemsNumber,DWORD Reserved,DWORD Flags,FARWINDOWPROC DlgProc,LONG_PTR Param)
-    {
-      iItems=Item;
-      return Info.DialogEx(PluginNumber,X1,Y1,X2,Y2,HelpTopic,Item,ItemsNumber,Reserved,Flags,DlgProc,Param);
-    };
-    inline FarDialogItem* Handle(void) {return iItems;};
-    inline int Check(int index) {return iItems[index].Selected;};
-    inline const char* Str(int index) {return iItems[index].Data;};
-    inline DWORD Flags(int index) {return iItems[index].Flags;};
-};
-#define EXP_NAME(p) _export p
-#endif
 
 #endif

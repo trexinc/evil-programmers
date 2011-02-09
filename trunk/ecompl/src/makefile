@@ -1,18 +1,12 @@
 .SUFFIXES: .cc .cpp .c .o
 
-ifdef WIDE
 CCWIDE = -D UNICODE -D _UNICODE
-DIRSURF = W
-endif
+
 ifndef COMMON
 COMMON = ../../common
 endif
 
-ifdef WIDE
-COMINC = $(COMMON)/unicode
-else
-COMINC = $(COMMON)/ascii
-endif
+COMINC = $(COMMON)
 
 OBJDIR=o$(DIRSURF)
 BINDIR=bin$(DIRSURF)
