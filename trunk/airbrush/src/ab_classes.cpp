@@ -21,6 +21,7 @@
 #include "memory.h"
 #include "ab_main.h"
 #include "abplugin.h"
+#include "guid.h"
 
 PEditFile editfiles;
 
@@ -136,11 +137,7 @@ int OnEditorEvent(int event,void *param)
   static bool stop_colorize=false;
   if(stop_colorize) return 0;
 
-#ifdef UNICODE
   TCHAR* editorfilename;
-#else
-  const TCHAR* editorfilename;
-#endif
   const TCHAR* filename;
   PEditFile curfile;
   EditorInfo ei;
@@ -163,12 +160,8 @@ int OnEditorEvent(int event,void *param)
   // search file in list
   Info.EditorControl(ECTL_GETINFO,&ei);
 
-#ifdef UNICODE
   editorfilename = (TCHAR *)malloc(Info.EditorControl(ECTL_GETFILENAME,NULL)*sizeof(TCHAR));
   Info.EditorControl(ECTL_GETFILENAME,editorfilename);
-#else
-  editorfilename = ei.FileName;
-#endif
 
   filename=FSF.PointToName(editorfilename); // deletes path...
 
@@ -202,7 +195,7 @@ int OnEditorEvent(int event,void *param)
           {
             TCHAR FileMask[MAX_PATH];
             while((mask=GetCommaWord(mask,FileMask))!=NULL)
-              if(Info.CmpName(FileMask,filename,true))
+              if(FSF.ProcessName(FileMask,(wchar_t*)filename,0,PN_CMPNAME|PN_SKIPPATH))
               {
                 curfile=loadfile(ei.EditorID,i);
                 break;
@@ -224,7 +217,7 @@ int OnEditorEvent(int event,void *param)
           if(egs.StringLength&&PluginsData[i].Start)
           {
             int len=lstrlen(PluginsData[i].Start);
-            if(len&&(Info.CmpName(PluginsData[i].Start,egs.StringText,false)))
+            if(len&&(FSF.ProcessName(PluginsData[i].Start,(wchar_t*)egs.StringText,0,PN_CMPNAME)))
             {
               curfile=loadfile(ei.EditorID,i);
               break;
@@ -244,9 +237,7 @@ int OnEditorEvent(int event,void *param)
     }
   }
 
-#ifdef UNICODE
   free(editorfilename);
-#endif
 
   if((!curfile)&&(Opt.ColorizeAll)) curfile=loadfile(ei.EditorID,-1);
   if(!curfile) return 0;
@@ -352,7 +343,7 @@ int OnEditorEvent(int event,void *param)
                   WaitForSingleObject(Mutex,INFINITE);
                   const TCHAR* MsgItems[]={GetMsg(mError),GetMsg(mStopQuestion),GetMsg(mButtonYes),GetMsg(mButtonNo)};
                   stop_colorize=true;
-                  bool ContinueThread=Info.Message(Info.ModuleNumber,FMSG_WARNING,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),2);
+                  bool ContinueThread=Info.Message(&MainGuid,FMSG_WARNING,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),2);
                   stop_colorize=false;
                   ReleaseMutex(Mutex);
                   if(!ContinueThread)

@@ -24,6 +24,7 @@
 #include "ab_main.h"
 #include "abplugin.h"
 #include "abversion.h"
+#include "guid.h"
 
 struct PluginItem *PluginsData=NULL;
 int PluginsCount=0;
@@ -35,9 +36,9 @@ static void WINAPI addcolor(int lno,int start,int len,int fg,int bg)
   if((fg==-1)&&(bg==-1)) return;
   if(len==0) return;
   WaitForSingleObject(Mutex,INFINITE);
-  if(bg==-1) bg=Info.AdvControl(Info.ModuleNumber,ACTL_GETCOLOR,(void *)COL_EDITORTEXT)&0xF0;
+  if(bg==-1) bg=Info.AdvControl(&MainGuid,ACTL_GETCOLOR,(void *)COL_EDITORTEXT)&0xF0;
   else bg=bg<<4;
-  if(fg==-1) fg=Info.AdvControl(Info.ModuleNumber,ACTL_GETCOLOR,(void *)COL_EDITORTEXT)&0x0F;
+  if(fg==-1) fg=Info.AdvControl(&MainGuid,ACTL_GETCOLOR,(void *)COL_EDITORTEXT)&0x0F;
   EditorColor ec;
   ec.StringNumber=lno;
   ec.StartPos=start;
@@ -93,7 +94,7 @@ static bool WINAPI addstate(int eid,int pos,unsigned long size,unsigned char *da
       TCHAR buff[256];
       FSF.sprintf(buff,GetMsg(mFatalLine2),fl->cachesize,pos);
       const TCHAR* MsgItems[]={GetMsg(mError),GetMsg(mFatalLine1),buff,GetMsg(mButtonOk)};
-      Info.Message(Info.ModuleNumber,FMSG_WARNING,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),1);
+      Info.Message(&MainGuid,FMSG_WARNING,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),1);
     }
   }
   if(!res) fatal=true;
@@ -132,7 +133,7 @@ void LoadPlugs(const TCHAR* ModuleName)
   HANDLE hSScr=Info.SaveScreen(0,0,-1,-1);
   {
     const TCHAR* MsgItems[]={GetMsg(mName),GetMsg(mLoading)};
-    Info.Message(Info.ModuleNumber,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),0);
+    Info.Message(&MainGuid,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),0);
   }
   TCHAR PluginsFolder[MAX_PATH],PluginsMask[MAX_PATH],*NamePtr;
   lstrcpy(Unknown,GetMsg(mUnknown));
