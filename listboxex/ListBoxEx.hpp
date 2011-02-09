@@ -95,6 +95,7 @@ extern long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,long Param
 
 extern PluginStartupInfo Info;
 extern FARSTANDARDFUNCTIONS FSF;
+EXTERN_C const GUID MainGuid;
 
 struct ListBoxExItem
 {

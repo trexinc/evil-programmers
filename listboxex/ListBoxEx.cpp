@@ -193,12 +193,12 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
         {
           if(!Param2)
           {
-            data->Colors[LISTBOXEX_COLOR_BACKGROUND]=Info.AdvControl(Info.ModuleNumber,ACTL_GETCOLOR,(void*)COL_DIALOGLISTBOX);
-            data->Colors[LISTBOXEX_COLOR_ITEM]=Info.AdvControl(Info.ModuleNumber,ACTL_GETCOLOR,(void*)COL_DIALOGLISTTEXT);
-            data->Colors[LISTBOXEX_COLOR_HOTKEY]=Info.AdvControl(Info.ModuleNumber,ACTL_GETCOLOR,(void*)COL_DIALOGLISTHIGHLIGHT);
-            data->Colors[LISTBOXEX_COLOR_SELECTEDITEM]=Info.AdvControl(Info.ModuleNumber,ACTL_GETCOLOR,(void*)COL_DIALOGLISTSELECTEDTEXT);
-            data->Colors[LISTBOXEX_COLOR_SELECTEDHOTKEY]=Info.AdvControl(Info.ModuleNumber,ACTL_GETCOLOR,(void*)COL_DIALOGLISTSELECTEDHIGHLIGHT);
-            data->Colors[LISTBOXEX_COLOR_DISABLED]=Info.AdvControl(Info.ModuleNumber,ACTL_GETCOLOR,(void*)COL_DIALOGLISTDISABLED);
+            data->Colors[LISTBOXEX_COLOR_BACKGROUND]=Info.AdvControl(&MainGuid,ACTL_GETCOLOR,(void*)COL_DIALOGLISTBOX);
+            data->Colors[LISTBOXEX_COLOR_ITEM]=Info.AdvControl(&MainGuid,ACTL_GETCOLOR,(void*)COL_DIALOGLISTTEXT);
+            data->Colors[LISTBOXEX_COLOR_HOTKEY]=Info.AdvControl(&MainGuid,ACTL_GETCOLOR,(void*)COL_DIALOGLISTHIGHLIGHT);
+            data->Colors[LISTBOXEX_COLOR_SELECTEDITEM]=Info.AdvControl(&MainGuid,ACTL_GETCOLOR,(void*)COL_DIALOGLISTSELECTEDTEXT);
+            data->Colors[LISTBOXEX_COLOR_SELECTEDHOTKEY]=Info.AdvControl(&MainGuid,ACTL_GETCOLOR,(void*)COL_DIALOGLISTSELECTEDHIGHLIGHT);
+            data->Colors[LISTBOXEX_COLOR_DISABLED]=Info.AdvControl(&MainGuid,ACTL_GETCOLOR,(void*)COL_DIALOGLISTDISABLED);
             data->Top=-1;
             data->CurPos=-1;
           }
@@ -664,7 +664,8 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
       {
         bool redraw=false,hotkey=false,direction=true;
         unsigned long delta=0;
-        switch(Param2)
+        long key=FSF.FarInputRecordToKey((const INPUT_RECORD*)Param2);
+        switch(key)
         {
 #if 1
           case KEY_LEFT:
@@ -712,7 +713,7 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
             break;
           default:
             {
-              long FirstKey=upper_key(Param2),SecondKey=FirstKey;
+              long FirstKey=upper_key(key),SecondKey=FirstKey;
               if(FSF.LIsAlpha((unsigned long)FirstKey))
               {
                 TCHAR xlat_str[1]={(unsigned long)FirstKey}; //FIXME

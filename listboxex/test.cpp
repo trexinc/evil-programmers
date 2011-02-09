@@ -19,19 +19,18 @@
 #include <stdio.h>
 #include <tchar.h>
 #include "ListBoxEx.hpp"
-
-#ifndef UNICODE
-#define EXP_NAME(p) _export p
-#else
-#define EXP_NAME(p) _export p ## W
-#endif
+#include <initguid.h>
+// {843882E6-3774-4f99-A1E3-65CD195867A0}
+DEFINE_GUID(MainGuid, 0x843882e6, 0x3774, 0x4f99, 0xa1, 0xe3, 0x65, 0xcd, 0x19, 0x58, 0x67, 0xa0);
+// {AFCDCD78-241C-472c-9D0B-F0CDCFDAE52D}
+DEFINE_GUID(DialogGuid, 0xafcdcd78, 0x241c, 0x472c, 0x9d, 0xb, 0xf0, 0xcd, 0xcf, 0xda, 0xe5, 0x2d);
 
 PluginStartupInfo Info;
 FARSTANDARDFUNCTIONS FSF;
 
 const TCHAR* GetMsg(int MsgId)
 {
-  return(Info.GetMsg(Info.ModuleNumber,MsgId));
+  return(Info.GetMsg(&MainGuid,MsgId));
 };
 
 struct InitDialogItem
@@ -54,29 +53,31 @@ void InitDialogItems(InitDialogItem *Init,FarDialogItem *Item,int ItemsNumber)
     Item[i].Y1=Init[i].Y1;
     Item[i].X2=Init[i].X2;
     Item[i].Y2=Init[i].Y2;
-    Item[i].Focus=Init[i].Focus;
     Item[i].Selected=Init[i].Selected;
     Item[i].Flags=Init[i].Flags;
-    Item[i].DefaultButton=Init[i].DefaultButton;
-#ifdef UNICODE
     Item[i].MaxLen=0;
-#endif
     if((unsigned)Init[i].Data<2000)
-#ifdef UNICODE
       Item[i].PtrData=GetMsg((unsigned int)(DWORD_PTR)Init[i].Data);
-#else
-      strcpy(Item[i].Data,GetMsg((unsigned int)(DWORD_PTR)Init[i].Data));
-#endif
     else
-#ifdef UNICODE
       Item[i].PtrData=Init[i].Data;
-#else
-      strcpy(Item[i].Data,Init[i].Data);
-#endif
+    Item[i].Mask=NULL;
+    Item[i].History=NULL;
+    Item[i].UserParam=0;
   }
 }
 
-void WINAPI EXP_NAME(SetStartupInfo)(const struct PluginStartupInfo *Info)
+void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
+{
+  Info->StructSize=sizeof(GlobalInfo);
+  Info->MinFarVersion=FARMANAGERVERSION;
+  Info->Version=0x00000001;
+  Info->Guid=MainGuid;
+  Info->Title=L"ListBoxEx Demo";
+  Info->Description=L"ListBoxEx demo plugin";
+  Info->Author=L"Vadim Yegorov";
+}
+
+void WINAPI SetStartupInfoW(const struct PluginStartupInfo *Info)
 {
   memset(&::Info,0,sizeof(::Info));
   memmove(&::Info,Info,(Info->StructSize>(int)sizeof(::Info))?sizeof(::Info):Info->StructSize);
@@ -84,19 +85,20 @@ void WINAPI EXP_NAME(SetStartupInfo)(const struct PluginStartupInfo *Info)
   ::Info.FSF=&::FSF;
 }
 
-void WINAPI EXP_NAME(GetPluginInfo)(struct PluginInfo *Info)
+void WINAPI GetPluginInfoW(struct PluginInfo *Info)
 {
   Info->StructSize=sizeof(*Info);
   Info->Flags=0;
-  Info->DiskMenuStringsNumber=0;
+  Info->DiskMenu.Count=0;
   static const TCHAR* PluginMenuStrings[1];
   PluginMenuStrings[0]=_T("Test listboxex");
-  Info->PluginMenuStrings=PluginMenuStrings;
-  Info->PluginMenuStringsNumber=sizeof(PluginMenuStrings)/sizeof(PluginMenuStrings[0]);
-  Info->PluginConfigStringsNumber=0;
+  Info->PluginMenu.Guid=&MainGuid;
+  Info->PluginMenu.Strings=PluginMenuStrings;
+  Info->PluginMenu.Count=sizeof(PluginMenuStrings)/sizeof(PluginMenuStrings[0]);
+  Info->PluginConfig.Count=0;
 }
 
-static long WINAPI MainDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
+static INT_PTR WINAPI MainDialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
 {
   switch(Msg)
   {
@@ -163,43 +165,46 @@ static long WINAPI MainDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
       }
       break;
     case DN_KEY:
-      if(Param2==KEY_DEL)
       {
-        FarListDelete list={3,4};
-        Info.SendDlgMessage(hDlg,DM_LISTBOXEX_DELETE,1,(long)&list);
-      }
-      else if(Param2==KEY_F2)
-      {
-        ListBoxExSetFlags flags={Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L),LIFEX_DISABLE};
-        Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETFLAGS,1,(long)&flags);
-      }
-      else if(Param2==KEY_F3)
-      {
-        ListBoxExSetFlags flags={Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L)-1,0};
-        Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETFLAGS,1,(long)&flags);
-      }
-      else if(Param2==KEY_INS)
-      {
-        Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_TOGGLE,1,Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L));
-      }
-      else if(Param2==KEY_SHIFTDEL)
-      {
-        ListBoxExSetFlags flags={Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L),LIFEX_HIDDEN};
-        Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETFLAGS,1,(long)&flags);
-      }
-      else if(Param2==KEY_CTRLUP)
-      {
-        FarListPos pos={Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L),-1};
-        Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_MOVE_UP,1,pos.SelectPos);
-        pos.SelectPos--;
-        Info.SendDlgMessage(hDlg,DM_LISTBOXEX_SETCURPOS,1,(long)&pos);
-      }
-      else if(Param2==KEY_CTRLDOWN)
-      {
-        FarListPos pos={Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L),-1};
-        Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_MOVE_DOWN,1,pos.SelectPos);
-        pos.SelectPos++;
-        Info.SendDlgMessage(hDlg,DM_LISTBOXEX_SETCURPOS,1,(long)&pos);
+        long key=FSF.FarInputRecordToKey((const INPUT_RECORD*)Param2);
+        if(key==KEY_DEL)
+        {
+          FarListDelete list={3,4};
+          Info.SendDlgMessage(hDlg,DM_LISTBOXEX_DELETE,1,(long)&list);
+        }
+        else if(key==KEY_F2)
+        {
+          ListBoxExSetFlags flags={Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L),LIFEX_DISABLE};
+          Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETFLAGS,1,(long)&flags);
+        }
+        else if(key==KEY_F3)
+        {
+          ListBoxExSetFlags flags={Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L)-1,0};
+          Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETFLAGS,1,(long)&flags);
+        }
+        else if(key==KEY_INS)
+        {
+          Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_TOGGLE,1,Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L));
+        }
+        else if(key==KEY_SHIFTDEL)
+        {
+          ListBoxExSetFlags flags={Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L),LIFEX_HIDDEN};
+          Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETFLAGS,1,(long)&flags);
+        }
+        else if(key==KEY_CTRLUP)
+        {
+          FarListPos pos={Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L),-1};
+          Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_MOVE_UP,1,pos.SelectPos);
+          pos.SelectPos--;
+          Info.SendDlgMessage(hDlg,DM_LISTBOXEX_SETCURPOS,1,(long)&pos);
+        }
+        else if(key==KEY_CTRLDOWN)
+        {
+          FarListPos pos={Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L),-1};
+          Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_MOVE_DOWN,1,pos.SelectPos);
+          pos.SelectPos++;
+          Info.SendDlgMessage(hDlg,DM_LISTBOXEX_SETCURPOS,1,(long)&pos);
+        }
       }
       break;
     case DN_CLOSE:
@@ -212,7 +217,7 @@ static long WINAPI MainDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
   return ListBoxExDialogProc(hDlg,Msg,Param1,Param2);
 }
 
-HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom,int Item)
+HANDLE WINAPI OpenPluginW(int OpenFrom,const GUID* Guid,int Item)
 {
   InitDialogItem InitItems[]=
   {
@@ -231,7 +236,7 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom,int Item)
 #else
   Info.DialogEx
 #endif
-  (Info.ModuleNumber,-1,-1,71,21,NULL,DialogItems,sizeof(DialogItems)/sizeof(DialogItems[0]),0,0,MainDialogProc,0);
+  (&MainGuid,&DialogGuid,-1,-1,71,21,NULL,DialogItems,sizeof(DialogItems)/sizeof(DialogItems[0]),0,0,MainDialogProc,0);
 #ifdef UNICODE
   if(hDlg!=INVALID_HANDLE_VALUE)
   {
