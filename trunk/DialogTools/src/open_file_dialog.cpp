@@ -21,6 +21,7 @@
 #include "open_file_dialog.hpp"
 #include "farcolor.hpp"
 #include "farkeys.hpp"
+#include "guid.hpp"
 #include <initguid.h>
 // {6FF19CDE-E672-4887-81A0-05D49C96E42D}
 DEFINE_GUID(FileDialogGuid, 0x6ff19cde, 0xe672, 0x4887, 0x81, 0xa0, 0x5, 0xd4, 0x9c, 0x96, 0xe4, 0x2d);
@@ -299,7 +300,7 @@ static INT_PTR WINAPI OFDProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
       }
       break;
     case DN_CTLCOLORDIALOG:
-      return Info.AdvControl(Info.ModuleNumber,ACTL_GETCOLOR,(void *)COL_MENUTEXT);
+      return Info.AdvControl(&MainGuid,ACTL_GETCOLOR,(void *)COL_MENUTEXT);
     case DN_CTLCOLORDLGLIST:
       if(Param1==0)
       {
@@ -308,7 +309,7 @@ static INT_PTR WINAPI OFDProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
         int Count=sizeof(ColorIndex)/sizeof(ColorIndex[0]);
         if(Count>Colors->ColorCount) Count=Colors->ColorCount;
         for(int i=0;i<Count;i++)
-          Colors->Colors[i]=(TCHAR)Info.AdvControl(Info.ModuleNumber,ACTL_GETCOLOR,(void *)(ColorIndex[i]));
+          Colors->Colors[i]=(TCHAR)Info.AdvControl(&MainGuid,ACTL_GETCOLOR,(void *)(ColorIndex[i]));
         return TRUE;
       }
       break;
@@ -347,7 +348,7 @@ static INT_PTR WINAPI OFDProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
         {
           COORD console_size={80,25};
           SMALL_RECT console_rect;
-          if(Info.AdvControl(Info.ModuleNumber,ACTL_GETFARRECT,(void*)&console_rect))
+          if(Info.AdvControl(&MainGuid,ACTL_GETFARRECT,(void*)&console_rect))
           {
             console_size.X=console_rect.Right-console_rect.Left+1;
             console_size.Y=console_rect.Bottom-console_rect.Top+1;
@@ -393,6 +394,6 @@ bool open_file_dialog(const TCHAR *curr_dir,TCHAR *filename)
   ZeroMemory(DialogItems,sizeof(DialogItems));
   DialogItems[0].Type=DI_LISTBOX; //DialogItems[0].Flags=DIF_LISTWRAPMODE;
   CFarDialog dialog;
-  dialog.Execute(Info.ModuleNumber,FileDialogGuid,-1,-1,0,0,NULL,DialogItems,ArraySize(DialogItems),0,0,OFDProc,(DWORD)&params);
+  dialog.Execute(MainGuid,FileDialogGuid,-1,-1,0,0,NULL,DialogItems,ArraySize(DialogItems),0,0,OFDProc,(DWORD)&params);
   return params.result;
 }

@@ -20,6 +20,7 @@
 
 #include "dt.hpp"
 #include <limits.h>
+#include "guid.hpp"
 
 #define t_memchr wmemchr
 
@@ -50,7 +51,7 @@ BOOL MyIsAlpha(TCHAR c)
 
 void InitCase(void)
 {
-  WordDivLen=Info.AdvControl(Info.ModuleNumber,ACTL_GETSYSWORDDIV,WordDiv);
+  WordDivLen=Info.AdvControl(&MainGuid,ACTL_GETSYSWORDDIV,WordDiv);
   WordDivLen+=sizeof(" \n\r\t");
   _tcscat(WordDiv,_T(" \n\r\t"));
 }
@@ -77,7 +78,7 @@ void DoCase(HANDLE aDlg)
   MenuItems[6].Flags|=(ProcessWholeLine?MIF_CHECKED:0);
   int BreakKeys[2]={VK_SPACE,0};
   int MenuCode;
-  while (6==(MenuCode=Info.Menu(Info.ModuleNumber,-1,-1,0,FMENU_WRAPMODE,GetMsg(mNameCase),NULL,NULL,BreakKeys,NULL,MenuItems,ArraySize(MenuItems))))
+  while (6==(MenuCode=Info.Menu(&MainGuid,-1,-1,0,FMENU_WRAPMODE,GetMsg(mNameCase),NULL,NULL,BreakKeys,NULL,MenuItems,ArraySize(MenuItems))))
   {
     if (MenuItems[6].Flags&MIF_CHECKED)
     {

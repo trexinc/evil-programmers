@@ -18,6 +18,7 @@
 */
 
 #include "dt.hpp"
+#include "guid.hpp"
 #include <initguid.h>
 #include <stdio.h>
 // {7452904C-CFD7-49b2-AE24-7ED22A9AAB99}
@@ -59,7 +60,7 @@ void DoSearch(HANDLE aDlg)
       InitDialogItems(InitItems,DialogItems,(sizeof(InitItems)/sizeof(InitItems[0])));
       DialogItems[2].History=_T("DialogManager.Search");
       CFarDialog dialog;
-      int n=dialog.Execute(Info.ModuleNumber,SearchDialogGuid,-1,-1,59,11,NULL,DialogItems,ArraySize(InitItems),0,0,SearchDialogProc,0);
+      int n=dialog.Execute(MainGuid,SearchDialogGuid,-1,-1,59,11,NULL,DialogItems,ArraySize(InitItems),0,0,SearchDialogProc,0);
       if (n==7)
       {
         c=(DialogItems[4].Selected==TRUE)?1:0;

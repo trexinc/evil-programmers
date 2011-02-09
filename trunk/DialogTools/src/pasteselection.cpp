@@ -18,6 +18,7 @@
 */
 
 #include "dt.hpp"
+#include "guid.hpp"
 #include <stdio.h>
 
 inline TCHAR hex(TCHAR c)
@@ -75,7 +76,7 @@ void DoPaste(HANDLE aDlg)
                 seq.Command=MCMD_POSTMACROSTRING;
                 seq.Param.PlainText.SequenceText=buffer;
                 seq.Param.PlainText.Flags=KSFLAGS_DISABLEOUTPUT;
-                Info.AdvControl(Info.ModuleNumber,ACTL_KEYMACRO,&seq);
+                Info.AdvControl(&MainGuid,ACTL_KEYMACRO,&seq);
                 HeapFree(GetProcessHeap(),0,buffer);
               }
             }
