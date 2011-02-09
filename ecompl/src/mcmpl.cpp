@@ -24,6 +24,10 @@
 #include "EditCmpl.hpp"
 #include "language.hpp"
 #include "../../listboxex/ListBoxEx.hpp"
+#include "guid.hpp"
+#include <initguid.h>
+// {0FCE7966-950A-499f-9FA5-32FE0A981342}
+DEFINE_GUID(MCmplGuid, 0xfce7966, 0x950a, 0x499f, 0x9f, 0xa5, 0x32, 0xfe, 0xa, 0x98, 0x13, 0x42);
 
 TMenuCompletion::TMenuCompletion(const TCHAR *RegRoot): TCompletion(RegRoot)
 {
@@ -104,7 +108,7 @@ int __cdecl fcmp(const void *first,const void *second)
   return (((const MenuAdaptor *)second)->ref)-(((const MenuAdaptor *)first)->ref);
 }
 
-static long WINAPI ListMenuProc(HANDLE hDlg,int Msg,int Param1,long Param2)
+static INT_PTR WINAPI ListMenuProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
 {
   ListMenuData *DlgParams=(ListMenuData *)Info.SendDlgMessage(hDlg,DM_GETDLGDATA,0,0);
   switch(Msg)
@@ -117,7 +121,7 @@ static long WINAPI ListMenuProc(HANDLE hDlg,int Msg,int Param1,long Param2)
           int ColorIndex[LISTBOXEX_COLOR_COUNT]={COL_MENUTEXT,COL_MENUTEXT,COL_MENUHIGHLIGHT,COL_MENUSELECTEDTEXT,COL_MENUSELECTEDHIGHLIGHT,COL_MENUDISABLEDTEXT};
           unsigned short NewColors[LISTBOXEX_COLOR_COUNT];
           for(unsigned long i=0;i<sizeofa(ColorIndex);i++)
-            NewColors[i]=Info.AdvControl(Info.ModuleNumber,ACTL_GETCOLOR,(void *)(ColorIndex[i]));
+            NewColors[i]=Info.AdvControl(&MainGuid,ACTL_GETCOLOR,(void *)(ColorIndex[i]));
           ListBoxExColors Colors={LISTBOXEX_COLOR_COUNT,NewColors};
           Info.SendDlgMessage(hDlg,DM_LISTBOXEX_SETCOLORS,2,(long)&Colors);
         }
@@ -142,21 +146,22 @@ static long WINAPI ListMenuProc(HANDLE hDlg,int Msg,int Param1,long Param2)
       }
       break;
     case DN_CTLCOLORDIALOG:
-      return Info.AdvControl(Info.ModuleNumber,ACTL_GETCOLOR,(void *)COL_MENUTEXT);
+      return Info.AdvControl(&MainGuid,ACTL_GETCOLOR,(void *)COL_MENUTEXT);
     case DN_CTLCOLORDLGITEM:
       switch(Param1)
       {
         case 0:
-          return (Info.AdvControl(Info.ModuleNumber,ACTL_GETCOLOR,(void *)COL_MENUBOX)<<16)|(Info.AdvControl(Info.ModuleNumber,ACTL_GETCOLOR,(void *)COL_MENUTITLE)<<8)|(Info.AdvControl(Info.ModuleNumber,ACTL_GETCOLOR,(void *)COL_MENUTITLE));
+          return (Info.AdvControl(&MainGuid,ACTL_GETCOLOR,(void *)COL_MENUBOX)<<16)|(Info.AdvControl(&MainGuid,ACTL_GETCOLOR,(void *)COL_MENUTITLE)<<8)|(Info.AdvControl(&MainGuid,ACTL_GETCOLOR,(void *)COL_MENUTITLE));
         case 1:
-          return (Info.AdvControl(Info.ModuleNumber,ACTL_GETCOLOR,(void *)COL_MENUBOX)<<16)|(Info.AdvControl(Info.ModuleNumber,ACTL_GETCOLOR,(void *)COL_MENUTITLE)<<8)|(Info.AdvControl(Info.ModuleNumber,ACTL_GETCOLOR,(void *)COL_MENUTITLE));
+          return (Info.AdvControl(&MainGuid,ACTL_GETCOLOR,(void *)COL_MENUBOX)<<16)|(Info.AdvControl(&MainGuid,ACTL_GETCOLOR,(void *)COL_MENUTITLE)<<8)|(Info.AdvControl(&MainGuid,ACTL_GETCOLOR,(void *)COL_MENUTITLE));
       }
       break;
     case DN_KEY:
       {
-        if((unsigned)Param2>=KEY_SPACE&&Param2<127L&&_tcschr(DlgParams->AcceptChars,Param2))
+        long key=FSF.FarInputRecordToKey((const INPUT_RECORD*)Param2);
+        if((unsigned)key>=KEY_SPACE&&key<127L&&_tcschr(DlgParams->AcceptChars,key))
         {
-          DlgParams->ClosedKey=Param2;
+          DlgParams->ClosedKey=key;
           Info.SendDlgMessage(hDlg,DM_CLOSE,-1,0);
         }
       }
@@ -233,7 +238,7 @@ bool TMenuCompletion::ShowMenu(string &Selected)
       DialogItems[2].VBuf=VirtualBuffer;
       ListMenuData params={WordList.count(),menudata,/*(TCHAR *)GetMsg(MChooseWord),BottomMsg,*/ShortCuts,ShortCutsLen,AcceptChars,0,0,-1};
       CFarDialog dialog;
-      int DlgCode=dialog.Execute(Info.ModuleNumber,MenuX,MenuY,MenuX+MenuWidth+3,MenuY+MenuHeight+1,_T("List"),DialogItems,sizeofa(DialogItems),0,0,ListMenuProc,(DWORD)&params);
+      int DlgCode=dialog.Execute(MainGuid,MCmplGuid,MenuX,MenuY,MenuX+MenuWidth+3,MenuY+MenuHeight+1,_T("List"),DialogItems,sizeofa(DialogItems),0,0,ListMenuProc,(DWORD)&params);
       if(DlgCode==2)
       {
         int MenuCode=params.CursorPos;
@@ -288,11 +293,11 @@ int TMenuCompletion::DialogHeight(void)
   return 23;
 }
 
-long TMenuCompletion::DialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
+INT_PTR TMenuCompletion::DialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
 {
   if(Msg==DN_INITDIALOG)
   {
-    Info.SendDlgMessage(hDlg,DM_SETTEXTLENGTH,IMenuAcceptChars,sizeof(AcceptChars)-1);
+    Info.SendDlgMessage(hDlg,DM_SETMAXTEXTLENGTH,IMenuAcceptChars,sizeof(AcceptChars)-1);
   }
   return Info.DefDlgProc(hDlg,Msg,Param1,Param2);
 }
@@ -327,10 +332,8 @@ void TMenuCompletion::InitItems(FarDialogItem *DialogItems)
     DialogItems[i+CMPL_DIALOG_ITEMS].Y1=DialogElements[i][2];
     DialogItems[i+CMPL_DIALOG_ITEMS].X2=DialogElements[i][3];
     DialogItems[i+CMPL_DIALOG_ITEMS].Y2=0;
-    DialogItems[i+CMPL_DIALOG_ITEMS].Focus=0;
     DialogItems[i+CMPL_DIALOG_ITEMS].Selected=0;
     DialogItems[i+CMPL_DIALOG_ITEMS].Flags=0;
-    DialogItems[i+CMPL_DIALOG_ITEMS].DefaultButton=0;
     INIT_DLG_DATA(DialogItems[i+CMPL_DIALOG_ITEMS],GetMsg(Msgs[i])); // Надписи на эл-тах диалога
   }
 
@@ -339,14 +342,9 @@ void TMenuCompletion::InitItems(FarDialogItem *DialogItems)
 
   // Что будет в строках ввода
   DLG_DATA_ITOA(DialogItems[ISortListCount],SortListCount);
-#ifdef UNICODE
   AsteriskSymbolText[0]=AsteriskSymbol;
   AsteriskSymbolText[1]=0;
   DialogItems[IAsteriskSymbol].PtrData=AsteriskSymbolText;
-#else
-  DialogItems[IAsteriskSymbol].Data[0]=AsteriskSymbol;
-  DialogItems[IAsteriskSymbol].Data[1]=0;
-#endif
   INIT_DLG_DATA(DialogItems[IMenuAcceptChars],AcceptChars);
 
   DialogItems[IMenuAcceptChars].X2=DialogWidth()-_tcslen(GetMsg(MAcceptChars))-4;

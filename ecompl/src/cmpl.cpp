@@ -22,6 +22,10 @@
 #include "cmpl.hpp"
 #include "string.hpp"
 #include "language.hpp"
+#include "guid.hpp"
+#include <initguid.h>
+// {9EAE0BDB-8FBA-4fe8-A710-C0FDD58A046A}
+DEFINE_GUID(CmplGuid, 0x9eae0bdb, 0x8fba, 0x4fe8, 0xa7, 0x10, 0xc0, 0xfd, 0xd5, 0x8a, 0x4, 0x6a);
 
 TCompletion::TCompletion(const TCHAR *RegRoot)
 {
@@ -65,9 +69,6 @@ int TCompletion::GetPreWord(void)
 {
   EditorInfo ei;
   EditorGetString gs;
-#ifndef UNICODE
-  EditorConvertText ct;
-#endif
 
   Info.EditorControl(ECTL_GETINFO,&ei);
   if(ei.CurState&ECSTATE_LOCKED) return 0;
@@ -85,11 +86,6 @@ int TCompletion::GetPreWord(void)
   if(ei.CurPos>0&&ei.CurPos<=gs.StringLength)
   {
     string Line((const UTCHAR *)gs.StringText,gs.StringLength);
-#ifndef UNICODE
-    ct.TextLength=Line.length();
-    ct.Text=(TCHAR*)Line.get();
-    Info.EditorControl(ECTL_EDITORTOOEM,&ct);
-#endif
     WordPos=ei.CurPos;
 
     // Если WorkInsideWord==FALSE, то под курсором не должно быть буквы
@@ -114,9 +110,6 @@ int TCompletion::DoSearch(void)
   EditorGetString gs;
   EditorInfo ei;
   EditorSetPosition sp;
-#ifndef UNICODE
-  EditorConvertText ct;
-#endif
 
   int Line2Browse[2]; // Сколько строк будем просматривать вперед и назад
 
@@ -128,11 +121,6 @@ int TCompletion::DoSearch(void)
   string Line((const UTCHAR *)gs.StringText,gs.StringLength);
   if(Line.length()==(size_t)gs.StringLength)
   {
-#ifndef UNICODE
-    ct.TextLength=Line.length();
-    ct.Text=(TCHAR*)Line.get();
-    Info.EditorControl(ECTL_EDITORTOOEM,&ct);
-#endif
     // просматриваем начало текущей строки
     AddWords(Line,ei.CurPos,0);
     // а теперь - конец (без Word)
@@ -156,11 +144,6 @@ int TCompletion::DoSearch(void)
       Info.EditorControl(ECTL_SETPOSITION,&sp);
       Info.EditorControl(ECTL_GETSTRING,&gs);
       Line((const UTCHAR *)gs.StringText,gs.StringLength);
-#ifndef UNICODE
-      ct.TextLength=Line.length();
-      ct.Text=(TCHAR*)Line.get();
-      Info.EditorControl(ECTL_EDITORTOOEM,&ct);
-#endif
       AddWords(Line,Line.length(),j);
       if(WordList.count()>=WordsToFindCnt) break;
     }
@@ -277,9 +260,6 @@ string TCompletion::PutWord(string NewWord)
 {
   //SEELATER check editor before insert
   EditorInfo ei; EditorGetString gs;
-#ifndef UNICODE
-  EditorConvertText ct;
-#endif
   int OldPos;
   string OverwritedText;
   Info.EditorControl(ECTL_GETINFO,&ei);
@@ -310,12 +290,6 @@ string TCompletion::PutWord(string NewWord)
   {
     if(gs.StringLength>WordPos) OverwritedText((const UTCHAR *)&gs.StringText[WordPos],MIN(NewWord.length(),(size_t)(gs.StringLength-WordPos)));
   }
-#ifndef UNICODE
-  //convert OverwritedText into OEM
-  ct.TextLength=OverwritedText.length();
-  ct.Text=(TCHAR*)OverwritedText.get();
-  Info.EditorControl(ECTL_EDITORTOOEM,&ct);
-#endif
 
   Info.EditorControl(ECTL_INSERTTEXT,(void *)NewWord.get());
   SetCurPos(OldPos);
@@ -473,10 +447,8 @@ void TCompletion::InitItems(FarDialogItem *DialogItems)
     DialogItems[i].Y1=DialogElements[i][2];
     DialogItems[i].X2=DialogElements[i][3];
     DialogItems[i].Y2=0;
-    DialogItems[i].Focus=0;
     DialogItems[i].Selected=0;
     DialogItems[i].Flags=0;
-    DialogItems[i].DefaultButton=0;
     INIT_DLG_DATA(DialogItems[i],GetMsg(Msgs[i])); // Надписи на эл-тах диалога
   }
 
@@ -484,10 +456,9 @@ void TCompletion::InitItems(FarDialogItem *DialogItems)
   DialogItems[ICfg].Y2=DialogHeight()-1;
 
   // выбран
-  DialogItems[IWorkInsideWord].Focus=1;
+  DialogItems[IWorkInsideWord].Flags|=DIF_FOCUS;
   // кнопки
-  DialogItems[IOk].Flags=DIF_CENTERGROUP;
-  DialogItems[IOk].DefaultButton=TRUE;
+  DialogItems[IOk].Flags=DIF_CENTERGROUP|DIF_DEFAULTBUTTON;
   DialogItems[ICancel].Flags=DIF_CENTERGROUP;
   DialogItems[IAdditional].Flags=DIF_HIDDEN;
 
@@ -522,14 +493,14 @@ void TCompletion::StoreItems(CFarDialog& Dialog)
   FSF.sprintf(AdditionalLetters,_T("%s"),Dialog.Str(IAdditionalLetters));
 }
 
-long WINAPI ConfigDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
+INT_PTR WINAPI ConfigDialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
 {
   TCompletion *sender;
   if(Msg==DN_INITDIALOG)
   {
     Info.SendDlgMessage(hDlg,DM_SETDLGDATA,0,Param2);
     sender=(TCompletion *)Param2;
-    Info.SendDlgMessage(hDlg,DM_SETTEXTLENGTH,IAdditionalLetters,sizeof(sender->AdditionalLetters)-1);
+    Info.SendDlgMessage(hDlg,DM_SETMAXTEXTLENGTH,IAdditionalLetters,sizeof(sender->AdditionalLetters)-1);
   }
   else sender=(TCompletion *)Info.SendDlgMessage(hDlg,DM_GETDLGDATA,0,0);
   return sender->DialogProc(hDlg,Msg,Param1,Param2);
@@ -542,7 +513,7 @@ void TCompletion::ShowDialog()
   {
     InitItems(DialogItems);
     CFarDialog dialog;
-    int DlgCode=dialog.Execute(Info.ModuleNumber,-1,-1,DialogWidth(),DialogHeight(),ConfigHelpTopic,DialogItems,GetItemCount(),0,0,ConfigDialogProc,(DWORD)this);
+    int DlgCode=dialog.Execute(MainGuid,CmplGuid,-1,-1,DialogWidth(),DialogHeight(),ConfigHelpTopic,DialogItems,GetItemCount(),0,0,ConfigDialogProc,(DWORD)this);
     if(DlgCode==IOk)
     {
       StoreItems(dialog);

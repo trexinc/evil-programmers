@@ -90,14 +90,14 @@ class TCompletion
     virtual int GetItemCount(void)=0;
     virtual int DialogWidth(void)=0;
     virtual int DialogHeight(void)=0;
-    virtual long DialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)=0;
+    virtual INT_PTR DialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)=0;
     virtual void InitItems(FarDialogItem *DialogItems);
     virtual void StoreItems(CFarDialog& Dialog);
   public:
     TCompletion(const TCHAR *RegRoot);
     virtual ~TCompletion();
     void ShowDialog();
-  friend long WINAPI ConfigDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2);
+  friend INT_PTR WINAPI ConfigDialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2);
 };
 
 #define CMPL_DIALOG_ITEMS (IAddTrailingSpace+1)
