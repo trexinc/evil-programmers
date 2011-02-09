@@ -33,7 +33,7 @@ const wchar_t ServicesDirName[] = L"Services";
 
 const wchar_t *GetMsg(int MsgId)
 {
-  return Info.GetMsg(Info.ModuleNumber,MsgId);
+  return Info.GetMsg(&MainGuid,MsgId);
 }
 
 void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
@@ -54,7 +54,7 @@ void WINAPI SetStartupInfoW(const struct PluginStartupInfo *psi)
   Info.FSF=&FSF;
 }
 
-HANDLE WINAPI OpenPluginW(int OpenFrom,GUID Guid,INT_PTR Item)
+HANDLE WINAPI OpenPluginW(int OpenFrom,const GUID* Guid,INT_PTR Item)
 {
   CServiceManager* sm=new CServiceManager();
   return (HANDLE)sm;
