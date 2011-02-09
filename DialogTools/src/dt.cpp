@@ -18,8 +18,7 @@
 
 #include "dt.hpp"
 #include <initguid.h>
-// {B2EC2264-0F55-4b86-87F7-F1392B8FC5DC}
-DEFINE_GUID(MainGuid, 0xb2ec2264, 0xf55, 0x4b86, 0x87, 0xf7, 0xf1, 0x39, 0x2b, 0x8f, 0xc5, 0xdc);
+#include "guid.hpp"
 // {37123652-3645-4776-86D6-A94FB2B12FC8}
 DEFINE_GUID(CaseGuid, 0x37123652, 0x3645, 0x4776, 0x86, 0xd6, 0xa9, 0x4f, 0xb2, 0xb1, 0x2f, 0xc8);
 // {39AE5A2C-A38D-40de-AA59-207E96E5A17D}
@@ -44,7 +43,7 @@ TCHAR PluginRootKey[100];
 
 const TCHAR* GetMsg(int MsgId)
 {
-  return(Info.GetMsg(Info.ModuleNumber,MsgId));
+  return(Info.GetMsg(&MainGuid,MsgId));
 }
 
 void InitDialogItems(const InitDialogItem *Init,FarDialogItem *Item,int ItemsNumber)
@@ -93,40 +92,40 @@ void WINAPI GetPluginInfoW(struct PluginInfo* Info)
   Info->PluginMenu.Count=ArraySize(PluginMenuStrings);
 }
 
-HANDLE WINAPI OpenPluginW(int OpenFrom,GUID Guid,INT_PTR Item)
+HANDLE WINAPI OpenPluginW(int OpenFrom,const GUID* Guid,INT_PTR Item)
 {
   if(OpenFrom==OPEN_DIALOG)
   {
     OpenDlgPluginData* data=(OpenDlgPluginData*)Item;
-    if(IsEqualGUID(Guid,CaseGuid))
+    if(IsEqualGUID(*Guid,CaseGuid))
     {
       DoCase(data->hDlg);
     }
-    else if(IsEqualGUID(Guid,FileGuid))
+    else if(IsEqualGUID(*Guid,FileGuid))
     {
       DoOpenFile(data->hDlg);
     }
-    else if(IsEqualGUID(Guid,PasteGuid))
+    else if(IsEqualGUID(*Guid,PasteGuid))
     {
       DoPaste(data->hDlg);
     }
-    else if(IsEqualGUID(Guid,PwdGuid))
+    else if(IsEqualGUID(*Guid,PwdGuid))
     {
       DoPwd(data->hDlg);
     }
-    else if(IsEqualGUID(Guid,SearchGuid))
+    else if(IsEqualGUID(*Guid,SearchGuid))
     {
       DoSearch(data->hDlg);
     }
-    else if(IsEqualGUID(Guid,ReplaceGuid))
+    else if(IsEqualGUID(*Guid,ReplaceGuid))
     {
       DoReplace(data->hDlg);
     }
-    else if(IsEqualGUID(Guid,UndoGuid))
+    else if(IsEqualGUID(*Guid,UndoGuid))
     {
       DoUndo(data->hDlg);
     }
-    else if(IsEqualGUID(Guid,EditGuid))
+    else if(IsEqualGUID(*Guid,EditGuid))
     {
       DoEdit(data->hDlg);
     }

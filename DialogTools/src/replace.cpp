@@ -18,6 +18,7 @@
 */
 
 #include "dt.hpp"
+#include "guid.hpp"
 #include <initguid.h>
 // {44769AF2-E33D-4c76-9EA4-A0E5B795A604}
 DEFINE_GUID(ReplaceDialogGuid, 0x44769af2, 0xe33d, 0x4c76, 0x9e, 0xa4, 0xa0, 0xe5, 0xb7, 0x95, 0xa6, 0x4);
@@ -61,7 +62,7 @@ void DoReplace(HANDLE aDlg)
       DialogItems[2].History=_T("DialogManager.Search");
       DialogItems[4].History=_T("DialogManager.Replace");
       CFarDialog dialog;
-      int n=dialog.Execute(Info.ModuleNumber,ReplaceDialogGuid,-1,-1,59,13,NULL,DialogItems,ArraySize(InitItems),0,0,ReplaceDialogProc,0);
+      int n=dialog.Execute(MainGuid,ReplaceDialogGuid,-1,-1,59,13,NULL,DialogItems,ArraySize(InitItems),0,0,ReplaceDialogProc,0);
       if (n==9)
       {
         c=(DialogItems[6].Selected==TRUE)?1:0;

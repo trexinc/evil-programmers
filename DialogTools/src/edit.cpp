@@ -17,6 +17,7 @@
 */
 
 #include "dt.hpp"
+#include "guid.hpp"
 #include <stdio.h>
 
 void DoEdit(HANDLE aDlg)
@@ -82,5 +83,5 @@ void DoEdit(HANDLE aDlg)
       HeapFree(GetProcessHeap(),0,buffer);
     }
   }
-  Info.AdvControl(Info.ModuleNumber,ACTL_REDRAWALL,NULL);
+  Info.AdvControl(&MainGuid,ACTL_REDRAWALL,NULL);
 }

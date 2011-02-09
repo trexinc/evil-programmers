@@ -19,6 +19,7 @@
 */
 
 #include "dt.hpp"
+#include "guid.hpp"
 #include <initguid.h>
 // {A43FF539-60AB-413b-A61A-143F2863370B}
 DEFINE_GUID(PwdDialogGuid, 0xa43ff539, 0x60ab, 0x413b, 0xa6, 0x1a, 0x14, 0x3f, 0x28, 0x63, 0x37, 0xb);
@@ -52,7 +53,7 @@ void DoPwd(HANDLE aDlg)
       Info.SendDlgMessage(aDlg,DM_GETTEXTPTR,itemID,(long)buffer);
       DialogItems[2].PtrData=buffer;
       CFarDialog dialog;
-      dialog.Execute(Info.ModuleNumber,PwdDialogGuid,-1,-1,47,7,NULL,DialogItems,ArraySize(PreDialogItems),0,0,PwdDialogProc,0);
+      dialog.Execute(MainGuid,PwdDialogGuid,-1,-1,47,7,NULL,DialogItems,ArraySize(PreDialogItems),0,0,PwdDialogProc,0);
       HeapFree(GetProcessHeap(),0,buffer);
     }
   }
