@@ -1,6 +1,6 @@
 EXPORTS 
    GetPluginInfoW=GetPluginInfoW@4
-   OpenPluginW=OpenPluginW@24
+   OpenPluginW=OpenPluginW@12
    SetStartupInfoW=SetStartupInfoW@4
    ClosePluginW=ClosePluginW@4
    GetFindDataW=GetFindDataW@16
