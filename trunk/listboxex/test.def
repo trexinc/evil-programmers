@@ -1,8 +1,6 @@
 
 EXPORTS 
-        SetStartupInfo        = SetStartupInfo@4
-        GetPluginInfo         = GetPluginInfo@4
-        OpenPlugin            = OpenPlugin@8
-
-
-
+	SetStartupInfoW       = SetStartupInfoW@4
+	GetPluginInfoW        = GetPluginInfoW@4
+	OpenPluginW           = OpenPluginW@12
+	GetGlobalInfoW        = GetGlobalInfoW@4
