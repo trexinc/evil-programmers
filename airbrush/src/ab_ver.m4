@@ -1,6 +1,6 @@
 define(MAJOR,0)dnl
 define(MINOR,9)dnl
-define(BUILD,14)dnl
+define(BUILD,15)dnl
 define(API,0)dnl
-define(DATE,29.04.2003)dnl
+define(DATE,10.02.2011)dnl
 define(TYPE,internal)dnl
