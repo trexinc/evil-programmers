@@ -373,10 +373,10 @@ INT_PTR WINAPI GetKey(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
   {
     Info.SendDlgMessage(hDlg,DM_SETDLGDATA,0,Param2);
   }
-  else if(Msg==DM_KEY)
+  else if(Msg==DN_KEY)
   {
     TCHAR *KeyName=(TCHAR *)Info.SendDlgMessage(hDlg,DM_GETDLGDATA,0,0);
-    t_FarKeyToName(Param2,KeyName,256);
+    t_FarKeyToName(FSF.FarInputRecordToKey((INPUT_RECORD*)Param2),KeyName,256);
     Info.SendDlgMessage(hDlg,DM_CLOSE,-1,0);
   }
   return Info.DefDlgProc(hDlg,Msg,Param1,Param2);
@@ -390,7 +390,7 @@ INT_PTR TAutoCompletion::DialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param
     {
       Info.SendDlgMessage(hDlg,DM_SHOWDIALOG,FALSE,0);
       TCHAR KeyName[256];
-      Info.SendDlgMessage(hDlg,DM_GETTEXTPTR,IAcceptKey,(long)&KeyName);
+      Info.SendDlgMessage(hDlg,DM_GETTEXTPTR,Param1,(long)&KeyName);
       FarDialogItem DialogFrame;
       INIT_DLG_DATA(DialogFrame,GetMsg(MPressDesiredKey));
       DialogFrame.Type=DI_DOUBLEBOX;
@@ -398,8 +398,11 @@ INT_PTR TAutoCompletion::DialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param
       DialogFrame.Y1=1;
       DialogFrame.X2=_tcslen(DLG_DATA(DialogFrame))+4;
       DialogFrame.Y2=3;
-      DialogFrame.Selected=1;
-      DialogFrame.Flags=DIF_BOXCOLOR|DIF_FOCUS|DIF_DEFAULTBUTTON;
+      DialogFrame.Selected=0;
+      DialogFrame.Flags=DIF_BOXCOLOR;
+      DialogFrame.History=NULL;
+      DialogFrame.Mask=NULL;
+      DialogFrame.UserParam=0;
       int width=_tcslen(DLG_DATA(DialogFrame))+6;
       CFarDialog dialog;
       dialog.Execute(MainGuid,ACmplGuid,-1,-1,width,5,ConfigHelpTopic,&DialogFrame,1,0,0,GetKey,(DWORD)KeyName);

@@ -449,6 +449,9 @@ void TCompletion::InitItems(FarDialogItem *DialogItems)
     DialogItems[i].Y2=0;
     DialogItems[i].Selected=0;
     DialogItems[i].Flags=0;
+    DialogItems[i].History=NULL;
+    DialogItems[i].Mask=NULL;
+    DialogItems[i].UserParam=0;
     INIT_DLG_DATA(DialogItems[i],GetMsg(Msgs[i])); // Надписи на эл-тах диалога
   }
 
