@@ -75,7 +75,7 @@ void DoPaste(HANDLE aDlg)
                 ActlKeyMacro seq;
                 seq.Command=MCMD_POSTMACROSTRING;
                 seq.Param.PlainText.SequenceText=buffer;
-                seq.Param.PlainText.Flags=KSFLAGS_DISABLEOUTPUT;
+                seq.Param.PlainText.Flags=KMFLAGS_DISABLEOUTPUT;
                 Info.AdvControl(&MainGuid,ACTL_KEYMACRO,&seq);
                 HeapFree(GetProcessHeap(),0,buffer);
               }
