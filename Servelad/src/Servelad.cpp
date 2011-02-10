@@ -40,7 +40,7 @@ void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
 {
   Info->StructSize=sizeof(GlobalInfo);
   Info->MinFarVersion=FARMANAGERVERSION;
-  Info->Version=0x00010001;
+  Info->Version=MAKEFARVERSION(0,1,1);
   Info->Guid=MainGuid;
   Info->Title=L"Servelad";
   Info->Description=L"Service manager plugin";
@@ -72,7 +72,7 @@ void WINAPI GetPluginInfoW(PluginInfo* pi)
   pi->StructSize=sizeof(PluginInfo);
   pi->Flags=0;
   MenuStrings[0]=PluginName;
-  pi->PluginMenu.Guid=&MenuGuid;
+  pi->PluginMenu.Guids=&MenuGuid;
   pi->PluginMenu.Strings=MenuStrings;
   pi->PluginMenu.Count=ArraySize(MenuStrings);
 }
