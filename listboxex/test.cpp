@@ -92,7 +92,7 @@ void WINAPI GetPluginInfoW(struct PluginInfo *Info)
   Info->DiskMenu.Count=0;
   static const TCHAR* PluginMenuStrings[1];
   PluginMenuStrings[0]=_T("Test listboxex");
-  Info->PluginMenu.Guid=&MainGuid;
+  Info->PluginMenu.Guids=&MainGuid;
   Info->PluginMenu.Strings=PluginMenuStrings;
   Info->PluginMenu.Count=sizeof(PluginMenuStrings)/sizeof(PluginMenuStrings[0]);
   Info->PluginConfig.Count=0;
