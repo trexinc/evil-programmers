@@ -87,7 +87,7 @@ void WINAPI GetPluginInfoW(struct PluginInfo* Info)
   const int items[]={mNameCase,mNameFile,mNamePaste,mNamePwd,mNameSearch,mNameReplace,mNameUndo,mNameEdit};
   static const TCHAR* PluginMenuStrings[ArraySize(items)];
   for(size_t ii=0;ii<ArraySize(items);ii++) PluginMenuStrings[ii]=GetMsg(items[ii]);
-  Info->PluginMenu.Guid=guids;
+  Info->PluginMenu.Guids=guids;
   Info->PluginMenu.Strings=PluginMenuStrings;
   Info->PluginMenu.Count=ArraySize(PluginMenuStrings);
 }
@@ -152,7 +152,7 @@ void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
 {
   Info->StructSize=sizeof(GlobalInfo);
   Info->MinFarVersion=FARMANAGERVERSION;
-  Info->Version=0x01000001;
+  Info->Version=MAKEFARVERSION(1,0,2);
   Info->Guid=MainGuid;
   Info->Title=L"Dialog Tools";
   Info->Description=L"Small tools for Far dialogs";
