@@ -111,10 +111,10 @@ void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
 {
   Info->StructSize=sizeof(GlobalInfo);
   Info->MinFarVersion=FARMANAGERVERSION;
-  Info->Version=0x0009000e;
+  Info->Version=MAKEFARVERSION(VER_MAJOR,VER_MINOR,VER_BUILD);
   Info->Guid=MainGuid;
   Info->Title=L"AirBrush";
-  Info->Description=L"Colors in editor";
+  Info->Description=L"Syntax highlighting in editor";
   Info->Author=L"Vadim Yegorov";
 }
 
@@ -160,8 +160,8 @@ void WINAPI GetPluginInfoW(struct PluginInfo *Info)
   memset(Info,0,sizeof(*Info));
   Info->Flags = PF_EDITOR | PF_DISABLEPANELS;
   Info->StructSize = sizeof(*Info);
-  Info->PluginConfig.Guid = &MenuGuid;
-  Info->PluginMenu.Guid = &MenuGuid;
+  Info->PluginConfig.Guids = &MenuGuid;
+  Info->PluginMenu.Guids = &MenuGuid;
   Info->PluginConfig.Count = 1;
   Info->PluginMenu.Count = 1;
   PluginMenuStrings = GetMsg(mName);

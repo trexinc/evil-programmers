@@ -144,6 +144,6 @@ $  #Air Brush - syntax file description#
 @About
 $  #Air Brush - about#
 
-  Copyright (c) 2000-2001 by ZG.
+  Copyright (c) 2000-2011 by Vadim Yegorov.
 
   E-mail: ~zg@@matrica.apollo.lv~@mailto:zg@@matrica.apollo.lv?subject=Air Brush plugin@
