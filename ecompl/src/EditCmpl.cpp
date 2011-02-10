@@ -60,7 +60,7 @@ void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
 {
   Info->StructSize=sizeof(GlobalInfo);
   Info->MinFarVersion=FARMANAGERVERSION;
-  Info->Version=0x04000001;
+  Info->Version=MAKEFARVERSION(4,0,2);
   Info->Guid=MainGuid;
   Info->Title=L"Word Completion";
   Info->Description=L"Complete/autocomplete words in editor";
@@ -85,11 +85,11 @@ void WINAPI GetPluginInfoW(struct PluginInfo *Info)
   static const TCHAR *PluginMenuStrings[1];
   // Text in Plugins Configuration menu
   PluginMenuStrings[0]=GetMsg(MEditCmpl);
-  Info->PluginConfig.Guid=&MainGuid;
+  Info->PluginConfig.Guids=&MainGuid;
   Info->PluginConfig.Strings=PluginMenuStrings;
   Info->PluginConfig.Count=sizeof(PluginMenuStrings)/sizeof(PluginMenuStrings[0]);
   // Text in Plugins menu
-  Info->PluginMenu.Guid=&MainGuid;
+  Info->PluginMenu.Guids=&MainGuid;
   Info->PluginMenu.Strings=PluginMenuStrings;
   Info->PluginMenu.Count=sizeof(PluginMenuStrings)/sizeof(PluginMenuStrings[0]);
 }
