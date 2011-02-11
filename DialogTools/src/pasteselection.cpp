@@ -37,11 +37,11 @@ void DoPaste(HANDLE aDlg)
   if((DialogItem.Type==DI_EDIT||DialogItem.Type==DI_FIXEDIT||DialogItem.Type==DI_PSWEDIT||(DialogItem.Type==DI_COMBOBOX&&(!(DialogItem.Flags&DIF_DROPDOWNLIST)))))
   {
     EditorInfo ei;
-    if(Info.EditorControl(ECTL_GETINFO,&ei)&&ei.BlockType!=BTYPE_NONE)
+    if(Info.EditorControl(-1,ECTL_GETINFO,0,(INT_PTR)&ei)&&ei.BlockType!=BTYPE_NONE)
     {
       EditorGetString egs;
       egs.StringNumber=ei.BlockStartLine;
-      Info.EditorControl(ECTL_GETSTRING,&egs);
+      Info.EditorControl(-1,ECTL_GETSTRING,0,(INT_PTR)&egs);
       if(egs.SelStart>=0&&egs.SelStart<egs.StringLength)
       {
         int len=(egs.SelEnd>=0)?(egs.SelEnd-egs.SelStart):(egs.StringLength-egs.SelStart);
@@ -72,11 +72,8 @@ void DoPaste(HANDLE aDlg)
                   buffer[i++]=hex(value%16);
                 }
                 _tcscpy(buffer+len*MACRO_LEN+7,_T("\""));
-                ActlKeyMacro seq;
-                seq.Command=MCMD_POSTMACROSTRING;
-                seq.Param.PlainText.SequenceText=buffer;
-                seq.Param.PlainText.Flags=KMFLAGS_DISABLEOUTPUT;
-                Info.AdvControl(&MainGuid,ACTL_KEYMACRO,&seq);
+                MacroSendMacroText seq={sizeof(MacroSendMacroText),KMFLAGS_DISABLEOUTPUT,0,buffer};
+                Info.MacroControl(0,MCTL_SENDSTRING,MSSC_POST,(INT_PTR)&seq);
                 HeapFree(GetProcessHeap(),0,buffer);
               }
             }

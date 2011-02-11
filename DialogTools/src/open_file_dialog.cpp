@@ -162,7 +162,7 @@ static INT_PTR WINAPI OFDProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
   TCHAR newcurdir[MAX_PATH];
   FarListGetItem item;
   BOOL ItemPresent=FALSE;
-  if (Msg==DN_KEY||Msg==DN_CLOSE)
+  if (Msg==DN_CONTROLINPUT||Msg==DN_CLOSE)
   {
     item.ItemIndex=Info.SendDlgMessage(hDlg,DM_LISTGETCURPOS,0,0);
     ItemPresent=Info.SendDlgMessage(hDlg,DM_LISTGETITEM,0,(long)&item);
@@ -175,131 +175,135 @@ static INT_PTR WINAPI OFDProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
 
   switch(Msg)
   {
-    case DN_KEY:
+    case DN_CONTROLINPUT:
       {
-        int keyIn=FSF.FarInputRecordToKey((const INPUT_RECORD*)Param2);
-        if(keyIn==KEY_ENTER||keyIn==KEY_CTRLENTER||keyIn==KEY_CTRLBACKSLASH)
+        const INPUT_RECORD* record=(const INPUT_RECORD*)Param2;
+        if(record->EventType==KEY_EVENT)
         {
-          bool bRoot = keyIn==KEY_CTRLBACKSLASH;
-          if(ItemPresent||bRoot)
+          int keyIn=FSF.FarInputRecordToKey(record);
+          if(keyIn==KEY_ENTER||keyIn==KEY_CTRLENTER||keyIn==KEY_CTRLBACKSLASH)
           {
-            if(bRoot||(item.Item.Flags&LIF_CHECKED&&keyIn==KEY_ENTER))
+            bool bRoot = keyIn==KEY_CTRLBACKSLASH;
+            if(ItemPresent||bRoot)
             {
-              TCHAR *ptr,old_dir[MAX_PATH];//,buffer[MAX_PATH];
-              lstrcpy(old_dir,DlgParams->curr_dir);
-              int Len=lstrlen(old_dir);
-              if (bRoot)
+              if(bRoot||(item.Item.Flags&LIF_CHECKED&&keyIn==KEY_ENTER))
               {
-                *newdir=0;
-                lstrcpy(newcurdir,_T(".."));
-              }
-              else
-              {
-                GetFullPathName(newcurdir,ArraySize(newdir),newdir,&ptr);
-                FSF.AddEndSlash(newdir);
-              }
-              //MessageBox(NULL,old_dir,newcurdir,MB_OK);
-              if (TryLoadDir(hDlg,DlgParams,newdir))
-              {
-                if(!lstrcmp(newcurdir+(bRoot?0:Len),_T("..")))
+                TCHAR *ptr,old_dir[MAX_PATH];//,buffer[MAX_PATH];
+                lstrcpy(old_dir,DlgParams->curr_dir);
+                int Len=lstrlen(old_dir);
+                if (bRoot)
                 {
-                  if(Len)
+                  *newdir=0;
+                  lstrcpy(newcurdir,_T(".."));
+                }
+                else
+                {
+                  GetFullPathName(newcurdir,ArraySize(newdir),newdir,&ptr);
+                  FSF.AddEndSlash(newdir);
+                }
+                //MessageBox(NULL,old_dir,newcurdir,MB_OK);
+                if (TryLoadDir(hDlg,DlgParams,newdir))
+                {
+                  if(!lstrcmp(newcurdir+(bRoot?0:Len),_T("..")))
                   {
-                    if (bRoot)
+                    if(Len)
                     {
-                      ptr=old_dir;
-                      for (; *ptr && *ptr!='\\'; ptr++)
-                        ;
-                      if (*ptr=='\\')
-                        ptr[1]=0;
-                      ptr=old_dir;
+                      if (bRoot)
+                      {
+                        ptr=old_dir;
+                        for (; *ptr && *ptr!='\\'; ptr++)
+                          ;
+                        if (*ptr=='\\')
+                          ptr[1]=0;
+                        ptr=old_dir;
+                      }
+                      else
+                      {
+                        if(old_dir[Len-1]=='\\')
+                          old_dir[Len-1]=0;
+                        ptr=(TCHAR*)FSF.PointToName(old_dir);
+                      }
+                      FarListPos Pos;
+                      FarListFind find={0,ptr,LIFIND_EXACTMATCH,0};
+                      Pos.SelectPos=Info.SendDlgMessage(hDlg,DM_LISTFINDSTRING,0,(long)&find);
+                      Pos.TopPos=-1;
+                      if(Pos.SelectPos>=0)
+                        Info.SendDlgMessage(hDlg,DM_LISTSETCURPOS,0,(long)&Pos);
                     }
-                    else
-                    {
-                      if(old_dir[Len-1]=='\\')
-                        old_dir[Len-1]=0;
-                      ptr=(TCHAR*)FSF.PointToName(old_dir);
-                    }
-                    FarListPos Pos;
-                    FarListFind find={0,ptr,LIFIND_EXACTMATCH,0};
-                    Pos.SelectPos=Info.SendDlgMessage(hDlg,DM_LISTFINDSTRING,0,(long)&find);
-                    Pos.TopPos=-1;
-                    if(Pos.SelectPos>=0)
-                      Info.SendDlgMessage(hDlg,DM_LISTSETCURPOS,0,(long)&Pos);
                   }
                 }
+                return TRUE;
               }
-              return TRUE;
-            }
-            if(keyIn!=KEY_ENTER)
-            {
-              Info.SendDlgMessage(hDlg,DM_CLOSE,0,0);
-              return TRUE;
-            }
-            return FALSE;
-          } else return TRUE;
-        }
-        else if(keyIn==KEY_SHIFTENTER)
-        {
-          if(ItemPresent)
-          {
-            SHELLEXECUTEINFO info;
-            ZeroMemory(&info,sizeof(info));
-            info.cbSize=sizeof(info);
-            info.fMask=SEE_MASK_NOCLOSEPROCESS|SEE_MASK_FLAG_DDEWAIT;
-            info.lpFile=newcurdir;
-            info.nShow=SW_SHOWNORMAL;
-            ShellExecuteEx(&info);
+              if(keyIn!=KEY_ENTER)
+              {
+                Info.SendDlgMessage(hDlg,DM_CLOSE,0,0);
+                return TRUE;
+              }
+              return FALSE;
+            } else return TRUE;
           }
-          return TRUE;
-        }
-        else if(keyIn>=KEY_ALTA&&keyIn<=KEY_ALTZ)
-        {
-          int Drive=keyIn-KEY_ALTA;
-          DWORD Disks=GetLogicalDrives();
-          if(Disks&(1<<Drive))
+          else if(keyIn==KEY_SHIFTENTER)
           {
-            TCHAR temp_dir[3]=_T("A:"),*fileptr;
-            temp_dir[0]=(TCHAR)(temp_dir[0]+Drive);
-            if(!GetFullPathName(temp_dir,ArraySize(newdir),newdir,&fileptr))
-              lstrcpy(newdir,temp_dir);
-            FSF.AddEndSlash(newdir);
-            TryLoadDir(hDlg,DlgParams,newdir);
-          }
-          return TRUE;
-        }
-        else if(keyIn>=KEY_RCTRL0&&keyIn<=KEY_RCTRL9)
-        {
-          TCHAR key_path[MAX_PATH], value[64], data[MAX_PATH];;
-          lstrcpyn(key_path,Info.RootKey,FSF.PointToName(Info.RootKey)-Info.RootKey+1);
-          lstrcat(key_path,_T("FolderShortcuts"));
-          FSF.sprintf(value,_T("PluginModule%d"),keyIn-KEY_RCTRL0);
-          if(GetRegKey(HKEY_CURRENT_USER,key_path,_T(""),value,data,_T(""),MAX_PATH)&&(!*data))
-          {
-            FSF.sprintf(value,_T("Shortcut%d"),keyIn-KEY_RCTRL0);
-            GetRegKey(HKEY_CURRENT_USER,key_path,_T(""),value,data,_T(""),MAX_PATH);
-            if(*data)
+            if(ItemPresent)
             {
-              lstrcpy(newdir,data);
+              SHELLEXECUTEINFO info;
+              ZeroMemory(&info,sizeof(info));
+              info.cbSize=sizeof(info);
+              info.fMask=SEE_MASK_NOCLOSEPROCESS|SEE_MASK_FLAG_DDEWAIT;
+              info.lpFile=newcurdir;
+              info.nShow=SW_SHOWNORMAL;
+              ShellExecuteEx(&info);
+            }
+            return TRUE;
+          }
+          else if(keyIn>=KEY_ALTA&&keyIn<=KEY_ALTZ)
+          {
+            int Drive=keyIn-KEY_ALTA;
+            DWORD Disks=GetLogicalDrives();
+            if(Disks&(1<<Drive))
+            {
+              TCHAR temp_dir[3]=_T("A:"),*fileptr;
+              temp_dir[0]=(TCHAR)(temp_dir[0]+Drive);
+              if(!GetFullPathName(temp_dir,ArraySize(newdir),newdir,&fileptr))
+                lstrcpy(newdir,temp_dir);
               FSF.AddEndSlash(newdir);
               TryLoadDir(hDlg,DlgParams,newdir);
             }
+            return TRUE;
           }
-          return TRUE;
-        }
-        else if(keyIn==KEY_LEFT)
-        {
-          INPUT_RECORD keyOut;
-          FSF.FarKeyToInputRecord(KEY_HOME,&keyOut);
-          Info.SendDlgMessage(hDlg,DM_KEY,1,(INT_PTR)&keyOut);
-          return TRUE;
-        }
-        else if(keyIn==KEY_RIGHT)
-        {
-          INPUT_RECORD keyOut;
-          FSF.FarKeyToInputRecord(KEY_END,&keyOut);
-          Info.SendDlgMessage(hDlg,DM_KEY,1,(INT_PTR)&keyOut);
-          return TRUE;
+          else if(keyIn>=KEY_RCTRL0&&keyIn<=KEY_RCTRL9)
+          {
+            TCHAR key_path[MAX_PATH], value[64], data[MAX_PATH];;
+            lstrcpyn(key_path,Info.RootKey,FSF.PointToName(Info.RootKey)-Info.RootKey+1);
+            lstrcat(key_path,_T("FolderShortcuts"));
+            FSF.sprintf(value,_T("PluginModule%d"),keyIn-KEY_RCTRL0);
+            if(GetRegKey(HKEY_CURRENT_USER,key_path,_T(""),value,data,_T(""),MAX_PATH)&&(!*data))
+            {
+              FSF.sprintf(value,_T("Shortcut%d"),keyIn-KEY_RCTRL0);
+              GetRegKey(HKEY_CURRENT_USER,key_path,_T(""),value,data,_T(""),MAX_PATH);
+              if(*data)
+              {
+                lstrcpy(newdir,data);
+                FSF.AddEndSlash(newdir);
+                TryLoadDir(hDlg,DlgParams,newdir);
+              }
+            }
+            return TRUE;
+          }
+          else if(keyIn==KEY_LEFT)
+          {
+            INPUT_RECORD keyOut;
+            FSF.FarKeyToInputRecord(KEY_HOME,&keyOut);
+            Info.SendDlgMessage(hDlg,DM_KEY,1,(INT_PTR)&keyOut);
+            return TRUE;
+          }
+          else if(keyIn==KEY_RIGHT)
+          {
+            INPUT_RECORD keyOut;
+            FSF.FarKeyToInputRecord(KEY_END,&keyOut);
+            Info.SendDlgMessage(hDlg,DM_KEY,1,(INT_PTR)&keyOut);
+            return TRUE;
+          }
         }
       }
       break;
