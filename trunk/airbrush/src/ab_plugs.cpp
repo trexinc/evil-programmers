@@ -44,7 +44,7 @@ static void WINAPI addcolor(int lno,int start,int len,int fg,int bg)
   ec.StartPos=start;
   ec.EndPos=start+len-1;
   ec.Color=fg|bg;
-  Info.EditorControl(ECTL_ADDCOLOR,&ec);
+  Info.EditorControl(-1,ECTL_ADDCOLOR,0,(INT_PTR)&ec);
   ReleaseMutex(Mutex);
 }
 
@@ -56,8 +56,8 @@ static const TCHAR WINAPI *getline(int lno,int *len)
   egs.StringNumber=-1;
   esp.CurLine=lno;
   WaitForSingleObject(Mutex,INFINITE);
-  Info.EditorControl(ECTL_SETPOSITION,&esp);
-  Info.EditorControl(ECTL_GETSTRING,&egs);
+  Info.EditorControl(-1,ECTL_SETPOSITION,0,(INT_PTR)&esp);
+  Info.EditorControl(-1,ECTL_GETSTRING,0,(INT_PTR)&egs);
   ReleaseMutex(Mutex);
   if(len)
     *len=egs.StringLength;
@@ -113,7 +113,7 @@ static void WINAPI getcursor(int *row,int *col)
   {
     EditorInfo ei;
     WaitForSingleObject(Mutex,INFINITE);
-    Info.EditorControl(ECTL_GETINFO,&ei);
+    Info.EditorControl(-1,ECTL_GETINFO,0,(INT_PTR)&ei);
     ReleaseMutex(Mutex);
     *row=ei.CurLine;
     *col=ei.CurPos;

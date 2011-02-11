@@ -199,7 +199,7 @@ HANDLE WINAPI OpenPluginW(int OpenFrom,const GUID* Guid,INT_PTR Item)
         EditorInfo ei;
         PEditFile curfile;
         int index=-1;
-        Info.EditorControl(ECTL_GETINFO,&ei);
+        Info.EditorControl(-1,ECTL_GETINFO,0,(INT_PTR)&ei);
         curfile=ef_getfile(ei.EditorID);
         if(curfile) index=curfile->type+1;
         FSF.sprintf(text,_T("%c. %s"),hotkeys[0],GetMsg(mDefault));
@@ -237,7 +237,7 @@ HANDLE WINAPI OpenPluginW(int OpenFrom,const GUID* Guid,INT_PTR Item)
         if(MenuCode>-1)
         {
           EditorInfo ei;
-          Info.EditorControl(ECTL_GETINFO,&ei);
+          Info.EditorControl(-1,ECTL_GETINFO,0,(INT_PTR)&ei);
           ef_deletefile(ei.EditorID);
           loadfile(ei.EditorID,ids[MenuCode]);
         }

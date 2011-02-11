@@ -153,21 +153,21 @@ int OnEditorEvent(int event,void *param)
 
   if((int)param)
   {
-    Info.EditorControl(ECTL_REDRAW,0);
+    Info.EditorControl(-1,ECTL_REDRAW,0,0);
     return 0;
   };
 
   // search file in list
-  Info.EditorControl(ECTL_GETINFO,&ei);
+  Info.EditorControl(-1,ECTL_GETINFO,0,(INT_PTR)&ei);
 
-  editorfilename = (TCHAR *)malloc(Info.EditorControl(ECTL_GETFILENAME,NULL)*sizeof(TCHAR));
-  Info.EditorControl(ECTL_GETFILENAME,editorfilename);
+  editorfilename = (TCHAR *)malloc(Info.EditorControl(-1,ECTL_GETFILENAME,0,(INT_PTR)NULL)*sizeof(TCHAR));
+  Info.EditorControl(-1,ECTL_GETFILENAME,0,(INT_PTR)editorfilename);
 
   filename=FSF.PointToName(editorfilename); // deletes path...
 
   EditorGetString egs;
   egs.StringNumber=0;
-  Info.EditorControl(ECTL_GETSTRING,&egs);
+  Info.EditorControl(-1,ECTL_GETSTRING,0,(INT_PTR)&egs);
 
   if((!(curfile=ef_getfile(ei.EditorID)))&&Opt.Active&&(ei.TotalLines<=Opt.MaxLines))
   {
@@ -269,7 +269,7 @@ int OnEditorEvent(int event,void *param)
     for(int i=ei.TopScreenLine;i<params.endline;i++)
     {
       ec.StringNumber=i;
-      Info.EditorControl(ECTL_ADDCOLOR,&ec);
+      Info.EditorControl(-1,ECTL_ADDCOLOR,0,(INT_PTR)&ec);
     }
     return 0;
   }
@@ -360,7 +360,7 @@ int OnEditorEvent(int event,void *param)
                     WaitForSingleObject(handles[0],INFINITE);
                     poll=false;
                     curfile->type=-1;
-                    Info.EditorControl(ECTL_REDRAW,0);
+                    Info.EditorControl(-1,ECTL_REDRAW,0,0);
                   }
                 }
                 else
@@ -394,7 +394,7 @@ int OnEditorEvent(int event,void *param)
   esp.LeftPos=ei.LeftPos;
   esp.CurTabPos=-1;
   esp.Overtype=-1;
-  Info.EditorControl(ECTL_SETPOSITION,&esp);
+  Info.EditorControl(-1,ECTL_SETPOSITION,0,(INT_PTR)&esp);
   if(fatal) RaiseException(0,0,0,NULL);
   return 0;
 }
@@ -402,7 +402,7 @@ int OnEditorEvent(int event,void *param)
 int OnEditorInput(const INPUT_RECORD *Rec)
 {
   EditorInfo ei;
-  Info.EditorControl(ECTL_GETINFO,&ei);
+  Info.EditorControl(-1,ECTL_GETINFO,0,(INT_PTR)&ei);
   PEditFile curfile=ef_getfile(ei.EditorID);
   if(curfile&&(curfile->type>-1)&&PluginsData[curfile->type].pInput)
     return PluginsData[curfile->type].pInput(Rec);
