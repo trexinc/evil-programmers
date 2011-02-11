@@ -70,7 +70,7 @@ int TCompletion::GetPreWord(void)
   EditorInfo ei;
   EditorGetString gs;
 
-  Info.EditorControl(ECTL_GETINFO,&ei);
+  Info.EditorControl(-1,ECTL_GETINFO,0,(INT_PTR)&ei);
   if(ei.CurState&ECSTATE_LOCKED) return 0;
   avl_window_data *Window=windows->query(ei.EditorID);
   if(!Window) return 0;
@@ -81,7 +81,7 @@ int TCompletion::GetPreWord(void)
   Word.clear();
 
   gs.StringNumber=-1; // current string
-  Info.EditorControl(ECTL_GETSTRING,&gs);
+  Info.EditorControl(-1,ECTL_GETSTRING,0,(INT_PTR)&gs);
   // в начале и в конце строки искать нечего!!!
   if(ei.CurPos>0&&ei.CurPos<=gs.StringLength)
   {
@@ -114,9 +114,9 @@ int TCompletion::DoSearch(void)
   int Line2Browse[2]; // Сколько строк будем просматривать вперед и назад
 
   WordList.clear();
-  Info.EditorControl(ECTL_GETINFO,&ei); //SEELATER use stored data for currsor position and check eid
+  Info.EditorControl(-1,ECTL_GETINFO,0,(INT_PTR)&ei); //SEELATER use stored data for currsor position and check eid
   gs.StringNumber=-1; // current string
-  Info.EditorControl(ECTL_GETSTRING,&gs);
+  Info.EditorControl(-1,ECTL_GETSTRING,0,(INT_PTR)&gs);
 
   string Line((const UTCHAR *)gs.StringText,gs.StringLength);
   if(Line.length()==(size_t)gs.StringLength)
@@ -141,8 +141,8 @@ int TCompletion::DoSearch(void)
     {
       if(Line2Browse[j]<i) continue;
       sp.CurLine=ei.CurLine+(j?i:-i); //вычисляем тек. строку
-      Info.EditorControl(ECTL_SETPOSITION,&sp);
-      Info.EditorControl(ECTL_GETSTRING,&gs);
+      Info.EditorControl(-1,ECTL_SETPOSITION,0,(INT_PTR)&sp);
+      Info.EditorControl(-1,ECTL_GETSTRING,0,(INT_PTR)&gs);
       Line((const UTCHAR *)gs.StringText,gs.StringLength);
       AddWords(Line,Line.length(),j);
       if(WordList.count()>=WordsToFindCnt) break;
@@ -153,7 +153,7 @@ int TCompletion::DoSearch(void)
   sp.CurPos=ei.CurPos;
   sp.TopScreenLine=ei.TopScreenLine;
   sp.LeftPos=ei.LeftPos;
-  Info.EditorControl(ECTL_SETPOSITION,&sp);
+  Info.EditorControl(-1,ECTL_SETPOSITION,0,(INT_PTR)&sp);
   return WordList.count();
 }
 
@@ -252,7 +252,7 @@ bool TCompletion::IsAlpha(unsigned int c)
 avl_window_data *TCompletion::GetLocalData(void)
 {
   EditorInfo ei;
-  Info.EditorControl(ECTL_GETINFO,&ei);
+  Info.EditorControl(-1,ECTL_GETINFO,0,(INT_PTR)&ei);
   return windows->query(ei.EditorID);
 }
 
@@ -262,27 +262,27 @@ string TCompletion::PutWord(string NewWord)
   EditorInfo ei; EditorGetString gs;
   int OldPos;
   string OverwritedText;
-  Info.EditorControl(ECTL_GETINFO,&ei);
+  Info.EditorControl(-1,ECTL_GETINFO,0,(INT_PTR)&ei);
   OldPos=ei.CurPos;
   if(AddTrailingSpace) NewWord+=' ';
   SetCurPos(WordPos);
 
   gs.StringNumber=-1;
-  Info.EditorControl(ECTL_GETSTRING,&gs);
+  Info.EditorControl(-1,ECTL_GETSTRING,0,(INT_PTR)&gs);
   if(!ei.Overtype)
   {
     if(gs.StringLength>WordPos) OverwritedText((const UTCHAR *)&gs.StringText[WordPos],MIN(ei.CurPos-WordPos,gs.StringLength-WordPos));
-    for(int i=WordPos;i<ei.CurPos;i++) Info.EditorControl(ECTL_DELETECHAR,NULL);
+    for(int i=WordPos;i<ei.CurPos;i++) Info.EditorControl(-1,ECTL_DELETECHAR,0,(INT_PTR)NULL);
     //workaround
-    Info.EditorControl(ECTL_GETINFO,&ei);
+    Info.EditorControl(-1,ECTL_GETINFO,0,(INT_PTR)&ei);
     if(ei.BlockType==BTYPE_STREAM&&ei.BlockStartLine==ei.CurLine)
     {
       gs.StringNumber=-1;
-      Info.EditorControl(ECTL_GETSTRING,&gs);
+      Info.EditorControl(-1,ECTL_GETSTRING,0,(INT_PTR)&gs);
       if(gs.SelStart==-1)
       {
         EditorSelect es={BTYPE_NONE,0,0,0,0};
-        Info.EditorControl(ECTL_SELECT,&es);
+        Info.EditorControl(-1,ECTL_SELECT,0,(INT_PTR)&es);
       }
     }
   }
@@ -291,7 +291,7 @@ string TCompletion::PutWord(string NewWord)
     if(gs.StringLength>WordPos) OverwritedText((const UTCHAR *)&gs.StringText[WordPos],MIN(NewWord.length(),(size_t)(gs.StringLength-WordPos)));
   }
 
-  Info.EditorControl(ECTL_INSERTTEXT,(void *)NewWord.get());
+  Info.EditorControl(-1,ECTL_INSERTTEXT,0,(INT_PTR)NewWord.get());
   SetCurPos(OldPos);
   return OverwritedText;
 }
@@ -305,7 +305,7 @@ void TCompletion::SetCurPos(int NewPos,int NewRow)
   sp.TopScreenLine=-1;
   sp.LeftPos=-1;
   sp.Overtype=-1;
-  Info.EditorControl(ECTL_SETPOSITION,&sp);
+  Info.EditorControl(-1,ECTL_SETPOSITION,0,(INT_PTR)&sp);
 }
 
 DWORD TCompletion::GetRegKey(const TCHAR* ValueName,DWORD Default)

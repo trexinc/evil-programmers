@@ -156,13 +156,17 @@ static INT_PTR WINAPI ListMenuProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2
           return (Info.AdvControl(&MainGuid,ACTL_GETCOLOR,(void *)COL_MENUBOX)<<16)|(Info.AdvControl(&MainGuid,ACTL_GETCOLOR,(void *)COL_MENUTITLE)<<8)|(Info.AdvControl(&MainGuid,ACTL_GETCOLOR,(void *)COL_MENUTITLE));
       }
       break;
-    case DN_KEY:
+    case DN_CONTROLINPUT:
       {
-        long key=FSF.FarInputRecordToKey((const INPUT_RECORD*)Param2);
-        if((unsigned)key>=KEY_SPACE&&key<127L&&_tcschr(DlgParams->AcceptChars,key))
+        const INPUT_RECORD* record=(const INPUT_RECORD *)Param2;
+        if(record->EventType==KEY_EVENT)
         {
-          DlgParams->ClosedKey=key;
-          Info.SendDlgMessage(hDlg,DM_CLOSE,-1,0);
+          long key=FSF.FarInputRecordToKey(record);
+          if((unsigned)key>=KEY_SPACE&&key<127L&&_tcschr(DlgParams->AcceptChars,key))
+          {
+            DlgParams->ClosedKey=key;
+            Info.SendDlgMessage(hDlg,DM_CLOSE,-1,0);
+          }
         }
       }
       break;
@@ -200,7 +204,7 @@ bool TMenuCompletion::ShowMenu(string &Selected)
     FSF.sprintf(BottomMsg,GetMsg(MHave),WordList.count());
 
     EditorInfo ei;
-    Info.EditorControl(ECTL_GETINFO,&ei);
+    Info.EditorControl(-1,ECTL_GETINFO,0,(INT_PTR)&ei);
 
     size_t MenuWidth=MAX(WordList.get_max_len()+2,_tcslen(GetMsg(MChooseWord))+1);
     MenuWidth=MAX(MenuWidth,_tcslen(BottomMsg));
