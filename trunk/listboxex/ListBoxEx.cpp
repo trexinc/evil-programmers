@@ -645,125 +645,129 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
         }
       }
       break;
-    case DN_MOUSECLICK:
-      return_flag=false;
-      if(data&&Param2)
+    case DN_CONTROLINPUT:
       {
-        MOUSE_EVENT_RECORD *mouse=(MOUSE_EVENT_RECORD *)Param2;
-        if(mouse->dwButtonState&FROM_LEFT_1ST_BUTTON_PRESSED)
+        return_flag=false;
+        const INPUT_RECORD* record=(const INPUT_RECORD *)Param2;
+        if(record->EventType==MOUSE_EVENT)
         {
-          Info.SendDlgMessage(hDlg,DM_CLOSE,-1,0);
-          return_flag=true;
-          return_result=TRUE;
-        }
-      }
-      break;
-    case DN_KEY:
-      return_flag=false;
-      if(data)
-      {
-        bool redraw=false,hotkey=false,direction=true;
-        unsigned long delta=0;
-        long key=FSF.FarInputRecordToKey((const INPUT_RECORD*)Param2);
-        switch(key)
-        {
-#if 1
-          case KEY_LEFT:
-            if(data->CurCol) data->CurCol--;
-            redraw=true;
-            break;
-          case KEY_RIGHT:
-            data->CurCol++;
-            redraw=true;
-            break;
-#endif
-          case KEY_UP:
-            if((data->Flags&LBFEX_WRAPMODE)&&!data->CurPos) data->CurPos=data->ItemCount-1;
-            else delta=1;
-            get_nearest_item(data,&(data->CurPos),delta,false);
-            direction=false;
-            redraw=true;
-            break;
-          case KEY_DOWN:
-            if((data->Flags&LBFEX_WRAPMODE)&&data->CurPos==(data->ItemCount-1)) data->CurPos=0;
-            else delta=1;
-            get_nearest_item(data,&(data->CurPos),delta,true);
-            redraw=true;
-            break;
-          case KEY_HOME:
-            data->CurPos=0;
-            get_nearest_item(data,&(data->CurPos),delta,true);
-            redraw=true;
-            break;
-          case KEY_END:
-            data->CurPos=data->ItemCount-1;
-            get_nearest_item(data,&(data->CurPos),delta,false);
-            redraw=true;
-            break;
-          case KEY_PGUP:
-            delta=get_height(hDlg,Param1);
-            get_nearest_item(data,&(data->CurPos),delta,false);
-            direction=false;
-            redraw=true;
-            break;
-          case KEY_PGDN:
-            delta=get_height(hDlg,Param1);
-            get_nearest_item(data,&(data->CurPos),delta,true);
-            redraw=true;
-            break;
-          default:
-            {
-              long FirstKey=upper_key(key),SecondKey=FirstKey;
-              if(FSF.LIsAlpha((unsigned long)FirstKey))
-              {
-                TCHAR xlat_str[1]={(unsigned long)FirstKey}; //FIXME
-#ifndef UNICODE
-                FSF.XLat(xlat_str,0,1,NULL,0);
-#else
-                FSF.XLat(xlat_str,0,1,0);
-#endif
-                SecondKey=upper_key(xlat_str[0]);
-              }
-              for(long i=0;i<data->ItemCount;i++)
-                if((data->Items[i].Hotkey==FirstKey||data->Items[i].Hotkey==SecondKey)&&!(data->Items[i].Flags&(LIFEX_DISABLE|LIFEX_HIDDEN)))
-                {
-                  data->CurPos=i;
-                  redraw=true;
-                  hotkey=true;
-                  break;
-                }
-            }
-            break;
-        }
-        if(redraw)
-        {
-          normalize_curpos(data,direction);
-          normalize_top(data,hDlg,Param1);
-          Info.SendDlgMessage(hDlg,DM_REDRAW,0,0);
-          if(hotkey) Info.SendDlgMessage(hDlg,DN_LISTBOXEX_HOTKEY,Param1,data->CurPos);
-          return_flag=true;
-          return_result=TRUE;
-        }
-      }
-      break;
-    case DN_MOUSEEVENT:
-      return_flag=false;
-      {
-        MOUSE_EVENT_RECORD *mouse=(MOUSE_EVENT_RECORD *)Param2;
-        if(mouse->dwEventFlags&MOUSE_MOVED)
-        {
-          SMALL_RECT rect;
-          Info.SendDlgMessage(hDlg,DM_GETDLGRECT,0,(long)&rect);
-          COORD relative={mouse->dwMousePosition.X-rect.Left,mouse->dwMousePosition.Y-rect.Top};
-          int cur_item=0; SMALL_RECT item_rect;
-          while(Info.SendDlgMessage(hDlg,DM_GETITEMPOSITION,cur_item,(long)&item_rect))
+          if(data)
           {
-            if(Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ISLBE,cur_item,0L)&&relative.X>=item_rect.Left&&relative.X<=item_rect.Right&&relative.Y>=item_rect.Top&&relative.Y<=item_rect.Bottom)
+            if(record->Event.MouseEvent.dwButtonState&FROM_LEFT_1ST_BUTTON_PRESSED)
             {
-              COORD item_relative={relative.X-item_rect.Left,relative.Y-item_rect.Top};
-              Info.SendDlgMessage(hDlg,DN_LISTBOXEX_MOUSEMOVE,cur_item,(long)&item_relative);
+              Info.SendDlgMessage(hDlg,DM_CLOSE,-1,0);
+              return_flag=true;
+              return_result=TRUE;
             }
-            cur_item++;
+          }
+        }
+        else if(record->EventType==KEY_EVENT)
+        {
+          if(data)
+          {
+            bool redraw=false,hotkey=false,direction=true;
+            unsigned long delta=0;
+            long key=FSF.FarInputRecordToKey(record);
+            switch(key)
+            {
+#if 1
+              case KEY_LEFT:
+                if(data->CurCol) data->CurCol--;
+                redraw=true;
+                break;
+              case KEY_RIGHT:
+                data->CurCol++;
+                redraw=true;
+                break;
+#endif
+              case KEY_UP:
+                if((data->Flags&LBFEX_WRAPMODE)&&!data->CurPos) data->CurPos=data->ItemCount-1;
+                else delta=1;
+                get_nearest_item(data,&(data->CurPos),delta,false);
+                direction=false;
+                redraw=true;
+                break;
+              case KEY_DOWN:
+                if((data->Flags&LBFEX_WRAPMODE)&&data->CurPos==(data->ItemCount-1)) data->CurPos=0;
+                else delta=1;
+                get_nearest_item(data,&(data->CurPos),delta,true);
+                redraw=true;
+                break;
+              case KEY_HOME:
+                data->CurPos=0;
+                get_nearest_item(data,&(data->CurPos),delta,true);
+                redraw=true;
+                break;
+              case KEY_END:
+                data->CurPos=data->ItemCount-1;
+                get_nearest_item(data,&(data->CurPos),delta,false);
+                redraw=true;
+                break;
+              case KEY_PGUP:
+                delta=get_height(hDlg,Param1);
+                get_nearest_item(data,&(data->CurPos),delta,false);
+                direction=false;
+                redraw=true;
+                break;
+              case KEY_PGDN:
+                delta=get_height(hDlg,Param1);
+                get_nearest_item(data,&(data->CurPos),delta,true);
+                redraw=true;
+                break;
+              default:
+                {
+                  long FirstKey=upper_key(key),SecondKey=FirstKey;
+                  if(FSF.LIsAlpha((unsigned long)FirstKey))
+                  {
+                    TCHAR xlat_str[1]={(unsigned long)FirstKey}; //FIXME
+                    FSF.XLat(xlat_str,0,1,0);
+                    SecondKey=upper_key(xlat_str[0]);
+                  }
+                  for(long i=0;i<data->ItemCount;i++)
+                    if((data->Items[i].Hotkey==FirstKey||data->Items[i].Hotkey==SecondKey)&&!(data->Items[i].Flags&(LIFEX_DISABLE|LIFEX_HIDDEN)))
+                    {
+                      data->CurPos=i;
+                      redraw=true;
+                      hotkey=true;
+                      break;
+                    }
+                }
+                break;
+            }
+            if(redraw)
+            {
+              normalize_curpos(data,direction);
+              normalize_top(data,hDlg,Param1);
+              Info.SendDlgMessage(hDlg,DM_REDRAW,0,0);
+              if(hotkey) Info.SendDlgMessage(hDlg,DN_LISTBOXEX_HOTKEY,Param1,data->CurPos);
+              return_flag=true;
+              return_result=TRUE;
+            }
+          }
+        }
+      }
+      break;
+    case DN_INPUT:
+      {
+        return_flag=false;
+        const INPUT_RECORD* record=(const INPUT_RECORD *)Param2;
+        if(record->EventType==MOUSE_EVENT)
+        {
+          if(record->Event.MouseEvent.dwEventFlags&MOUSE_MOVED)
+          {
+            SMALL_RECT rect;
+            Info.SendDlgMessage(hDlg,DM_GETDLGRECT,0,(long)&rect);
+            COORD relative={record->Event.MouseEvent.dwMousePosition.X-rect.Left,record->Event.MouseEvent.dwMousePosition.Y-rect.Top};
+            int cur_item=0; SMALL_RECT item_rect;
+            while(Info.SendDlgMessage(hDlg,DM_GETITEMPOSITION,cur_item,(long)&item_rect))
+            {
+              if(Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ISLBE,cur_item,0L)&&relative.X>=item_rect.Left&&relative.X<=item_rect.Right&&relative.Y>=item_rect.Top&&relative.Y<=item_rect.Bottom)
+              {
+                COORD item_relative={relative.X-item_rect.Left,relative.Y-item_rect.Top};
+                Info.SendDlgMessage(hDlg,DN_LISTBOXEX_MOUSEMOVE,cur_item,(long)&item_relative);
+              }
+              cur_item++;
+            }
           }
         }
       }

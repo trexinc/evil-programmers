@@ -164,46 +164,50 @@ static INT_PTR WINAPI MainDialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Para
         Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETHOTKEY,1,(long)&hotkey);
       }
       break;
-    case DN_KEY:
+    case DN_CONTROLINPUT:
       {
-        long key=FSF.FarInputRecordToKey((const INPUT_RECORD*)Param2);
-        if(key==KEY_DEL)
+        const INPUT_RECORD* record=(const INPUT_RECORD *)Param2;
+        if(record->EventType==KEY_EVENT)
         {
-          FarListDelete list={3,4};
-          Info.SendDlgMessage(hDlg,DM_LISTBOXEX_DELETE,1,(long)&list);
-        }
-        else if(key==KEY_F2)
-        {
-          ListBoxExSetFlags flags={Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L),LIFEX_DISABLE};
-          Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETFLAGS,1,(long)&flags);
-        }
-        else if(key==KEY_F3)
-        {
-          ListBoxExSetFlags flags={Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L)-1,0};
-          Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETFLAGS,1,(long)&flags);
-        }
-        else if(key==KEY_INS)
-        {
-          Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_TOGGLE,1,Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L));
-        }
-        else if(key==KEY_SHIFTDEL)
-        {
-          ListBoxExSetFlags flags={Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L),LIFEX_HIDDEN};
-          Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETFLAGS,1,(long)&flags);
-        }
-        else if(key==KEY_CTRLUP)
-        {
-          FarListPos pos={Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L),-1};
-          Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_MOVE_UP,1,pos.SelectPos);
-          pos.SelectPos--;
-          Info.SendDlgMessage(hDlg,DM_LISTBOXEX_SETCURPOS,1,(long)&pos);
-        }
-        else if(key==KEY_CTRLDOWN)
-        {
-          FarListPos pos={Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L),-1};
-          Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_MOVE_DOWN,1,pos.SelectPos);
-          pos.SelectPos++;
-          Info.SendDlgMessage(hDlg,DM_LISTBOXEX_SETCURPOS,1,(long)&pos);
+          long key=FSF.FarInputRecordToKey(record);
+          if(key==KEY_DEL)
+          {
+            FarListDelete list={3,4};
+            Info.SendDlgMessage(hDlg,DM_LISTBOXEX_DELETE,1,(long)&list);
+          }
+          else if(key==KEY_F2)
+          {
+            ListBoxExSetFlags flags={Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L),LIFEX_DISABLE};
+            Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETFLAGS,1,(long)&flags);
+          }
+          else if(key==KEY_F3)
+          {
+            ListBoxExSetFlags flags={Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L)-1,0};
+            Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETFLAGS,1,(long)&flags);
+          }
+          else if(key==KEY_INS)
+          {
+            Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_TOGGLE,1,Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L));
+          }
+          else if(key==KEY_SHIFTDEL)
+          {
+            ListBoxExSetFlags flags={Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L),LIFEX_HIDDEN};
+            Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETFLAGS,1,(long)&flags);
+          }
+          else if(key==KEY_CTRLUP)
+          {
+            FarListPos pos={Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L),-1};
+            Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_MOVE_UP,1,pos.SelectPos);
+            pos.SelectPos--;
+            Info.SendDlgMessage(hDlg,DM_LISTBOXEX_SETCURPOS,1,(long)&pos);
+          }
+          else if(key==KEY_CTRLDOWN)
+          {
+            FarListPos pos={Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L),-1};
+            Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_MOVE_DOWN,1,pos.SelectPos);
+            pos.SelectPos++;
+            Info.SendDlgMessage(hDlg,DM_LISTBOXEX_SETCURPOS,1,(long)&pos);
+          }
         }
       }
       break;
