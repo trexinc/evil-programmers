@@ -78,7 +78,7 @@ int TAutoCompletion::ProcessEditorInput(const INPUT_RECORD *Rec)
         {
           Window->On=true;
           EditorInfo ei;
-          if(Info.EditorControl(ECTL_GETINFO,&ei)&&ei.BlockType==BTYPE_STREAM&&(ei.Options&EOPT_PERSISTENTBLOCKS)==0)
+          if(Info.EditorControl(-1,ECTL_GETINFO,0,(INT_PTR)&ei)&&ei.BlockType==BTYPE_STREAM&&(ei.Options&EOPT_PERSISTENTBLOCKS)==0)
           {
             Window->BlockDeleted=true;
           }
@@ -103,7 +103,7 @@ int TAutoCompletion::ProcessEditorEvent(int Event,void *Param)
   else if(Event==EE_READ)
   {
     EditorInfo ei;
-    if(Info.EditorControl(ECTL_GETINFO,&ei))
+    if(Info.EditorControl(-1,ECTL_GETINFO,0,(INT_PTR)&ei))
     {
       avl_window_data *Add=new avl_window_data(ei.EditorID);
       Add=windows->insert(Add);
@@ -126,9 +126,9 @@ int TAutoCompletion::ProcessEditorEvent(int Event,void *Param)
           else
           {
             Window->On=false;
-            Info.EditorControl(ECTL_REDRAW,0);
+            Info.EditorControl(-1,ECTL_REDRAW,0,0);
             PutVariant(Window);
-            Info.EditorControl(ECTL_REDRAW,0);
+            Info.EditorControl(-1,ECTL_REDRAW,0,0);
           }
         }
         else if(Window->Active) Colorize(Color,Window);
@@ -147,7 +147,7 @@ bool TAutoCompletion::CheckText(int Pos,int Row,avl_window_data *Window)
   SetCurPos(Pos,Row);
   EditorGetString gs;
   gs.StringNumber=-1; // current string
-  Info.EditorControl(ECTL_GETSTRING,&gs);
+  Info.EditorControl(-1,ECTL_GETSTRING,0,(INT_PTR)&gs);
   if(gs.StringLength>Pos)
   {
     string Line((const UTCHAR*)gs.StringText,gs.StringLength);
@@ -167,7 +167,7 @@ void TAutoCompletion::DeleteVariant(avl_window_data *Window)
   {
     bool process=false;
     EditorInfo ei;
-    Info.EditorControl(ECTL_GETINFO,&ei);
+    Info.EditorControl(-1,ECTL_GETINFO,0,(INT_PTR)&ei);
     Colorize(0,Window);
     Window->Active=false;
     {
@@ -177,15 +177,15 @@ void TAutoCompletion::DeleteVariant(avl_window_data *Window)
     if(process)
     {
       if(!ei.Overtype)
-        for(size_t i=0;i<(Window->AddedLen+Window->OldLen);i++) Info.EditorControl(ECTL_DELETECHAR,NULL);
-      Info.EditorControl(ECTL_INSERTTEXT,(void *)Window->Rewrited.get());
+        for(size_t i=0;i<(Window->AddedLen+Window->OldLen);i++) Info.EditorControl(-1,ECTL_DELETECHAR,0,(INT_PTR)NULL);
+      Info.EditorControl(-1,ECTL_INSERTTEXT,0,(INT_PTR)Window->Rewrited.get());
     }
     SetCurPos(ei.CurPos,ei.CurLine);
     Window->Rewrited.clear();
     Window->Inserted.clear();
     Window->AddedLen=0;
     Window->OldLen=0;
-    Info.EditorControl(ECTL_REDRAW,0);
+    Info.EditorControl(-1,ECTL_REDRAW,0,0);
   }
 }
 
@@ -199,7 +199,7 @@ bool TAutoCompletion::AcceptVariant(avl_window_data *Window)
     Window->Rewrited.clear();
     SetCurPos(Window->col+Window->AddedLen,Window->row);
     if(PartialCompletion) Window->On=true;
-    Info.EditorControl(ECTL_REDRAW,NULL);
+    Info.EditorControl(-1,ECTL_REDRAW,0,(INT_PTR)NULL);
     Accepted=true;
   }
   return Accepted;
@@ -304,7 +304,7 @@ void TAutoCompletion::Colorize(int NewColor,avl_window_data *Window)
   ec.StartPos=Window->col;
   ec.EndPos=Window->col+Window->AddedLen-1;
   ec.Color=NewColor;
-  Info.EditorControl(ECTL_ADDCOLOR,&ec);
+  Info.EditorControl(-1,ECTL_ADDCOLOR,0,(INT_PTR)&ec);
 }
 
 bool TAutoCompletion::CompleteWord(void)
@@ -373,11 +373,15 @@ INT_PTR WINAPI GetKey(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
   {
     Info.SendDlgMessage(hDlg,DM_SETDLGDATA,0,Param2);
   }
-  else if(Msg==DN_KEY)
+  else if(Msg==DN_CONTROLINPUT)
   {
-    TCHAR *KeyName=(TCHAR *)Info.SendDlgMessage(hDlg,DM_GETDLGDATA,0,0);
-    t_FarKeyToName(FSF.FarInputRecordToKey((INPUT_RECORD*)Param2),KeyName,256);
-    Info.SendDlgMessage(hDlg,DM_CLOSE,-1,0);
+    const INPUT_RECORD* record=(const INPUT_RECORD *)Param2;
+    if(record->EventType==KEY_EVENT)
+    {
+      TCHAR *KeyName=(TCHAR *)Info.SendDlgMessage(hDlg,DM_GETDLGDATA,0,0);
+      t_FarKeyToName(FSF.FarInputRecordToKey(record),KeyName,256);
+      Info.SendDlgMessage(hDlg,DM_CLOSE,-1,0);
+    }
   }
   return Info.DefDlgProc(hDlg,Msg,Param1,Param2);
 }
