@@ -221,7 +221,8 @@ HANDLE WINAPI OpenPluginW(int OpenFrom,const GUID* Guid,INT_PTR Item)
             j++;
           }
         }
-        int MenuCode=0,BreakKeys[]={VK_F4,0},BreakCode;
+        int MenuCode=0,BreakCode;
+        FarKey BreakKeys[]={{VK_F4,0},{0,0}};
         while(true)
         {
           for(int i=0;i<=Count;i++)
