@@ -47,7 +47,7 @@ $(TARGET): $(OBJS)
 $(OBJS0): ../$(OBJDIR)/%.o: %.cpp far_helper.h guid.h
 	$(CC) $(CFLAGS) $< -o $@
 
-$(OBJS1): ../$(OBJDIR)/%.o: %.cpp umplugin.h far_helper.h guid.h
+$(OBJS1): ../$(OBJDIR)/%.o: %.cpp umplugin.h far_helper.h guid.h ./$(BOOTSTRAPDIR)/umversion.h
 	$(CC) $(CFLAGS) $< -o $@
 
 $(OBJS2): ../$(OBJDIR)/%.o: %.cpp far_helper.h
