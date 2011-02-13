@@ -105,4 +105,3 @@ XMLStrings XMLStr=
 FARAPIEDITORCONTROL EditorControl;
 FARAPIMESSAGE       FarMessage;
 FARSTDTRUNCPATHSTR  TruncPathStr;
-int ModuleNumber;

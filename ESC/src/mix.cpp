@@ -31,6 +31,7 @@
 #include "strcon.hpp"
 #include "TArray.cpp"
 #include "kserror.hpp"
+#include "guid.h"
 
 extern TArray<NODEDATA> *NodeData;
 extern CRedBlackTree<ESCFileInfo> *FileInfoTree;
@@ -40,7 +41,6 @@ extern wchar_t XMLFilePath[MAX_PATH];
 extern BOOL XMLLoadedOK, IsOldFar;
 extern XMLStrings XMLStr;
 extern struct OPTIONS Opt;
-extern int ModuleNumber;
 extern FARAPIEDITORCONTROL EditorControl;
 extern FARAPIMESSAGE FarMessage;
 extern FARSTDTRUNCPATHSTR TruncPathStr;
@@ -118,16 +118,12 @@ void InitNLS(const EditorInfo &ei, NODEDATA &nodedata)
 
 int FARPostMacro(const KeySequence *KS)
 {
-  static ActlKeyMacro KeyMacro;
-  memset(&KeyMacro,0,sizeof(KeyMacro));
-  KeyMacro.Command=MCMD_POSTMACROSTRING;
-  KeyMacro.Param.PlainText.SequenceText=const_cast<wchar_t *>(reinterpret_cast<const wchar_t *>(KS->Sequence));
-  KeyMacro.Param.PlainText.Flags=KS->Flags;
-  _D(int res=Info.AdvControl(ModuleNumber,ACTL_KEYMACRO,&KeyMacro));
+  MacroSendMacroText KeyMacro={sizeof(MacroSendMacroText),KS->Flags,0,KS->Sequence};
+  _D(int res=Info.MacroControl(0,MCTL_SENDSTRING,MSSC_POST,(INT_PTR)&KeyMacro));
   _D(SysLog(L"FARPostMacro: [%s] Flags=%p, ExitCode=%d",
       KeyMacro.Param.PlainText.SequenceText, KS->Flags, res));
   _D(return res);
-  return Info.AdvControl(ModuleNumber,ACTL_KEYMACRO,&KeyMacro);
+  return Info.MacroControl(0,MCTL_SENDSTRING,MSSC_POST,(INT_PTR)&KeyMacro);
 }
 
 BOOL EditorPostMacro(CUserMacros &macros,UserMacroID &id,const EditorInfo &ei, BOOL &Stop)
@@ -252,34 +248,12 @@ BOOL UnpackEOL(DWORD EOL, wchar_t *Dest)
    return TRUE;
 }
 
-void InitDialogItems(struct InitDialogItem *Init,
-                     struct FarDialogItem *Item,
-                     int ItemsNumber)
-{
-  for (int I = 0; I < ItemsNumber; ++I)
-    {
-      Item[I].Type = Init[I].Type;
-      Item[I].X1 = Init[I].X1;
-      Item[I].Y1 = Init[I].Y1;
-      Item[I].X2 = Init[I].X2;
-      Item[I].Y2 = Init[I].Y2;
-      Item[I].Focus = Init[I].Focus;
-      Item[I].Selected = Init[I].Selected;
-      Item[I].Flags = Init[I].Flags;
-      Item[I].DefaultButton = Init[I].DefaultButton;
-      Item[I].MaxLen = 0;
-      if ((unsigned int) Init[I].Data < 2000)
-        Item[I].PtrData = GetMsg((unsigned int) Init[I].Data);
-      else
-        Item[I].PtrData = Init[I].Data;
-    }
-}
 //возвращает строку из LNG в соответствие с языковыми настройками
-const wchar_t *GetMsg(int MsgId) {return (Info.GetMsg(ModuleNumber, MsgId));}
+const wchar_t *GetMsg(int MsgId) {return (Info.GetMsg(&MainGuid, MsgId));}
 
 int FarAllInOneMessage(const wchar_t *Message, unsigned int Flags)
 {
-  return FarMessage(ModuleNumber, Flags|FMSG_ALLINONE, NULL,
+  return FarMessage(&MainGuid, Flags|FMSG_ALLINONE, NULL,
                       (const wchar_t * const *)Message, 1, 1);
 }
 
@@ -292,7 +266,7 @@ void MessageFileError(const wchar_t *msg, const wchar_t *name)
   MsgItems[1] = msg;
   MsgItems[2] = fn.str;
   MsgItems[3] = GetMsg(MOk);
-  FarMessage(ModuleNumber, FMSG_WARNING, NULL, MsgItems, 4, 1);
+  FarMessage(&MainGuid, FMSG_WARNING, NULL, MsgItems, 4, 1);
 }
 
 BOOL IsFilesChanged()
@@ -654,7 +628,7 @@ void ShowCfgError(const wchar_t *FileName, const wchar_t *Type,
   if(Comment)
     MsgItems[i++] = Comment;
   MsgItems[i++] = GetMsg(MOk);
-  FarMessage(ModuleNumber, FMSG_WARNING, NULL, MsgItems, i, 1);
+  FarMessage(&MainGuid, FMSG_WARNING, NULL, MsgItems, i, 1);
 }
 
 /* Обработка конфигурационных файлов
@@ -1019,8 +993,8 @@ inline bool IsMinusMinusSpace(const EditorGetString &egs)
 
 void KillSpaces()
 {
-   EditorControl(ECTL_SETPOSITION,&esp);
-   EditorControl(ECTL_GETSTRING,&egs);
+   EditorControl(-1, ECTL_SETPOSITION, 0, (INT_PTR)&esp);
+   EditorControl(-1, ECTL_GETSTRING, 0, (INT_PTR)&egs);
    _D(SysLog(L"ks: StringLength=%d", egs.StringLength));
    if(egs.StringLength>0 && !(prc_Minuses && IsMinusMinusSpace(egs)))
    {
@@ -1034,7 +1008,7 @@ void KillSpaces()
        ess.StringText=const_cast<wchar_t*>(egs.StringText);
        ess.StringEOL =const_cast<wchar_t*>(egs.StringEOL);
        ess.StringLength=Size;
-       EditorControl(ECTL_SETSTRING, &ess);
+       EditorControl(-1, ECTL_SETSTRING, 0, (INT_PTR)&ess);
      }
      _D(else SysLog(L"ks: 2. esp.CurLine=%d", esp.CurLine));
    }
@@ -1043,8 +1017,8 @@ void KillSpaces()
 wchar_t GLOBAL_EOL[16];
 void KillSpacesAndChangeEOL()
 {
-   EditorControl(ECTL_SETPOSITION,&esp);
-   EditorControl(ECTL_GETSTRING,&egs);
+   EditorControl(-1, ECTL_SETPOSITION, 0, (INT_PTR)&esp);
+   EditorControl(-1, ECTL_GETSTRING, 0, (INT_PTR)&egs);
 
    if(egs.StringLength>0)
    {
@@ -1067,7 +1041,7 @@ void KillSpacesAndChangeEOL()
      ess.StringText=const_cast<wchar_t*>(egs.StringText);
      ess.StringEOL=GLOBAL_EOL;
      ess.StringLength=Size;
-     EditorControl(ECTL_SETSTRING, &ess);
+     EditorControl(-1, ECTL_SETSTRING, 0, (INT_PTR)&ess);
    }
    else if(Size!=egs.StringLength)
    {
@@ -1076,15 +1050,15 @@ void KillSpacesAndChangeEOL()
      ess.StringText=const_cast<wchar_t*>(egs.StringText);
      ess.StringEOL =const_cast<wchar_t*>(egs.StringEOL);
      ess.StringLength=Size;
-     EditorControl(ECTL_SETSTRING, &ess);
+     EditorControl(-1, ECTL_SETSTRING, 0, (INT_PTR)&ess);
    }
    _D(else SysLog(L"ksceol: 3. esp.CurLine=%d", esp.CurLine));
 }
 
 void ChangeEOL()
 {
-   EditorControl(ECTL_SETPOSITION,&esp);
-   EditorControl(ECTL_GETSTRING,&egs);
+   EditorControl(-1, ECTL_SETPOSITION, 0, (INT_PTR)&esp);
+   EditorControl(-1, ECTL_GETSTRING, 0, (INT_PTR)&egs);
    _D(SysLog(L"ceol: 0. myeol=[%s], original_eol=[%s]", GLOBAL_EOL, egs.StringEOL));
    if(*egs.StringEOL && 0!=wstrcmp(GLOBAL_EOL,egs.StringEOL))
    {
@@ -1093,7 +1067,7 @@ void ChangeEOL()
      ess.StringText=const_cast<wchar_t*>(egs.StringText);
      ess.StringEOL=GLOBAL_EOL;
      ess.StringLength=egs.StringLength;
-     EditorControl(ECTL_SETSTRING, &ess);
+     EditorControl(-1, ECTL_SETSTRING, 0, (INT_PTR)&ess);
    }
    _D(else SysLog(L"ceol: 2. esp.CurLine=%d", esp.CurLine));
 }
@@ -1180,8 +1154,8 @@ int GetNextCoordX(const EditorInfo &EI, int Lines, const wchar_t *StopChars)
 
   for(esp.CurLine=EI.CurLine-1; Lines && esp.CurLine>-1; --esp.CurLine, --Lines)
     {
-       EditorControl(ECTL_SETPOSITION,&esp);
-       EditorControl(ECTL_GETSTRING,&egs);
+       EditorControl(-1, ECTL_SETPOSITION, 0, (INT_PTR)&esp);
+       EditorControl(-1, ECTL_GETSTRING, 0, (INT_PTR)&egs);
        if(egs.StringLength)
          while(IsCSpaceOrTab(egs.StringText[egs.StringLength-1]))
             --egs.StringLength;
@@ -1266,25 +1240,25 @@ void RestorePosition(const EditorInfo &EI)
    esp.TopScreenLine=EI.TopScreenLine;
    esp.LeftPos=EI.LeftPos;
    esp.CurTabPos=-1;
-   EditorControl(ECTL_SETPOSITION,&esp);
+   EditorControl(-1, ECTL_SETPOSITION, 0, (INT_PTR)&esp);
 }
 
 BOOL ChangeCoordX(const EditorInfo &ei, EditorSetPosition &esp)
 {
    EditorConvertPos ecp={-1, esp.CurPos, 0};
-   EditorControl(ECTL_REALTOTAB, &ecp);
+   EditorControl(-1, ECTL_REALTOTAB, 0, (INT_PTR)&ecp);
    if(ecp.DestPos>ei.WindowSizeX)
    {
       ecp.SrcPos=ecp.DestPos-ei.WindowSizeX/2;
-      EditorControl(ECTL_TABTOREAL, &ecp);
+      EditorControl(-1, ECTL_TABTOREAL, 0, (INT_PTR)&ecp);
       esp.LeftPos=ecp.DestPos;
    }
 
-   if(EditorControl(ECTL_SETPOSITION, &esp))
+   if(EditorControl(-1, ECTL_SETPOSITION, 0, (INT_PTR)&esp))
    {
       if(!(ei.Options&EOPT_PERSISTENTBLOCKS))
         EditorUnmarkBlock();
-      EditorControl(ECTL_REDRAW, NULL);
+      EditorControl(-1, ECTL_REDRAW, 0, 0);
       return 1;
    }
    return 0;
@@ -1294,7 +1268,7 @@ BOOL GotoHome(const EditorInfo &ei, NODEDATA &nodedata)
 {
    InitESPandEGS(esp, egs);
    InitNLS(ei, nodedata);
-   EditorControl(ECTL_GETSTRING, &egs);
+   EditorControl(-1, ECTL_GETSTRING, 0, (INT_PTR)&egs);
    esp.LeftPos=esp.CurPos=0;
    for(int i=0;i<egs.StringLength;++i)
      if(!IsCSpaceOrTab(egs.StringText[i]))
@@ -1334,7 +1308,7 @@ BOOL ProcessKeyEnter(const EditorInfo &ei, EditorSetPosition &esp,
   if( ei.CurPos>=egs.StringLength ) { // check if that's the last line of quote
       if( ei.CurLine>=ei.TotalLines || !isWrapQuoteEOL) return FALSE;
       egs2.StringNumber=ei.CurLine+1;
-      EditorControl(ECTL_GETSTRING,&egs2);
+      EditorControl(-1, ECTL_GETSTRING, 0, (INT_PTR)&egs2);
       if( !IsSameQuote(egs.StringText,nQuote,egs2.StringText,
                        IsQuote(egs2.StringText,egs.StringLength))
         )
@@ -1357,12 +1331,12 @@ BOOL ProcessKeyEnter(const EditorInfo &ei, EditorSetPosition &esp,
 
   if(RetCode)
   {
-    EditorControl(ECTL_INSERTSTRING,0);
+    EditorControl(-1, ECTL_INSERTSTRING, 0, 0);
     buff[nQuote]=L'\0';
-    EditorControl(ECTL_INSERTTEXT,buff);
+    EditorControl(-1, ECTL_INSERTTEXT, 0, (INT_PTR)buff);
     esp.CurPos=nQuote;
-    EditorControl(ECTL_SETPOSITION,&esp);
-    EditorControl(ECTL_REDRAW,NULL);
+    EditorControl(-1, ECTL_SETPOSITION, 0, (INT_PTR)&esp);
+    EditorControl(-1, ECTL_REDRAW, 0, 0);
   }
 
   free(buff);
@@ -1379,21 +1353,21 @@ BOOL ProcessKeyDelete(EditorGetString &egs, int nQuote)
   memcpy(buff,egs.StringText,nQuote*sizeof(wchar_t));
   buff[nQuote]=L'\0';
 
-  EditorControl(ECTL_DELETECHAR,0);
+  EditorControl(-1, ECTL_DELETECHAR, 0, 0);
 
-  EditorControl(ECTL_GETSTRING,&egs);
-  EditorControl(ECTL_GETINFO,&ei);
+  EditorControl(-1, ECTL_GETSTRING, 0, (INT_PTR)&egs);
+  EditorControl(-1, ECTL_GETINFO, 0, (INT_PTR)&ei);
 
   int i=IsQuote(&egs.StringText[ei.CurPos],egs.StringLength-ei.CurPos);
   if( IsSameQuote(buff,nQuote,&egs.StringText[ei.CurPos],i) )
   {
-    while( i-- ) EditorControl(ECTL_DELETECHAR,0);
+    while( i-- ) EditorControl(-1, ECTL_DELETECHAR, 0, 0);
     buff[0]=L' ';
     buff[1]=L'\0';
-    EditorControl(ECTL_INSERTTEXT,buff);
+    EditorControl(-1, ECTL_INSERTTEXT, 0, (INT_PTR)buff);
   }
 
-  EditorControl(ECTL_REDRAW,NULL);
+  EditorControl(-1, ECTL_REDRAW, 0, 0);
   free(buff);
   return TRUE;
 }
@@ -1410,7 +1384,7 @@ BOOL InsertAdditionalSymbol(const EditorInfo &ei,
   if(AddSym_Pos)
   {
     InitESPandEGS(esp, egs);
-    EditorControl(ECTL_GETSTRING,&egs);
+    EditorControl(-1, ECTL_GETSTRING, 0, (INT_PTR)&egs);
     if(ei.CurPos>=egs.StringLength || IsCSpaceOrTab(egs.StringText[ei.CurPos])
        || (!IncreaseCoordX && wstrchr(AddSym_E.str,egs.StringText[ei.CurPos]))
       )
@@ -1440,14 +1414,14 @@ BOOL InsertAdditionalSymbol(const EditorInfo &ei,
         ((wchar_t *)ess.StringText)[ei.CurPos]=Symbol;
         ((wchar_t *)ess.StringText)[ei.CurPos+1]=AddSym_E.str[AddSym_Pos-AddSym_S.str];
 
-        if(EditorControl(ECTL_SETSTRING,&ess))
+        if(EditorControl(-1, ECTL_SETSTRING, 0, (INT_PTR)&ess))
         {
           RetCode=TRUE;
           InitESPandEGS(esp, egs);
           esp.CurPos=ei.CurPos+1;
           if(IncreaseCoordX) ++esp.CurPos;
-          EditorControl(ECTL_SETPOSITION, &esp);
-          EditorControl(ECTL_REDRAW, NULL);
+          EditorControl(-1, ECTL_SETPOSITION, 0, (INT_PTR)&esp);
+          EditorControl(-1, ECTL_REDRAW, 0, 0);
         }
 
         free((wchar_t*)ess.StringText);
@@ -1481,7 +1455,7 @@ int FindCodeTable(const wchar_t *Mask)
 void EditorUnmarkBlock()
 {
   EditorSelect es={BTYPE_NONE,0,0,0,0};
-  EditorControl(ECTL_SELECT, &es);
+  EditorControl(-1, ECTL_SELECT, 0, (INT_PTR)&es);
 }
 
 #endif // __mix_cpp

@@ -27,10 +27,10 @@
 #include "myrtl.hpp"
 #include "plugin.hpp"
 #include "CIndicator.hpp"
+#include "guid.h"
 
 extern PluginStartupInfo Info;
 extern FARAPIMESSAGE FarMessage;
-extern int ModuleNumber;
 
 CIndicator::CIndicator(const wchar_t *BarTitle)
 {
@@ -66,7 +66,7 @@ void CIndicator::ShowFinal(void)
           ++ptr;
           ++Counter;
         }
-      FarMessage(ModuleNumber, FMSG_LEFTALIGN, NULL, MsgData, Items, 0);
+      FarMessage(&MainGuid, FMSG_LEFTALIGN, NULL, MsgData, Items, 0);
     }
 }
 
@@ -89,7 +89,7 @@ void CIndicator::ShowProgress(int Cur)
               ++Counter;
             }
           CurPos = Counter;
-          FarMessage(ModuleNumber, FMSG_LEFTALIGN, NULL, MsgData, Items,
+          FarMessage(&MainGuid, FMSG_LEFTALIGN, NULL, MsgData, Items,
                        0);
         }
     }

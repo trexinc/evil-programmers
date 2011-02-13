@@ -29,7 +29,6 @@ extern PluginStartupInfo Info;
 extern FARAPIMESSAGE FarMessage;
 extern FARAPIEDITORCONTROL EditorControl;
 extern struct FarStandardFunctions FSF;
-extern int ModuleNumber;
 extern const int maxTabSize;
 
 CEditorOptions::CEditorOptions(const NODEDATA &Data)
@@ -52,7 +51,7 @@ int CEditorOptions::ApplyOption(EDITOR_SETPARAMETER_TYPES type)
           {
             ESPar.Type=ESPT_TABSIZE;
             ESPar.Param.iParam=Data.TabSize;
-            RetCode=EditorControl(ECTL_SETPARAM, &ESPar);
+            RetCode=EditorControl(-1, ECTL_SETPARAM, 0, (INT_PTR)&ESPar);
           }
           break;
      case ESPT_EXPANDTABS:
@@ -65,7 +64,7 @@ int CEditorOptions::ApplyOption(EDITOR_SETPARAMETER_TYPES type)
               ESPar.Param.iParam=EXPAND_NEWTABS;
             else
               ESPar.Param.iParam=EXPAND_NOTABS;
-            RetCode=EditorControl(ECTL_SETPARAM, &ESPar);
+            RetCode=EditorControl(-1, ECTL_SETPARAM, 0, (INT_PTR)&ESPar);
           }
           break;
      case ESPT_AUTOINDENT:
@@ -74,7 +73,7 @@ int CEditorOptions::ApplyOption(EDITOR_SETPARAMETER_TYPES type)
           {
             ESPar.Type=ESPT_AUTOINDENT;
             ESPar.Param.iParam=(Data.Options&E_AutoIndent_On)?TRUE:FALSE;
-            RetCode=EditorControl(ECTL_SETPARAM, &ESPar);
+            RetCode=EditorControl(-1, ECTL_SETPARAM, 0, (INT_PTR)&ESPar);
           }
           break;
      case ESPT_CURSORBEYONDEOL:
@@ -84,7 +83,7 @@ int CEditorOptions::ApplyOption(EDITOR_SETPARAMETER_TYPES type)
           {
             ESPar.Type=ESPT_CURSORBEYONDEOL;
             ESPar.Param.iParam=(Data.Options&E_CursorBeyondEOL_On)?TRUE:FALSE;
-            RetCode=EditorControl(ECTL_SETPARAM, &ESPar);
+            RetCode=EditorControl(-1, ECTL_SETPARAM, 0, (INT_PTR)&ESPar);
           }
           break;
      case ESPT_CHARCODEBASE:
@@ -96,7 +95,7 @@ int CEditorOptions::ApplyOption(EDITOR_SETPARAMETER_TYPES type)
             ESPar.Type=ESPT_CHARCODEBASE;
             ESPar.Param.iParam=(Data.Options&E_CharCodeBase_Oct)?0:
                           ((Data.Options&E_CharCodeBase_Dec)?1:2);
-            RetCode=EditorControl(ECTL_SETPARAM, &ESPar);
+            RetCode=EditorControl(-1, ECTL_SETPARAM, 0, (INT_PTR)&ESPar);
           }
           break;
      case ESPT_SAVEFILEPOSITION:
@@ -107,10 +106,10 @@ int CEditorOptions::ApplyOption(EDITOR_SETPARAMETER_TYPES type)
              ESPar.Type=ESPT_SAVEFILEPOSITION;
              ESPar.Param.iParam=(Data.Options&E_SaveFilePos_On)?TRUE:FALSE;
              EditorInfo EI;
-             EditorControl(ECTL_GETINFO, &EI);
+             EditorControl(-1, ECTL_GETINFO, 0, (INT_PTR)&EI);
              if(ESPar.Param.iParam && static_cast<DWORD>(EI.TotalLines)<Data.MinLinesNum)
                 ESPar.Param.iParam=FALSE;
-             EditorControl(ECTL_SETPARAM, &ESPar);
+             EditorControl(-1, ECTL_SETPARAM, 0, (INT_PTR)&ESPar);
              _D(SysLog(L"_SaveFilePos: %s, TotalLines=%d, MinLinesNum=%d", ESPar.Param.iParam?L"on":L"off", EI.TotalLines, Data.MinLinesNum));
           }
           _D(else SysLog(L"_SaveFilePos: ignore"));
@@ -121,7 +120,7 @@ int CEditorOptions::ApplyOption(EDITOR_SETPARAMETER_TYPES type)
           {
             ESPar.Type=ESPT_LOCKMODE;
             ESPar.Param.iParam=(Data.Options&E_LockMode_On)?TRUE:FALSE;
-            RetCode=EditorControl(ECTL_SETPARAM, &ESPar);
+            RetCode=EditorControl(-1, ECTL_SETPARAM, 0, (INT_PTR)&ESPar);
           }
           break;
      case ESPT_SETWORDDIV:
@@ -138,7 +137,7 @@ int CEditorOptions::ApplyOption(EDITOR_SETPARAMETER_TYPES type)
             _D(SysLog(L"ESPT_SETWORDDIV: OFF"));
             ESPar.Param.wszParam=NULL;
           }
-          RetCode=EditorControl(ECTL_SETPARAM, &ESPar);
+          RetCode=EditorControl(-1, ECTL_SETPARAM, 0, (INT_PTR)&ESPar);
           _D(SysLog(L"ESPT_SETWORDDIV: retcode=%d",RetCode));
           break;
      case ESPT_SHOWWHITESPACE:
@@ -146,7 +145,7 @@ int CEditorOptions::ApplyOption(EDITOR_SETPARAMETER_TYPES type)
           {
             ESPar.Type=ESPT_SHOWWHITESPACE;
             ESPar.Param.iParam=(Data.Options2&E_Show_White_Space_On)?TRUE:FALSE;
-            RetCode=EditorControl(ECTL_SETPARAM, &ESPar);
+            RetCode=EditorControl(-1, ECTL_SETPARAM, 0, (INT_PTR)&ESPar);
           }
           break;
      default:

@@ -20,6 +20,8 @@
 #define STRICT
 #include "myrtl.hpp"
 #include "plugin.hpp"
+#include <initguid.h>
+#include "guid.h"
 
 #if defined(__GNUC__)
 extern "C"
@@ -162,11 +164,21 @@ void FreeMem()
     ESETStorage->Empty();
 }
 
+void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
+{
+  Info->StructSize=sizeof(GlobalInfo);
+  Info->MinFarVersion=FARMANAGERVERSION;
+  Info->Version=MAKEFARVERSION(2,6,0);
+  Info->Guid=MainGuid;
+  Info->Title=L"[ESC]";
+  Info->Description=L"Editor's settings changer";
+  Info->Author=L"Alex Yaroslavsky";
+}
+
 void WINAPI _export SetStartupInfoW(const struct PluginStartupInfo *Info)
 {
   ::Info=*Info;
   EditorControl=::Info.EditorControl;
-  ModuleNumber=::Info.ModuleNumber;
   FarMessage=::Info.Message;
   IsOldFar=TRUE;
   XMLLoadedOK=FALSE;
@@ -189,7 +201,7 @@ void WINAPI _export SetStartupInfoW(const struct PluginStartupInfo *Info)
     wstrcpy(XMLFilePath+offset, L"XML");
 
     DWORD __FarVer=0;
-    ::Info.AdvControl(ModuleNumber, ACTL_GETFARVERSION, &__FarVer);
+    ::Info.AdvControl(&MainGuid, ACTL_GETFARVERSION, &__FarVer);
 
 #ifndef UNICODE
     IsOldFar=!(HIBYTE(LOWORD(__FarVer))>1 ||
@@ -218,7 +230,7 @@ void WINAPI _export SetStartupInfoW(const struct PluginStartupInfo *Info)
   _D(SysLog(L"SetStartupInfo - end (%d)", IsOldFar));
 }
 
-HANDLE WINAPI _export OpenPluginW(int /*OpenFrom*/,int /*Item*/)
+HANDLE WINAPI _export OpenPluginW(int /*OpenFrom*/,const GUID*,INT_PTR /*Item*/)
 {
     ReloadSettings(FALSE);
     if(!IsOldFar)
@@ -228,9 +240,9 @@ HANDLE WINAPI _export OpenPluginW(int /*OpenFrom*/,int /*Item*/)
         FarMenuItem *fmi=static_cast<FarMenuItem*>(malloc(FMISize));
         if(fmi)
         {
-            wchar_t *editorfilename = (wchar_t *)malloc(EditorControl(ECTL_GETFILENAME,NULL)*sizeof(wchar_t));
-            EditorControl(ECTL_GETFILENAME, editorfilename);
-            EditorControl(ECTL_GETINFO, &ei);
+            wchar_t *editorfilename = (wchar_t *)malloc(EditorControl(-1,ECTL_GETFILENAME,0,0)*sizeof(wchar_t));
+            EditorControl(-1, ECTL_GETFILENAME, 0, (INT_PTR)editorfilename);
+            EditorControl(-1, ECTL_GETINFO, 0, (INT_PTR)&ei);
             if(ESETStorage->IsEmpty())
                InitSetsTree(ei, editorfilename);
             memset(fmi, 0, FMISize);
@@ -304,9 +316,9 @@ HANDLE WINAPI _export OpenPluginW(int /*OpenFrom*/,int /*Item*/)
             int MenuCode=Item?Item->data.index:0, NewMenuCode;
             if(MenuCode<0 || MenuCode>=(int)TotalNodes)
                 MenuCode=0;
-            fmi[MenuCode].Selected=TRUE;
-            if(RealPos>-1) fmi[RealPos].Checked=L'*';
-            NewMenuCode = Info.Menu(ModuleNumber, -1, -1, 0,
+            fmi[MenuCode].Flags|=MIF_SELECTED;
+            if(RealPos>-1) fmi[RealPos].Flags|=L'*'|MIF_CHECKED;
+            NewMenuCode = Info.Menu(&MainGuid, -1, -1, 0,
                                     FMENU_AUTOHIGHLIGHT | FMENU_WRAPMODE | FMENU_CHANGECONSOLETITLE,
                                     GetMsg(MTitle), NULL, NULL,
                                     NULL, NULL, fmi, TotalNodes);
@@ -334,7 +346,7 @@ HANDLE WINAPI _export OpenPluginW(int /*OpenFrom*/,int /*Item*/)
             free(editorfilename);
         }
     }
-    EditorControl(ECTL_TURNOFFMARKINGBLOCK,NULL);
+    EditorControl(-1, ECTL_TURNOFFMARKINGBLOCK, 0, 0);
     return INVALID_HANDLE_VALUE;
 }
 
@@ -354,7 +366,7 @@ void WINAPI _export ExitFARW(void)
     HeapDestroy(heapNew_ESC);
 }
 
-LONG_PTR WINAPI ConfigDlgProc (HANDLE hDlg, int Msg, int Param1, LONG_PTR Param2)
+INT_PTR WINAPI ConfigDlgProc (HANDLE hDlg, int Msg, int Param1, INT_PTR Param2)
 {
   switch (Msg)
     {
@@ -391,26 +403,23 @@ LONG_PTR WINAPI ConfigDlgProc (HANDLE hDlg, int Msg, int Param1, LONG_PTR Param2
   return Info.DefDlgProc (hDlg, Msg, Param1, Param2);
 }
 
-int WINAPI ConfigureW(int /*ItemNumber*/)
+int WINAPI ConfigureW(const GUID*)
 {
   if(IsOldFar) return FALSE;
 
-  struct InitDialogItem InitItems[] = {
-/*00*/ {DI_DOUBLEBOX, 3, 1, 71, 9, 0, 0, 0, 0, (wchar_t*)MTitle},
-/*01*/ {DI_CHECKBOX, 5, 2, 0, 0, 0, 0, 0, 0, (wchar_t*)MTurnOnPluginModule},
-/*02*/ {DI_CHECKBOX, 5, 3, 0, 0, 0, 0, 0, 0, (wchar_t*)MReloadSettingsAutomatically},
-/*03*/ {DI_CHECKBOX, 5, 4, 0, 0, 0, 0, 0, 0, (wchar_t*)MShowFileMaskInMenu},
-/*04*/ {DI_TEXT, 0, 5, 0, 0, 0, 0, DIF_BOXCOLOR | DIF_SEPARATOR, 0, L""},
-/*05*/ {DI_BUTTON, 0, 6, 0, 0, 0, 0, DIF_CENTERGROUP, 0,(wchar_t*)MCheckOutSettings},
-/*06*/ {DI_BUTTON, 0, 6, 0, 0, 0, 0, DIF_CENTERGROUP, 0,(wchar_t*)MReloadSettings},
-/*07*/ {DI_TEXT, 0, 7, 0, 0, 0, 0, DIF_BOXCOLOR | DIF_SEPARATOR, 0, L""},
-/*08*/ {DI_BUTTON, 0, 8, 0, 0, 0, 0, DIF_CENTERGROUP, 1,(wchar_t*)MOk},
-/*09*/ {DI_BUTTON, 0, 8, 0, 0, 0, 0, DIF_CENTERGROUP, 0,(wchar_t*)MCancel},
+  FarDialogItem DialogItems[] = {
+/*00*/ {DI_DOUBLEBOX, 3, 1, 71, 9, {0}, NULL, NULL, 0,                                  0, GetMsg(MTitle),                      0},
+/*01*/ {DI_CHECKBOX,  5, 2,  0, 0, {0}, NULL, NULL, 0,                                  0, GetMsg(MTurnOnPluginModule),         0},
+/*02*/ {DI_CHECKBOX,  5, 3,  0, 0, {0}, NULL, NULL, 0,                                  0, GetMsg(MReloadSettingsAutomatically),0},
+/*03*/ {DI_CHECKBOX,  5, 4,  0, 0, {0}, NULL, NULL, 0,                                  0, GetMsg(MShowFileMaskInMenu),         0},
+/*04*/ {DI_TEXT,      0, 5,  0, 0, {0}, NULL, NULL, DIF_BOXCOLOR | DIF_SEPARATOR,       0, L"",                                 0},
+/*05*/ {DI_BUTTON,    0, 6,  0, 0, {0}, NULL, NULL, DIF_CENTERGROUP,                    0,GetMsg(MCheckOutSettings),            0},
+/*06*/ {DI_BUTTON,    0, 6,  0, 0, {0}, NULL, NULL, DIF_CENTERGROUP,                    0,GetMsg(MReloadSettings),              0},
+/*07*/ {DI_TEXT,      0, 7,  0, 0, {0}, NULL, NULL, DIF_BOXCOLOR | DIF_SEPARATOR,       0, L"",                                 0},
+/*08*/ {DI_BUTTON,    0, 8,  0, 0, {0}, NULL, NULL, DIF_CENTERGROUP |DIF_DEFAULTBUTTON, 0,GetMsg(MOk),                          0},
+/*09*/ {DI_BUTTON,    0, 8,  0, 0, {0}, NULL, NULL, DIF_CENTERGROUP,                    0,GetMsg(MCancel),                      0},
   };
-  struct FarDialogItem DialogItems[10];
   int ExitCode, oldTurnOnPluginModule=Opt.TurnOnPluginModule;
-
-  InitDialogItems(InitItems, DialogItems, 10);
 
   //заполнение диалога
   DialogItems[1].Selected = Opt.TurnOnPluginModule;
@@ -431,7 +440,7 @@ int WINAPI ConfigureW(int /*ItemNumber*/)
   //показ диалога
   for(;;)
   {
-    HANDLE hDlg = Info.DialogInit (ModuleNumber, -1, -1, 75, 11,
+    HANDLE hDlg = Info.DialogInit (&MainGuid, &ConfigureGuid, -1, -1, 75, 11,
                                     NULL, DialogItems, 10, 0, 0, ConfigDlgProc, 0);
     ExitCode = Info.DialogRun(hDlg);
 
@@ -480,10 +489,12 @@ void WINAPI _export GetPluginInfoW(struct PluginInfo *Info)
 
   PluginConfigStrings[0]=
   PluginMenuStrings[0]=const_cast<wchar_t*>(GetMsg(MTitle));
-  Info->PluginMenuStringsNumber=sizeof(PluginMenuStrings)/sizeof(PluginMenuStrings[0]);
-  Info->PluginMenuStrings=PluginMenuStrings;
-  Info->PluginConfigStrings=PluginConfigStrings;
-  Info->PluginConfigStringsNumber=sizeof(PluginConfigStrings)/sizeof(PluginConfigStrings[0]);
+  Info->PluginMenu.Guids=&MainGuid;
+  Info->PluginMenu.Count=sizeof(PluginMenuStrings)/sizeof(PluginMenuStrings[0]);
+  Info->PluginMenu.Strings=PluginMenuStrings;
+  Info->PluginConfig.Guids=&MainGuid;
+  Info->PluginConfig.Strings=PluginConfigStrings;
+  Info->PluginConfig.Count=sizeof(PluginConfigStrings)/sizeof(PluginConfigStrings[0]);
 }
 
 int WINAPI _export ProcessEditorEventW(int Event, void *Param)
@@ -500,9 +511,9 @@ int WINAPI _export ProcessEditorEventW(int Event, void *Param)
    if(Event==EE_REDRAW ||
       ((Event==EE_READ || Event==EE_SAVE) && ReloadSettings(FALSE)))
    {
-    wchar_t *editorfilename = (wchar_t *)malloc(EditorControl(ECTL_GETFILENAME,NULL)*sizeof(wchar_t));
-    EditorControl(ECTL_GETFILENAME, editorfilename);
-    EditorControl(ECTL_GETINFO, &ei);
+    wchar_t *editorfilename = (wchar_t *)malloc(EditorControl(-1, ECTL_GETFILENAME, 0, 0)*sizeof(wchar_t));
+    EditorControl(-1, ECTL_GETFILENAME, 0, (INT_PTR)editorfilename);
+    EditorControl(-1, ECTL_GETINFO, 0, (INT_PTR)&ei);
     if(Event==EE_READ) InitSetsTree(ei,editorfilename);
     EditorSettingsStorage ESS(ei.EditorID);
     Node_<EditorSettingsStorage> *Item=ESETStorage->findNode(ESS);
@@ -568,8 +579,8 @@ int WINAPI _export ProcessEditorEventW(int Event, void *Param)
                                          0:ei.CurLine;
 
              esp.CurLine=ei.TotalLines-1;
-             EditorControl(ECTL_SETPOSITION,&esp);
-             EditorControl(ECTL_GETSTRING,&egs);
+             EditorControl(-1, ECTL_SETPOSITION, 0, (INT_PTR)&esp);
+             EditorControl(-1, ECTL_GETSTRING, 0, (INT_PTR)&egs);
              lEmpty=!*egs.StringEOL;
              if(egs.StringLength>0)
              {
@@ -579,8 +590,8 @@ int WINAPI _export ProcessEditorEventW(int Event, void *Param)
              else for(esp.CurLine=ei.TotalLines-2; esp.CurLine>=LimitLine;
                   --esp.CurLine)
              {
-                EditorControl(ECTL_SETPOSITION,&esp);
-                EditorControl(ECTL_GETSTRING,&egs);
+                EditorControl(-1, ECTL_SETPOSITION, 0, (INT_PTR)&esp);
+                EditorControl(-1, ECTL_GETSTRING, 0, (INT_PTR)&egs);
                 if(egs.StringLength>0)
                 {
                   LastNotEmptyLine=esp.CurLine;
@@ -593,8 +604,8 @@ int WINAPI _export ProcessEditorEventW(int Event, void *Param)
              for(esp.CurLine=ei.TotalLines-1-lEmpty;
                  esp.CurLine>LastNotEmptyLine; --esp.CurLine)
              {
-                EditorControl(ECTL_SETPOSITION,&esp);
-                EditorControl(ECTL_DELETESTRING,NULL);
+                EditorControl(-1, ECTL_SETPOSITION, 0, (INT_PTR)&esp);
+                EditorControl(-1, ECTL_DELETESTRING, 0, 0);
              }
           }
 
@@ -630,14 +641,14 @@ int WINAPI _export ProcessEditorEventW(int Event, void *Param)
               if(espar.Param.iParam>-1)
               {
                 espar.Param.iParam+=3;
-                EditorControl(ECTL_SETPARAM, &espar);
+                EditorControl(-1, ECTL_SETPARAM, 0, (INT_PTR)&espar);
                 done=true;
               }
             }
             if(!done && nodedata.Table>0)
             {
               espar.Param.iParam=nodedata.Table;
-              EditorControl(ECTL_SETPARAM, &espar);
+              EditorControl(-1, ECTL_SETPARAM, 0, (INT_PTR)&espar);
             }
 
             if((nodedata.Options2&E_Bom_On) || (nodedata.Options2&E_Bom_Off))
@@ -645,7 +656,7 @@ int WINAPI _export ProcessEditorEventW(int Event, void *Param)
               memset(&espar, 0, sizeof(espar));
               espar.Type=ESPT_SETBOM;
               espar.Param.iParam=(nodedata.Options2&E_Bom_On)?TRUE:FALSE;
-              EditorControl(ECTL_SETPARAM, &espar);
+              EditorControl(-1, ECTL_SETPARAM, 0, (INT_PTR)&espar);
             }
 
             _D(SysLog(L"PEE: auto-macros / OnCreate - start"));
@@ -726,11 +737,11 @@ int WINAPI _export ProcessEditorInputW(const INPUT_RECORD *Rec)
        )
       );
 
-    EditorControl(ECTL_GETINFO,&ei);
+    EditorControl(-1, ECTL_GETINFO, 0, (INT_PTR)&ei);
     if(ESETStorage->IsEmpty())
     {
-       wchar_t *editorfilename = (wchar_t *)malloc(EditorControl(ECTL_GETFILENAME,NULL)*sizeof(wchar_t));
-       EditorControl(ECTL_GETFILENAME, editorfilename);
+       wchar_t *editorfilename = (wchar_t *)malloc(EditorControl(-1, ECTL_GETFILENAME, 0, 0)*sizeof(wchar_t));
+       EditorControl(-1, ECTL_GETFILENAME, 0, (INT_PTR)editorfilename);
        InitSetsTree(ei, editorfilename);
        free(editorfilename);
     }
@@ -834,7 +845,7 @@ int WINAPI _export ProcessEditorInputW(const INPUT_RECORD *Rec)
          isReenter=1;
          RetCode=GotoHome(ei, nodedata);
          if(RetCode)
-           EditorControl(ECTL_TURNOFFMARKINGBLOCK,NULL);
+           EditorControl(-1, ECTL_TURNOFFMARKINGBLOCK, 0, 0);
          isReenter=0;
       }
       _D(SysLog(L"PEI: 9 return"));
@@ -868,14 +879,14 @@ int WINAPI _export ProcessEditorInputW(const INPUT_RECORD *Rec)
         {
           if(ei.BlockType!=BTYPE_NONE && !(ei.Options&EOPT_PERSISTENTBLOCKS))
           {
-            EditorControl(ECTL_DELETEBLOCK,NULL);
-            EditorControl(ECTL_GETINFO,&ei);
+            EditorControl(-1, ECTL_DELETEBLOCK, 0, 0);
+            EditorControl(-1, ECTL_GETINFO, 0, (INT_PTR)&ei);
           }
           CoordX=GetNextCoordX(ei, Lines, nlsStopChars->str)-ei.CurPos;
           //_D(SysLog(L"SmartTab=%d", CoordX));
           if(CoordX>-1)
           {
-            EditorControl(ECTL_GETSTRING, &egs);
+            EditorControl(-1, ECTL_GETSTRING, 0, (INT_PTR)&egs);
             ess.StringNumber=-1;
             ess.StringEOL=egs.StringEOL;
             ess.StringLength=egs.StringLength+CoordX;
@@ -896,12 +907,12 @@ int WINAPI _export ProcessEditorInputW(const INPUT_RECORD *Rec)
               if(egs.StringLength>ei.CurPos)
                  memcpy((wchar_t *)ess.StringText+ei.CurPos+CoordX,
                         egs.StringText+ei.CurPos, (egs.StringLength-ei.CurPos)*sizeof(wchar_t));
-              if(EditorControl(ECTL_SETSTRING,&ess))
+              if(EditorControl(-1, ECTL_SETSTRING, 0, (INT_PTR)&ess))
               {
                 InitESPandEGS(esp, egs);
                 esp.CurPos=ei.CurPos+CoordX;
-                EditorControl(ECTL_SETPOSITION, &esp);
-                EditorControl(ECTL_REDRAW, NULL);
+                EditorControl(-1, ECTL_SETPOSITION, 0, (INT_PTR)&esp);
+                EditorControl(-1, ECTL_REDRAW, 0, 0);
                 RetCode=1;
               }
               free((wchar_t *)ess.StringText);
@@ -910,7 +921,7 @@ int WINAPI _export ProcessEditorInputW(const INPUT_RECORD *Rec)
         }
       }
       if(RetCode)
-        EditorControl(ECTL_TURNOFFMARKINGBLOCK,NULL);
+        EditorControl(-1, ECTL_TURNOFFMARKINGBLOCK, 0, 0);
       isReenter=0;
       _D(SysLog(L"PEI: 10 return"));
       return RetCode;
@@ -951,7 +962,7 @@ int WINAPI _export ProcessEditorInputW(const INPUT_RECORD *Rec)
         isReenter=1;
         InitESPandEGS(esp, egs);
         InitNLS(ei, nodedata);
-        EditorControl(ECTL_GETSTRING, &egs);
+        EditorControl(-1, ECTL_GETSTRING, 0, (INT_PTR)&egs);
         int X=Min(egs.StringLength, ei.CurPos);
         for(int f=X-1;f>=0;--f)
         {
@@ -966,7 +977,7 @@ int WINAPI _export ProcessEditorInputW(const INPUT_RECORD *Rec)
         //_D(SysLog(L"SmartBackSpace: %d", CoordX));
         if(CoordX>-1)
         {
-          EditorControl(ECTL_GETSTRING, &egs);
+          EditorControl(-1, ECTL_GETSTRING, 0, (INT_PTR)&egs);
           ess.StringNumber=-1;
           ess.StringEOL=egs.StringEOL;
           ess.StringLength=egs.StringLength+CoordX;
@@ -985,14 +996,14 @@ int WINAPI _export ProcessEditorInputW(const INPUT_RECORD *Rec)
             if(egs.StringLength>ei.CurPos)
               memcpy((wchar_t *)ess.StringText+CoordX,
                      egs.StringText+ei.CurPos, (egs.StringLength-ei.CurPos)*sizeof(wchar_t));
-            if(EditorControl(ECTL_SETSTRING,&ess))
+            if(EditorControl(-1, ECTL_SETSTRING, 0, (INT_PTR)&ess))
             {
               InitESPandEGS(esp, egs);
               esp.CurPos=CoordX;
-              EditorControl(ECTL_SETPOSITION, &esp);
-              EditorControl(ECTL_REDRAW, NULL);
+              EditorControl(-1, ECTL_SETPOSITION, 0, (INT_PTR)&esp);
+              EditorControl(-1, ECTL_REDRAW, 0, 0);
               RetCode=1;
-              EditorControl(ECTL_TURNOFFMARKINGBLOCK,NULL);
+              EditorControl(-1, ECTL_TURNOFFMARKINGBLOCK, 0, 0);
             }
             free((wchar_t *)ess.StringText);
           }
@@ -1012,12 +1023,12 @@ int WINAPI _export ProcessEditorInputW(const INPUT_RECORD *Rec)
       {
         InitESPandEGS(esp, egs);
         InitNLS(ei, nodedata);
-        EditorControl(ECTL_GETSTRING,&egs);
+        EditorControl(-1, ECTL_GETSTRING, 0, (INT_PTR)&egs);
         RetCode=ProcessKeyEnter(ei, esp, egs,
                 IsQuote(egs.StringText,egs.StringLength),
                 nodedata.Options&E_QuoteEOL_On);
         if(RetCode)
-          EditorControl(ECTL_TURNOFFMARKINGBLOCK,NULL);
+          EditorControl(-1, ECTL_TURNOFFMARKINGBLOCK, 0, 0);
       }
       _D(SysLog(L"PEI: 14 return"));
       return RetCode;
@@ -1032,13 +1043,13 @@ int WINAPI _export ProcessEditorInputW(const INPUT_RECORD *Rec)
       {
         InitESPandEGS(esp, egs);
         InitNLS(ei, nodedata);
-        EditorControl(ECTL_GETSTRING,&egs);
+        EditorControl(-1, ECTL_GETSTRING, 0, (INT_PTR)&egs);
         if(ei.CurPos>=egs.StringLength)
         {
           RetCode=ProcessKeyDelete(egs,
                   IsQuote(egs.StringText,egs.StringLength));
           if(RetCode)
-            EditorControl(ECTL_TURNOFFMARKINGBLOCK,NULL);
+            EditorControl(-1, ECTL_TURNOFFMARKINGBLOCK, 0, 0);
         }
       }
       _D(SysLog(L"PEI: 15 return"));
@@ -1049,8 +1060,8 @@ int WINAPI _export ProcessEditorInputW(const INPUT_RECORD *Rec)
       isReenter=1;
       if(ei.BlockType!=BTYPE_NONE && !(ei.Options&EOPT_PERSISTENTBLOCKS))
       {
-        EditorControl(ECTL_DELETEBLOCK,NULL);
-        EditorControl(ECTL_GETINFO,&ei);
+        EditorControl(-1, ECTL_DELETEBLOCK, 0, 0);
+        EditorControl(-1, ECTL_GETINFO, 0, (INT_PTR)&ei);
       }
       RetCode=0;
       InitNLS(ei, nodedata);
@@ -1069,7 +1080,7 @@ int WINAPI _export ProcessEditorInputW(const INPUT_RECORD *Rec)
       isReenter=0;
       if(RetCode)
       {
-        EditorControl(ECTL_TURNOFFMARKINGBLOCK,NULL);
+        EditorControl(-1, ECTL_TURNOFFMARKINGBLOCK, 0, 0);
         _D(SysLog(L"PEI: 16 return"));
         return TRUE;
       }
@@ -1094,17 +1105,17 @@ int WINAPI _export ProcessEditorInputW(const INPUT_RECORD *Rec)
     if( ei.CurTabPos>=nWrapPos ){
 
         isReenter=1;
-        EditorControl(ECTL_PROCESSINPUT,(void*)Rec);
+        EditorControl(-1, ECTL_PROCESSINPUT, 0, (INT_PTR)Rec);
         isReenter=0;
 
         i=-1;
-        EditorControl(ECTL_EXPANDTABS,&i); // probably it's needed to pack it back later
+        EditorControl(-1, ECTL_EXPANDTABS, 0, (INT_PTR)&i); // probably it's needed to pack it back later
 
-        EditorControl(ECTL_GETINFO, &ei);
+        EditorControl(-1, ECTL_GETINFO, 0, (INT_PTR)&ei);
         InitNLS(ei, nodedata);
 
         InitESPandEGS(esp, egs);
-        EditorControl(ECTL_GETSTRING,&egs);
+        EditorControl(-1, ECTL_GETSTRING, 0, (INT_PTR)&egs);
 
         _D(SysLog(L"PEI: ei.CurTabPos=%d, nWrapPos=%d, egs.StringLength=%d",
            ei.CurPos, nWrapPos, egs.StringLength));
@@ -1253,13 +1264,13 @@ int WINAPI _export ProcessEditorInputW(const INPUT_RECORD *Rec)
                 ess.StringLength=buff2TextLength;
                 ess.StringNumber=-1;
                 ess.StringEOL=const_cast<wchar_t*>(egs.StringEOL);
-                EditorControl(ECTL_SETSTRING,&ess);
+                EditorControl(-1, ECTL_SETSTRING, 0, (INT_PTR)&ess);
 
                 // may be here we need to pack the tabs back, if tabs are enabled...
                 // this time for the current line we will forget now forever...
 
                 if( egs.StringLength || KeyEvent.wVirtualKeyCode==VK_SPACE || KeyEvent.wVirtualKeyCode==VK_TAB ){
-                    EditorControl(ECTL_INSERTSTRING,0);
+                    EditorControl(-1, ECTL_INSERTSTRING, 0, (INT_PTR)0);
 
                     if( (ei.Options&EOPT_AUTOINDENT) && nQuote==0 ){
 
@@ -1280,7 +1291,7 @@ int WINAPI _export ProcessEditorInputW(const INPUT_RECORD *Rec)
                         ess.StringText=buff1;
                     }
 
-                    EditorControl(ECTL_SETSTRING,&ess);
+                    EditorControl(-1, ECTL_SETSTRING, 0, (INT_PTR)&ess);
 
                     if( nQuote ){ // insert wrapped quote from pervious line...
                         esp.CurLine=-1;
@@ -1289,10 +1300,10 @@ int WINAPI _export ProcessEditorInputW(const INPUT_RECORD *Rec)
                         esp.TopScreenLine=-1;
                         esp.LeftPos=-1;
                         esp.Overtype=-1;
-                        EditorControl(ECTL_SETPOSITION,&esp);
+                        EditorControl(-1, ECTL_SETPOSITION, 0, (INT_PTR)&esp);
 
                         buff[nQuote]=L'\0';
-                        EditorControl(ECTL_INSERTTEXT,buff);
+                        EditorControl(-1, ECTL_INSERTTEXT, 0, (INT_PTR)buff);
                     }
 
                     // may be here we need to pack the tabs, if tabs are enabled...
@@ -1304,9 +1315,9 @@ int WINAPI _export ProcessEditorInputW(const INPUT_RECORD *Rec)
                 esp.TopScreenLine=-1;
                 esp.LeftPos=-1;
                 esp.Overtype=-1;
-                EditorControl(ECTL_SETPOSITION,&esp);
+                EditorControl(-1, ECTL_SETPOSITION, 0, (INT_PTR)&esp);
 
-                EditorControl(ECTL_REDRAW,NULL);
+                EditorControl(-1, ECTL_REDRAW, 0, 0);
             }
           }
 EXIT:
@@ -1393,7 +1404,7 @@ GetEditorSettingsW(int EditorID, const wchar_t *szName, void *Param)
   }
   else if(!wstrcmp(szName, XMLStr.Wrap))
   {
-     EditorControl(ECTL_GETINFO, &ei);
+     EditorControl(-1, ECTL_GETINFO, 0, (INT_PTR)&ei);
      *static_cast<int *>(Param)=CalcWrapPos(Data, ei);
   }
   else if(!wstrcmp(szName, XMLStr.Justify))
@@ -1789,7 +1800,7 @@ BOOL WINAPI _export PostMacroW(const HANDLE Macro, BOOL silent)
    {
       BOOL Stop;
       KeySequence KS=Cmd->GetSequence(Stop);
-      KS.Flags=silent?KSFLAGS_DISABLEOUTPUT:0;
+      KS.Flags=silent?KMFLAGS_DISABLEOUTPUT:0;
       return FARPostMacro(&KS);
    }
    return FALSE;

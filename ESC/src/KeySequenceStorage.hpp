@@ -31,6 +31,13 @@ enum KeySequenceStorageFlags
   KSSF_SELECTION_COLUMN = 0x08,
 };
 
+struct KeySequence
+{
+  unsigned __int64 Flags;
+  int Count;
+  wchar_t* Sequence;
+};
+
 class KeySequenceStorage
 {
   private:
