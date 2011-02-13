@@ -1,15 +1,15 @@
 
 EXPORTS 
-   ClosePlugin=ClosePlugin@4
-   GetFindData=GetFindData@16
-   GetOpenPluginInfo=GetOpenPluginInfo@8
-   GetPluginInfo=GetPluginInfo@4
-   OpenPlugin=OpenPlugin@8
-   SetStartupInfo=SetStartupInfo@4
-   FreeFindData=FreeFindData@12
-   SetDirectory=SetDirectory@12
-   ProcessKey=ProcessKey@12
-   Configure=Configure@4
-   GetMinFarVersion=GetMinFarVersion@0
-   ExitFAR=ExitFAR@0
-   Compare=Compare@16
+   ClosePluginW=ClosePluginW@4
+   GetFindDataW=GetFindDataW@16
+   GetOpenPluginInfoW=GetOpenPluginInfoW@8
+   GetPluginInfoW=GetPluginInfoW@4
+   OpenPluginW=OpenPluginW@12
+   SetStartupInfoW=SetStartupInfoW@4
+   FreeFindDataW=FreeFindDataW@12
+   SetDirectoryW=SetDirectoryW@12
+   ProcessKeyW=ProcessKeyW@8
+   ConfigureW=ConfigureW@4
+   ExitFARW=ExitFARW@0
+   CompareW=CompareW@16
+   GetGlobalInfoW=GetGlobalInfoW@4

@@ -24,6 +24,7 @@
 #include <lm.h>
 #include "umplugin.h"
 #include "memory.h"
+#include "guid.h"
 
 /*
 q  LPWSTR usri3_name;
@@ -311,16 +312,16 @@ struct UserParam
   UserProfile *profile;
 };
 
-static long WINAPI ProfileDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
+static INT_PTR WINAPI ProfileDialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
 {
   UserParam *DlgParams=(UserParam *)Info.SendDlgMessage(hDlg,DM_GETDLGDATA,0,0);
   switch(Msg)
   {
     case DN_INITDIALOG:
       Info.SendDlgMessage(hDlg,DM_SETDLGDATA,0,Param2);
-      Info.SendDlgMessage(hDlg,DM_SETTEXTLENGTH,indexPProfile,MAX_PATH-1);
-      Info.SendDlgMessage(hDlg,DM_SETTEXTLENGTH,indexPScript,MAX_PATH-1);
-      Info.SendDlgMessage(hDlg,DM_SETTEXTLENGTH,indexPDir,MAX_PATH-1);
+      Info.SendDlgMessage(hDlg,DM_SETMAXTEXTLENGTH,indexPProfile,MAX_PATH-1);
+      Info.SendDlgMessage(hDlg,DM_SETMAXTEXTLENGTH,indexPScript,MAX_PATH-1);
+      Info.SendDlgMessage(hDlg,DM_SETMAXTEXTLENGTH,indexPDir,MAX_PATH-1);
       break;
     case DN_EDITCHANGE:
       for(unsigned int i=0;i<sizeof(links_profile)/sizeof(links_profile[0]);i++)
@@ -377,23 +378,29 @@ static void UpdateExpired(HANDLE hDlg,UserParam *DlgParams)
   }
 }
 
-static long WINAPI ManageGroupUserDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
+static INT_PTR WINAPI ManageGroupUserDialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
 {
   UserParam *DlgParams=(UserParam *)Info.SendDlgMessage(hDlg,DM_GETDLGDATA,0,0);
   switch(Msg)
   {
     case DN_INITDIALOG:
       Info.SendDlgMessage(hDlg,DM_SETDLGDATA,0,Param2);
-      Info.SendDlgMessage(hDlg,DM_SETTEXTLENGTH,indexName,UNLEN-1);
-      Info.SendDlgMessage(hDlg,DM_SETTEXTLENGTH,indexPwd1,PWLEN-1);
-      Info.SendDlgMessage(hDlg,DM_SETTEXTLENGTH,indexPwd2,PWLEN-1);
+      Info.SendDlgMessage(hDlg,DM_SETMAXTEXTLENGTH,indexName,UNLEN-1);
+      Info.SendDlgMessage(hDlg,DM_SETMAXTEXTLENGTH,indexPwd1,PWLEN-1);
+      Info.SendDlgMessage(hDlg,DM_SETMAXTEXTLENGTH,indexPwd2,PWLEN-1);
       UpdateExpired(hDlg,(UserParam *)Param2);
       break;
-    case DN_KEY:
-      if((Param1==indexPwd1)||(Param1==indexPwd2))
+    case DN_CONTROLINPUT:
       {
-        if(!DlgParams->changed[updatePwd])
-          Info.SendDlgMessage(hDlg,DM_EDITUNCHANGEDFLAG,Param1,1);
+        const INPUT_RECORD* record=(const INPUT_RECORD*)Param2;
+        if(record->EventType==KEY_EVENT)
+        {
+          if((Param1==indexPwd1)||(Param1==indexPwd2))
+          {
+            if(!DlgParams->changed[updatePwd])
+              Info.SendDlgMessage(hDlg,DM_EDITUNCHANGEDFLAG,Param1,1);
+          }
+        }
       }
       break;
     case DN_BTNCLICK:
@@ -435,65 +442,46 @@ static long WINAPI ManageGroupUserDialogProc(HANDLE hDlg,int Msg,int Param1,long
           static const TCHAR *ScriptHistoryName=_T("UserManager\\Script");
           static const TCHAR *HomeHistoryName=_T("UserManager\\Home");
           static const TCHAR *WorkstationsHistoryName=_T("UserManager\\Workstations");
-          static struct InitDialogItem InitDlgProfile[]={
-          /* 0*/  {DI_DOUBLEBOX,3,1,72,12,0,0,0,0,_T("")},
-          /* 1*/  {DI_TEXT,5, 2,0,0,0,0,0,0,(TCHAR *)mUserProfile},
-          /* 2*/  {DI_EDIT,5, 3,70,0,1,(DWORD)ProfileHistoryName,DIF_HISTORY,0,_T("")},
-          /* 3*/  {DI_TEXT,5, 4,0,0,0,0,0,0,(TCHAR *)mUserScript},
-          /* 4*/  {DI_EDIT,5, 5,70,0,0,(DWORD)ScriptHistoryName,DIF_HISTORY,0,_T("")},
-          /* 5*/  {DI_TEXT,5, 6,0,0,0,0,0,0,(TCHAR *)mUserHome},
-          /* 6*/  {DI_COMBOBOX,5,7,7,0,0,0,DIF_DROPDOWNLIST,0,_T("")},
-          /* 7*/  {DI_EDIT,9, 7,70,0,0,(DWORD)HomeHistoryName,DIF_HISTORY,0,_T("")},
-          /* 8*/  {DI_TEXT,5, 8,0,0,0,0,0,0,(TCHAR *)mUserWorkstations},
-          /* 9*/  {DI_EDIT,5, 9,70,0,0,(DWORD)WorkstationsHistoryName,DIF_HISTORY,0,_T("")},
-          /*10*/  {DI_TEXT,5,10,0,0,0,0,DIF_BOXCOLOR|DIF_SEPARATOR,0,_T("")},
-          /*11*/  {DI_BUTTON,0,11,0,0,0,0,DIF_CENTERGROUP,1,(TCHAR *)mButtonOk},
-          /*12*/  {DI_BUTTON,0,11,0,0,0,0,DIF_CENTERGROUP,0,(TCHAR *)mButtonCancel},
+          FarDialogItem DialogItemsProfile[]=
+          {
+          /* 0*/  {DI_DOUBLEBOX,3, 1,72,12,{0},NULL,                   NULL,0,                                0,_T(""),                   0},
+          /* 1*/  {DI_TEXT,     5, 2, 0, 0,{0},NULL,                   NULL,0,                                0,GetMsg(mUserProfile),     0},
+          /* 2*/  {DI_EDIT,     5, 3,70, 0,{0},ProfileHistoryName,     NULL,DIF_HISTORY|DIF_FOCUS,            0,_T(""),                   0},
+          /* 3*/  {DI_TEXT,     5, 4, 0, 0,{0},NULL,                   NULL,0,                                0,GetMsg(mUserScript),      0},
+          /* 4*/  {DI_EDIT,     5, 5,70, 0,{0},ScriptHistoryName,      NULL,DIF_HISTORY,                      0,_T(""),                   0},
+          /* 5*/  {DI_TEXT,     5, 6, 0, 0,{0},NULL,                   NULL,0,                                0,GetMsg(mUserHome),        0},
+          /* 6*/  {DI_COMBOBOX, 5, 7, 7, 0,{0},NULL,                   NULL,DIF_DROPDOWNLIST,                 0,_T(""),                   0},
+          /* 7*/  {DI_EDIT,     9, 7,70, 0,{0},HomeHistoryName,        NULL,DIF_HISTORY,                      0,_T(""),                   0},
+          /* 8*/  {DI_TEXT,     5, 8, 0, 0,{0},NULL,                   NULL,0,                                0,GetMsg(mUserWorkstations),0},
+          /* 9*/  {DI_EDIT,     5, 9,70, 0,{0},WorkstationsHistoryName,NULL,DIF_HISTORY,                      0,_T(""),                   0},
+          /*10*/  {DI_TEXT,     5,10, 0, 0,{0},NULL,                   NULL,DIF_BOXCOLOR|DIF_SEPARATOR,       0,_T(""),                   0},
+          /*11*/  {DI_BUTTON,   0,11, 0, 0,{0},NULL,                   NULL,DIF_CENTERGROUP|DIF_DEFAULTBUTTON,0,GetMsg(mButtonOk),        0},
+          /*12*/  {DI_BUTTON,   0,11, 0, 0,{0},NULL,                   NULL,DIF_CENTERGROUP,                  0,GetMsg(mButtonCancel),    0},
           };
-          struct FarDialogItem DialogItemsProfile[sizeof(InitDlgProfile)/sizeof(InitDlgProfile[0])];
-          InitDialogItems(InitDlgProfile,DialogItemsProfile,sizeof(InitDlgProfile)/sizeof(InitDlgProfile[0]));
           TCHAR profile_title[128];
           FarListItem Drive[25];
-#ifdef UNICODE
           TCHAR DriveText[ArraySize(Drive)][3];
-#endif
           FarList Drives={sizeof(Drive)/sizeof(Drive[0]),Drive};
           Drive[0].Flags=0;
-#ifdef UNICODE
           DriveText[0][0]=0;
           Drive[0].Text=DriveText[0];
-#else
-          _tcscpy(Drive[0].Text,_T(""));
-#endif
           for(int i=1;i<25;i++)
           {
             Drive[i].Flags=0;
-#ifdef UNICODE
             DriveText[i][0]='A'+i+1;
             DriveText[i][1]=':';
             DriveText[i][2]=0;
             Drive[i].Text=DriveText[i];
-#else
-            Drive[i].Text[0]='A'+i+1;
-            Drive[i].Text[1]=':';
-            Drive[i].Text[2]=0;
-#endif
           }
           DialogItemsProfile[indexPDrive].ListItems=&Drives;
-#ifdef UNICODE
           FSF.sprintf(profile_title,GetMsg(mUserProfileTitle),(const wchar_t*)Info.SendDlgMessage(hDlg,DM_GETCONSTTEXTPTR,indexName,0));
           DialogItemsProfile[0].PtrData=profile_title;
-#else
-          TCHAR username[512];
-          Info.SendDlgMessage(hDlg,DM_GETTEXTPTR,indexName,(LONG_PTR)username);
-          FSF.sprintf(DialogItemsProfile[0].Data,GetMsg(mUserProfileTitle),username);
-#endif
           for(size_t ii=0;ii<ArraySize(links_profile);ii++)
           {
             INIT_DLG_DATA(DialogItemsProfile[links_profile[ii].from],DlgParams->profile->items[ii].Data);
           }
           CFarDialog dialog;
-          int DlgCode=dialog.Execute(Info.ModuleNumber,-1,-1,76,14,NULL,DialogItemsProfile,ArraySize(DialogItemsProfile),0,0,ProfileDialogProc,(DWORD)DlgParams);
+          int DlgCode=dialog.Execute(MainGuid,ProfileGuid,-1,-1,76,14,NULL,DialogItemsProfile,ArraySize(DialogItemsProfile),0,0,ProfileDialogProc,(DWORD)DlgParams);
           if(DlgCode==indexPOk)
           {
             for(size_t ii=0;ii<ArraySize(links_profile);ii++)
@@ -527,7 +515,7 @@ static long WINAPI ManageGroupUserDialogProc(HANDLE hDlg,int Msg,int Param1,long
           if(_tcscmp(pwd1,pwd2))
           {
             const TCHAR *MsgItems[]={GetMsg(mError),GetMsg(mOtherPwdError1),GetMsg(mOtherPwdError2),GetMsg(mOtherPwdError3),GetMsg(mButtonOk)};
-            Info.Message(Info.ModuleNumber,FMSG_WARNING,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),1);
+            Info.Message(&MainGuid,FMSG_WARNING,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),1);
             return FALSE;
           }
         }
@@ -545,7 +533,7 @@ bool ManageUser(UserManager *panel,bool type)
   {
     if(pInfo.ItemsNumber()>0)
     {
-      if(pInfo[pInfo.CurrentItem()].FindData.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY&&type)
+      if(pInfo[pInfo.CurrentItem()].FileAttributes&FILE_ATTRIBUTE_DIRECTORY&&type)
       {
         if(pInfo[pInfo.CurrentItem()].UserData) //don't call on ".." entry
           res=ManageGroup(panel,true,GetWideNameFromUserData(pInfo[pInfo.CurrentItem()].UserData));
@@ -589,34 +577,32 @@ bool ManageUser(UserManager *panel,bool type)
         static const TCHAR *DescriptionHistoryName=_T("UserManager\\Description");
         static const TCHAR *CommentHistoryName=_T("UserManager\\Comment");
         static const TCHAR *ParamsHistoryName=_T("UserManager\\Params");
-        static struct InitDialogItem InitDlg[]={
-        /* 0*/  {DI_DOUBLEBOX,3,1,72,23,0,0,0,0,(TCHAR *)mUserNew},
-        /* 1*/  {DI_TEXT,5, 2,0,0,0,0,0,0,(TCHAR *)mUserUsername},
-        /* 2*/  {DI_EDIT,5, 3,70,0,1,(DWORD)UsernameHistoryName,DIF_HISTORY,0,_T("")},
-        /* 3*/  {DI_TEXT,5, 4,0,0,0,0,0,0,(TCHAR *)mUserFullname},
-        /* 4*/  {DI_EDIT,5, 5,70,0,0,(DWORD)FullnameHistoryName,DIF_HISTORY,0,_T("")},
-        /* 5*/  {DI_TEXT,5, 6,0,0,0,0,0,0,(TCHAR *)mUserDescription},
-        /* 6*/  {DI_EDIT,5, 7,70,0,0,(DWORD)DescriptionHistoryName,DIF_HISTORY,0,_T("")},
-        /* 7*/  {DI_TEXT,5, 8,0,0,0,0,0,0,(TCHAR *)mUserComment},
-        /* 8*/  {DI_EDIT,5, 9,70,0,0,(DWORD)CommentHistoryName,DIF_HISTORY,0,_T("")},
-        /* 9*/  {DI_TEXT,5,10,0,0,0,0,0,0,(TCHAR *)mUserParams},
-        /*10*/  {DI_EDIT,5,11,70,0,0,(DWORD)ParamsHistoryName,DIF_HISTORY,0,_T("")},
-        /*11*/  {DI_TEXT,5,12,0,0,0,0,0,0,(TCHAR *)mUserPassword1},
-        /*12*/  {DI_PSWEDIT,5,13,70,0,0,0,0,0,_T("")},
-        /*13*/  {DI_TEXT,5,14,0,0,0,0,0,0,(TCHAR *)mUserPassword2},
-        /*14*/  {DI_PSWEDIT,5,15,70,0,0,0,0,0,_T("")},
-        /*15*/  {DI_CHECKBOX,5,16,0,0,0,0,0,0,(TCHAR *)mUserChk1},
-        /*16*/  {DI_CHECKBOX,5,17,0,0,0,0,0,0,(TCHAR *)mUserChk2},
-        /*17*/  {DI_CHECKBOX,5,18,0,0,0,0,0,0,(TCHAR *)mUserChk3},
-        /*18*/  {DI_CHECKBOX,5,19,0,0,0,0,0,0,(TCHAR *)mUserChk4},
-        /*19*/  {DI_CHECKBOX,5,20,0,0,0,0,DIF_DISABLE,0,(TCHAR *)mUserChk5},
-        /*20*/  {DI_TEXT,5,21,0,0,0,0,DIF_BOXCOLOR|DIF_SEPARATOR,0,_T("")},
-        /*21*/  {DI_BUTTON,0,22,0,0,0,0,DIF_CENTERGROUP,1,(TCHAR *)mButtonOk},
-        /*22*/  {DI_BUTTON,0,22,0,0,0,0,DIF_CENTERGROUP,0,(TCHAR *)mButtonCancel},
-        /*23*/  {DI_BUTTON,0,22,0,0,0,0,DIF_CENTERGROUP|DIF_BTNNOCLOSE,0,(TCHAR *)mUserButtonProfile},
+        FarDialogItem DialogItems[]={
+        /* 0*/  {DI_DOUBLEBOX,3, 1,72,23,{0},NULL,                  NULL,0,                                0,GetMsg(mUserNew),          0},
+        /* 1*/  {DI_TEXT,     5, 2, 0, 0,{0},NULL,                  NULL,0,                                0,GetMsg(mUserUsername),     0},
+        /* 2*/  {DI_EDIT,     5, 3,70, 0,{0},UsernameHistoryName,   NULL,DIF_HISTORY|DIF_FOCUS,            0,_T(""),                    0},
+        /* 3*/  {DI_TEXT,     5, 4, 0, 0,{0},NULL,                  NULL,0,                                0,GetMsg(mUserFullname),     0},
+        /* 4*/  {DI_EDIT,     5, 5,70, 0,{0},FullnameHistoryName,   NULL,DIF_HISTORY,                      0,_T(""),                    0},
+        /* 5*/  {DI_TEXT,     5, 6, 0, 0,{0},NULL,                  NULL,0,                                0,GetMsg(mUserDescription),  0},
+        /* 6*/  {DI_EDIT,     5, 7,70, 0,{0},DescriptionHistoryName,NULL,DIF_HISTORY,                      0,_T(""),                    0},
+        /* 7*/  {DI_TEXT,     5, 8, 0, 0,{0},NULL,                  NULL,0,                                0,GetMsg(mUserComment),      0},
+        /* 8*/  {DI_EDIT,     5, 9,70, 0,{0},CommentHistoryName,    NULL,DIF_HISTORY,                      0,_T(""),                    0},
+        /* 9*/  {DI_TEXT,     5,10, 0, 0,{0},NULL,                  NULL,0,                                0,GetMsg(mUserParams),       0},
+        /*10*/  {DI_EDIT,     5,11,70, 0,{0},ParamsHistoryName,     NULL,DIF_HISTORY,                      0,_T(""),                    0},
+        /*11*/  {DI_TEXT,     5,12, 0, 0,{0},NULL,                  NULL,0,                                0,GetMsg(mUserPassword1),    0},
+        /*12*/  {DI_PSWEDIT,  5,13,70, 0,{0},NULL,                  NULL,0,                                0,_T(""),                    0},
+        /*13*/  {DI_TEXT,     5,14, 0, 0,{0},NULL,                  NULL,0,                                0,GetMsg(mUserPassword2),    0},
+        /*14*/  {DI_PSWEDIT,  5,15,70, 0,{0},NULL,                  NULL,0,                                0,_T(""),                    0},
+        /*15*/  {DI_CHECKBOX, 5,16, 0, 0,{0},NULL,                  NULL,0,                                0,GetMsg(mUserChk1),         0},
+        /*16*/  {DI_CHECKBOX, 5,17, 0, 0,{0},NULL,                  NULL,0,                                0,GetMsg(mUserChk2),         0},
+        /*17*/  {DI_CHECKBOX, 5,18, 0, 0,{0},NULL,                  NULL,0,                                0,GetMsg(mUserChk3),         0},
+        /*18*/  {DI_CHECKBOX, 5,19, 0, 0,{0},NULL,                  NULL,0,                                0,GetMsg(mUserChk4),         0},
+        /*19*/  {DI_CHECKBOX, 5,20, 0, 0,{0},NULL,                  NULL,DIF_DISABLE,                      0,GetMsg(mUserChk5),         0},
+        /*20*/  {DI_TEXT,     5,21, 0, 0,{0},NULL,                  NULL,DIF_BOXCOLOR|DIF_SEPARATOR,       0,_T(""),                    0},
+        /*21*/  {DI_BUTTON,   0,22, 0, 0,{0},NULL,                  NULL,DIF_CENTERGROUP|DIF_DEFAULTBUTTON,0,GetMsg(mButtonOk),         0},
+        /*22*/  {DI_BUTTON,   0,22, 0, 0,{0},NULL,                  NULL,DIF_CENTERGROUP,                  0,GetMsg(mButtonCancel),     0},
+        /*23*/  {DI_BUTTON,   0,22, 0, 0,{0},NULL,                  NULL,DIF_CENTERGROUP|DIF_BTNNOCLOSE,   0,GetMsg(mUserButtonProfile),0},
         };
-        struct FarDialogItem DialogItems[sizeof(InitDlg)/sizeof(InitDlg[0])];
-        InitDialogItems(InitDlg,DialogItems,sizeof(InitDlg)/sizeof(InitDlg[0]));
         UserProfile profile_data;
         UserParam params={{false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false},&profile_data};
         USER_INFO_3 *info=NULL;
@@ -626,19 +612,11 @@ bool ManageUser(UserManager *panel,bool type)
           wcscpy(username,GetWideNameFromUserData(pInfo[pInfo.CurrentItem()].UserData));
           if(NetUserGetInfo(server,username,3,(LPBYTE *)&info)==NERR_Success)
           {
-#ifdef UNICODE
             DialogItems[indexName].PtrData=info->usri3_name;
             DialogItems[indexFullname].PtrData=info->usri3_full_name;
             DialogItems[indexDescription].PtrData=info->usri3_comment;
             DialogItems[indexComment].PtrData=info->usri3_usr_comment;
             DialogItems[indexParams].PtrData=info->usri3_parms;
-#else
-            WideCharToMultiByte(CP_OEMCP,0,info->usri3_name,-1,DialogItems[indexName].Data,UNLEN,NULL,NULL);
-            WideCharToMultiByte(CP_OEMCP,0,info->usri3_full_name,-1,DialogItems[indexFullname].Data,sizeof(DialogItems[indexFullname].Data),NULL,NULL);
-            WideCharToMultiByte(CP_OEMCP,0,info->usri3_comment,-1,DialogItems[indexDescription].Data,sizeof(DialogItems[indexDescription].Data),NULL,NULL);
-            WideCharToMultiByte(CP_OEMCP,0,info->usri3_usr_comment,-1,DialogItems[indexComment].Data,sizeof(DialogItems[indexComment].Data),NULL,NULL);
-            WideCharToMultiByte(CP_OEMCP,0,info->usri3_parms,-1,DialogItems[indexParams].Data,sizeof(DialogItems[indexParams].Data),NULL,NULL);
-#endif
             if(info->usri3_password_expired)
               DialogItems[indexExpired].Selected=1;
             if(info->usri3_flags&UF_PASSWD_CANT_CHANGE) DialogItems[indexFlags].Selected=1;
@@ -649,7 +627,6 @@ bool ManageUser(UserManager *panel,bool type)
               DialogItems[indexFlags+3].Selected=1;
               DialogItems[indexFlags+3].Flags&=~DIF_DISABLE;
             }
-#ifdef UNICODE
             FSF.sprintf(title,GetMsg(mUserEdit),DialogItems[indexName].PtrData);
             DialogItems[0].PtrData=title;
             DialogItems[indexPwd1].PtrData=_T("@@@@@@@@");
@@ -660,17 +637,6 @@ bool ManageUser(UserManager *panel,bool type)
             _tcscpy(profile_data.items[2].Data,info->usri3_home_dir_drive);
             _tcscpy(profile_data.items[3].Data,info->usri3_home_dir);
             _tcscpy(profile_data.items[4].Data,info->usri3_workstations);
-#else
-            FSF.sprintf(DialogItems[0].Data,GetMsg(mUserEdit),DialogItems[indexName].Data);
-            _tcscpy(DialogItems[indexPwd1].Data,_T("@@@@@@@@"));
-            _tcscpy(DialogItems[indexPwd2].Data,_T("@@@@@@@@"));
-
-            WideCharToMultiByte(CP_OEMCP,0,info->usri3_profile,-1,profile_data.items[0].Data,MAX_PATH,NULL,NULL);
-            WideCharToMultiByte(CP_OEMCP,0,info->usri3_script_path,-1,profile_data.items[1].Data,MAX_PATH,NULL,NULL);
-            WideCharToMultiByte(CP_OEMCP,0,info->usri3_home_dir_drive,-1,profile_data.items[2].Data,MAX_PATH,NULL,NULL);
-            WideCharToMultiByte(CP_OEMCP,0,info->usri3_home_dir,-1,profile_data.items[3].Data,MAX_PATH,NULL,NULL);
-            WideCharToMultiByte(CP_OEMCP,0,info->usri3_workstations,-1,profile_data.items[4].Data,MAX_PATH,NULL,NULL);
-#endif
             profile_data.items[0].Type=profile_data.items[1].Type=profile_data.items[3].Type=profile_data.items[4].Type=DI_EDIT;
             profile_data.items[2].Type=DI_COMBOBOX;
           }
@@ -681,7 +647,7 @@ bool ManageUser(UserManager *panel,bool type)
           DialogItems[indexProfile].Flags|=DIF_DISABLE;
         }
         CFarDialog dialog;
-        int DlgCode=dialog.Execute(Info.ModuleNumber,-1,-1,76,25,NULL,DialogItems,(sizeof(InitDlg)/sizeof(InitDlg[0])),0,0,ManageGroupUserDialogProc,(DWORD)&params);
+        int DlgCode=dialog.Execute(MainGuid,ManageUserGuid,-1,-1,76,25,NULL,DialogItems,ArraySize(DialogItems),0,0,ManageGroupUserDialogProc,(DWORD)&params);
         if(DlgCode==indexOk)
         {
           wchar_t data[512],*data_ptr;
@@ -696,11 +662,7 @@ bool ManageUser(UserManager *panel,bool type)
               {
                 case DI_EDIT:
                 case DI_PSWEDIT:
-#ifdef UNICODE
                   _tcscpy(data,dialog.Str(links_main[i].from));
-#else
-                  MultiByteToWideChar(CP_OEMCP,0,dialog.Str(links_main[i].from),-1,data,sizeof(data)/sizeof(data[0]));
-#endif
                   data_ptr=data;
                   break;
                 case DI_CHECKBOX:
@@ -724,11 +686,7 @@ bool ManageUser(UserManager *panel,bool type)
               {
                 case DI_COMBOBOX:
                 case DI_EDIT:
-#ifdef UNICODE
                   _tcscpy(data,profile_data.items[i].Data);
-#else
-                  MultiByteToWideChar(CP_OEMCP,0,profile_data.items[i].Data,-1,data,sizeof(data)/sizeof(data[0]));
-#endif
                   data_ptr=data;
                   break;
               }

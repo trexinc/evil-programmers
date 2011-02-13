@@ -533,17 +533,6 @@ struct AclData
   unsigned long Count;
 };
 
-struct InitDialogItem
-{
-  int Type;
-  int X1, Y1, X2, Y2;
-  int Focus;
-  int Selected;
-  unsigned int Flags;
-  int DefaultButton;
-  const TCHAR *Data;
-};
-
 struct WellKnownSID
 {
   SID_IDENTIFIER_AUTHORITY sid_id[6];
@@ -634,7 +623,6 @@ extern FARSTANDARDFUNCTIONS FSF;
 extern TCHAR PluginRootKey[80];
 
 extern const TCHAR *GetMsg(int MsgId);
-extern void InitDialogItems(InitDialogItem *Init,FarDialogItem *Item,int ItemsNumber);
 extern void ShowError(DWORD Error);
 extern void ShowCustomError(int index);
 extern void GetCurrentPath(int level,TCHAR *nonfixed,TCHAR *result);
@@ -657,8 +645,7 @@ extern PACL CreateDefaultAcl(int level);
 extern TCHAR *get_access_string(int level,int mask);
 extern TCHAR *get_sid_string(PSID sid);
 extern void wcsaddendslash(wchar_t *string);
-extern bool GetWideName(TCHAR *root,const FAR_FIND_DATA *src,wchar_t *name);
-extern int parse_dir(TCHAR *root_oem,const TCHAR *obj_oem,wchar_t *obj,int obj_type,unsigned long *param,wchar_t *host,TCHAR *host_oem);
+extern int parse_dir(TCHAR *root_oem,const TCHAR *obj_oem,const wchar_t *obj,int obj_type,unsigned long *param,wchar_t *host,TCHAR *host_oem);
 
 extern LONG RegOpenBackupKeyExW(HKEY hKey,LPCWSTR lpSubKey,REGSAM samDesired,PHKEY phkResult);
 
@@ -709,5 +696,12 @@ extern void init_current_user(void);
 extern bool is_current_user(PSID sid);
 extern PSID current_user(void);
 extern void free_current_user(void);
+
+#define ControlKeyAllMask (RIGHT_ALT_PRESSED|LEFT_ALT_PRESSED|RIGHT_CTRL_PRESSED|LEFT_CTRL_PRESSED|SHIFT_PRESSED)
+#define ControlKeyAltMask (RIGHT_ALT_PRESSED|LEFT_ALT_PRESSED)
+#define ControlKeyNonAltMask (RIGHT_CTRL_PRESSED|LEFT_CTRL_PRESSED|SHIFT_PRESSED)
+#define IsShift(rec) static_cast<bool>((rec->Event.KeyEvent.dwControlKeyState&ControlKeyAllMask)==SHIFT_PRESSED)
+#define IsAlt(rec) static_cast<bool>((rec->Event.KeyEvent.dwControlKeyState&ControlKeyAltMask)&&!(rec->Event.KeyEvent.dwControlKeyState&ControlKeyNonAltMask))
+#define IsNone(rec) static_cast<bool>((rec->Event.KeyEvent.dwControlKeyState&ControlKeyAllMask)==0)
 
 #include <ddk/ntifs.h>

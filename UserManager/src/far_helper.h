@@ -24,7 +24,6 @@
 extern PluginStartupInfo Info;
 #define ArraySize(a) (sizeof(a)/sizeof(a[0]))
 
-#ifdef UNICODE
 #define INIT_DLG_DATA(item,str) item.PtrData=str
 class CFarDialog
 {
@@ -32,12 +31,8 @@ class CFarDialog
     HANDLE iDlg;
   public:
     inline CFarDialog(): iDlg(INVALID_HANDLE_VALUE) {};
-    inline ~CFarDialog() {Info.DialogFree(iDlg);};
-    inline int Execute(INT_PTR PluginNumber,int X1,int Y1,int X2,int Y2,const TCHAR* HelpTopic,struct FarDialogItem* Item,int ItemsNumber,DWORD Reserved,DWORD Flags,FARWINDOWPROC DlgProc,LONG_PTR Param)
-    {
-      iDlg=Info.DialogInit(PluginNumber,X1,Y1,X2,Y2,HelpTopic,Item,ItemsNumber,Reserved,Flags,DlgProc,Param);
-      return Info.DialogRun(iDlg);
-    };
+    ~CFarDialog();
+    int Execute(const GUID& PluginId,const GUID& Id,int X1,int Y1,int X2,int Y2,const TCHAR* HelpTopic,struct FarDialogItem* Item,int ItemsNumber,DWORD Reserved,DWORD Flags,FARWINDOWPROC DlgProc,LONG_PTR Param);
     inline HANDLE Handle(void) {return iDlg;};
     int Check(int index);
     const wchar_t* Str(int index);
@@ -47,53 +42,9 @@ class CFarDialog
       if(Info.SendDlgMessage(iDlg,DM_GETDLGITEMSHORT,index,(LONG_PTR)&DialogItem)) return DialogItem.Flags;
       return 0;
     };
-    inline DWORD Type(int index)
-    {
-      FarDialogItem DialogItem;
-      if(Info.SendDlgMessage(iDlg,DM_GETDLGITEMSHORT,index,(LONG_PTR)&DialogItem)) return DialogItem.Type;
-      return 0;
-    };
+    DWORD Type(int index);
 };
-#define EXP_NAME(p) _export p ## W
-#define EXP_NAME_CALL(p) p ## W
-#define PANEL_FILENAME lpwszFileName
-#define FIRST_PARAM int
-#define SECOND_PARAM LONG_PTR
-#define ControlShort(a,b,c) Control(a,b,0,c)
-#define ControlShort2(a,b,c) Control(a,b,c,0)
-#define ControlShort3(a,b,c) Control(a,b,c,0)
-#else
-#define DM_GETDLGITEMSHORT DM_GETDLGITEM
-#define DM_SETDLGITEMSHORT DM_SETDLGITEM
-#define INIT_DLG_DATA(item,str) _tcscpy(item.Data,str)
-class CFarDialog
-{
-  private:
-    FarDialogItem* iItems;
-  public:
-    inline CFarDialog() {};
-    inline int Execute(INT_PTR PluginNumber,int X1,int Y1,int X2,int Y2,const TCHAR* HelpTopic,struct FarDialogItem* Item,int ItemsNumber,DWORD Reserved,DWORD Flags,FARWINDOWPROC DlgProc,LONG_PTR Param)
-    {
-      iItems=Item;
-      return Info.DialogEx(PluginNumber,X1,Y1,X2,Y2,HelpTopic,Item,ItemsNumber,Reserved,Flags,DlgProc,Param);
-    };
-    inline FarDialogItem* Handle(void) {return iItems;};
-    inline int Check(int index) {return iItems[index].Selected;};
-    inline const char* Str(int index) {return iItems[index].Data;};
-    inline DWORD Flags(int index) {return iItems[index].Flags;};
-    inline DWORD Type(int index) {return iItems[index].Type;};
-};
-#define EXP_NAME(p) _export p
-#define EXP_NAME_CALL(p) p
-#define PANEL_FILENAME cFileName
-#define FIRST_PARAM void*
-#define SECOND_PARAM void*
-#define ControlShort(a,b,c) Control(a,b,c)
-#define ControlShort2(a,b,c) Control(a,b,&c)
-#define ControlShort3(a,b,c) Control(a,b,c)
-#endif
 
-#ifdef UNICODE
 void Realloc(TCHAR*& aData,int& aLength,int aNewLength);
 void Realloc(PluginPanelItem*& aData,int& aSize,int aNewSize);
 
@@ -114,7 +65,7 @@ class CFarPanel
     ~CFarPanel();
     inline bool IsOk(void) {return iResult;}
     inline int PanelType(void) {return iInfo.PanelType;};
-    inline int Plugin(void) {return iInfo.Plugin;};
+    inline int Plugin(void) {return static_cast<bool>(iInfo.Flags&PFLAGS_PLUGIN);};
     inline int ItemsNumber(void) {return iInfo.ItemsNumber;};
     inline int SelectedItemsNumber(void) {return iInfo.SelectedItemsNumber;};
     inline int CurrentItem(void) {return iInfo.CurrentItem;};
@@ -123,30 +74,7 @@ class CFarPanel
     PluginPanelItem& operator[](size_t index);
     PluginPanelItem& Selected(size_t index);
 };
-#else
-class CFarPanel
-{
-  private:
-    PanelInfo iInfo;
-    int iResult;
-  private:
-    CFarPanel();
-  public:
-    inline CFarPanel(HANDLE aPlugin,int aCommand) {iResult=Info.Control(aPlugin,aCommand,(void*)&iInfo);};
-    inline bool IsOk(void) {return iResult;};
-    inline int PanelType(void) {return iInfo.PanelType;};
-    inline int Plugin(void) {return iInfo.Plugin;};
-    inline int ItemsNumber(void) {return iInfo.ItemsNumber;};
-    inline int SelectedItemsNumber(void) {return iInfo.SelectedItemsNumber;};
-    inline int CurrentItem(void) {return iInfo.CurrentItem;};
-    inline DWORD Flags(void) {return iInfo.Flags;};
-    inline TCHAR* CurDir(void) {return iInfo.CurDir;};
-    inline PluginPanelItem& operator[](size_t index) {return iInfo.PanelItems[index];};
-    inline PluginPanelItem& Selected(size_t index) {return iInfo.SelectedItems[index];};
-};
-#endif
 
-#ifdef UNICODE
 class CFarPanelSelection
 {
   private:
@@ -163,20 +91,5 @@ class CFarPanelSelection
     inline int Number(void) {return iSelection?iInfo.SelectedItemsNumber:1;}
     PluginPanelItem& operator[](size_t index);
 };
-#else
-class CFarPanelSelection
-{
-  private:
-    HANDLE iPlugin;
-    PanelInfo iInfo;
-    bool iSelection;
-  private:
-    CFarPanelSelection();
-  public:
-    CFarPanelSelection(HANDLE aPlugin,bool aSelection);
-    inline int Number(void) {return iSelection?iInfo.SelectedItemsNumber:1;}
-    inline PluginPanelItem& operator[](size_t index) {return iSelection?iInfo.SelectedItems[index]:iInfo.PanelItems[iInfo.CurrentItem];};
-};
-#endif
 
 #endif

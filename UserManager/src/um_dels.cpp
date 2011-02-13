@@ -24,6 +24,7 @@
 #include <ntsecapi.h>
 #include "umplugin.h"
 #include "memory.h"
+#include "guid.h"
 
 extern LSA_HANDLE GetPolicyHandle(wchar_t *computer);
 
@@ -39,7 +40,7 @@ bool DeleteACE(UserManager *panel,bool selection)
   if(sp.Number())
   {
     for(int i=0;i<sp.Number();i++)
-      if(sp[i].FindData.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)
+      if(sp[i].FileAttributes&FILE_ATTRIBUTE_DIRECTORY)
       {
         has_dir=true;
         break;
@@ -51,14 +52,14 @@ bool DeleteACE(UserManager *panel,bool selection)
       if(sp.Number()==1)
       {
         TCHAR Truncated[MAX_PATH];
-        _tcscpy(Truncated,sp[0].FindData.PANEL_FILENAME);
+        _tcscpy(Truncated,sp[0].FileName);
         FSF.TruncPathStr(Truncated,50);
         FSF.sprintf(warning,GetMsg(mDelOne),Truncated);
       }
       else
         FSF.sprintf(warning,GetMsg(mDelACEN+NumberType(sp.Number())),sp.Number());
       const TCHAR *MsgItems[]={GetMsg(mButtonDelete),warning,GetMsg(mButtonDelete),GetMsg(mButtonCancel)};
-      if(!Info.Message(Info.ModuleNumber,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),2))
+      if(!Info.Message(&MainGuid,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),2))
         for(int i=0;i<sp.Number();i++)
         {
           if(sp[i].Flags&PPIF_USERDATA)
@@ -84,14 +85,14 @@ bool DeleteShare(UserManager *panel,bool selection)
     if(sp.Number()==1)
     {
       TCHAR Truncated[MAX_PATH];
-      _tcscpy(Truncated,sp[0].FindData.PANEL_FILENAME);
+      _tcscpy(Truncated,sp[0].FileName);
       FSF.TruncPathStr(Truncated,50);
       FSF.sprintf(warning,GetMsg(mDelOne),Truncated);
     }
     else
       FSF.sprintf(warning,GetMsg(mDelShareN+NumberType(sp.Number())),sp.Number());
     const TCHAR *MsgItems[]={GetMsg(mButtonDelete),warning,GetMsg(mButtonDelete),GetMsg(mButtonCancel)};
-    if(!Info.Message(Info.ModuleNumber,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),2))
+    if(!Info.Message(&MainGuid,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),2))
     {
       res=true;
       for(int i=0;i<sp.Number();i++)
@@ -141,21 +142,21 @@ bool DeleteGroup(UserManager *panel,bool selection)
     if(sp.Number()==1)
     {
       TCHAR Truncated[MAX_PATH];
-      _tcscpy(Truncated,sp[0].FindData.PANEL_FILENAME);
+      _tcscpy(Truncated,sp[0].FileName);
       FSF.TruncPathStr(Truncated,50);
       FSF.sprintf(warning,GetMsg(mDelOne),Truncated);
     }
     else
       FSF.sprintf(warning,GetMsg(mDelObjectN+NumberType(sp.Number())),sp.Number());
     const TCHAR *MsgItems[]={GetMsg(mButtonDelete),warning,GetMsg(mButtonDelete),GetMsg(mButtonCancel)};
-    if(!Info.Message(Info.ModuleNumber,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),2))
+    if(!Info.Message(&MainGuid,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),2))
     {
       res=true;
       for(int i=0;i<sp.Number();i++)
       {
         if(sp[i].Flags&PPIF_USERDATA)
         {
-          if(sp[i].FindData.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)
+          if(sp[i].FileAttributes&FILE_ATTRIBUTE_DIRECTORY)
           {
             if(panel->global)
             {
@@ -185,14 +186,14 @@ bool RemoveUser(UserManager *panel,bool selection)
     if(sp.Number()==1)
     {
       TCHAR Truncated[MAX_PATH];
-      _tcscpy(Truncated,sp[0].FindData.PANEL_FILENAME);
+      _tcscpy(Truncated,sp[0].FileName);
       FSF.TruncPathStr(Truncated,50);
       FSF.sprintf(warning,GetMsg(mRemoveOne),Truncated);
     }
     else
       FSF.sprintf(warning,GetMsg(mRemoveUserN+NumberType(sp.Number())),sp.Number());
     const TCHAR *MsgItems[]={GetMsg(mButtonRemove),warning,GetMsg(mButtonRemove),GetMsg(mButtonCancel)};
-    if(!Info.Message(Info.ModuleNumber,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),2))
+    if(!Info.Message(&MainGuid,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),2))
     {
       res=true;
       for(int i=0;i<sp.Number();i++)
@@ -226,14 +227,14 @@ bool DeleteUser(UserManager *panel,bool selection)
     if(sp.Number()==1)
     {
       TCHAR Truncated[MAX_PATH];
-      _tcscpy(Truncated,sp[0].FindData.PANEL_FILENAME);
+      _tcscpy(Truncated,sp[0].FileName);
       FSF.TruncPathStr(Truncated,50);
       FSF.sprintf(warning,GetMsg(mDelOne),Truncated);
     }
     else
       FSF.sprintf(warning,GetMsg(mDelUserN+NumberType(sp.Number())),sp.Number());
     const TCHAR *MsgItems[]={GetMsg(mButtonDelete),warning,GetMsg(mButtonDelete),GetMsg(mButtonCancel)};
-    if(!Info.Message(Info.ModuleNumber,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),2))
+    if(!Info.Message(&MainGuid,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),2))
     {
       res=true;
       for(int i=0;i<sp.Number();i++)
@@ -256,14 +257,14 @@ bool DeleteRightUsers(UserManager *panel,bool selection)
     if(sp.Number()==1)
     {
       TCHAR Truncated[MAX_PATH];
-      _tcscpy(Truncated,sp[0].FindData.PANEL_FILENAME);
+      _tcscpy(Truncated,sp[0].FileName);
       FSF.TruncPathStr(Truncated,50);
       FSF.sprintf(warning,GetMsg(mDelOne),Truncated);
     }
     else
       FSF.sprintf(warning,GetMsg(mDelUserN+NumberType(sp.Number())),sp.Number());
     const TCHAR *MsgItems[]={GetMsg(mButtonDelete),warning,GetMsg(mButtonDelete),GetMsg(mButtonCancel)};
-    if(!Info.Message(Info.ModuleNumber,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),2))
+    if(!Info.Message(&MainGuid,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),2))
     {
       res=true;
       LSA_HANDLE PolicyHandle;

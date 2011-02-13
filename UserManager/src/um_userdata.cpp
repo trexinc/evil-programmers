@@ -32,16 +32,12 @@ struct PluginUserData
 
 void AddDefaultUserdata(PluginPanelItem *Item,int level,int sortorder,int itemtype,PSID sid,wchar_t *wide_name,const TCHAR *oem_name,const TCHAR* filename)
 {
-#ifdef UNICODE
   TCHAR* item_filename=(TCHAR*)malloc((_tcslen(filename)+1)*sizeof(TCHAR));
-  Item->FindData.lpwszFileName=item_filename;
+  Item->FileName=item_filename;
   if(item_filename)
   {
     if(item_filename) _tcscpy(item_filename,filename);
   }
-#else
-  _tcscpy(Item->FindData.cFileName,filename);
-#endif
   PluginUserData *user_data;
   int user_data_size=sizeof(PluginUserData),sid_size=0,name_size=0;
   if(sid&&IsValidSid(sid))
@@ -70,11 +66,7 @@ void AddDefaultUserdata(PluginPanelItem *Item,int level,int sortorder,int itemty
       if(wide_name) wcscpy(ptr,wide_name);
       else
       {
-#ifdef UNICODE
         _tcscpy(ptr,oem_name);
-#else
-        MultiByteToWideChar(CP_OEMCP,0,oem_name,-1,ptr,name_size/sizeof(wchar_t));
-#endif
       }
     }
     Item->Flags=PPIF_USERDATA;

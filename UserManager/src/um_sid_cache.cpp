@@ -77,11 +77,7 @@ static void add_sid_cache(wchar_t *computer,PSID sid,bool full,wchar_t **usernam
               new_rec->username_only=user_ptr;
               new_rec->next=sid_cache;
               sid_cache=new_rec;
-#ifdef UNICODE
               _tcscpy(new_rec->username_oem,new_rec->username);
-#else
-              WideCharToMultiByte(CP_OEMCP,0,new_rec->username,-1,new_rec->username_oem,wcslen(new_rec->username)+1,NULL,NULL);
-#endif
               new_rec->username_only_oem=new_rec->username_oem+(new_rec->username_only-new_rec->username);
               if(full)
               {

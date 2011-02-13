@@ -23,54 +23,24 @@
 #include <ntsecapi.h>
 #include "umplugin.h"
 #include "memory.h"
+#include "guid.h"
 
 const TCHAR *GetMsg(int MsgId)
 {
-  return Info.GetMsg(Info.ModuleNumber,MsgId);
-}
-
-void InitDialogItems(InitDialogItem *Init,FarDialogItem *Item,int ItemsNumber)
-{
-  for (int i=0;i<ItemsNumber;i++)
-  {
-    Item[i].Type=Init[i].Type;
-    Item[i].X1=Init[i].X1;
-    Item[i].Y1=Init[i].Y1;
-    Item[i].X2=Init[i].X2;
-    Item[i].Y2=Init[i].Y2;
-    Item[i].Focus=Init[i].Focus;
-    Item[i].Selected=Init[i].Selected;
-    Item[i].Flags=Init[i].Flags;
-    Item[i].DefaultButton=Init[i].DefaultButton;
-#ifdef UNICODE
-    Item[i].MaxLen=0;
-#endif
-    if((unsigned)Init[i].Data<2000)
-#ifdef UNICODE
-      Item[i].PtrData=GetMsg((unsigned int)(DWORD_PTR)Init[i].Data);
-#else
-      strcpy(Item[i].Data,GetMsg((unsigned int)(DWORD_PTR)Init[i].Data));
-#endif
-    else
-#ifdef UNICODE
-      Item[i].PtrData=Init[i].Data;
-#else
-      strcpy(Item[i].Data,Init[i].Data);
-#endif
-  }
+  return Info.GetMsg(&MainGuid,MsgId);
 }
 
 void ShowError(DWORD Error)
 {
   if(!Error) SetLastError(Error);
   const TCHAR *MsgItems[]={GetMsg(mError),GetMsg(mButtonOk)};
-  Info.Message(Info.ModuleNumber,FMSG_ERRORTYPE|FMSG_WARNING,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),1);
+  Info.Message(&MainGuid,FMSG_ERRORTYPE|FMSG_WARNING,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),1);
 }
 
 void ShowCustomError(int index)
 {
   const TCHAR *MsgItems[]={GetMsg(mError),GetMsg(index),GetMsg(mButtonOk)};
-  Info.Message(Info.ModuleNumber,FMSG_WARNING,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),1);
+  Info.Message(&MainGuid,FMSG_WARNING,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),1);
 }
 
 void GetCurrentPath(int level,TCHAR *nonfixed,TCHAR *result)
@@ -232,11 +202,11 @@ bool IsPrivilegeEnabled(const TCHAR *name)
       {
         if(GetTokenInformation(token,TokenPrivileges,privileges,size,&size))
         {
-          for(unsigned int i=0;i<privileges->PrivilegeCount;i++)
+          for(unsigned int ii=0;ii<privileges->PrivilegeCount;ii++)
           {
-            if(li.LowPart==(privileges->Privileges[i].Luid.LowPart)&&li.HighPart==(privileges->Privileges[i].Luid.HighPart)) //FIXME: compare structs
+            if(li.LowPart==(privileges->Privileges[ii].Luid.LowPart)&&li.HighPart==(privileges->Privileges[ii].Luid.HighPart)) //FIXME: compare structs
             {
-              if(privileges->Privileges[i].Attributes&SE_PRIVILEGE_ENABLED)
+              if(privileges->Privileges[ii].Attributes&SE_PRIVILEGE_ENABLED)
               {
                 res=true;
                 break;
@@ -258,17 +228,17 @@ bool CheckChDir(HANDLE hPlugin,const TCHAR *NewDir,TCHAR *RealDir,wchar_t *RealD
   CFarPanel pInfo(hPlugin,FCTL_GETPANELINFO);
   if(pInfo.IsOk())
   {
-    for(int i=0;i<pInfo.ItemsNumber();i++)
+    for(int ii=0;ii<pInfo.ItemsNumber();ii++)
     {
-      if((pInfo[i].FindData.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)&&_tcscmp(pInfo[i].FindData.PANEL_FILENAME,_T("..")))
+      if((pInfo[ii].FileAttributes&FILE_ATTRIBUTE_DIRECTORY)&&_tcscmp(pInfo[ii].FileName,_T("..")))
       {
-        if(!_tcsicmp(pInfo[i].FindData.PANEL_FILENAME,NewDir))
+        if(!_tcsicmp(pInfo[ii].FileName,NewDir))
         {
-          if(pInfo[i].Flags&PPIF_USERDATA)
+          if(pInfo[ii].Flags&PPIF_USERDATA)
           {
-            _tcscpy(RealDir,pInfo[i].FindData.PANEL_FILENAME);
-            wcscpy(RealDirW,GetWideNameFromUserData(pInfo[i].UserData));
-            *level=GetLevelFromUserData(pInfo[i].UserData);
+            _tcscpy(RealDir,pInfo[ii].FileName);
+            wcscpy(RealDirW,GetWideNameFromUserData(pInfo[ii].UserData));
+            *level=GetLevelFromUserData(pInfo[ii].UserData);
             res=true;
             break;
           }
@@ -346,11 +316,11 @@ TCHAR *get_access_string(int level,int mask)
     const TCHAR *res[]={_T(" "),_T(" "),_T(" "),_T(" "),_T(" "),_T(" ")};
     const TCHAR *full[]={_T("R"),_T("W"),_T("X"),_T("D"),_T("P"),_T("O")};
     _tcscpy(access_string,_T(""));
-    for(int i=0;i<6;i++)
+    for(int ii=0;ii<6;ii++)
     {
-      if((mask&common_rights[level][i])==common_rights[level][i])
-        res[i]=full[i];
-      _tcscat(access_string,res[i]);
+      if((mask&common_rights[level][ii])==common_rights[level][ii])
+        res[ii]=full[ii];
+      _tcscat(access_string,res[ii]);
     }
   }
   return access_string;
@@ -367,12 +337,8 @@ TCHAR *get_sid_string(PSID sid)
     res=(TCHAR *)malloc((length+1)*sizeof(TCHAR));
     if(res)
     {
-#ifdef UNICODE
       _tcsncpy(res,sid_str.Buffer,length);
       res[length]=0;
-#else
-      WideCharToMultiByte(CP_OEMCP,0,sid_str.Buffer,length,res,sid_str.Length/sizeof(wchar_t),NULL,NULL);
-#endif
     }
     RtlFreeUnicodeString(&sid_str);
   }
@@ -393,24 +359,24 @@ const RegRoot RegRoots[]=
 static bool check_for_registry(wchar_t *path,HKEY *hKey,wchar_t *rest_path)
 {
   bool res=false;
-  for(unsigned int i=0;i<(sizeof(RegRoots)/sizeof(RegRoots[0]));i++)
+  for(unsigned int ii=0;ii<(sizeof(RegRoots)/sizeof(RegRoots[0]));ii++)
   {
-    if(!_wcsnicmp(path,RegRoots[i].root,wcslen(RegRoots[i].root)))
+    if(!_wcsnicmp(path,RegRoots[ii].root,wcslen(RegRoots[ii].root)))
     {
       res=true;
-      *hKey=RegRoots[i].value;
-      wcscpy(rest_path,path+wcslen(RegRoots[i].root));
+      *hKey=RegRoots[ii].value;
+      wcscpy(rest_path,path+wcslen(RegRoots[ii].root));
       break;
     }
   }
   return res;
 }
 
-static bool check_for_printer(wchar_t *printer_name,wchar_t *host)
+static bool check_for_printer(const wchar_t *printer_name,wchar_t *host)
 {
   bool res=false;
   HANDLE printer;
-  if(printer_name&&OpenPrinterW(printer_name,&printer,NULL))
+  if(printer_name&&OpenPrinterW((wchar_t*)printer_name,&printer,NULL))
   {
     ClosePrinter(printer);
     wcscpy(host,printer_name);
@@ -419,7 +385,7 @@ static bool check_for_printer(wchar_t *printer_name,wchar_t *host)
   return res;
 }
 
-static bool check_for_createfile(wchar_t *device_name,wchar_t *host)
+static bool check_for_createfile(const wchar_t *device_name,wchar_t *host)
 {
   HANDLE handle=CreateFileW(device_name,0,FILE_SHARE_DELETE|FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,FILE_FLAG_BACKUP_SEMANTICS,NULL);
   if(handle!=INVALID_HANDLE_VALUE)
@@ -436,10 +402,10 @@ void wcsaddendslash(wchar_t *string)
   int len=wcslen(string);
   if(len)
   {
-    for(int i=0;i<len;i++)
+    for(int ii=0;ii<len;ii++)
     {
-      if(string[i]==L'/')
-        string[i]=L'\\';
+      if(string[ii]==L'/')
+        string[ii]=L'\\';
     }
     if(string[len-1]!=L'\\')
     {
@@ -450,25 +416,18 @@ void wcsaddendslash(wchar_t *string)
   return;
 }
 
-int parse_dir(TCHAR *root_oem,const TCHAR *obj_oem,wchar_t *obj,int obj_type,unsigned long *param,wchar_t *host,TCHAR *host_oem)
+int parse_dir(TCHAR *root_oem,const TCHAR *obj_oem,const wchar_t *obj,int obj_type,unsigned long *param,wchar_t *host,TCHAR *host_oem)
 {
   int result=-1;
   HANDLE testHandle;
-  wchar_t *real_obj=obj,obj2[MAX_PATH],root[MAX_PATH],path[MAX_PATH];
+  const wchar_t *real_obj=obj;
+  wchar_t obj2[MAX_PATH],root[MAX_PATH],path[MAX_PATH];
   if((!real_obj)&&obj_oem)
   {
-#ifdef UNICODE
     _tcscpy(obj2,obj_oem);
-#else
-    MultiByteToWideChar(CP_OEMCP,0,obj_oem,-1,obj2,sizeof(obj2)/sizeof(obj2[0]));
-#endif
     real_obj=obj2;
   }
-#ifdef UNICODE
   _tcscpy(root,root_oem);
-#else
-  MultiByteToWideChar(CP_OEMCP,0,root_oem,-1,root,sizeof(root)/sizeof(root[0]));
-#endif
   wcscpy(path,root);
   if(real_obj)
   {
@@ -482,15 +441,7 @@ int parse_dir(TCHAR *root_oem,const TCHAR *obj_oem,wchar_t *obj,int obj_type,uns
 parse_dir_real:
       if(obj_type==pathtypeUnknown)
       {
-#ifndef UNICODE
-        wchar_t *filename;
-#endif
-        DWORD full_res=
-#ifdef UNICODE
-        FSF.ConvertPath(CPM_FULL,path,host,MAX_PATH);
-#else
-        GetFullPathNameW(path,MAX_PATH,host,&filename);
-#endif
+        DWORD full_res=FSF.ConvertPath(CPM_FULL,path,host,MAX_PATH);
         if(!full_res||full_res>=MAX_PATH) wcscpy(host,path);
       }
       else wcscpy(host,path);
@@ -516,12 +467,8 @@ parse_dir_plugin:
     case pathtypeUnknown:
       {
         //if(GetFileAttributesW(path)!=0xffffffff)
-#ifdef UNICODE
         wchar_t path_real[MAX_PATH];
         FSF.ConvertPath(CPM_FULL,path,path_real,ArraySize(path_real));
-#else
-        wchar_t* path_real=path;
-#endif
 
         if((testHandle=CreateFileW(path_real,0,FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,NULL,OPEN_EXISTING,FILE_FLAG_BACKUP_SEMANTICS,NULL))!=INVALID_HANDLE_VALUE)
         {
@@ -533,70 +480,9 @@ parse_dir_plugin:
   }
   if((result>-1)&&host_oem)
   {
-#ifdef UNICODE
     _tcscpy(host_oem,host);
-#else
-    WideCharToMultiByte(CP_OEMCP,0,host,-1,host_oem,MAX_PATH,NULL,NULL);
-#endif
   }
   return result;
-}
-
-#ifndef UNICODE
-static const TCHAR *GetRealName(const FAR_FIND_DATA *src)
-{
-  WIN32_FIND_DATAA find,find_ok; HANDLE hFind; BOOL Res;
-  hFind=FindFirstFileA(src->cFileName,&find);
-  if(hFind!=INVALID_HANDLE_VALUE)
-  {
-    memcpy(&find_ok,&find,sizeof(find));
-    Res=FindNextFileA(hFind,&find);
-    FindClose(hFind);
-    if((!Res)&&(!_tcsicmp(src->cAlternateFileName,find_ok.cAlternateFileName)))
-    {
-      return src->cFileName;
-    }
-  }
-  if(src->cAlternateFileName[0])
-  {
-    hFind=FindFirstFileA(src->cAlternateFileName,&find);
-    if(hFind!=INVALID_HANDLE_VALUE)
-    {
-      FindClose(hFind);
-      return src->cAlternateFileName;
-    }
-  }
-  return NULL;
-}
-#endif
-
-bool GetWideName(TCHAR *root,const FAR_FIND_DATA *src,wchar_t *name)
-{
-#ifdef UNICODE
-  _tcscpy(name,src->PANEL_FILENAME);
-  return true;
-#else
-  bool res=false;
-  const TCHAR *real_shotname=GetRealName(src);
-  if(real_shotname)
-  {
-    TCHAR path[MAX_PATH];
-    wchar_t path_w[MAX_PATH];
-    strcpy(path,root);
-    FSF.AddEndSlash(path);
-    strcat(path,real_shotname);
-    MultiByteToWideChar(CP_OEMCP,0,path,-1,path_w,sizeof(path_w)/sizeof(path_w[0]));
-    WIN32_FIND_DATAW find;
-    HANDLE hFind=FindFirstFileW(path_w,&find);
-    if(hFind!=INVALID_HANDLE_VALUE)
-    {
-      FindClose(hFind);
-      wcscpy(name,find.cFileName);
-      res=true;
-    }
-  }
-  return res;
-#endif
 }
 
 LSA_HANDLE GetPolicyHandle(wchar_t *computer)
