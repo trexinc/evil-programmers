@@ -22,8 +22,9 @@
 #include "far_helper.h"
 #include "umplugin.h"
 #include "memory.h"
+#include "guid.h"
 
-long WINAPI EditCommonAccessDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
+static INT_PTR WINAPI EditCommonAccessDialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
 {
   FarDialogItem DialogItem;
   switch(Msg)
@@ -61,7 +62,7 @@ bool EditCommonAccess(UserManager *panel)
   CFarPanel pInfo((HANDLE)panel,FCTL_GETPANELINFO);
   if(pInfo.IsOk())
   {
-    if((pInfo.ItemsNumber()>0)&&(!(pInfo[pInfo.CurrentItem()].FindData.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)))
+    if((pInfo.ItemsNumber()>0)&&(!(pInfo[pInfo.CurrentItem()].FileAttributes&FILE_ATTRIBUTE_DIRECTORY)))
     {
       if(pInfo[pInfo.CurrentItem()].Flags&PPIF_USERDATA)
       {
@@ -88,22 +89,21 @@ bool EditCommonAccess(UserManager *panel)
           0000000000111111111122222222223333333333444444444455555555556666666666777777
           0123456789012345678901234567890123456789012345678901234567890123456789012345
         */
-        static struct InitDialogItem InitItems[]={
-        /* 0*/  {DI_DOUBLEBOX,3,1,72,13,0,0,0,0,_T("")},
-        /* 1*/  {DI_SINGLEBOX,5,4,70,11,0,0,DIF_LEFTTEXT,0,_T("")},
-        /* 2*/  {DI_RADIOBUTTON,5,2,0,0,1,0,DIF_GROUP,0,(TCHAR *)mPropSimpleFull},
-        /* 3*/  {DI_RADIOBUTTON,5,3,0,0,0,0,0,0,(TCHAR *)mPropSimpleSpecial},
-        /* 4*/  {DI_CHECKBOX,7, 5,0,0,0,0,0,0,(TCHAR *)mPropSimpleRead},
-        /* 5*/  {DI_CHECKBOX,7, 6,0,0,0,0,0,0,(TCHAR *)mPropSimpleWrite},
-        /* 6*/  {DI_CHECKBOX,7, 7,0,0,0,0,0,0,(TCHAR *)mPropSimpleExecute},
-        /* 7*/  {DI_CHECKBOX,7, 8,0,0,0,0,0,0,(TCHAR *)mPropSimpleDelete},
-        /* 8*/  {DI_CHECKBOX,7, 9,0,0,0,0,0,0,(TCHAR *)mPropSimpleChangePermissions},
-        /* 9*/  {DI_CHECKBOX,7,10,0,0,0,0,0,0,(TCHAR *)mPropSimpleTakeOwnership},
-        /*10*/  {DI_BUTTON,0,12,0,0,0,0,DIF_CENTERGROUP,1,(TCHAR *)mPropButtonOk},
-        /*11*/  {DI_BUTTON,0,12,0,0,0,0,DIF_CENTERGROUP,0,(TCHAR *)mPropButtonCancel}
+        FarDialogItem DialogItems[]=
+        {
+        /* 0*/  {DI_DOUBLEBOX,  3, 1,72,13,{0},NULL,NULL,0,                                0,_T(""),                              0},
+        /* 1*/  {DI_SINGLEBOX,  5, 4,70,11,{0},NULL,NULL,DIF_LEFTTEXT,                     0,_T(""),                              0},
+        /* 2*/  {DI_RADIOBUTTON,5, 2, 0, 0,{0},NULL,NULL,DIF_GROUP|DIF_FOCUS,              0,GetMsg(mPropSimpleFull),             0},
+        /* 3*/  {DI_RADIOBUTTON,5, 3, 0, 0,{0},NULL,NULL,0,                                0,GetMsg(mPropSimpleSpecial),          0},
+        /* 4*/  {DI_CHECKBOX,   7, 5, 0, 0,{0},NULL,NULL,0,                                0,GetMsg(mPropSimpleRead),             0},
+        /* 5*/  {DI_CHECKBOX,   7, 6, 0, 0,{0},NULL,NULL,0,                                0,GetMsg(mPropSimpleWrite),            0},
+        /* 6*/  {DI_CHECKBOX,   7, 7, 0, 0,{0},NULL,NULL,0,                                0,GetMsg(mPropSimpleExecute),          0},
+        /* 7*/  {DI_CHECKBOX,   7, 8, 0, 0,{0},NULL,NULL,0,                                0,GetMsg(mPropSimpleDelete),           0},
+        /* 8*/  {DI_CHECKBOX,   7, 9, 0, 0,{0},NULL,NULL,0,                                0,GetMsg(mPropSimpleChangePermissions),0},
+        /* 9*/  {DI_CHECKBOX,   7,10, 0, 0,{0},NULL,NULL,0,                                0,GetMsg(mPropSimpleTakeOwnership),    0},
+        /*10*/  {DI_BUTTON,     0,12, 0, 0,{0},NULL,NULL,DIF_CENTERGROUP|DIF_DEFAULTBUTTON,0,GetMsg(mPropButtonOk),               0},
+        /*11*/  {DI_BUTTON,     0,12, 0, 0,{0},NULL,NULL,DIF_CENTERGROUP,                  0,GetMsg(mPropButtonCancel),           0}
         };
-        struct FarDialogItem DialogItems[sizeof(InitItems)/sizeof(InitItems[0])];
-        InitDialogItems(InitItems,DialogItems,sizeof(InitItems)/sizeof(InitItems[0]));
         if((mask&common_full_access[panel->level])==common_full_access[panel->level])
           DialogItems[2].Selected=TRUE;
         else
@@ -114,7 +114,7 @@ bool EditCommonAccess(UserManager *panel)
               DialogItems[i].Selected=TRUE;
         }
         CFarDialog dialog;
-        int DlgCode=dialog.Execute(Info.ModuleNumber,-1,-1,76,15,_T("EditCommonAccess"),DialogItems,(sizeof(DialogItems)/sizeof(DialogItems[0])),0,0,EditCommonAccessDialogProc,0);
+        int DlgCode=dialog.Execute(MainGuid,EditCommonAccessGuid,-1,-1,76,15,_T("EditCommonAccess"),DialogItems,(sizeof(DialogItems)/sizeof(DialogItems[0])),0,0,EditCommonAccessDialogProc,0);
         if(DlgCode==10)
         {
           mask=0;

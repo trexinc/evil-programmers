@@ -18,8 +18,6 @@
 
 #include "far_helper.h"
 
-#ifdef UNICODE
-
 void Realloc(TCHAR*& aData,int& aLength,int aNewLength)
 {
   if(aNewLength>aLength)
@@ -46,6 +44,17 @@ void Realloc(PluginPanelItem*& aData,int& aSize,int aNewSize)
   }
 }
 
+CFarDialog::~CFarDialog()
+{
+  Info.DialogFree(iDlg);
+}
+
+int CFarDialog::Execute(const GUID& PluginId,const GUID& Id,int X1,int Y1,int X2,int Y2,const TCHAR* HelpTopic,struct FarDialogItem* Item,int ItemsNumber,DWORD Reserved,DWORD Flags,FARWINDOWPROC DlgProc,LONG_PTR Param)
+{
+  iDlg=Info.DialogInit(&PluginId,&Id,X1,Y1,X2,Y2,HelpTopic,Item,ItemsNumber,Reserved,Flags,DlgProc,Param);
+  return Info.DialogRun(iDlg);
+}
+
 const wchar_t* CFarDialog::Str(int index)
 {
   return (const wchar_t*)Info.SendDlgMessage(iDlg,DM_GETCONSTTEXTPTR,index,0);
@@ -54,6 +63,13 @@ const wchar_t* CFarDialog::Str(int index)
 int CFarDialog::Check(int index)
 {
   return (int)Info.SendDlgMessage(iDlg,DM_GETCHECK,index,0);
+}
+
+DWORD CFarDialog::Type(int index)
+{
+  FarDialogItem DialogItem;
+  if(Info.SendDlgMessage(iDlg,DM_GETDLGITEMSHORT,index,(LONG_PTR)&DialogItem)) return DialogItem.Type;
+  return 0;
 }
 
 CFarPanel::CFarPanel(HANDLE aPlugin,int aCommand): iPlugin(aPlugin),iCurDir(NULL),iCurDirSize(0),iItem(NULL),iItemSize(0)
@@ -106,14 +122,3 @@ PluginPanelItem& CFarPanelSelection::operator[](size_t index)
   Info.Control(iPlugin,iSelection?FCTL_GETSELECTEDPANELITEM:FCTL_GETCURRENTPANELITEM,index,(LONG_PTR)iItem);
   return *iItem;
 }
-
-#else
-
-CFarPanelSelection::CFarPanelSelection(HANDLE aPlugin,bool aSelection): iPlugin(aPlugin),iSelection(aSelection)
-{
-  iInfo.CurrentItem=0;
-  iInfo.SelectedItemsNumber=0;
-  Info.Control(aPlugin,FCTL_GETPANELINFO,(void*)&iInfo);
-}
-
-#endif

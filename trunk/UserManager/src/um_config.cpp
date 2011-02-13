@@ -20,8 +20,9 @@
 #include <stdio.h>
 #include "far_helper.h"
 #include "umplugin.h"
+#include "guid.h"
 
-static long WINAPI ConfigDialogProc(HANDLE hDlg, int Msg,int Param1,long Param2)
+static INT_PTR WINAPI ConfigDialogProc(HANDLE hDlg, int Msg,int Param1,INT_PTR Param2)
 {
   return Info.DefDlgProc(hDlg,Msg,Param1,Param2);
 }
@@ -51,38 +52,31 @@ int Config(void)
     0123456789012345678901234567890123456789012345678901234567890123456789012345
   */
 
-  static struct InitDialogItem InitItems[]={
-  /* 0*/  {DI_DOUBLEBOX,3,1,72,13,0,0,0,0,(TCHAR *)mName},
-  /* 1*/  {DI_CHECKBOX,5,2,0,0,0,0,0,0,(TCHAR *)mConfigAddToDisksMenu},
-  /* 2*/  {DI_FIXEDIT,7,3,7,3,1,0,0,0,_T("")},
-  /* 3*/  {DI_TEXT,9,3,0,0,0,0,0,0,(TCHAR *)mConfigDisksMenuDigit},
-  /* 4*/  {DI_CHECKBOX,5,4,0,0,0,0,0,0,(TCHAR *)mConfigAddToPluginMenu},
-  /* 5*/  {DI_CHECKBOX,5,5,0,0,0,0,0,0,(TCHAR *)mConfigAddToConfigMenu},
-  /* 6*/  {DI_TEXT,-1,6,0,0,0,0,DIF_SEPARATOR,0,_T("")},
-  /* 7*/  {DI_CHECKBOX,5,7,0,0,0,0,0,0,(TCHAR *)mConfigFullUserName},
-  /* 8*/  {DI_TEXT,-1,8,0,0,0,0,DIF_SEPARATOR,0,_T("")},
-  /* 9*/  {DI_TEXT,5,9,0,0,0,0,0,0,(TCHAR *)mConfigPrefix},
-  /*10*/  {DI_FIXEDIT,5,10,19,12,0,(int)_T("AAAAAAAAAAAAAAA"),DIF_MASKEDIT,0,_T("")},
-  /*11*/  {DI_TEXT,-1,11,0,0,0,0,DIF_SEPARATOR,0,_T("")},
-  /*12*/  {DI_BUTTON,0,12,0,0,0,0,DIF_CENTERGROUP,1,(TCHAR *)mConfigSave},
-  /*13*/  {DI_BUTTON,0,12,0,0,0,0,DIF_CENTERGROUP,0,(TCHAR *)mConfigCancel}
+  FarDialogItem DialogItems[]=
+  {
+  /* 0*/  {DI_DOUBLEBOX,3, 1,72,13,{0},NULL,NULL,                 0,                                0,GetMsg(mName),                 0},
+  /* 1*/  {DI_CHECKBOX, 5, 2, 0, 0,{0},NULL,NULL,                 0,                                0,GetMsg(mConfigAddToDisksMenu), 0},
+  /* 2*/  {DI_FIXEDIT,  7, 3, 7, 3,{0},NULL,NULL,                 DIF_FOCUS,                        0,_T(""),                        0},
+  /* 3*/  {DI_TEXT,     9, 3, 0, 0,{0},NULL,NULL,                 0,                                0,GetMsg(mConfigDisksMenuDigit), 0},
+  /* 4*/  {DI_CHECKBOX, 5, 4, 0, 0,{0},NULL,NULL,                 0,                                0,GetMsg(mConfigAddToPluginMenu),0},
+  /* 5*/  {DI_CHECKBOX, 5, 5, 0, 0,{0},NULL,NULL,                 0,                                0,GetMsg(mConfigAddToConfigMenu),0},
+  /* 6*/  {DI_TEXT,    -1, 6, 0, 0,{0},NULL,NULL,                 DIF_SEPARATOR,                    0,_T(""),                        0},
+  /* 7*/  {DI_CHECKBOX, 5, 7, 0, 0,{0},NULL,NULL,                 0,                                0,GetMsg(mConfigFullUserName),   0},
+  /* 8*/  {DI_TEXT,    -1, 8, 0, 0,{0},NULL,NULL,                 DIF_SEPARATOR,                    0,_T(""),                        0},
+  /* 9*/  {DI_TEXT,     5, 9, 0, 0,{0},NULL,NULL,                 0,                                0,GetMsg(mConfigPrefix),         0},
+  /*10*/  {DI_FIXEDIT,  5,10,19,12,{0},NULL,_T("AAAAAAAAAAAAAAA"),DIF_MASKEDIT,                     0,_T(""),                        0},
+  /*11*/  {DI_TEXT,    -1,11, 0, 0,{0},NULL,NULL,                 DIF_SEPARATOR,                    0,_T(""),                        0},
+  /*12*/  {DI_BUTTON,   0,12, 0, 0,{0},NULL,NULL,                 DIF_CENTERGROUP|DIF_DEFAULTBUTTON,0,GetMsg(mConfigSave),           0},
+  /*13*/  {DI_BUTTON,   0,12, 0, 0,{0},NULL,NULL,                 DIF_CENTERGROUP,                  0,GetMsg(mConfigCancel),         0}
   };
-  struct FarDialogItem DialogItems[sizeof(InitItems)/sizeof(InitItems[0])];
-  InitDialogItems(InitItems,DialogItems,sizeof(InitItems)/sizeof(InitItems[0]));
 
-#ifdef UNICODE
   TCHAR digit[21];
-#endif
 
   DialogItems[1].Selected=Opt.AddToDisksMenu;
   if (Opt.DisksMenuDigit)
   {
-#ifdef UNICODE
     FSF.sprintf(digit,_T("%d"),Opt.DisksMenuDigit);
     DialogItems[2].PtrData=digit;
-#else
-    FSF.sprintf(DialogItems[2].Data,_T("%d"),Opt.DisksMenuDigit);
-#endif
   }
   DialogItems[4].Selected=Opt.AddToPluginsMenu;
   DialogItems[5].Selected=Opt.AddToConfigMenu;
@@ -90,7 +84,7 @@ int Config(void)
   INIT_DLG_DATA(DialogItems[10],Opt.Prefix);
 
   CFarDialog dialog;
-  int DlgCode=dialog.Execute(Info.ModuleNumber,-1,-1,76,15,_T("Config"),DialogItems,(sizeof(DialogItems)/sizeof(DialogItems[0])),0,0,ConfigDialogProc,0);
+  int DlgCode=dialog.Execute(MainGuid,ConfigGuid,-1,-1,76,15,_T("Config"),DialogItems,(sizeof(DialogItems)/sizeof(DialogItems[0])),0,0,ConfigDialogProc,0);
   if (DlgCode!=12)
     return FALSE;
   Opt.AddToDisksMenu=dialog.Check(1);

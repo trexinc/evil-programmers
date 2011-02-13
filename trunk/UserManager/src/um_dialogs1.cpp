@@ -24,22 +24,30 @@
 #include "farkeys.hpp"
 #include "umplugin.h"
 #include "memory.h"
+#include "guid.h"
 
-static long WINAPI EditAdvancedAccessDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
+static INT_PTR WINAPI EditAdvancedAccessDialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
 {
   int *DlgParams=(int *)Info.SendDlgMessage(hDlg,DM_GETDLGDATA,0,0);
   switch(Msg)
   {
-    case DN_KEY:
-      if((Param2==KEY_SHIFTADD)||(Param2==KEY_SHIFTSUBTRACT))
+    case DN_CONTROLINPUT:
       {
-        int state=(Param2==KEY_SHIFTADD);
-        FarDialogItem DialogItem;
-        for(int i=0;i<DlgParams[1];i++)
+        const INPUT_RECORD* record=(const INPUT_RECORD*)Param2;
+        if(record->EventType==KEY_EVENT)
         {
-          Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,DlgParams[0]+i,(long)&DialogItem);
-          DialogItem.Selected=state;
-          Info.SendDlgMessage(hDlg,DM_SETDLGITEMSHORT,DlgParams[0]+i,(long)&DialogItem);
+          int key=FSF.FarInputRecordToKey(record);
+          if((key==KEY_SHIFTADD)||(key==KEY_SHIFTSUBTRACT))
+          {
+            int state=(key==KEY_SHIFTADD);
+            FarDialogItem DialogItem;
+            for(int i=0;i<DlgParams[1];i++)
+            {
+              Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,DlgParams[0]+i,(long)&DialogItem);
+              DialogItem.Selected=state;
+              Info.SendDlgMessage(hDlg,DM_SETDLGITEMSHORT,DlgParams[0]+i,(long)&DialogItem);
+            }
+          }
         }
       }
       break;
@@ -53,7 +61,7 @@ static bool EditAdvancedAccess(UserManager *panel,int size,int *messages,unsigne
   CFarPanel pInfo((HANDLE)panel,FCTL_GETPANELINFO);
   if(pInfo.IsOk())
   {
-    if((pInfo.ItemsNumber()>0)&&(!(pInfo[pInfo.CurrentItem()].FindData.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)))
+    if((pInfo.ItemsNumber()>0)&&(!(pInfo[pInfo.CurrentItem()].FileAttributes&FILE_ATTRIBUTE_DIRECTORY)))
     {
       if(pInfo[pInfo.CurrentItem()].Flags&PPIF_USERDATA)
       {
@@ -96,7 +104,7 @@ static bool EditAdvancedAccess(UserManager *panel,int size,int *messages,unsigne
           if(delimiter>=0)
             DialogItems[2].Type=DI_TEXT; DialogItems[2].X1=-1; DialogItems[2].Y1=3+delimiter; DialogItems[2].Flags=DIF_SEPARATOR;
 
-          DialogItems[button_index].Type=DI_BUTTON; DialogItems[button_index].Y1=ItemCount-1; DialogItems[button_index].Flags=DIF_CENTERGROUP; DialogItems[button_index].DefaultButton=TRUE; INIT_DLG_DATA(DialogItems[button_index],GetMsg(mPropButtonOk));
+          DialogItems[button_index].Type=DI_BUTTON; DialogItems[button_index].Y1=ItemCount-1; DialogItems[button_index].Flags=DIF_CENTERGROUP|DIF_DEFAULTBUTTON; INIT_DLG_DATA(DialogItems[button_index],GetMsg(mPropButtonOk));
           button_index++;
           DialogItems[button_index].Type=DI_BUTTON; DialogItems[button_index].Y1=ItemCount-1; DialogItems[button_index].Flags=DIF_CENTERGROUP; INIT_DLG_DATA(DialogItems[button_index],GetMsg(mPropButtonCancel));
           button_index--;
@@ -105,13 +113,13 @@ static bool EditAdvancedAccess(UserManager *panel,int size,int *messages,unsigne
             DialogItems[check_index+i].Type=DI_CHECKBOX;
             DialogItems[check_index+i].X1=5;
             DialogItems[check_index+i].Y1=2+i+((i>delimiter&&delimiter>=0)?1:0);
-            if(!i) DialogItems[check_index+i].Focus=TRUE;
+            if(!i) DialogItems[check_index+i].Flags|=DIF_FOCUS;
             INIT_DLG_DATA(DialogItems[check_index+i],GetMsg(messages[i]));
             if(mask&access[i]) DialogItems[check_index+i].Selected=TRUE;
           }
           int params[2]={check_index,size};
           CFarDialog dialog;
-          int DlgCode=dialog.Execute(Info.ModuleNumber,-1,-1,76,ItemCount+2,_T("EditAdvancedAccess"),DialogItems,ItemCount,0,0,EditAdvancedAccessDialogProc,(long)params);
+          int DlgCode=dialog.Execute(MainGuid,EditAdvancedAccessGuid,-1,-1,76,ItemCount+2,_T("EditAdvancedAccess"),DialogItems,ItemCount,0,0,EditAdvancedAccessDialogProc,(long)params);
           if(DlgCode==button_index)
           {
             mask=0;

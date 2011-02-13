@@ -24,13 +24,14 @@
 #include <lm.h>
 #include "umplugin.h"
 #include "memory.h"
+#include "guid.h"
 
-static long WINAPI ComputerDialogProc(HANDLE hDlg, int Msg,int Param1,long Param2)
+static INT_PTR WINAPI ComputerDialogProc(HANDLE hDlg, int Msg,int Param1,INT_PTR Param2)
 {
   switch(Msg)
   {
     case DN_INITDIALOG:
-      Info.SendDlgMessage(hDlg,DM_SETTEXTLENGTH,2,MAX_PATH-3);
+      Info.SendDlgMessage(hDlg,DM_SETMAXTEXTLENGTH,2,MAX_PATH-3);
       break;
   }
   return Info.DefDlgProc(hDlg,Msg,Param1,Param2);
@@ -55,21 +56,16 @@ bool GetComputer(UserManager *panel,bool selection)
       012345678901234567890123456789012345678901234567
     */
     static const TCHAR *ComputerHistoryName=_T("UserManager\\Computer");
-    static struct InitDialogItem InitDlg[]={
-    /*0*/  {DI_DOUBLEBOX,3,1,44,5,0,0,0,0,(TCHAR *)mSelCompTitle},
-    /*1*/  {DI_TEXT,5,2,0,0,0,0,0,0,(TCHAR *)mSelCompLabel},
-    /*2*/  {DI_EDIT,5,3,42,0,1,(DWORD)ComputerHistoryName,DIF_HISTORY,0,_T("")},
-    /*3*/  {DI_TEXT,5,4,0,0,0,0,0,0,(TCHAR *)mSelCompFootnote},
+    FarDialogItem DialogItems[]=
+    {
+    /*0*/  {DI_DOUBLEBOX,3,1,44,5,{0},NULL,               NULL,0,                    0,GetMsg(mSelCompTitle),   0},
+    /*1*/  {DI_TEXT,     5,2, 0,0,{0},NULL,               NULL,0,                    0,GetMsg(mSelCompLabel),   0},
+    /*2*/  {DI_EDIT,     5,3,42,0,{0},ComputerHistoryName,NULL,DIF_HISTORY|DIF_FOCUS,0,_T(""),                  0},
+    /*3*/  {DI_TEXT,     5,4, 0,0,{0},NULL,               NULL,0,                    0,GetMsg(mSelCompFootnote),0},
     };
-    struct FarDialogItem DialogItems[sizeof(InitDlg)/sizeof(InitDlg[0])];
-    InitDialogItems(InitDlg,DialogItems,sizeof(InitDlg)/sizeof(InitDlg[0]));
-#ifdef UNICODE
     DialogItems[2].PtrData=panel->computer_ptr;
-#else
-    WideCharToMultiByte(CP_OEMCP,0,panel->computer_ptr,-1,DialogItems[2].Data,MAX_PATH,NULL,NULL);
-#endif
     CFarDialog dialog;
-    int DlgCode=dialog.Execute(Info.ModuleNumber,-1,-1,48,7,NULL,DialogItems,(sizeof(InitDlg)/sizeof(InitDlg[0])),0,0,ComputerDialogProc,0);
+    int DlgCode=dialog.Execute(MainGuid,GetComputerGuid,-1,-1,48,7,NULL,DialogItems,ArraySize(DialogItems),0,0,ComputerDialogProc,0);
     if(DlgCode!=-1)
     {
       if(dialog.Str(2)[0])
@@ -86,13 +82,9 @@ bool GetComputer(UserManager *panel,bool selection)
         }
         HANDLE hSScr=Info.SaveScreen(0,0,-1,-1);
         const TCHAR *MsgItems[]={_T(""),GetMsg(mOtherConnect)};
-        Info.Message(Info.ModuleNumber,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),0);
+        Info.Message(&MainGuid,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),0);
         wchar_t temp_computer_name[MAX_PATH];
-#ifdef UNICODE
         _tcscpy(temp_computer_name,tmp);
-#else
-        MultiByteToWideChar(CP_OEMCP,0,tmp,-1,temp_computer_name,sizeof(temp_computer_name)/sizeof(temp_computer_name[0]));
-#endif
         DWORD count;
         PVOID buffer;
         if(NetQueryDisplayInformation(temp_computer_name,2,0,1,MAX_PREFERRED_LENGTH,&count,&buffer)==NERR_Success)

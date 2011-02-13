@@ -1,16 +1,10 @@
-ifdef WIDE
 CCWIDE = -D UNICODE -D _UNICODE
-DIRSURF = W
-endif
+
 ifndef COMMON
 COMMON = ../../common
 endif
 
-ifdef WIDE
-COMINC = $(COMMON)/unicode
-else
-COMINC = $(COMMON)/ascii
-endif
+COMINC = $(COMMON)
 
 OBJDIR=o$(DIRSURF)
 BINDIR=bin$(DIRSURF)
@@ -50,10 +44,10 @@ $(TARGET): $(OBJS)
 	$(RM) $@.base
 	$(RM) $@.exp
 
-$(OBJS0): ../$(OBJDIR)/%.o: %.cpp far_helper.h
+$(OBJS0): ../$(OBJDIR)/%.o: %.cpp far_helper.h guid.h
 	$(CC) $(CFLAGS) $< -o $@
 
-$(OBJS1): ../$(OBJDIR)/%.o: %.cpp umplugin.h far_helper.h
+$(OBJS1): ../$(OBJDIR)/%.o: %.cpp umplugin.h far_helper.h guid.h
 	$(CC) $(CFLAGS) $< -o $@
 
 $(OBJS2): ../$(OBJDIR)/%.o: %.cpp far_helper.h

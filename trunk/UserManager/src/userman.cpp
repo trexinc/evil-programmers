@@ -25,6 +25,9 @@
 #include <ntsecapi.h>
 #include "umplugin.h"
 #include "memory.h"
+#include <initguid.h>
+#include "guid.h"
+#include "bootstrap/umversion.h"
 
 PluginStartupInfo Info;
 FARSTANDARDFUNCTIONS FSF;
@@ -154,81 +157,87 @@ static void del_panel(UserManager *panel)
     panels[1]=NULL;
 }
 
-void WINAPI EXP_NAME(SetStartupInfo)(const struct PluginStartupInfo *Info)
+void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
+{
+  Info->StructSize=sizeof(GlobalInfo);
+  Info->MinFarVersion=FARMANAGERVERSION;
+  Info->Version=MAKEFARVERSION(VER_MAJOR,VER_MINOR,VER_BUILD);
+  Info->Guid=MainGuid;
+  Info->Title=L"User Manager";
+  Info->Description=L"User Manager";
+  Info->Author=L"Vadim Yegorov";
+}
+
+void WINAPI SetStartupInfoW(const struct PluginStartupInfo *Info)
 {
   memset(&::Info,0,sizeof(::Info));
   memmove(&::Info,Info,(Info->StructSize>(int)sizeof(::Info))?sizeof(::Info):Info->StructSize);
-#ifndef UNICODE
-  if(Info->StructSize>FAR165_INFO_SIZE)
-#endif
+  IsOldFAR=FALSE;
+  ::FSF=*Info->FSF;
+  ::Info.FSF=&::FSF;
+
+  _tcscpy(PluginRootKey,Info->RootKey);
+  _tcscat(PluginRootKey,_T("\\userman"));
+
+  HKEY hKey;
+  DWORD Type;
+  DWORD DataSize=0;
+  if((RegOpenKeyEx(HKEY_CURRENT_USER,PluginRootKey,0,KEY_QUERY_VALUE,&hKey))==ERROR_SUCCESS)
   {
-    IsOldFAR=FALSE;
-    ::FSF=*Info->FSF;
-    ::Info.FSF=&::FSF;
-
-    _tcscpy(PluginRootKey,Info->RootKey);
-    _tcscat(PluginRootKey,_T("\\userman"));
-
-    HKEY hKey;
-    DWORD Type;
-    DWORD DataSize=0;
-    if((RegOpenKeyEx(HKEY_CURRENT_USER,PluginRootKey,0,KEY_QUERY_VALUE,&hKey))==ERROR_SUCCESS)
-    {
-      DataSize=sizeof(Opt.AddToDisksMenu);
-      RegQueryValueEx(hKey,_T("AddToDisksMenu"),0,&Type,(LPBYTE)&Opt.AddToDisksMenu,&DataSize);
-      DataSize=sizeof(Opt.DisksMenuDigit);
-      RegQueryValueEx(hKey,_T("DisksMenuDigit"),0,&Type,(LPBYTE)&Opt.DisksMenuDigit,&DataSize);
-      DataSize=sizeof(Opt.AddToPluginsMenu);
-      RegQueryValueEx(hKey,_T("AddToPluginsMenu"),0,&Type,(LPBYTE)&Opt.AddToPluginsMenu,&DataSize);
-      DataSize=sizeof(Opt.AddToConfigMenu);
-      RegQueryValueEx(hKey,_T("AddToConfigMenu"),0,&Type,(LPBYTE)&Opt.AddToConfigMenu,&DataSize);
-      DataSize=sizeof(Opt.FullUserNames);
-      RegQueryValueEx(hKey,_T("FullUserNames"),0,&Type,(LPBYTE)&Opt.FullUserNames,&DataSize);
-      DataSize=sizeof(Opt.Prefix);
-      RegQueryValueEx(hKey,_T("Prefix"),0,&Type,(LPBYTE)Opt.Prefix,&DataSize);
-      RegCloseKey(hKey);
-      if(!Opt.Prefix[0])
-        _tcscpy(Opt.Prefix,_T("acl"));
-    }
-    if(!IsPrivilegeEnabled(SE_SECURITY_NAME))
-      EnablePrivilege(SE_SECURITY_NAME);
-    if(!IsPrivilegeEnabled(SE_TAKE_OWNERSHIP_NAME))
-      EnablePrivilege(SE_TAKE_OWNERSHIP_NAME);
-    if(!IsPrivilegeEnabled(SE_RESTORE_NAME))
-      EnablePrivilege(SE_RESTORE_NAME);
-    if(!IsPrivilegeEnabled(SE_BACKUP_NAME))
-      EnablePrivilege(SE_BACKUP_NAME);
-
-    EnablePrivilege(SE_CREATE_TOKEN_NAME);
-    EnablePrivilege(SE_ASSIGNPRIMARYTOKEN_NAME);
-    EnablePrivilege(SE_LOCK_MEMORY_NAME);
-    EnablePrivilege(SE_INCREASE_QUOTA_NAME);
-    EnablePrivilege(SE_UNSOLICITED_INPUT_NAME);
-    EnablePrivilege(SE_MACHINE_ACCOUNT_NAME);
-    EnablePrivilege(SE_TCB_NAME);
-    EnablePrivilege(SE_SECURITY_NAME);
-    EnablePrivilege(SE_TAKE_OWNERSHIP_NAME);
-    EnablePrivilege(SE_LOAD_DRIVER_NAME);
-    EnablePrivilege(SE_SYSTEM_PROFILE_NAME);
-    EnablePrivilege(SE_SYSTEMTIME_NAME);
-    EnablePrivilege(SE_PROF_SINGLE_PROCESS_NAME);
-    EnablePrivilege(SE_INC_BASE_PRIORITY_NAME);
-    EnablePrivilege(SE_CREATE_PAGEFILE_NAME);
-    EnablePrivilege(SE_CREATE_PERMANENT_NAME);
-    EnablePrivilege(SE_BACKUP_NAME);
-    EnablePrivilege(SE_RESTORE_NAME);
-    EnablePrivilege(SE_SHUTDOWN_NAME);
-    EnablePrivilege(SE_DEBUG_NAME);
-    EnablePrivilege(SE_AUDIT_NAME);
-    EnablePrivilege(SE_SYSTEM_ENVIRONMENT_NAME);
-    EnablePrivilege(SE_CHANGE_NOTIFY_NAME);
-    EnablePrivilege(SE_REMOTE_SHUTDOWN_NAME);
-
-    init_current_user();
+    DataSize=sizeof(Opt.AddToDisksMenu);
+    RegQueryValueEx(hKey,_T("AddToDisksMenu"),0,&Type,(LPBYTE)&Opt.AddToDisksMenu,&DataSize);
+    DataSize=sizeof(Opt.DisksMenuDigit);
+    RegQueryValueEx(hKey,_T("DisksMenuDigit"),0,&Type,(LPBYTE)&Opt.DisksMenuDigit,&DataSize);
+    DataSize=sizeof(Opt.AddToPluginsMenu);
+    RegQueryValueEx(hKey,_T("AddToPluginsMenu"),0,&Type,(LPBYTE)&Opt.AddToPluginsMenu,&DataSize);
+    DataSize=sizeof(Opt.AddToConfigMenu);
+    RegQueryValueEx(hKey,_T("AddToConfigMenu"),0,&Type,(LPBYTE)&Opt.AddToConfigMenu,&DataSize);
+    DataSize=sizeof(Opt.FullUserNames);
+    RegQueryValueEx(hKey,_T("FullUserNames"),0,&Type,(LPBYTE)&Opt.FullUserNames,&DataSize);
+    DataSize=sizeof(Opt.Prefix);
+    RegQueryValueEx(hKey,_T("Prefix"),0,&Type,(LPBYTE)Opt.Prefix,&DataSize);
+    RegCloseKey(hKey);
+    if(!Opt.Prefix[0])
+      _tcscpy(Opt.Prefix,_T("acl"));
   }
+  if(!IsPrivilegeEnabled(SE_SECURITY_NAME))
+    EnablePrivilege(SE_SECURITY_NAME);
+  if(!IsPrivilegeEnabled(SE_TAKE_OWNERSHIP_NAME))
+    EnablePrivilege(SE_TAKE_OWNERSHIP_NAME);
+  if(!IsPrivilegeEnabled(SE_RESTORE_NAME))
+    EnablePrivilege(SE_RESTORE_NAME);
+  if(!IsPrivilegeEnabled(SE_BACKUP_NAME))
+    EnablePrivilege(SE_BACKUP_NAME);
+
+  EnablePrivilege(SE_CREATE_TOKEN_NAME);
+  EnablePrivilege(SE_ASSIGNPRIMARYTOKEN_NAME);
+  EnablePrivilege(SE_LOCK_MEMORY_NAME);
+  EnablePrivilege(SE_INCREASE_QUOTA_NAME);
+  EnablePrivilege(SE_UNSOLICITED_INPUT_NAME);
+  EnablePrivilege(SE_MACHINE_ACCOUNT_NAME);
+  EnablePrivilege(SE_TCB_NAME);
+  EnablePrivilege(SE_SECURITY_NAME);
+  EnablePrivilege(SE_TAKE_OWNERSHIP_NAME);
+  EnablePrivilege(SE_LOAD_DRIVER_NAME);
+  EnablePrivilege(SE_SYSTEM_PROFILE_NAME);
+  EnablePrivilege(SE_SYSTEMTIME_NAME);
+  EnablePrivilege(SE_PROF_SINGLE_PROCESS_NAME);
+  EnablePrivilege(SE_INC_BASE_PRIORITY_NAME);
+  EnablePrivilege(SE_CREATE_PAGEFILE_NAME);
+  EnablePrivilege(SE_CREATE_PERMANENT_NAME);
+  EnablePrivilege(SE_BACKUP_NAME);
+  EnablePrivilege(SE_RESTORE_NAME);
+  EnablePrivilege(SE_SHUTDOWN_NAME);
+  EnablePrivilege(SE_DEBUG_NAME);
+  EnablePrivilege(SE_AUDIT_NAME);
+  EnablePrivilege(SE_SYSTEM_ENVIRONMENT_NAME);
+  EnablePrivilege(SE_CHANGE_NOTIFY_NAME);
+  EnablePrivilege(SE_REMOTE_SHUTDOWN_NAME);
+
+  init_current_user();
 }
 
-void WINAPI EXP_NAME(GetPluginInfo)(struct PluginInfo *Info)
+void WINAPI GetPluginInfoW(struct PluginInfo *Info)
 {
   if(!IsOldFAR)
   {
@@ -237,23 +246,23 @@ void WINAPI EXP_NAME(GetPluginInfo)(struct PluginInfo *Info)
 
     static const TCHAR *DisksMenuStrings[1];
     DisksMenuStrings[0]=GetMsg(mNameDisk);
-    static int DisksMenuNumbers[1];
-    Info->DiskMenuStrings=DisksMenuStrings;
-    DisksMenuNumbers[0]=Opt.DisksMenuDigit;
-    Info->DiskMenuNumbers=DisksMenuNumbers;
-    Info->DiskMenuStringsNumber=Opt.AddToDisksMenu?1:0;
+    Info->DiskMenu.Guids=&DiskGuid;
+    Info->DiskMenu.Strings=DisksMenuStrings;
+    Info->DiskMenu.Count=Opt.AddToDisksMenu?1:0;
 
     static const TCHAR *PluginMenuStrings[1];
     PluginMenuStrings[0]=GetMsg(mName);
-    Info->PluginMenuStrings=PluginMenuStrings;
-    Info->PluginMenuStringsNumber=Opt.AddToPluginsMenu?(sizeof(PluginMenuStrings)/sizeof(PluginMenuStrings[0])):0;
-    Info->PluginConfigStrings=PluginMenuStrings;
-    Info->PluginConfigStringsNumber=Opt.AddToConfigMenu?(sizeof(PluginMenuStrings)/sizeof(PluginMenuStrings[0])):0;
+    Info->PluginMenu.Guids=&MenuGuid;
+    Info->PluginMenu.Strings=PluginMenuStrings;
+    Info->PluginMenu.Count=Opt.AddToPluginsMenu?(sizeof(PluginMenuStrings)/sizeof(PluginMenuStrings[0])):0;
+    Info->PluginConfig.Guids=&MenuGuid;
+    Info->PluginConfig.Strings=PluginMenuStrings;
+    Info->PluginConfig.Count=Opt.AddToConfigMenu?(sizeof(PluginMenuStrings)/sizeof(PluginMenuStrings[0])):0;
     Info->CommandPrefix=Opt.Prefix;
   }
 }
 
-HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom,int Item)
+HANDLE WINAPI OpenPluginW(int OpenFrom,const GUID* Guid,INT_PTR Item)
 {
   if(IsOldFAR) return INVALID_HANDLE_VALUE;
   HANDLE res=INVALID_HANDLE_VALUE;
@@ -269,24 +278,16 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom,int Item)
       {
         int Msgs[]={mMenuProp,mMenuApply,mMenuSep1,mMenuUsers,mMenuRights};
         FarMenuItem MenuItems[mMenuRights-mMenuProp+1];
-#ifdef UNICODE
         TCHAR ItemText[mMenuRights-mMenuProp+1][128];
-#endif
         for(unsigned int i=0;i<(mMenuRights-mMenuProp+1);i++)
         {
-          MenuItems[i].Selected=MenuItems[i].Checked=MenuItems[i].Separator=FALSE;
-#ifdef UNICODE
+          MenuItems[i].Flags=0ULL;
           _tcscpy(ItemText[i],GetMsg(Msgs[i]));
           MenuItems[i].Text=ItemText[i];
-#else
-          _tcscpy(MenuItems[i].Text,GetMsg(Msgs[i])); // Text in menu
-#endif
-          if(MenuItems[i].Text[0]=='-') MenuItems[i].Separator=TRUE;
+          if(MenuItems[i].Text[0]=='-') MenuItems[i].Flags|=MIF_SEPARATOR;
         };
-        MenuItems[0].Selected=TRUE;
-        int MenuCode=Info.Menu(Info.ModuleNumber,-1,-1,0,FMENU_AUTOHIGHLIGHT|FMENU_WRAPMODE,
-                           NULL,NULL,_T("Contents"),NULL,NULL,
-                           MenuItems,sizeof(MenuItems)/sizeof(MenuItems[0]));
+        MenuItems[0].Flags|=MIF_SELECTED;
+        int MenuCode=Info.Menu(&MainGuid,-1,-1,0,FMENU_AUTOHIGHLIGHT|FMENU_WRAPMODE,NULL,NULL,_T("Contents"),NULL,NULL,MenuItems,sizeof(MenuItems)/sizeof(MenuItems[0]));
         switch(MenuCode)
         {
           case 0:
@@ -295,12 +296,10 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom,int Item)
               if(pInfo.SelectedItemsNumber()>0)
               {
                 if(pInfo.Plugin())
-                  panel->level=parse_dir(pInfo.CurDir(),pInfo[pInfo.CurrentItem()].FindData.PANEL_FILENAME,NULL,pathtypePlugin,&(panel->param),panel->hostfile,panel->hostfile_oem);
+                  panel->level=parse_dir(pInfo.CurDir(),pInfo[pInfo.CurrentItem()].FileName,NULL,pathtypePlugin,&(panel->param),panel->hostfile,panel->hostfile_oem);
                 else
                 {
-                  wchar_t filename_w[MAX_PATH];
-                  if(GetWideName(pInfo.CurDir(),&pInfo[pInfo.CurrentItem()].FindData,filename_w))
-                    panel->level=parse_dir(pInfo.CurDir(),pInfo[pInfo.CurrentItem()].FindData.PANEL_FILENAME,filename_w,pathtypeReal,&(panel->param),panel->hostfile,panel->hostfile_oem);
+                  panel->level=parse_dir(pInfo.CurDir(),pInfo[pInfo.CurrentItem()].FileName,pInfo[pInfo.CurrentItem()].FileName,pathtypeReal,&(panel->param),panel->hostfile,panel->hostfile_oem);
                 }
               }
             }
@@ -319,7 +318,7 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom,int Item)
             break;
         }
       }
-      else if(OpenFrom==OPEN_DISKMENU)
+      else if(OpenFrom==OPEN_LEFTDISKMENU||OpenFrom==OPEN_RIGHTDISKMENU)
       {
         panel->level=levelGroups;
       }
@@ -400,7 +399,7 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom,int Item)
   return res;
 }
 
-void WINAPI EXP_NAME(ClosePlugin)(HANDLE hPlugin)
+void WINAPI ClosePluginW(HANDLE hPlugin)
 {
   UserManager *panel=(UserManager *)hPlugin;
   del_panel(panel);
@@ -420,15 +419,11 @@ static void SetDescription(PluginPanelItem *tmpItem,wchar_t *Description)
   tmpItem->Description=(TCHAR *)malloc((wcslen(Description)+1)*sizeof(TCHAR));
   if(tmpItem->Description)
   {
-#ifdef UNICODE
     _tcscpy((TCHAR*)tmpItem->Description,Description); //FIXME
-#else
-    WideCharToMultiByte(CP_OEMCP,0,Description,-1,tmpItem->Description,wcslen(Description)+1,NULL,NULL);
-#endif
   }
 }
 
-int WINAPI EXP_NAME(GetFindData)(HANDLE hPlugin,struct PluginPanelItem **pPanelItem,int *pItemsNumber,int OpMode)
+int WINAPI GetFindDataW(HANDLE hPlugin,struct PluginPanelItem **pPanelItem,int *pItemsNumber,int OpMode)
 {
   if(!IsOldFAR)
   {
@@ -445,7 +440,7 @@ int WINAPI EXP_NAME(GetFindData)(HANDLE hPlugin,struct PluginPanelItem **pPanelI
         *pItemsNumber=ItemCount+OwnerCount;
         for(int i=0;i<ItemCount;i++)
         {
-          (*pPanelItem)[i].FindData.dwFileAttributes=FILE_ATTRIBUTE_DIRECTORY;
+          (*pPanelItem)[i].FileAttributes=FILE_ATTRIBUTE_DIRECTORY;
           AddDefaultUserdata((*pPanelItem+i),plain_dirs_dir[panel->level][i*2+3],i,0,NULL,NULL,GetMsg(plain_dirs_dir[panel->level][i*2+2]),GetMsg(plain_dirs_dir[panel->level][i*2+2]));
         }
         if(OwnerCount)
@@ -520,25 +515,25 @@ int WINAPI EXP_NAME(GetFindData)(HANDLE hPlugin,struct PluginPanelItem **pPanelI
           }
           if(perm_dirs_dir[panel->level]==PERM_KEY)
           {
-            tmpItem->FindData.dwFileAttributes=FILE_ATTRIBUTE_DIRECTORY;
+            tmpItem->FileAttributes=FILE_ATTRIBUTE_DIRECTORY;
             AddDefaultUserdata(tmpItem,panel->level+1,cur_sortorder++,0,NULL,NULL,GetMsg(mDirNewKey),GetMsg(mDirNewKey));
             tmpItem++;
           }
           else if((perm_dirs_dir[panel->level]==PERM_FF)&&(panel->flags&FLAG_FOLDER))
           {
-            tmpItem->FindData.dwFileAttributes=FILE_ATTRIBUTE_DIRECTORY;
+            tmpItem->FileAttributes=FILE_ATTRIBUTE_DIRECTORY;
             AddDefaultUserdata(tmpItem,panel->level+1,cur_sortorder++,0,NULL,NULL,GetMsg(mDirNewFolder),GetMsg(mDirNewFolder));
             tmpItem++;
-            tmpItem->FindData.dwFileAttributes=FILE_ATTRIBUTE_DIRECTORY;
+            tmpItem->FileAttributes=FILE_ATTRIBUTE_DIRECTORY;
             AddDefaultUserdata(tmpItem,panel->level+2,cur_sortorder++,0,NULL,NULL,GetMsg(mDirNewFile),GetMsg(mDirNewFile));
             tmpItem++;
           }
           else if(perm_dirs_dir[panel->level]==PERM_PRINT)
           {
-            tmpItem->FindData.dwFileAttributes=FILE_ATTRIBUTE_DIRECTORY;
+            tmpItem->FileAttributes=FILE_ATTRIBUTE_DIRECTORY;
             AddDefaultUserdata(tmpItem,panel->level+1,cur_sortorder++,0,NULL,NULL,GetMsg(mDirNewContainer),GetMsg(mDirNewContainer));
             tmpItem++;
-            tmpItem->FindData.dwFileAttributes=FILE_ATTRIBUTE_DIRECTORY;
+            tmpItem->FileAttributes=FILE_ATTRIBUTE_DIRECTORY;
             AddDefaultUserdata(tmpItem,panel->level+2,cur_sortorder++,0,NULL,NULL,GetMsg(mDirNewJob),GetMsg(mDirNewJob));
             tmpItem++;
           }
@@ -573,12 +568,8 @@ int WINAPI EXP_NAME(GetFindData)(HANDLE hPlugin,struct PluginPanelItem **pPanelI
             if(!_wcsicmp((wchar_t *)shares[i].shi502_path,(panel->computer_ptr)?panel->domain:panel->hostfile))
             {
               TCHAR new_filename[MAX_PATH];
-#ifdef UNICODE
               _tcscpy(new_filename,shares[i].shi502_netname);
-#else
-              WideCharToMultiByte(CP_OEMCP,0,(wchar_t *)shares[i].shi502_netname,-1,new_filename,MAX_PATH,NULL,NULL);
-#endif
-              (*pPanelItem)[j].FindData.dwFileAttributes=FILE_ATTRIBUTE_DIRECTORY;
+              (*pPanelItem)[j].FileAttributes=FILE_ATTRIBUTE_DIRECTORY;
               SetDescription((*pPanelItem)+j,(wchar_t *)shares[i].shi502_remark);
               AddDefaultUserdata((*pPanelItem+j),levelSharedIn,0,0,NULL,(wchar_t *)shares[i].shi502_netname,NULL,new_filename);
               TCHAR** CustomColumnData=(TCHAR**)malloc(sizeof(TCHAR *)*CUSTOM_COLUMN_COUNT);
@@ -599,11 +590,7 @@ int WINAPI EXP_NAME(GetFindData)(HANDLE hPlugin,struct PluginPanelItem **pPanelI
                 CustomColumnData[2]=(TCHAR *)malloc((wcslen((wchar_t *)shares[i].shi502_path)+1)*sizeof(TCHAR));
                 if(CustomColumnData[2])
                 {
-#ifdef UNICODE
                   _tcscpy(CustomColumnData[2],shares[i].shi502_path);
-#else
-                  WideCharToMultiByte(CP_OEMCP,0,(wchar_t *)shares[i].shi502_path,-1,CustomColumnData[2],wcslen((wchar_t *)shares[i].shi502_path)+1,NULL,NULL);
-#endif
                 }
                 NormalizeCustomColumns((*pPanelItem)+j);
               }
@@ -637,13 +624,9 @@ int WINAPI EXP_NAME(GetFindData)(HANDLE hPlugin,struct PluginPanelItem **pPanelI
                   if(*pPanelItem)
                   {
                     *pItemsNumber=1;
-#ifdef UNICODE
                     TCHAR* item_filename=(TCHAR*)malloc((_tcslen(data->pShareName)+1)*sizeof(TCHAR));
                     if(item_filename) _tcscpy(item_filename,data->pShareName);
-                    (*pPanelItem)[0].FindData.PANEL_FILENAME=item_filename;
-#else
-                    WideCharToMultiByte(CP_OEMCP,0,data->pShareName,-1,(*pPanelItem)[0].FindData.PANEL_FILENAME,MAX_PATH,NULL,NULL);
-#endif
+                    (*pPanelItem)[0].FileName=item_filename;
                   }
                 }
               }
@@ -686,12 +669,8 @@ int WINAPI EXP_NAME(GetFindData)(HANDLE hPlugin,struct PluginPanelItem **pPanelI
               group_name=((LOCALGROUP_INFO_1 *)groups)[i].lgrpi1_name;
               group_comment=((LOCALGROUP_INFO_1 *)groups)[i].lgrpi1_comment;
             }
-#ifdef UNICODE
             _tcscpy(new_filename,group_name);
-#else
-            WideCharToMultiByte(CP_OEMCP,0,group_name,-1,new_filename,MAX_PATH,NULL,NULL);
-#endif
-            (*pPanelItem)[i].FindData.dwFileAttributes=FILE_ATTRIBUTE_DIRECTORY;
+            (*pPanelItem)[i].FileAttributes=FILE_ATTRIBUTE_DIRECTORY;
             bool sid_ok=false;
             DWORD sid_size=0,domain_size=0; PSID sid=NULL; wchar_t *domain=NULL; SID_NAME_USE type;
             if(!LookupAccountNameW((panel->global)?(panel->domain):(panel->computer_ptr),group_name,NULL,&sid_size,NULL,&domain_size,&type))
@@ -710,11 +689,7 @@ int WINAPI EXP_NAME(GetFindData)(HANDLE hPlugin,struct PluginPanelItem **pPanelI
           }
           for(unsigned long i=0;i<entriesread2;i++)
           {
-#ifdef UNICODE
             _tcscpy(new_filename,((USER_INFO_10 *)users)[i].usri10_name);
-#else
-            WideCharToMultiByte(CP_OEMCP,0,((USER_INFO_10 *)users)[i].usri10_name,-1,new_filename,MAX_PATH,NULL,NULL);
-#endif
             bool sid_ok=false;
             DWORD sid_size=0,domain_size=0; PSID sid=NULL; wchar_t *domain=NULL; SID_NAME_USE type;
             if(!LookupAccountNameW((panel->global)?(panel->domain):(panel->computer_ptr),((USER_INFO_10 *)users)[i].usri10_name,NULL,&sid_size,NULL,&domain_size,&type))
@@ -729,7 +704,7 @@ int WINAPI EXP_NAME(GetFindData)(HANDLE hPlugin,struct PluginPanelItem **pPanelI
             if(sid_ok)
             {
               AddDefaultUserdata((*pPanelItem)+i+entriesread1,levelUsers,0,0,sid,((USER_INFO_10 *)users)[i].usri10_name,NULL,new_filename);
-              if(is_current_user(sid)) (*pPanelItem)[i+entriesread1].FindData.dwFileAttributes=FILE_ATTRIBUTE_READONLY;
+              if(is_current_user(sid)) (*pPanelItem)[i+entriesread1].FileAttributes=FILE_ATTRIBUTE_READONLY;
             }
             SetDescription((*pPanelItem)+i+entriesread1,((USER_INFO_10 *)users)[i].usri10_comment);
             free(domain);
@@ -742,7 +717,7 @@ int WINAPI EXP_NAME(GetFindData)(HANDLE hPlugin,struct PluginPanelItem **pPanelI
               wchar_t *username; TCHAR *username_oem;
               GetUserNameEx(panel->computer_ptr,sid,false,&username,&username_oem);
               AddDefaultUserdata((*pPanelItem)+i+entriesread1+entriesread2,0,0,0,sid,username,NULL,username_oem);
-              if(is_current_user(sid)) (*pPanelItem)[i+entriesread1+entriesread2].FindData.dwFileAttributes=FILE_ATTRIBUTE_READONLY;
+              if(is_current_user(sid)) (*pPanelItem)[i+entriesread1+entriesread2].FileAttributes=FILE_ATTRIBUTE_READONLY;
             }
           }
           for(unsigned int i=0;i<(entriesread1+entriesread2+sizeof(AddSID)/sizeof(AddSID[0]));i++)
@@ -756,15 +731,11 @@ int WINAPI EXP_NAME(GetFindData)(HANDLE hPlugin,struct PluginPanelItem **pPanelI
               NormalizeCustomColumns((*pPanelItem)+i);
             }
           }
-#ifdef UNICODE
           TCHAR* item_filename=(TCHAR*)malloc(6);
-          (*pPanelItem)[entriesread1+entriesread2+sizeof(AddSID)/sizeof(AddSID[0])].FindData.PANEL_FILENAME=item_filename;
+          (*pPanelItem)[entriesread1+entriesread2+sizeof(AddSID)/sizeof(AddSID[0])].FileName=item_filename;
           if(item_filename)
             _tcscpy(item_filename,_T(".."));
-#else
-          _tcscpy((*pPanelItem)[entriesread1+entriesread2+sizeof(AddSID)/sizeof(AddSID[0])].FindData.PANEL_FILENAME,_T(".."));
-#endif
-          (*pPanelItem)[entriesread1+entriesread2+sizeof(AddSID)/sizeof(AddSID[0])].FindData.dwFileAttributes=0;
+          (*pPanelItem)[entriesread1+entriesread2+sizeof(AddSID)/sizeof(AddSID[0])].FileAttributes=0;
         }
       }
       if(groups) NetApiBufferFree(groups);
@@ -798,22 +769,14 @@ int WINAPI EXP_NAME(GetFindData)(HANDLE hPlugin,struct PluginPanelItem **pPanelI
           {
             if(panel->global)
             {
-#ifdef UNICODE
               _tcscpy(new_filename,globalMembers[i].grui0_name);
-#else
-              WideCharToMultiByte(CP_OEMCP,0,globalMembers[i].grui0_name,-1,new_filename,MAX_PATH,NULL,NULL);
-#endif
               AddDefaultUserdata((*pPanelItem)+i,-1,0,0,NULL,globalMembers[i].grui0_name,NULL,new_filename);
             }
             else
             {
-#ifdef UNICODE
               _tcscpy(new_filename,localMembers[i].lgrmi1_name);
-#else
-              WideCharToMultiByte(CP_OEMCP,0,localMembers[i].lgrmi1_name,-1,new_filename,MAX_PATH,NULL,NULL);
-#endif
               AddDefaultUserdata((*pPanelItem)+i,-1,0,0,localMembers[i].lgrmi1_sid,localMembers[i].lgrmi1_name,NULL,new_filename);
-              if(is_current_user(localMembers[i].lgrmi1_sid)) (*pPanelItem)[i].FindData.dwFileAttributes=FILE_ATTRIBUTE_READONLY;
+              if(is_current_user(localMembers[i].lgrmi1_sid)) (*pPanelItem)[i].FileAttributes=FILE_ATTRIBUTE_READONLY;
               TCHAR** CustomColumnData=(TCHAR**)malloc(sizeof(TCHAR *)*CUSTOM_COLUMN_COUNT);
               (*pPanelItem)[i].CustomColumnData=CustomColumnData;
               if(CustomColumnData)
@@ -823,15 +786,11 @@ int WINAPI EXP_NAME(GetFindData)(HANDLE hPlugin,struct PluginPanelItem **pPanelI
               }
             }
           }
-#ifdef UNICODE
           TCHAR* item_filename=(TCHAR*)malloc(6);
-          (*pPanelItem)[entriesread].FindData.PANEL_FILENAME=item_filename;
+          (*pPanelItem)[entriesread].FileName=item_filename;
           if(item_filename)
             _tcscpy(item_filename,_T(".."));
-#else
-          _tcscpy((*pPanelItem)[entriesread].FindData.PANEL_FILENAME,_T(".."));
-#endif
-          (*pPanelItem)[entriesread].FindData.dwFileAttributes=0;
+          (*pPanelItem)[entriesread].FileAttributes=0;
         }
         NetApiBufferFree(members);
       }
@@ -842,7 +801,7 @@ int WINAPI EXP_NAME(GetFindData)(HANDLE hPlugin,struct PluginPanelItem **pPanelI
       if(*pPanelItem)
         for(unsigned int i=0;i<sizeof(AddPriveleges)/sizeof(AddPriveleges[0]);i++)
         {
-          (*pPanelItem)[i].FindData.dwFileAttributes=FILE_ATTRIBUTE_DIRECTORY;
+          (*pPanelItem)[i].FileAttributes=FILE_ATTRIBUTE_DIRECTORY;
           AddDefaultUserdata((*pPanelItem)+(*pItemsNumber),levelRightUsers,0,0,NULL,(wchar_t*)AddPriveleges[i],NULL,AddPrivelegeNames[i]);
           (*pItemsNumber)++;
         }
@@ -882,7 +841,7 @@ int WINAPI EXP_NAME(GetFindData)(HANDLE hPlugin,struct PluginPanelItem **pPanelI
   return FALSE;
 }
 
-void WINAPI EXP_NAME(FreeFindData)(HANDLE hPlugin,struct PluginPanelItem *PanelItem,int ItemsNumber)
+void WINAPI FreeFindDataW(HANDLE hPlugin,struct PluginPanelItem *PanelItem,int ItemsNumber)
 {
   for(int i=0;i<ItemsNumber;i++)
   {
@@ -894,22 +853,20 @@ void WINAPI EXP_NAME(FreeFindData)(HANDLE hPlugin,struct PluginPanelItem *PanelI
         if(PanelItem[i].CustomColumnData[j]!=default_column_data)
           free((void*)PanelItem[i].CustomColumnData[j]);
     free((void*)PanelItem[i].CustomColumnData);
-#ifdef UNICODE
-    free((void*)PanelItem[i].FindData.lpwszFileName);
-#endif
+    free((void*)PanelItem[i].FileName);
   }
   free(PanelItem);
   UserManager *panel=(UserManager *)hPlugin;
   if(panel->error)
   {
     panel->error=false;
-    EXP_NAME_CALL(SetDirectory)(hPlugin,_T(".."),0);
-    Info.ControlShort3(hPlugin,FCTL_UPDATEPANEL,(FIRST_PARAM)1);
-    Info.ControlShort(hPlugin,FCTL_REDRAWPANEL,NULL);
+    SetDirectoryW(hPlugin,_T(".."),0);
+    Info.Control(hPlugin,FCTL_UPDATEPANEL,1,0);
+    Info.Control(hPlugin,FCTL_REDRAWPANEL,0,0);
   }
 }
 
-int WINAPI EXP_NAME(SetDirectory)(HANDLE hPlugin,const TCHAR *Dir,int OpMode)
+int WINAPI SetDirectoryW(HANDLE hPlugin,const TCHAR *Dir,int OpMode)
 {
   if(!IsOldFAR)
   {
@@ -945,7 +902,7 @@ int WINAPI EXP_NAME(SetDirectory)(HANDLE hPlugin,const TCHAR *Dir,int OpMode)
   return FALSE;
 }
 
-void WINAPI EXP_NAME(GetOpenPluginInfo)(HANDLE hPlugin,struct OpenPluginInfo *Info)
+void WINAPI GetOpenPluginInfoW(HANDLE hPlugin,struct OpenPluginInfo *Info)
 {
   if(!IsOldFAR)
   {
@@ -953,9 +910,7 @@ void WINAPI EXP_NAME(GetOpenPluginInfo)(HANDLE hPlugin,struct OpenPluginInfo *In
     Info->StructSize=sizeof(*Info);
     Info->Flags=OPIF_ADDDOTS|OPIF_SHOWNAMESONLY/*|OPIF_FINDFOLDERS*/;
     if((panel->level==levelUsers)||(panel->level==levelGroups))
-      Info->Flags|=OPIF_USEATTRHIGHLIGHTING;
-    else
-      Info->Flags|=OPIF_USEHIGHLIGHTING;
+      Info->Flags|=OPIF_USEATTRHIGHLIGHTING|OPIF_DISABLEHIGHLIGHTING;
     Info->HostFile=NULL;
     if(has_hostfile[panel->level])
       Info->HostFile=panel->hostfile_oem;
@@ -1001,7 +956,7 @@ void WINAPI EXP_NAME(GetOpenPluginInfo)(HANDLE hPlugin,struct OpenPluginInfo *In
               PanelModesArray[i].StatusColumnWidths=(TCHAR*)tmp_msg;
               break;
             case 4:
-              PanelModesArray[i].FullScreen=tmp_msg[0]-'0';
+              if(tmp_msg[0]-'0') PanelModesArray[i].Flags|PMFLAGS_FULLSCREEN;
               break;
           }
       }
@@ -1025,88 +980,108 @@ void WINAPI EXP_NAME(GetOpenPluginInfo)(HANDLE hPlugin,struct OpenPluginInfo *In
     Info->PanelModesArray=PanelModesArray;
     Info->PanelModesNumber=sizeof(PanelModesArray)/sizeof(PanelModesArray[0]);
     Info->StartPanelMode='3';
-    static struct KeyBarTitles KeyBar;
-    memset(&KeyBar,0,sizeof(KeyBar));
+    static struct KeyBarLabel Labels[]=
+    {
+      {{VK_F3,0},NULL,NULL}, //0
+      {{VK_F4,0},NULL,NULL}, //1
+      {{VK_F5,0},NULL,NULL}, //2
+      {{VK_F6,0},NULL,NULL}, //3
+      {{VK_F7,0},NULL,NULL}, //4
+      {{VK_F8,0},NULL,NULL}, //5
+      {{VK_F1,SHIFT_PRESSED},NULL,NULL}, //6
+      {{VK_F2,SHIFT_PRESSED},NULL,NULL}, //7
+      {{VK_F3,SHIFT_PRESSED},NULL,NULL}, //8
+      {{VK_F4,SHIFT_PRESSED},NULL,NULL}, //9
+      {{VK_F5,SHIFT_PRESSED},NULL,NULL}, //10
+      {{VK_F6,SHIFT_PRESSED},NULL,NULL}, //11
+      {{VK_F8,SHIFT_PRESSED},NULL,NULL}, //12
+      {{VK_F3,LEFT_ALT_PRESSED},NULL,NULL}, //13
+      {{VK_F4,LEFT_ALT_PRESSED},NULL,NULL}, //14
+      {{VK_F5,LEFT_ALT_PRESSED},NULL,NULL}, //15
+      {{VK_F6,LEFT_ALT_PRESSED},NULL,NULL}, //16
+      {{VK_F3,LEFT_CTRL_PRESSED|SHIFT_PRESSED},NULL,NULL}, //17
+      {{VK_F4,LEFT_CTRL_PRESSED|SHIFT_PRESSED},NULL,NULL}, //18
+    };
+    static struct KeyBarTitles KeyBar={ArraySize(Labels),Labels};
     //keys
-    KeyBar.Titles[3-1]=(TCHAR*)_T("");
+    Labels[0].Text=(TCHAR*)_T("");
     if(panel->level==levelGroups)
     {
       if(panel->global)
-        KeyBar.Titles[3-1]=(TCHAR*)GetMsg(mKeyLocal);
+        Labels[0].Text=GetMsg(mKeyLocal);
       else
-        KeyBar.Titles[3-1]=(TCHAR*)GetMsg(mKeyGlobal);
+        Labels[0].Text=GetMsg(mKeyGlobal);
     }
     else if(perm_dirs_dir[panel->level]!=PERM_NO)
     {
-      KeyBar.Titles[3-1]=(TCHAR*)GetMsg(mKeyChange);
+      Labels[0].Text=GetMsg(mKeyChange);
     }
-    KeyBar.Titles[4-1]=(TCHAR*)GetMsg(label_f4[panel->level]);
-    if(!press_f5_from[panel->level])
-      KeyBar.Titles[5-1]=(TCHAR*)_T("");
-    KeyBar.Titles[6-1]=(TCHAR*)GetMsg(label_f6[panel->level]);
-    KeyBar.Titles[7-1]=(TCHAR*)GetMsg(label_f7[panel->level]);
-    if(!press_f8[panel->level]) KeyBar.Titles[8-1]=(TCHAR*)_T("");
-    if(press_f8[panel->level]==TakeOwnership) KeyBar.Titles[8-1]=(TCHAR*)GetMsg(mKeyTakeOwnership);
+    Labels[1].Text=GetMsg(label_f4[panel->level]);
+    Labels[2].Text=press_f5_from[panel->level]?NULL:_T("");
+    Labels[3].Text=GetMsg(label_f6[panel->level]);
+    Labels[4].Text=GetMsg(label_f7[panel->level]);
+    Labels[5].Text=press_f8[panel->level]?NULL:_T("");
+    if(press_f8[panel->level]==TakeOwnership) Labels[5].Text=GetMsg(mKeyTakeOwnership);
     //shift-keys
-    KeyBar.ShiftTitles[1-1]=(TCHAR*)_T("");
-    KeyBar.ShiftTitles[2-1]=(TCHAR*)_T("");
-    KeyBar.ShiftTitles[3-1]=(TCHAR*)_T("");
-    KeyBar.ShiftTitles[4-1]=(TCHAR*)GetMsg(label_shift_f4[panel->level]);
-    if(!press_f5_from[panel->level])
-      KeyBar.ShiftTitles[5-1]=(TCHAR*)_T("");
-    KeyBar.ShiftTitles[6-1]=(TCHAR*)GetMsg(label_shift_f6[panel->level]);
-    if(!press_f8[panel->level]) KeyBar.ShiftTitles[8-1]=(TCHAR*)_T("");
+    Labels[6].Text=_T("");
+    Labels[7].Text=_T("");
+    Labels[8].Text=_T("");
+    Labels[9].Text=GetMsg(label_shift_f4[panel->level]);
+    Labels[10].Text=press_f5_from[panel->level]?NULL:_T("");
+    Labels[11].Text=GetMsg(label_shift_f6[panel->level]);
+    Labels[12].Text=press_f8[panel->level]?NULL:_T("");
     //alt-keys
-    KeyBar.AltTitles[3-1]=(TCHAR*)_T("");
-    KeyBar.AltTitles[4-1]=(TCHAR*)GetMsg(label_alt_f4[panel->level]);
-    KeyBar.AltTitles[5-1]=(TCHAR*)_T("");
-    KeyBar.AltTitles[6-1]=(TCHAR*)_T("");
+    Labels[13].Text=_T("");
+    Labels[14].Text=GetMsg(label_alt_f4[panel->level]);
+    Labels[15].Text=_T("");
+    Labels[16].Text=_T("");
     //ctrl+shift-keys
-    KeyBar.CtrlShiftTitles[3-1]=(TCHAR*)_T("");
-    KeyBar.CtrlShiftTitles[4-1]=(TCHAR*)_T("");
+    Labels[17].Text=_T("");
+    Labels[18].Text=_T("");
     Info->KeyBar=&KeyBar;
   }
 }
 
-int WINAPI EXP_NAME(ProcessKey)(HANDLE hPlugin,int Key,unsigned int ControlState)
+int WINAPI ProcessKeyW(HANDLE hPlugin,const INPUT_RECORD *Rec)
 {
   UserManager *panel=(UserManager *)hPlugin;
+  WORD Key=Rec->Event.KeyEvent.wVirtualKeyCode;
   if((panel->error)&&(Key!=VK_RETURN)) return TRUE;
   //F4
-  if((ControlState==0)&&(Key==VK_F4))
+  if(IsNone(Rec)&&(Key==VK_F4))
   {
     if(press_f4[panel->level])
       if(press_f4[panel->level](panel))
       {
-        Info.ControlShort3(hPlugin,FCTL_UPDATEPANEL,(FIRST_PARAM)1);
-        Info.ControlShort(hPlugin,FCTL_REDRAWPANEL,NULL);
+        Info.Control(hPlugin,FCTL_UPDATEPANEL,1,0);
+        Info.Control(hPlugin,FCTL_REDRAWPANEL,0,0);
       }
     return TRUE;
   }
   //Alt-F4
-  if((ControlState==PKF_ALT)&&(Key==VK_F4))
+  if(IsAlt(Rec)&&(Key==VK_F4))
   {
     if(press_alt_f4[panel->level])
       if(press_alt_f4[panel->level](panel))
       {
-        Info.ControlShort3(hPlugin,FCTL_UPDATEPANEL,(FIRST_PARAM)1);
-        Info.ControlShort(hPlugin,FCTL_REDRAWPANEL,NULL);
+        Info.Control(hPlugin,FCTL_UPDATEPANEL,1,0);
+        Info.Control(hPlugin,FCTL_REDRAWPANEL,0,0);
       }
     return TRUE;
   }
   //Shift-F4
-  if((ControlState==PKF_SHIFT)&&(Key==VK_F4))
+  if(IsShift(Rec)&&(Key==VK_F4))
   {
     if(press_shift_f4[panel->level])
       if(press_shift_f4[panel->level](panel))
       {
-        Info.ControlShort3(hPlugin,FCTL_UPDATEPANEL,(FIRST_PARAM)1);
-        Info.ControlShort(hPlugin,FCTL_REDRAWPANEL,NULL);
+        Info.Control(hPlugin,FCTL_UPDATEPANEL,1,0);
+        Info.Control(hPlugin,FCTL_REDRAWPANEL,0,0);
       }
     return TRUE;
   }
   //[Shift-]F5
-  if(((ControlState==PKF_SHIFT)||(ControlState==0))&&(Key==VK_F5))
+  if((IsShift(Rec)||IsNone(Rec))&&(Key==VK_F5))
   {
     if(press_f5_from[panel->level])
     {
@@ -1115,59 +1090,52 @@ int WINAPI EXP_NAME(ProcessKey)(HANDLE hPlugin,int Key,unsigned int ControlState
       else if(panels[1]==panel) anotherpanel=panels[0];
       if(anotherpanel&&press_f5[anotherpanel->level])
       {
-        if(press_f5[anotherpanel->level](panel,anotherpanel,ControlState!=PKF_SHIFT))
+        if(press_f5[anotherpanel->level](panel,anotherpanel,IsNone(Rec)))
         {
-#ifdef UNICODE
-          Info.Control(PANEL_ACTIVE,FCTL_UPDATEPANEL,0,NULL);
-          Info.Control(PANEL_ACTIVE,FCTL_REDRAWPANEL,0,NULL);
-          Info.Control(PANEL_PASSIVE,FCTL_UPDATEPANEL,1,NULL);
-          Info.Control(PANEL_PASSIVE,FCTL_REDRAWPANEL,0,NULL);
-#else
-          Info.Control(hPlugin,FCTL_UPDATEPANEL,NULL);
-          Info.Control(hPlugin,FCTL_REDRAWPANEL,NULL);
-          Info.Control(hPlugin,FCTL_UPDATEANOTHERPANEL,(SECOND_PARAM)1);
-          Info.Control(hPlugin,FCTL_REDRAWANOTHERPANEL,NULL);
-#endif
+          Info.Control(PANEL_ACTIVE,FCTL_UPDATEPANEL,0,0);
+          Info.Control(PANEL_ACTIVE,FCTL_REDRAWPANEL,0,0);
+          Info.Control(PANEL_PASSIVE,FCTL_UPDATEPANEL,1,0);
+          Info.Control(PANEL_PASSIVE,FCTL_REDRAWPANEL,0,0);
         }
       }
     }
     return TRUE;
   }
   //[Shift-]F8
-  if(((ControlState==PKF_SHIFT)||(ControlState==0))&&(Key==VK_F8))
+  if((IsShift(Rec)||IsNone(Rec))&&(Key==VK_F8))
   {
     if(press_f8[panel->level])
-      if(press_f8[panel->level](panel,ControlState!=PKF_SHIFT))
+      if(press_f8[panel->level](panel,IsNone(Rec)))
       {
-        Info.ControlShort3(hPlugin,FCTL_UPDATEPANEL,(FIRST_PARAM)1);
-        Info.ControlShort(hPlugin,FCTL_REDRAWPANEL,NULL);
+        Info.Control(hPlugin,FCTL_UPDATEPANEL,1,0);
+        Info.Control(hPlugin,FCTL_REDRAWPANEL,0,0);
       }
     return TRUE;
   }
   //[Shift-]F7
-  if(((ControlState==PKF_SHIFT)||(ControlState==0))&&(Key==VK_F7))
+  if((IsShift(Rec)||IsNone(Rec))&&(Key==VK_F7))
   {
     if(press_f7[panel->level])
       if(press_f7[panel->level](panel))
       {
-        Info.ControlShort3(hPlugin,FCTL_UPDATEPANEL,(FIRST_PARAM)1);
-        Info.ControlShort(hPlugin,FCTL_REDRAWPANEL,NULL);
+        Info.Control(hPlugin,FCTL_UPDATEPANEL,1,0);
+        Info.Control(hPlugin,FCTL_REDRAWPANEL,0,0);
       }
     return TRUE;
   }
   //[Shift-]F6
-  if(((ControlState==PKF_SHIFT)||(ControlState==0))&&(Key==VK_F6))
+  if((IsShift(Rec)||IsNone(Rec))&&(Key==VK_F6))
   {
     if(press_f6[panel->level])
-      if(press_f6[panel->level](panel,ControlState!=PKF_SHIFT))
+      if(press_f6[panel->level](panel,IsNone(Rec)))
       {
-        Info.ControlShort3(hPlugin,FCTL_UPDATEPANEL,(FIRST_PARAM)1);
-        Info.ControlShort(hPlugin,FCTL_REDRAWPANEL,NULL);
+        Info.Control(hPlugin,FCTL_UPDATEPANEL,1,0);
+        Info.Control(hPlugin,FCTL_REDRAWPANEL,0,0);
       }
     return TRUE;
   }
   //F3
-  if((ControlState==0)&&(Key==VK_F3))
+  if(IsNone(Rec)&&(Key==VK_F3))
   {
     if(panel->level==levelGroups)
     {
@@ -1177,7 +1145,7 @@ int WINAPI EXP_NAME(ProcessKey)(HANDLE hPlugin,int Key,unsigned int ControlState
         wchar_t *buffer;
         HANDLE hSScr=Info.SaveScreen(0,0,-1,-1);
         const TCHAR *MsgItems[]={_T(""),GetMsg(mOtherDomainSearch)};
-        Info.Message(Info.ModuleNumber,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),0);
+        Info.Message(&MainGuid,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),0);
         NET_API_STATUS err=NetGetAnyDCName(panel->computer_ptr,NULL,(LPBYTE *)&buffer);
         if(err==ERROR_NO_SUCH_DOMAIN)
         {
@@ -1196,72 +1164,60 @@ int WINAPI EXP_NAME(ProcessKey)(HANDLE hPlugin,int Key,unsigned int ControlState
       }
       else
         wcscpy(panel->domain,L"");
-      Info.ControlShort3(hPlugin,FCTL_UPDATEPANEL,(FIRST_PARAM)0);
-      Info.ControlShort(hPlugin,FCTL_REDRAWPANEL,NULL);
+      Info.Control(hPlugin,FCTL_UPDATEPANEL,0,0);
+      Info.Control(hPlugin,FCTL_REDRAWPANEL,0,0);
     }
     else if(perm_dirs_dir[panel->level]!=PERM_NO)
     {
       CFarPanel pInfo((HANDLE)panel,FCTL_GETPANELINFO);
       if(pInfo.IsOk())
       {
-        if((pInfo.ItemsNumber()>0)&&(!(pInfo[pInfo.CurrentItem()].FindData.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)))
+        if((pInfo.ItemsNumber()>0)&&(!(pInfo[pInfo.CurrentItem()].FileAttributes&FILE_ATTRIBUTE_DIRECTORY)))
         {
           if(pInfo[pInfo.CurrentItem()].Flags&PPIF_USERDATA)
           {
             UpdateAcl(panel,panel->level,GetSidFromUserData(pInfo[pInfo.CurrentItem()].UserData),GetItemTypeFromUserData(pInfo[pInfo.CurrentItem()].UserData),0,actionChangeType);
           }
         }
-        Info.ControlShort3(hPlugin,FCTL_UPDATEPANEL,(FIRST_PARAM)0);
-        Info.ControlShort(hPlugin,FCTL_REDRAWPANEL,NULL);
+        Info.Control(hPlugin,FCTL_UPDATEPANEL,0,0);
+        Info.Control(hPlugin,FCTL_REDRAWPANEL,0,0);
       }
     }
     return TRUE;
   }
   //AltUp,AltDown
-  if(ControlState==PKF_ALT&&(Key==VK_UP||Key==VK_DOWN)&&perm_dirs_dir[panel->level]!=PERM_NO)
+  if(IsAlt(Rec)&&(Key==VK_UP||Key==VK_DOWN)&&perm_dirs_dir[panel->level]!=PERM_NO)
   {
     CFarPanel pInfo((HANDLE)panel,FCTL_GETPANELINFO);
     if(pInfo.IsOk())
     {
-      if((pInfo.ItemsNumber()>0)&&(!(pInfo[pInfo.CurrentItem()].FindData.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)))
+      if((pInfo.ItemsNumber()>0)&&(!(pInfo[pInfo.CurrentItem()].FileAttributes&FILE_ATTRIBUTE_DIRECTORY)))
       {
         if(pInfo[pInfo.CurrentItem()].Flags&PPIF_USERDATA)
         {
           UpdateAcl(panel,panel->level,GetSidFromUserData(pInfo[pInfo.CurrentItem()].UserData),GetItemTypeFromUserData(pInfo[pInfo.CurrentItem()].UserData),0,(Key==VK_UP)?actionMoveUp:actionMoveDown);
         }
       }
-      Info.ControlShort3(hPlugin,FCTL_UPDATEPANEL,(FIRST_PARAM)0);
-      Info.ControlShort(hPlugin,FCTL_REDRAWPANEL,NULL);
+      Info.Control(hPlugin,FCTL_UPDATEPANEL,0,0);
+      Info.Control(hPlugin,FCTL_REDRAWPANEL,0,0);
     }
     return TRUE;
   }
   return FALSE;
 }
 
-int WINAPI EXP_NAME(Configure)(int ItemNumber)
+int WINAPI ConfigureW(const GUID* Guid)
 {
-  switch(ItemNumber)
-  {
-    case 0:
-      return Config();
-  }
-  return FALSE;
+  return Config();
 }
 
-#ifndef UNICODE
-int WINAPI EXP_NAME(GetMinFarVersion)(void)
-{
-  return MAKEFARVERSION(1,70,1282);
-}
-#endif
-
-void WINAPI EXP_NAME(ExitFAR)()
+void WINAPI ExitFARW()
 {
   free_sid_cache();
   free_current_user();
 }
 
-int WINAPI EXP_NAME(Compare)(HANDLE hPlugin,const struct PluginPanelItem *Item1,const struct PluginPanelItem *Item2,unsigned int Mode)
+int WINAPI CompareW(HANDLE hPlugin,const struct PluginPanelItem *Item1,const struct PluginPanelItem *Item2,unsigned int Mode)
 {
   (void)Mode;
   UserManager *panel=(UserManager *)hPlugin;
