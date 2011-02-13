@@ -1,7 +1,7 @@
 EXPORTS 
    ConfigureW=ConfigureW@4
    GetPluginInfoW=GetPluginInfoW@4
-   OpenPluginW=OpenPluginW@8
+   OpenPluginW=OpenPluginW@12
    SetStartupInfoW=SetStartupInfoW@4
    ExitFARW=ExitFARW@0
    ProcessEditorEventW=ProcessEditorEventW@8
@@ -13,3 +13,4 @@ EXPORTS
    IsMacroOKW=IsMacroOKW@4
    DeleteMacroW=DeleteMacroW@4
    PostMacroW=PostMacroW@8
+   GetGlobalInfoW=GetGlobalInfoW@4

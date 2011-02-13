@@ -40,9 +40,6 @@ extern "C"
     int FindCodeTable(const wchar_t *Mask);
     inline int IsCSpaceOrTab(wchar_t ch) { return nlsSpace==ch || nlsTab==ch; }
     BOOL CheckForEsc(void);
-    void InitDialogItems(struct InitDialogItem *Init,
-                         struct FarDialogItem *Item,
-                         int ItemsNumber);
     const wchar_t *GetMsg(int MsgId);
     BOOL ChangeCoordX(const EditorInfo &ei, EditorSetPosition &esp);
     int GetPrevCoordX(EditorInfo &ei, int Lines, const wchar_t *StopChars);

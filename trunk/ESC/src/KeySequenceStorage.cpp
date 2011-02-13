@@ -78,7 +78,7 @@ void KeySequenceStorage::Copy(const KeySequenceStorage& Value)
   Sequence.Flags=Value.Sequence.Flags;
   if(Value.Sequence.Sequence)
   {
-    Sequence.Sequence=static_cast<DWORD *>(malloc((Value.Sequence.Count+1)*sizeof(wchar_t)));
+    Sequence.Sequence=static_cast<wchar_t*>(malloc((Value.Sequence.Count+1)*sizeof(wchar_t)));
 
     if(Sequence.Sequence)
     {
@@ -102,12 +102,12 @@ bool KeySequenceStorage::compile(const wchar_t *BufPtr, bool silent, DWORD total
     _D(SysLog(L"compile: error Buf (unknownKey='%s')", unknownKey.str?unknownKey.str:L"(null)"));
     return false;
   }
-  if(silent) Sequence.Flags=KSFLAGS_DISABLEOUTPUT;
+  if(silent) Sequence.Flags=KMFLAGS_DISABLEOUTPUT;
   Stop=stop;
 
   DWORD tmpSize=wstrlen(BufPtr);
   Sequence.Count=0;
-  Sequence.Sequence=static_cast<DWORD *>(malloc(((tmpSize+1)*total+1)*sizeof(wchar_t)));
+  Sequence.Sequence=static_cast<wchar_t*>(malloc(((tmpSize+1)*total+1)*sizeof(wchar_t)));
   _D(SysLog(L"compile: new size=%d", (tmpSize+1)*total+1));
 
   if(Sequence.Sequence)
