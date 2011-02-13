@@ -36,8 +36,6 @@ BOOL IsOldFAR=TRUE;
 
 struct Options Opt={false,0,true,true,true,_T("acl")};
 
-UserManager *panels[2]={NULL,NULL};
-
 WellKnownSID AddSID[]=
 {
   {{{SECURITY_NULL_SID_AUTHORITY}},SECURITY_NULL_RID},
@@ -140,22 +138,6 @@ const TCHAR *AddPrivelegeNames[]=
 static const TCHAR *default_column_data=_T("");
 
 extern LSA_HANDLE GetPolicyHandle(wchar_t *computer);
-
-static void add_panel(UserManager *panel)
-{
-  if(panels[0]==NULL)
-    panels[0]=panel;
-  else if(panels[1]==NULL)
-    panels[1]=panel;
-}
-
-static void del_panel(UserManager *panel)
-{
-  if(panels[0]==panel)
-    panels[0]=NULL;
-  else if(panels[1]==panel)
-    panels[1]=NULL;
-}
 
 void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
 {
@@ -390,7 +372,6 @@ HANDLE WINAPI OpenPluginW(int OpenFrom,const GUID* Guid,INT_PTR Item)
             }
           }
         }
-        add_panel(panel);
         res=(HANDLE)panel;
       }
       if(res==INVALID_HANDLE_VALUE) free(panel);
@@ -402,7 +383,6 @@ HANDLE WINAPI OpenPluginW(int OpenFrom,const GUID* Guid,INT_PTR Item)
 void WINAPI ClosePluginW(HANDLE hPlugin)
 {
   UserManager *panel=(UserManager *)hPlugin;
-  del_panel(panel);
   free(panel);
 }
 
@@ -1086,16 +1066,22 @@ int WINAPI ProcessKeyW(HANDLE hPlugin,const INPUT_RECORD *Rec)
     if(press_f5_from[panel->level])
     {
       UserManager *anotherpanel=NULL;
-      if(panels[0]==panel) anotherpanel=panels[1];
-      else if(panels[1]==panel) anotherpanel=panels[0];
-      if(anotherpanel&&press_f5[anotherpanel->level])
+      PanelInfo PInfo;
+      if(Info.Control(PANEL_PASSIVE,FCTL_GETPANELINFO,0,(LONG_PTR)&PInfo))
       {
-        if(press_f5[anotherpanel->level](panel,anotherpanel,IsNone(Rec)))
+        if(IsEqualGUID(PInfo.OwnerGuid,MainGuid))
         {
-          Info.Control(PANEL_ACTIVE,FCTL_UPDATEPANEL,0,0);
-          Info.Control(PANEL_ACTIVE,FCTL_REDRAWPANEL,0,0);
-          Info.Control(PANEL_PASSIVE,FCTL_UPDATEPANEL,1,0);
-          Info.Control(PANEL_PASSIVE,FCTL_REDRAWPANEL,0,0);
+          anotherpanel=(UserManager*)PInfo.PluginHandle;
+          if(anotherpanel&&press_f5[anotherpanel->level])
+          {
+            if(press_f5[anotherpanel->level](panel,anotherpanel,IsNone(Rec)))
+            {
+              Info.Control(PANEL_ACTIVE,FCTL_UPDATEPANEL,0,0);
+              Info.Control(PANEL_ACTIVE,FCTL_REDRAWPANEL,0,0);
+              Info.Control(PANEL_PASSIVE,FCTL_UPDATEPANEL,1,0);
+              Info.Control(PANEL_PASSIVE,FCTL_REDRAWPANEL,0,0);
+            }
+          }
         }
       }
     }
