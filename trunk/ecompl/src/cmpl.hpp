@@ -44,22 +44,19 @@ class TCompletion
     bool PartialCompletion;
     bool AddTrailingSpace;
 
-    int  MinPreWordLen;
-    int  MinWordLen;
-    int  BrowseLineCnt;
-    int  WordsToFindCnt;
+    __int64 MinPreWordLen;
+    __int64 MinWordLen;
+    __int64 BrowseLineCnt;
+    __int64 WordsToFindCnt;
 
-#ifdef UNICODE
     TCHAR BrowseLineCntText[21];
     TCHAR WordsToFindCntText[21];
     TCHAR MinWordLenText[21];
-#endif
 
     TCHAR AdditionalLetters[256];
-    TCHAR RegKey[256];
     TCHAR ConfigHelpTopic[30];
 
-    UTCHAR AsteriskSymbol;
+    __int64 AsteriskSymbol;
   protected: //thread flag
     volatile LONG Stop;
   protected: //completion state
@@ -80,11 +77,11 @@ class TCompletion
     bool IsAlpha(unsigned int c);
     avl_window_data *GetLocalData(void);
   protected: //options
-    DWORD GetRegKey(const TCHAR *ValueName,DWORD Default);
-    void SetRegKey(const TCHAR *ValueName,DWORD Value);
-    void GetRegKey(const TCHAR *ValueName,TCHAR *buffer,DWORD size);
-    void SetRegKey(const TCHAR *ValueName,TCHAR *buffer);
-    int GetRegKey(const TCHAR *ValueName,const TCHAR *Default);
+    static bool GetValue(HANDLE Handle,int Root,const TCHAR* Name,bool Default);
+    static __int64 GetValue(HANDLE Handle,int Root,const TCHAR* Name,__int64 Default);
+    static void GetValue(HANDLE Handle,int Root,const TCHAR* Name,TCHAR* Value,size_t Size);
+    static void SetValue(HANDLE Handle,int Root,const TCHAR* Name,__int64 Value);
+    static void SetValue(HANDLE Handle,int Root,const TCHAR* Name,TCHAR* Value);
     void GetOptions(void);
     virtual void SetOptions(void);
     virtual int GetItemCount(void)=0;
@@ -93,8 +90,9 @@ class TCompletion
     virtual INT_PTR DialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)=0;
     virtual void InitItems(FarDialogItem *DialogItems);
     virtual void StoreItems(CFarDialog& Dialog);
+    virtual int Root(HANDLE Handle);
   public:
-    TCompletion(const TCHAR *RegRoot);
+    TCompletion();
     virtual ~TCompletion();
     void ShowDialog();
   friend INT_PTR WINAPI ConfigDialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2);

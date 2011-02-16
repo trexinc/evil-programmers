@@ -27,7 +27,7 @@
 // {9EAE0BDB-8FBA-4fe8-A710-C0FDD58A046A}
 DEFINE_GUID(CmplGuid, 0x9eae0bdb, 0x8fba, 0x4fe8, 0xa7, 0x10, 0xc0, 0xfd, 0xd5, 0x8a, 0x4, 0x6a);
 
-TCompletion::TCompletion(const TCHAR *RegRoot)
+TCompletion::TCompletion()
 {
   Stop=FALSE;
 
@@ -47,9 +47,6 @@ TCompletion::TCompletion(const TCHAR *RegRoot)
   AdditionalLetters[1]=0;
 
   AsteriskSymbol=0;
-
-  _tcscpy(RegKey,RegRoot);
-  _tcscat(RegKey,_T("\\EditCompletion"));
 
   ConfigHelpTopic[0]=0;
 }
@@ -308,99 +305,100 @@ void TCompletion::SetCurPos(int NewPos,int NewRow)
   Info.EditorControl(-1,ECTL_SETPOSITION,0,(INT_PTR)&sp);
 }
 
-DWORD TCompletion::GetRegKey(const TCHAR* ValueName,DWORD Default)
+bool TCompletion::GetValue(HANDLE Handle,int Root,const TCHAR* Name,bool Default)
 {
-  DWORD result=Default;
-  HKEY hKey; DWORD Type; DWORD DataSize=0;
-  if((RegOpenKeyEx(HKEY_CURRENT_USER,RegKey,0,KEY_QUERY_VALUE,&hKey))==ERROR_SUCCESS)
+  bool result=Default;
+  FarSettingsItem item={Root,Name,FST_QWORD};
+  if(Info.SettingsControl(Handle,SCTL_GET,0,(INT_PTR)&item))
   {
-    DataSize=sizeof(result);
-    RegQueryValueEx(hKey,ValueName,0,&Type,(LPBYTE)&result,&DataSize);
-    RegCloseKey(hKey);
+    result=item.Value.Number?true:false;
   }
   return result;
 }
 
-void TCompletion::SetRegKey(const TCHAR* ValueName,DWORD Value)
+__int64 TCompletion::GetValue(HANDLE Handle,int Root,const TCHAR* Name,__int64 Default)
 {
-  HKEY hKey;
-  DWORD Disposition;
-  if((RegCreateKeyEx(HKEY_CURRENT_USER,RegKey,0,NULL,0,KEY_WRITE,NULL,&hKey,&Disposition))==ERROR_SUCCESS)
+  __int64 result=Default;
+  FarSettingsItem item={Root,Name,FST_QWORD};
+  if(Info.SettingsControl(Handle,SCTL_GET,0,(INT_PTR)&item))
   {
-    RegSetValueEx(hKey,ValueName,0,REG_DWORD,(LPBYTE)&Value,sizeof(Value));
-    RegCloseKey(hKey);
-  }
-}
-
-void TCompletion::GetRegKey(const TCHAR* ValueName,TCHAR* buffer,DWORD size)
-{
-  HKEY hKey; DWORD Type;
-  if((RegOpenKeyEx(HKEY_CURRENT_USER,RegKey,0,KEY_QUERY_VALUE,&hKey))==ERROR_SUCCESS)
-  {
-    RegQueryValueEx(hKey,ValueName,0,&Type,(LPBYTE)buffer,&size);
-    RegCloseKey(hKey);
-  }
-}
-
-void TCompletion::SetRegKey(const TCHAR* ValueName,TCHAR* buffer)
-{
-  HKEY hKey;
-  DWORD Disposition;
-  if((RegCreateKeyEx(HKEY_CURRENT_USER,RegKey,0,NULL,0,KEY_WRITE,NULL,&hKey,&Disposition))==ERROR_SUCCESS)
-  {
-    RegSetValueEx(hKey,ValueName,0,REG_SZ,(LPBYTE)buffer,(_tcslen(buffer)+1)*sizeof(TCHAR));
-    RegCloseKey(hKey);
-  }
-}
-
-int TCompletion::GetRegKey(const TCHAR* ValueName,const TCHAR* Default)
-{
-  int result=-1;
-  Key Key; HKEY hKey; DWORD Type; DWORD DataSize=0;
-  if((RegOpenKeyEx(HKEY_CURRENT_USER,RegKey,0,KEY_QUERY_VALUE,&hKey))==ERROR_SUCCESS)
-  {
-    DataSize=sizeof(Key);
-    LONG res=RegQueryValueEx(hKey,ValueName,0,&Type,(LPBYTE)&Key,&DataSize);
-    if(res!=ERROR_SUCCESS||(Type!=REG_DWORD&&Type!=REG_SZ))
-    {
-      Type=REG_SZ;
-      _tcscpy(Key.KeyName,Default);
-    }
-    if(Type==REG_DWORD) result=Key.KeyCode;
-    if(Type==REG_SZ) result=FSF.FarNameToKey(Key.KeyName);
-    RegCloseKey(hKey);
+    result=item.Value.Number;
   }
   return result;
+}
+
+void TCompletion::GetValue(HANDLE Handle,int Root,const TCHAR* Name,TCHAR* Value,size_t Size)
+{
+  FarSettingsItem item={Root,Name,FST_STRING};
+  if(Info.SettingsControl(Handle,SCTL_GET,0,(INT_PTR)&item))
+  {
+    _tcsncpy(Value,item.Value.String,Size-1);
+    Value[Size-1]=0;
+  }
+}
+
+void TCompletion::SetValue(HANDLE Handle,int Root,const TCHAR* Name,__int64 Value)
+{
+  FarSettingsItem item={Root,Name,FST_QWORD};
+  item.Value.Number=Value;
+  Info.SettingsControl(Handle,SCTL_SET,0,(INT_PTR)&item);
+}
+
+void TCompletion::SetValue(HANDLE Handle,int Root,const TCHAR* Name,TCHAR* Value)
+{
+  FarSettingsItem item={Root,Name,FST_STRING};
+  item.Value.String=Value;
+  Info.SettingsControl(Handle,SCTL_SET,0,(INT_PTR)&item);
+}
+
+int TCompletion::Root(HANDLE Handle)
+{
+  return 0;
 }
 
 void TCompletion::GetOptions(void)
 {
-  WorkInsideWord=GetRegKey(_T("WorkInsideWord"),WorkInsideWord);
-  CaseSensitive=GetRegKey(_T("CaseSensitive"),CaseSensitive);
-  BrowseDownward=GetRegKey(_T("BrowseDownward"),BrowseDownward);
-  MinPreWordLen=GetRegKey(_T("MinPreWordLen"),MinPreWordLen);
-  MinWordLen=GetRegKey(_T("MinWordLen"),MinWordLen);
-  BrowseLineCnt=GetRegKey(_T("BrowseLineCnt"),BrowseLineCnt);
-  WordsToFindCnt=GetRegKey(_T("WordsToFindCnt"),WordsToFindCnt);
-  ConsiderDigitAsChar=GetRegKey(_T("ConsiderDigitAsChar"),ConsiderDigitAsChar);
-  PartialCompletion=GetRegKey(_T("PartialCompletion"),PartialCompletion);
-  AddTrailingSpace=GetRegKey(_T("AddTrailingSpace"),AddTrailingSpace);
-  GetRegKey(_T("AdditionalLetters"),AdditionalLetters,sizeof(AdditionalLetters));
+  FarSettingsCreate settings={sizeof(FarSettingsCreate),MainGuid,INVALID_HANDLE_VALUE};
+  if(Info.SettingsControl(INVALID_HANDLE_VALUE,SCTL_CREATE,0,(INT_PTR)&settings))
+  {
+    int root=Root(settings.Handle);
+    WorkInsideWord=GetValue(settings.Handle,root,_T("WorkInsideWord"),WorkInsideWord);
+    BrowseDownward=GetValue(settings.Handle,root,_T("BrowseDownward"),BrowseDownward);
+    CaseSensitive=GetValue(settings.Handle,root,_T("CaseSensitive"),CaseSensitive);
+    ConsiderDigitAsChar=GetValue(settings.Handle,root,_T("ConsiderDigitAsChar"),ConsiderDigitAsChar);
+    PartialCompletion=GetValue(settings.Handle,root,_T("PartialCompletion"),PartialCompletion);
+    AddTrailingSpace=GetValue(settings.Handle,root,_T("AddTrailingSpace"),AddTrailingSpace);
+
+    MinPreWordLen=GetValue(settings.Handle,root,_T("MinPreWordLen"),MinPreWordLen);
+    MinWordLen=GetValue(settings.Handle,root,_T("MinWordLen"),MinWordLen);
+    BrowseLineCnt=GetValue(settings.Handle,root,_T("BrowseLineCnt"),BrowseLineCnt);
+    WordsToFindCnt=GetValue(settings.Handle,root,_T("WordsToFindCnt"),WordsToFindCnt);
+
+    GetValue(settings.Handle,root,_T("AdditionalLetters"),AdditionalLetters,ArraySize(AdditionalLetters));
+
+    Info.SettingsControl(settings.Handle,SCTL_FREE,0,0);
+  }
 }
 
 void TCompletion::SetOptions(void)
 {
-  SetRegKey(_T("WorkInsideWord"),WorkInsideWord);
-  SetRegKey(_T("CaseSensitive"),CaseSensitive);
-  SetRegKey(_T("BrowseDownward"),BrowseDownward);
-  SetRegKey(_T("BrowseLineCnt"),BrowseLineCnt);
-  SetRegKey(_T("MinPreWordLen"),MinPreWordLen);
-  SetRegKey(_T("MinWordLen"),MinWordLen);
-  SetRegKey(_T("WordsToFindCnt"),WordsToFindCnt);
-  SetRegKey(_T("ConsiderDigitAsChar"),ConsiderDigitAsChar);
-  SetRegKey(_T("PartialCompletion"),PartialCompletion);
-  SetRegKey(_T("AddTrailingSpace"),AddTrailingSpace);
-  SetRegKey(_T("AdditionalLetters"),AdditionalLetters);
+  FarSettingsCreate settings={sizeof(FarSettingsCreate),MainGuid,INVALID_HANDLE_VALUE};
+  if(Info.SettingsControl(INVALID_HANDLE_VALUE,SCTL_CREATE,0,(INT_PTR)&settings))
+  {
+    int root=Root(settings.Handle);
+    SetValue(settings.Handle,root,_T("WorkInsideWord"),WorkInsideWord);
+    SetValue(settings.Handle,root,_T("CaseSensitive"),CaseSensitive);
+    SetValue(settings.Handle,root,_T("BrowseDownward"),BrowseDownward);
+    SetValue(settings.Handle,root,_T("BrowseLineCnt"),BrowseLineCnt);
+    SetValue(settings.Handle,root,_T("MinPreWordLen"),MinPreWordLen);
+    SetValue(settings.Handle,root,_T("MinWordLen"),MinWordLen);
+    SetValue(settings.Handle,root,_T("WordsToFindCnt"),WordsToFindCnt);
+    SetValue(settings.Handle,root,_T("ConsiderDigitAsChar"),ConsiderDigitAsChar);
+    SetValue(settings.Handle,root,_T("PartialCompletion"),PartialCompletion);
+    SetValue(settings.Handle,root,_T("AddTrailingSpace"),AddTrailingSpace);
+    SetValue(settings.Handle,root,_T("AdditionalLetters"),AdditionalLetters);
+    Info.SettingsControl(settings.Handle,SCTL_FREE,0,0);
+  }
 }
 
 void TCompletion::InitItems(FarDialogItem *DialogItems)

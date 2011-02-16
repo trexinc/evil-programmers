@@ -19,6 +19,7 @@ DEPS=$(patsubst %.cpp,../$(OBJDIR)/%.d,$(filter %.cpp,$(SRCS)))
 LIBS=-lcrtdll
 OBJS=$(OBJS1) ../$(OBJDIR)/ListBoxEx.o
 DOCTARGET=../$(BINDIR)/ECmplEng.hlf ../$(BINDIR)/ECmplRus.hlf ../$(BINDIR)/ECmplEng.lng ../$(BINDIR)/ECmplRus.lng
+MAP = $(patsubst %.dll,%.map,$(TARGET))
 
 all: dirs $(TARGET) $(DOCTARGET)
 
@@ -55,7 +56,7 @@ dirs:
 $(TARGET): $(OBJS)
 	$(CC) $(LFLAGS) -o $@ -Xlinker --base-file -Xlinker $(TARGET).base $(OBJS) $(LIBS)
 	$(DLLTOOL) --dllname $(TARGET) --base-file $(TARGET).base --output-exp $(TARGET).exp --def $(DEF)
-	$(CC) $(LFLAGS) -o $@ $(OBJS) $(TARGET).exp $(LIBS)
+	$(CC) $(LFLAGS) -o $@ $(OBJS) $(TARGET).exp $(LIBS) -Xlinker -Map -Xlinker $(MAP)
 	$(RM) $(TARGET).base
 	$(RM) $(TARGET).exp
 

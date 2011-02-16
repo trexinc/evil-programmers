@@ -32,15 +32,13 @@ class TAutoCompletion: public TCompletion
     bool AcceptFromMenu;
     int AcceptKey;
     int DeleteKey;
-    int Color;
+    __int64 Color;
     TCHAR AcceptChars[256];
-#ifdef UNICODE
     TCHAR MinPreWordLenText[21];
     TCHAR AcceptKeyText[21];
     TCHAR AcceptKeyCfgText[21];
     TCHAR DeleteKeyText[21];
     TCHAR DeleteKeyCfgText[21];
-#endif
   protected:
     void DeleteVariant(avl_window_data *Window);
     bool AcceptVariant(avl_window_data *Window);
@@ -55,8 +53,9 @@ class TAutoCompletion: public TCompletion
     INT_PTR DialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2);
     void InitItems(FarDialogItem *DialogItems);
     void StoreItems(CFarDialog& Dialog);
+    int Root(HANDLE Handle);
   public:
-    TAutoCompletion(const TCHAR *RegRoot);
+    TAutoCompletion();
     ~TAutoCompletion();
     int ProcessEditorInput(const INPUT_RECORD *Rec);
     int ProcessEditorEvent(int Event,void *Param);

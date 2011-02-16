@@ -29,7 +29,7 @@
 // {0FCE7966-950A-499f-9FA5-32FE0A981342}
 DEFINE_GUID(MCmplGuid, 0xfce7966, 0x950a, 0x499f, 0x9f, 0xa5, 0x32, 0xfe, 0xa, 0x98, 0x13, 0x42);
 
-TMenuCompletion::TMenuCompletion(const TCHAR *RegRoot): TCompletion(RegRoot)
+TMenuCompletion::TMenuCompletion(): TCompletion()
 {
   SingleVariantInMenu=FALSE;
   NotFoundSound=TRUE;
@@ -263,23 +263,37 @@ bool TMenuCompletion::ShowMenu(string &Selected)
 void TMenuCompletion::GetOptions(void)
 {
   TCompletion::GetOptions();
-  SingleVariantInMenu=GetRegKey(_T("SingleVariantInMenu"),SingleVariantInMenu);
-  NotFoundSound=GetRegKey(_T("NotFoundSound"),NotFoundSound);
-  SortListCount=GetRegKey(_T("SortListCount"),SortListCount);
-  AsteriskSymbol=GetRegKey(_T("AsteriskSymbol"),AsteriskSymbol);
-  GetRegKey(_T("AcceptChars"),AcceptChars,sizeof(AcceptChars));
-  GetRegKey(_T("ShortCuts"),ShortCuts,sizeof(ShortCuts));
+  FarSettingsCreate settings={sizeof(FarSettingsCreate),MainGuid,INVALID_HANDLE_VALUE};
+  if(Info.SettingsControl(INVALID_HANDLE_VALUE,SCTL_CREATE,0,(INT_PTR)&settings))
+  {
+    int root=Root(settings.Handle);
+    SingleVariantInMenu=GetValue(settings.Handle,root,_T("SingleVariantInMenu"),SingleVariantInMenu);
+    NotFoundSound=GetValue(settings.Handle,root,_T("NotFoundSound"),NotFoundSound);
+    SortListCount=GetValue(settings.Handle,root,_T("SortListCount"),SortListCount);
+    AsteriskSymbol=GetValue(settings.Handle,root,_T("AsteriskSymbol"),AsteriskSymbol);
+    GetValue(settings.Handle,root,_T("AcceptChars"),AcceptChars,ArraySize(AcceptChars));
+    GetValue(settings.Handle,root,_T("ShortCuts"),ShortCuts,ArraySize(ShortCuts));
+
+    Info.SettingsControl(settings.Handle,SCTL_FREE,0,0);
+  }
 }
 
 void TMenuCompletion::SetOptions(void)
 {
   TCompletion::SetOptions();
-  SetRegKey(_T("SingleVariantInMenu"),SingleVariantInMenu);
-  SetRegKey(_T("NotFoundSound"),NotFoundSound);
-  SetRegKey(_T("SortListCount"),SortListCount);
-  SetRegKey(_T("AsteriskSymbol"),AsteriskSymbol);
-  SetRegKey(_T("AcceptChars"),AcceptChars);
-  SetRegKey(_T("ShortCuts"),ShortCuts);
+  FarSettingsCreate settings={sizeof(FarSettingsCreate),MainGuid,INVALID_HANDLE_VALUE};
+  if(Info.SettingsControl(INVALID_HANDLE_VALUE,SCTL_CREATE,0,(INT_PTR)&settings))
+  {
+    int root=Root(settings.Handle);
+    SetValue(settings.Handle,root,_T("SingleVariantInMenu"),SingleVariantInMenu);
+    SetValue(settings.Handle,root,_T("NotFoundSound"),NotFoundSound);
+    SetValue(settings.Handle,root,_T("SortListCount"),SortListCount);
+    SetValue(settings.Handle,root,_T("AsteriskSymbol"),AsteriskSymbol);
+    SetValue(settings.Handle,root,_T("AcceptChars"),AcceptChars);
+    SetValue(settings.Handle,root,_T("ShortCuts"),ShortCuts);
+
+    Info.SettingsControl(settings.Handle,SCTL_FREE,0,0);
+  }
 }
 
 int TMenuCompletion::GetItemCount(void)
