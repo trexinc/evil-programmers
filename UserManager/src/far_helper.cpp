@@ -72,7 +72,7 @@ DWORD CFarDialog::Type(int index)
   return 0;
 }
 
-CFarPanel::CFarPanel(HANDLE aPlugin,int aCommand): iPlugin(aPlugin),iCurDir(NULL),iCurDirSize(0),iItem(NULL),iItemSize(0)
+CFarPanel::CFarPanel(HANDLE aPlugin,FILE_CONTROL_COMMANDS aCommand): iPlugin(aPlugin),iCurDir(NULL),iCurDirSize(0),iItem(NULL),iItemSize(0)
 {
   iResult=Info.Control(aPlugin,aCommand,0,(LONG_PTR)&iInfo);
 }
@@ -121,4 +121,51 @@ PluginPanelItem& CFarPanelSelection::operator[](size_t index)
   Realloc(iItem,iItemSize,Info.Control(iPlugin,iSelection?FCTL_GETSELECTEDPANELITEM:FCTL_GETCURRENTPANELITEM,index,0));
   Info.Control(iPlugin,iSelection?FCTL_GETSELECTEDPANELITEM:FCTL_GETCURRENTPANELITEM,index,(LONG_PTR)iItem);
   return *iItem;
+}
+
+/*** CFarSettings ***/
+
+CFarSettings::CFarSettings(const GUID& PluginId)
+{
+  FarSettingsCreate settings={sizeof(FarSettingsCreate),PluginId,INVALID_HANDLE_VALUE};
+  iSettings=Info.SettingsControl(INVALID_HANDLE_VALUE,SCTL_CREATE,0,(INT_PTR)&settings)?settings.Handle:0;
+  iRoot=0;
+}
+
+CFarSettings::~CFarSettings()
+{
+  Info.SettingsControl(iSettings,SCTL_FREE,0,0);
+}
+
+void CFarSettings::Set(const wchar_t* aName,__int64 aValue)
+{
+  FarSettingsItem item={iRoot,aName,FST_QWORD,{0}};
+  item.Value.Number=aValue;
+  Info.SettingsControl(iSettings,SCTL_SET,0,(INT_PTR)&item);
+}
+
+void CFarSettings::Set(const wchar_t* aName,const wchar_t* aValue)
+{
+  FarSettingsItem item={iRoot,aName,FST_STRING,{0}};
+  item.Value.String=aValue;
+  Info.SettingsControl(iSettings,SCTL_SET,0,(INT_PTR)&item);
+}
+
+void CFarSettings::Get(const wchar_t* aName,__int64& aValue)
+{
+  FarSettingsItem item={iRoot,aName,FST_QWORD,{0}};
+  if(Info.SettingsControl(iSettings,SCTL_GET,0,(INT_PTR)&item))
+  {
+    aValue=item.Value.Number;
+  }
+}
+
+void CFarSettings::Get(const wchar_t* aName,wchar_t* aValue,size_t aSize)
+{
+  FarSettingsItem item={iRoot,aName,FST_STRING,{0}};
+  if(Info.SettingsControl(iSettings,SCTL_GET,0,(INT_PTR)&item))
+  {
+    _tcsncpy(aValue,item.Value.String,aSize-1);
+    aValue[aSize-1]=0;
+  }
 }

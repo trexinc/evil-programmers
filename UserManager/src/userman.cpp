@@ -31,10 +31,9 @@
 
 PluginStartupInfo Info;
 FARSTANDARDFUNCTIONS FSF;
-TCHAR PluginRootKey[80];
 BOOL IsOldFAR=TRUE;
 
-struct Options Opt={false,0,true,true,true,_T("acl")};
+struct Options Opt={false,true,true,true,_T("acl")};
 
 WellKnownSID AddSID[]=
 {
@@ -158,27 +157,16 @@ void WINAPI SetStartupInfoW(const struct PluginStartupInfo *Info)
   ::FSF=*Info->FSF;
   ::Info.FSF=&::FSF;
 
-  _tcscpy(PluginRootKey,Info->RootKey);
-  _tcscat(PluginRootKey,_T("\\userman"));
-
   HKEY hKey;
   DWORD Type;
   DWORD DataSize=0;
-  if((RegOpenKeyEx(HKEY_CURRENT_USER,PluginRootKey,0,KEY_QUERY_VALUE,&hKey))==ERROR_SUCCESS)
   {
-    DataSize=sizeof(Opt.AddToDisksMenu);
-    RegQueryValueEx(hKey,_T("AddToDisksMenu"),0,&Type,(LPBYTE)&Opt.AddToDisksMenu,&DataSize);
-    DataSize=sizeof(Opt.DisksMenuDigit);
-    RegQueryValueEx(hKey,_T("DisksMenuDigit"),0,&Type,(LPBYTE)&Opt.DisksMenuDigit,&DataSize);
-    DataSize=sizeof(Opt.AddToPluginsMenu);
-    RegQueryValueEx(hKey,_T("AddToPluginsMenu"),0,&Type,(LPBYTE)&Opt.AddToPluginsMenu,&DataSize);
-    DataSize=sizeof(Opt.AddToConfigMenu);
-    RegQueryValueEx(hKey,_T("AddToConfigMenu"),0,&Type,(LPBYTE)&Opt.AddToConfigMenu,&DataSize);
-    DataSize=sizeof(Opt.FullUserNames);
-    RegQueryValueEx(hKey,_T("FullUserNames"),0,&Type,(LPBYTE)&Opt.FullUserNames,&DataSize);
-    DataSize=sizeof(Opt.Prefix);
-    RegQueryValueEx(hKey,_T("Prefix"),0,&Type,(LPBYTE)Opt.Prefix,&DataSize);
-    RegCloseKey(hKey);
+    CFarSettings set(MainGuid);
+    set.Get(_T("AddToDisksMenu"),Opt.AddToDisksMenu);
+    set.Get(_T("AddToPluginsMenu"),Opt.AddToPluginsMenu);
+    set.Get(_T("AddToConfigMenu"),Opt.AddToConfigMenu);
+    set.Get(_T("FullUserNames"),Opt.FullUserNames);
+    set.Get(_T("Prefix"),Opt.Prefix,ArraySize(Opt.Prefix));
     if(!Opt.Prefix[0])
       _tcscpy(Opt.Prefix,_T("acl"));
   }

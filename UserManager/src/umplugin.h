@@ -175,7 +175,6 @@ enum
   mSelCompFootnote,
 
   mConfigAddToDisksMenu,
-  mConfigDisksMenuDigit,
   mConfigAddToPluginMenu,
   mConfigAddToConfigMenu,
   mConfigFullUserName,
@@ -542,11 +541,10 @@ struct WellKnownSID
 //options
 struct Options
 {
-  bool AddToDisksMenu;
-  int DisksMenuDigit;
-  bool AddToPluginsMenu;
-  bool AddToConfigMenu;
-  bool FullUserNames;
+  __int64 AddToDisksMenu;
+  __int64 AddToPluginsMenu;
+  __int64 AddToConfigMenu;
+  __int64 FullUserNames;
   TCHAR Prefix[16];
 };
 
@@ -620,7 +618,6 @@ extern const bool sort[];
 
 extern PluginStartupInfo Info;
 extern FARSTANDARDFUNCTIONS FSF;
-extern TCHAR PluginRootKey[80];
 
 extern const TCHAR *GetMsg(int MsgId);
 extern void ShowError(DWORD Error);
