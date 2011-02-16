@@ -48,7 +48,7 @@ void InitDialogItems(InitDialogItem *Init,FarDialogItem *Item,int ItemsNumber)
 {
   for(int i=0;i<ItemsNumber;i++)
   {
-    Item[i].Type=Init[i].Type;
+    Item[i].Type=(FARDIALOGITEMTYPES)Init[i].Type;
     Item[i].X1=Init[i].X1;
     Item[i].Y1=Init[i].Y1;
     Item[i].X2=Init[i].X2;
