@@ -73,8 +73,8 @@ void WINAPI SetStartupInfoW(const struct PluginStartupInfo *Info)
   memmove(&::Info,Info,(Info->StructSize>(int)sizeof(::Info))?sizeof(::Info):Info->StructSize);
   ::FSF=*Info->FSF;
   ::Info.FSF=&::FSF;
-  MCmpl=new TMenuCompletion(Info->RootKey);
-  ACmpl=new TAutoCompletion(Info->RootKey);
+  MCmpl=new TMenuCompletion;
+  ACmpl=new TAutoCompletion;
   windows=new avl_window_tree();
 }
 

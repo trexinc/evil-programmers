@@ -18,6 +18,7 @@
 */
 
 #include "acmpl.hpp"
+#include "farkeys.hpp"
 #include "EditCmpl.hpp"
 #include "language.hpp"
 #include "guid.hpp"
@@ -25,7 +26,7 @@
 // {A28F2DC4-C362-4a82-AB2C-0081161171DD}
 DEFINE_GUID(ACmplGuid, 0xa28f2dc4, 0xc362, 0x4a82, 0xab, 0x2c, 0x0, 0x81, 0x16, 0x11, 0x71, 0xdd);
 
-TAutoCompletion::TAutoCompletion(const TCHAR *RegRoot): TCompletion(RegRoot)
+TAutoCompletion::TAutoCompletion()
 {
   WorkInsideWord=false;
   CaseSensitive=true;
@@ -39,7 +40,6 @@ TAutoCompletion::TAutoCompletion(const TCHAR *RegRoot): TCompletion(RegRoot)
   DeleteKey=-1;
   Color=0x2F;
   AcceptChars[0]=0;
-  _tcscat(RegKey,_T("\\AutoCompletion"));
   _tcscpy(ConfigHelpTopic,_T("ConfigAuto"));
   GetOptions();
 }
@@ -327,28 +327,49 @@ bool TAutoCompletion::CompleteWord(void)
   return WasCompleted;
 }
 
+int TAutoCompletion::Root(HANDLE Handle)
+{
+  FarSettingsValue value={0,_T("Auto Completion")};
+  return Info.SettingsControl(Handle,SCTL_SUBKEY,0,(INT_PTR)&value);
+}
+
 void TAutoCompletion::GetOptions(void)
 {
   TCompletion::GetOptions();
-  Color=GetRegKey(_T("Color"),Color);
-  AcceptKey=GetRegKey(_T("AcceptKey"),_T("Tab"));
-  DeleteKey=GetRegKey(_T("DeleteKey"),_T(""));
-  AcceptFromMenu=GetRegKey(_T("AcceptFromMenu"),AcceptFromMenu);
-  GetRegKey(_T("AcceptChars"),AcceptChars,sizeof(AcceptChars));
+  FarSettingsCreate settings={sizeof(FarSettingsCreate),MainGuid,INVALID_HANDLE_VALUE};
+  if(Info.SettingsControl(INVALID_HANDLE_VALUE,SCTL_CREATE,0,(INT_PTR)&settings))
+  {
+    int root=Root(settings.Handle);
+    Color=GetValue(settings.Handle,root,_T("Color"),Color);
+    TCHAR Key[256];
+    GetValue(settings.Handle,root,_T("AcceptKey"),Key,ArraySize(Key));
+    AcceptKey=FSF.FarNameToKey(Key);
+    GetValue(settings.Handle,root,_T("DeleteKey"),Key,ArraySize(Key));
+    DeleteKey=FSF.FarNameToKey(Key);
+    AcceptFromMenu=GetValue(settings.Handle,root,_T("AcceptFromMenu"),AcceptFromMenu);
+    GetValue(settings.Handle,root,_T("AcceptChars"),AcceptChars,ArraySize(AcceptChars));
+    Info.SettingsControl(settings.Handle,SCTL_FREE,0,0);
+  }
 }
 
 void TAutoCompletion::SetOptions(void)
 {
   TCompletion::SetOptions();
-  SetRegKey(_T("Color"),Color);
-  SetRegKey(_T("AcceptFromMenu"),AcceptFromMenu);
-  SetRegKey(_T("AcceptChars"),AcceptChars);
+  FarSettingsCreate settings={sizeof(FarSettingsCreate),MainGuid,INVALID_HANDLE_VALUE};
+  if(Info.SettingsControl(INVALID_HANDLE_VALUE,SCTL_CREATE,0,(INT_PTR)&settings))
   {
-    TCHAR Key[256];
-    if(!t_FarKeyToName(AcceptKey,Key,ArraySize(Key))) Key[0]=0;
-    SetRegKey(_T("AcceptKey"),Key);
-    if(!t_FarKeyToName(DeleteKey,Key,ArraySize(Key))) Key[0]=0;
-    SetRegKey(_T("DeleteKey"),Key);
+    int root=Root(settings.Handle);
+    SetValue(settings.Handle,root,_T("Color"),Color);
+    SetValue(settings.Handle,root,_T("AcceptFromMenu"),AcceptFromMenu);
+    SetValue(settings.Handle,root,_T("AcceptChars"),AcceptChars);
+    {
+      TCHAR Key[256];
+      if(!t_FarKeyToName(AcceptKey,Key,ArraySize(Key))) Key[0]=0;
+      SetValue(settings.Handle,root,_T("AcceptKey"),Key);
+      if(!t_FarKeyToName(DeleteKey,Key,ArraySize(Key))) Key[0]=0;
+      SetValue(settings.Handle,root,_T("DeleteKey"),Key);
+    }
+    Info.SettingsControl(settings.Handle,SCTL_FREE,0,0);
   }
 }
 

@@ -25,16 +25,14 @@
 class TMenuCompletion: public TCompletion
 {
   protected: //menu completion params
-    int SingleVariantInMenu;
-    int NotFoundSound;
-    int SortListCount;
+    __int64 SingleVariantInMenu;
+    __int64 NotFoundSound;
+    __int64 SortListCount;
     TCHAR ShortCuts[80];
     int ShortCutsLen;
     TCHAR AcceptChars[256];
-#ifdef UNICODE
     TCHAR AsteriskSymbolText[2];
     TCHAR SortListCountText[21];
-#endif
   protected:
     bool ShowMenu(string &Selected);
   protected: //options
@@ -47,7 +45,7 @@ class TMenuCompletion: public TCompletion
     void InitItems(FarDialogItem *DialogItems);
     void StoreItems(CFarDialog& Dialog);
   public:
-    TMenuCompletion(const TCHAR *RegRoot);
+    TMenuCompletion();
     ~TMenuCompletion();
     bool CompleteWord(void);
 };
