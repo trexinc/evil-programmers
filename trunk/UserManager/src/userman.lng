@@ -173,7 +173,6 @@
 
 //config
 "&Add to Disks menu"
-"Disks menu &hotkey ('1'-'9'). Leave empty to autoassign"
 "Add to &Plugins menu"
 "Add to C&onfig menu"
 "&Full user names"

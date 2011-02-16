@@ -61,7 +61,7 @@ class CFarPanel
   private:
     CFarPanel();
   public:
-    CFarPanel(HANDLE aPlugin,int aCommand);
+    CFarPanel(HANDLE aPlugin,FILE_CONTROL_COMMANDS aCommand);
     ~CFarPanel();
     inline bool IsOk(void) {return iResult;}
     inline int PanelType(void) {return iInfo.PanelType;};
@@ -90,6 +90,21 @@ class CFarPanelSelection
     ~CFarPanelSelection();
     inline int Number(void) {return iSelection?iInfo.SelectedItemsNumber:1;}
     PluginPanelItem& operator[](size_t index);
+};
+
+class CFarSettings
+{
+  private:
+    HANDLE iSettings;
+    size_t iRoot;
+    CFarSettings();
+  public:
+    CFarSettings(const GUID& PluginId);
+    ~CFarSettings();
+    void Set(const wchar_t* aName,__int64 aValue);
+    void Set(const wchar_t* aName,const wchar_t* aValue);
+    void Get(const wchar_t* aName,__int64& aValue);
+    void Get(const wchar_t* aName,wchar_t* aValue,size_t aSize);
 };
 
 #endif
