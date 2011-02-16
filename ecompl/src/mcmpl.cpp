@@ -345,7 +345,7 @@ void TMenuCompletion::InitItems(FarDialogItem *DialogItems)
 
   for(unsigned int i=0;i<(sizeof(Msgs)/sizeof(Msgs[0]));i++)
   {
-    DialogItems[i+CMPL_DIALOG_ITEMS].Type=DialogElements[i][0];
+    DialogItems[i+CMPL_DIALOG_ITEMS].Type=(FARDIALOGITEMTYPES)DialogElements[i][0];
     DialogItems[i+CMPL_DIALOG_ITEMS].X1=DialogElements[i][1];
     DialogItems[i+CMPL_DIALOG_ITEMS].Y1=DialogElements[i][2];
     DialogItems[i+CMPL_DIALOG_ITEMS].X2=DialogElements[i][3];

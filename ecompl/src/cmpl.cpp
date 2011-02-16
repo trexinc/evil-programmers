@@ -440,7 +440,7 @@ void TCompletion::InitItems(FarDialogItem *DialogItems)
   };
   for(unsigned int i=0;i<(sizeof(Msgs)/sizeof(Msgs[0]));i++)
   {
-    DialogItems[i].Type=DialogElements[i][0];
+    DialogItems[i].Type=(FARDIALOGITEMTYPES)DialogElements[i][0];
     DialogItems[i].X1=DialogElements[i][1];
     DialogItems[i].Y1=DialogElements[i][2];
     DialogItems[i].X2=DialogElements[i][3];
