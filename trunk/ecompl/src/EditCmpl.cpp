@@ -94,7 +94,7 @@ void WINAPI GetPluginInfoW(struct PluginInfo *Info)
   Info->PluginMenu.Count=sizeof(PluginMenuStrings)/sizeof(PluginMenuStrings[0]);
 }
 
-HANDLE WINAPI OpenPluginW(int OpenFrom,const GUID* Guid,int Item)
+HANDLE WINAPI OpenPluginW(OPENPLUGIN_OPENFROM OpenFrom,const GUID* Guid,int Item)
 {
   (void)OpenFrom;
   (void)Item;
