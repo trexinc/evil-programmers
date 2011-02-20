@@ -311,7 +311,7 @@ bool TCompletion::GetValue(HANDLE Handle,int Root,const TCHAR* Name,bool Default
   FarSettingsItem item={Root,Name,FST_QWORD};
   if(Info.SettingsControl(Handle,SCTL_GET,0,(INT_PTR)&item))
   {
-    result=item.Value.Number?true:false;
+    result=item.Number?true:false;
   }
   return result;
 }
@@ -322,7 +322,7 @@ __int64 TCompletion::GetValue(HANDLE Handle,int Root,const TCHAR* Name,__int64 D
   FarSettingsItem item={Root,Name,FST_QWORD};
   if(Info.SettingsControl(Handle,SCTL_GET,0,(INT_PTR)&item))
   {
-    result=item.Value.Number;
+    result=item.Number;
   }
   return result;
 }
@@ -332,7 +332,7 @@ void TCompletion::GetValue(HANDLE Handle,int Root,const TCHAR* Name,TCHAR* Value
   FarSettingsItem item={Root,Name,FST_STRING};
   if(Info.SettingsControl(Handle,SCTL_GET,0,(INT_PTR)&item))
   {
-    _tcsncpy(Value,item.Value.String,Size-1);
+    _tcsncpy(Value,item.String,Size-1);
     Value[Size-1]=0;
   }
 }
@@ -340,14 +340,14 @@ void TCompletion::GetValue(HANDLE Handle,int Root,const TCHAR* Name,TCHAR* Value
 void TCompletion::SetValue(HANDLE Handle,int Root,const TCHAR* Name,__int64 Value)
 {
   FarSettingsItem item={Root,Name,FST_QWORD};
-  item.Value.Number=Value;
+  item.Number=Value;
   Info.SettingsControl(Handle,SCTL_SET,0,(INT_PTR)&item);
 }
 
 void TCompletion::SetValue(HANDLE Handle,int Root,const TCHAR* Name,TCHAR* Value)
 {
   FarSettingsItem item={Root,Name,FST_STRING};
-  item.Value.String=Value;
+  item.String=Value;
   Info.SettingsControl(Handle,SCTL_SET,0,(INT_PTR)&item);
 }
 
