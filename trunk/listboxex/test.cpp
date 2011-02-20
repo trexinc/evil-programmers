@@ -221,7 +221,7 @@ static INT_PTR WINAPI MainDialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Para
   return ListBoxExDialogProc(hDlg,Msg,Param1,Param2);
 }
 
-HANDLE WINAPI OpenPluginW(int OpenFrom,const GUID* Guid,int Item)
+HANDLE WINAPI OpenPluginW(OPENPLUGIN_OPENFROM OpenFrom,const GUID* Guid,int Item)
 {
   InitDialogItem InitItems[]=
   {
