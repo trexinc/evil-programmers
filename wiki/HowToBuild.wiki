@@ -14,7 +14,7 @@ Don't forget to run *msys.bat* and from there:
 Don't forget to add *mingw\bin* and *mingw\msys\1.0\bin* to *%PATH%*.
 
 From http://sourceforge.net/projects/re2c download: *re2c-0.13.5-bin.zip*
-re2c-0.13.5-bin.zip needs to be extracted to *mingw/bin*
+<br>re2c-0.13.5-bin.zip needs to be extracted to *mingw/bin*
 
 Now, to compile the plugins you need to use the following command:
   `mingw32-make -f makefile WIDE=1 COMMON=../path_to_common/from_far_svn`
