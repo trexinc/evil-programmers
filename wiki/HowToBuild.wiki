@@ -6,15 +6,14 @@
 Read http://mingw.org/wiki/Getting_Started and download *mingw-get*.
 
 Then run:
-`mingw-get install gcc g++ mingw32-make mingw32-utils msys-core msys-m4 msys-bison msys-coreutils`
+  `mingw-get install gcc g++ mingw32-make mingw32-utils msys-core msys-m4 msys-bison msys-coreutils`
 
-Don't forget to run msys.bat and from there:
-`/postinstall/pi.sh`
+Don't forget to run *msys.bat* and from there:
+  `/postinstall/pi.sh`
 
 Don't forget to add *mingw\bin* and *mingw\msys\1.0\bin* to *%PATH%*.
 
-From http://sourceforge.net/projects/re2c download:
-  * re2c-0.13.5-bin.zip
+From http://sourceforge.net/projects/re2c download: *re2c-0.13.5-bin.zip*
 
 re2c-0.13.5-bin.zip needs to be extracted to *mingw/bin*
 
