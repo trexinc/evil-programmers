@@ -3,34 +3,20 @@
 
 = Using Mingw GCC =
 
-The following files are needed:
+Read http://mingw.org/wiki/Getting_Started and download mingw-get.
 
-From http://sourceforge.net/projects/mingw/
-  * binutils-2.20-1-mingw32-bin.tar.gz
-  * make-3.81-20090914-mingw32-bin.tar.gz
-  * mingw-utils-0.4-1-mingw32-bin.tar.lzma
-  * mingwrt-3.17-mingw32-dev.tar.gz
-  * mingwrt-3.17-mingw32-dll.tar.gz
-  * w32api-3.14-mingw32-dev.tar.gz
-  * bash-3.1.17-2-msys-1.0.11-bin.tar.lzma
-  * bison-2.4.1-1-msys-1.0.11-bin.tar.lzma
-  * coreutils-5.97-2-msys-1.0.11-bin.tar.lzma
-  * gawk-3.1.7-1-msys-1.0.11-bin.tar.lzma
-  * m4-1.4.13-1-msys-1.0.11-bin.tar.lzma
-  * make-3.81-2-msys-1.0.11-bin.tar.lzma
-  * msysCORE-1.0.13-2-msys-1.0.13-bin.tar.lzma
-  * sed-4.2.1-1-msys-1.0.11-bin.tar.lzma
+Then run:
+`mingw-get install gcc g++ mingw32-make mingw32-utils msys-core msys-m4 msys-bison msys-coreutils`
 
-From http://www.tdragon.net/recentgcc/
-  * gcc-4.4.1-tdm-2-core.zip
-  * gcc-4.4.1-tdm-2-g++.zip
+Don't forget to run msys.bat and from there:
+`/postinstall/pi.sh`
 
-From http://sourceforge.net/projects/re2c
+Don't forget to add *mingw\bin* and *mingw\msys\1.0\bin* to *%PATH%*.
+
+From http://sourceforge.net/projects/re2c download:
   * re2c-0.13.5-bin.zip
 
-Extract all archives to *mingw* folder (note: re2c-0.13.5-bin.zip needs to be extracted to *mingw/bin*)
-
-Add *mingw/bin* to *PATH*.
+re2c-0.13.5-bin.zip needs to be extracted to *mingw/bin*
 
 Now, to compile the plugins you need to use the following command:
   `mingw32-make -f makefile WIDE=1 COMMON=../path_to_common/from_far_svn`
