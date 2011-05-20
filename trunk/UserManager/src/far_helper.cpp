@@ -49,7 +49,7 @@ CFarDialog::~CFarDialog()
   Info.DialogFree(iDlg);
 }
 
-int CFarDialog::Execute(const GUID& PluginId,const GUID& Id,int X1,int Y1,int X2,int Y2,const TCHAR* HelpTopic,struct FarDialogItem* Item,int ItemsNumber,DWORD Reserved,DWORD Flags,FARWINDOWPROC DlgProc,LONG_PTR Param)
+int CFarDialog::Execute(const GUID& PluginId,const GUID& Id,int X1,int Y1,int X2,int Y2,const TCHAR* HelpTopic,struct FarDialogItem* Item,int ItemsNumber,DWORD Reserved,DWORD Flags,FARWINDOWPROC DlgProc,void* Param)
 {
   iDlg=Info.DialogInit(&PluginId,&Id,X1,Y1,X2,Y2,HelpTopic,Item,ItemsNumber,Reserved,Flags,DlgProc,Param);
   return Info.DialogRun(iDlg);
@@ -68,13 +68,13 @@ int CFarDialog::Check(int index)
 DWORD CFarDialog::Type(int index)
 {
   FarDialogItem DialogItem;
-  if(Info.SendDlgMessage(iDlg,DM_GETDLGITEMSHORT,index,(LONG_PTR)&DialogItem)) return DialogItem.Type;
+  if(Info.SendDlgMessage(iDlg,DM_GETDLGITEMSHORT,index,&DialogItem)) return DialogItem.Type;
   return 0;
 }
 
 CFarPanel::CFarPanel(HANDLE aPlugin,FILE_CONTROL_COMMANDS aCommand): iPlugin(aPlugin),iCurDir(NULL),iCurDirSize(0),iItem(NULL),iItemSize(0)
 {
-  iResult=Info.Control(aPlugin,aCommand,0,(LONG_PTR)&iInfo);
+  iResult=Info.PanelControl(aPlugin,aCommand,0,&iInfo);
 }
 
 CFarPanel::~CFarPanel()
@@ -85,22 +85,28 @@ CFarPanel::~CFarPanel()
 
 TCHAR* CFarPanel::CurDir(void)
 {
-  Realloc(iCurDir,iCurDirSize,Info.Control(iPlugin,FCTL_GETPANELDIR,0,0));
-  Info.Control(iPlugin,FCTL_GETPANELDIR,iCurDirSize,(LONG_PTR)iCurDir);
+  Realloc(iCurDir,iCurDirSize,Info.PanelControl(iPlugin,FCTL_GETPANELDIR,0,0));
+  Info.PanelControl(iPlugin,FCTL_GETPANELDIR,iCurDirSize,iCurDir);
   return iCurDir;
 }
 
 PluginPanelItem& CFarPanel::operator[](size_t index)
 {
-  Realloc(iItem,iItemSize,Info.Control(iPlugin,FCTL_GETPANELITEM,index,0));
-  Info.Control(iPlugin,FCTL_GETPANELITEM,index,(LONG_PTR)iItem);
+  FarGetPluginPanelItem piinfo={0,NULL};
+  piinfo.Size=Info.PanelControl(iPlugin,FCTL_GETPANELITEM,index,&piinfo);
+  Realloc(iItem,iItemSize,piinfo.Size);
+  piinfo.Item=iItem;
+  Info.PanelControl(iPlugin,FCTL_GETPANELITEM,index,&piinfo);
   return *iItem;
 }
 
 PluginPanelItem& CFarPanel::Selected(size_t index)
 {
-  Realloc(iItem,iItemSize,Info.Control(iPlugin,FCTL_GETSELECTEDPANELITEM,index,0));
-  Info.Control(iPlugin,FCTL_GETSELECTEDPANELITEM,index,(LONG_PTR)iItem);
+  FarGetPluginPanelItem piinfo={0,NULL};
+  piinfo.Size=Info.PanelControl(iPlugin,FCTL_GETSELECTEDPANELITEM,index,&piinfo);
+  Realloc(iItem,iItemSize,piinfo.Size);
+  piinfo.Item=iItem;
+  Info.PanelControl(iPlugin,FCTL_GETSELECTEDPANELITEM,index,&piinfo);
   return *iItem;
 }
 
@@ -108,7 +114,7 @@ CFarPanelSelection::CFarPanelSelection(HANDLE aPlugin,bool aSelection): iPlugin(
 {
   iInfo.CurrentItem=0;
   iInfo.SelectedItemsNumber=0;
-  Info.Control(aPlugin,FCTL_GETPANELINFO,0,(LONG_PTR)&iInfo);
+  Info.PanelControl(aPlugin,FCTL_GETPANELINFO,0,&iInfo);
 }
 
 CFarPanelSelection::~CFarPanelSelection()
@@ -118,8 +124,11 @@ CFarPanelSelection::~CFarPanelSelection()
 
 PluginPanelItem& CFarPanelSelection::operator[](size_t index)
 {
-  Realloc(iItem,iItemSize,Info.Control(iPlugin,iSelection?FCTL_GETSELECTEDPANELITEM:FCTL_GETCURRENTPANELITEM,index,0));
-  Info.Control(iPlugin,iSelection?FCTL_GETSELECTEDPANELITEM:FCTL_GETCURRENTPANELITEM,index,(LONG_PTR)iItem);
+  FarGetPluginPanelItem piinfo={0,NULL};
+  piinfo.Size=Info.PanelControl(iPlugin,iSelection?FCTL_GETSELECTEDPANELITEM:FCTL_GETCURRENTPANELITEM,index,&piinfo);
+  Realloc(iItem,iItemSize,piinfo.Size);
+  piinfo.Item=iItem;
+  Info.PanelControl(iPlugin,iSelection?FCTL_GETSELECTEDPANELITEM:FCTL_GETCURRENTPANELITEM,index,&piinfo);
   return *iItem;
 }
 
@@ -128,7 +137,7 @@ PluginPanelItem& CFarPanelSelection::operator[](size_t index)
 CFarSettings::CFarSettings(const GUID& PluginId)
 {
   FarSettingsCreate settings={sizeof(FarSettingsCreate),PluginId,INVALID_HANDLE_VALUE};
-  iSettings=Info.SettingsControl(INVALID_HANDLE_VALUE,SCTL_CREATE,0,(INT_PTR)&settings)?settings.Handle:0;
+  iSettings=Info.SettingsControl(INVALID_HANDLE_VALUE,SCTL_CREATE,0,&settings)?settings.Handle:0;
   iRoot=0;
 }
 
@@ -140,32 +149,32 @@ CFarSettings::~CFarSettings()
 void CFarSettings::Set(const wchar_t* aName,__int64 aValue)
 {
   FarSettingsItem item={iRoot,aName,FST_QWORD,{0}};
-  item.Value.Number=aValue;
-  Info.SettingsControl(iSettings,SCTL_SET,0,(INT_PTR)&item);
+  item.Number=aValue;
+  Info.SettingsControl(iSettings,SCTL_SET,0,&item);
 }
 
 void CFarSettings::Set(const wchar_t* aName,const wchar_t* aValue)
 {
   FarSettingsItem item={iRoot,aName,FST_STRING,{0}};
-  item.Value.String=aValue;
-  Info.SettingsControl(iSettings,SCTL_SET,0,(INT_PTR)&item);
+  item.String=aValue;
+  Info.SettingsControl(iSettings,SCTL_SET,0,&item);
 }
 
 void CFarSettings::Get(const wchar_t* aName,__int64& aValue)
 {
   FarSettingsItem item={iRoot,aName,FST_QWORD,{0}};
-  if(Info.SettingsControl(iSettings,SCTL_GET,0,(INT_PTR)&item))
+  if(Info.SettingsControl(iSettings,SCTL_GET,0,&item))
   {
-    aValue=item.Value.Number;
+    aValue=item.Number;
   }
 }
 
 void CFarSettings::Get(const wchar_t* aName,wchar_t* aValue,size_t aSize)
 {
   FarSettingsItem item={iRoot,aName,FST_STRING,{0}};
-  if(Info.SettingsControl(iSettings,SCTL_GET,0,(INT_PTR)&item))
+  if(Info.SettingsControl(iSettings,SCTL_GET,0,&item))
   {
-    _tcsncpy(aValue,item.Value.String,aSize-1);
+    _tcsncpy(aValue,item.String,aSize-1);
     aValue[aSize-1]=0;
   }
 }

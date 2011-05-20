@@ -24,31 +24,31 @@
 #include "memory.h"
 #include "guid.h"
 
-static INT_PTR WINAPI EditCommonAccessDialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
+static INT_PTR WINAPI EditCommonAccessDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
 {
   FarDialogItem DialogItem;
   switch(Msg)
   {
     case DN_INITDIALOG:
     case DN_BTNCLICK:
-      Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,2,(long)&DialogItem);
+      Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,2,&DialogItem);
       if(DialogItem.Selected)
       {
         for(int i=4;i<10;i++)
         {
-          Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,i,(long)&DialogItem);
+          Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,i,&DialogItem);
           DialogItem.Selected=FALSE;
           DialogItem.Flags|=DIF_DISABLE;
-          Info.SendDlgMessage(hDlg,DM_SETDLGITEMSHORT,i,(long)&DialogItem);
+          Info.SendDlgMessage(hDlg,DM_SETDLGITEMSHORT,i,&DialogItem);
         }
       }
       else
       {
         for(int i=4;i<10;i++)
         {
-          Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,i,(long)&DialogItem);
+          Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,i,&DialogItem);
           DialogItem.Flags&=~DIF_DISABLE;
-          Info.SendDlgMessage(hDlg,DM_SETDLGITEMSHORT,i,(long)&DialogItem);
+          Info.SendDlgMessage(hDlg,DM_SETDLGITEMSHORT,i,&DialogItem);
         }
       }
       break;
@@ -91,18 +91,18 @@ bool EditCommonAccess(UserManager *panel)
         */
         FarDialogItem DialogItems[]=
         {
-        /* 0*/  {DI_DOUBLEBOX,  3, 1,72,13,{0},NULL,NULL,0,                                0,_T(""),                              0},
-        /* 1*/  {DI_SINGLEBOX,  5, 4,70,11,{0},NULL,NULL,DIF_LEFTTEXT,                     0,_T(""),                              0},
-        /* 2*/  {DI_RADIOBUTTON,5, 2, 0, 0,{0},NULL,NULL,DIF_GROUP|DIF_FOCUS,              0,GetMsg(mPropSimpleFull),             0},
-        /* 3*/  {DI_RADIOBUTTON,5, 3, 0, 0,{0},NULL,NULL,0,                                0,GetMsg(mPropSimpleSpecial),          0},
-        /* 4*/  {DI_CHECKBOX,   7, 5, 0, 0,{0},NULL,NULL,0,                                0,GetMsg(mPropSimpleRead),             0},
-        /* 5*/  {DI_CHECKBOX,   7, 6, 0, 0,{0},NULL,NULL,0,                                0,GetMsg(mPropSimpleWrite),            0},
-        /* 6*/  {DI_CHECKBOX,   7, 7, 0, 0,{0},NULL,NULL,0,                                0,GetMsg(mPropSimpleExecute),          0},
-        /* 7*/  {DI_CHECKBOX,   7, 8, 0, 0,{0},NULL,NULL,0,                                0,GetMsg(mPropSimpleDelete),           0},
-        /* 8*/  {DI_CHECKBOX,   7, 9, 0, 0,{0},NULL,NULL,0,                                0,GetMsg(mPropSimpleChangePermissions),0},
-        /* 9*/  {DI_CHECKBOX,   7,10, 0, 0,{0},NULL,NULL,0,                                0,GetMsg(mPropSimpleTakeOwnership),    0},
-        /*10*/  {DI_BUTTON,     0,12, 0, 0,{0},NULL,NULL,DIF_CENTERGROUP|DIF_DEFAULTBUTTON,0,GetMsg(mPropButtonOk),               0},
-        /*11*/  {DI_BUTTON,     0,12, 0, 0,{0},NULL,NULL,DIF_CENTERGROUP,                  0,GetMsg(mPropButtonCancel),           0}
+        /* 0*/  {DI_DOUBLEBOX,  3, 1,72,13,{0},NULL,NULL,0,                                _T(""),                              0,0},
+        /* 1*/  {DI_SINGLEBOX,  5, 4,70,11,{0},NULL,NULL,DIF_LEFTTEXT,                     _T(""),                              0,0},
+        /* 2*/  {DI_RADIOBUTTON,5, 2, 0, 0,{0},NULL,NULL,DIF_GROUP|DIF_FOCUS,              GetMsg(mPropSimpleFull),             0,0},
+        /* 3*/  {DI_RADIOBUTTON,5, 3, 0, 0,{0},NULL,NULL,0,                                GetMsg(mPropSimpleSpecial),          0,0},
+        /* 4*/  {DI_CHECKBOX,   7, 5, 0, 0,{0},NULL,NULL,0,                                GetMsg(mPropSimpleRead),             0,0},
+        /* 5*/  {DI_CHECKBOX,   7, 6, 0, 0,{0},NULL,NULL,0,                                GetMsg(mPropSimpleWrite),            0,0},
+        /* 6*/  {DI_CHECKBOX,   7, 7, 0, 0,{0},NULL,NULL,0,                                GetMsg(mPropSimpleExecute),          0,0},
+        /* 7*/  {DI_CHECKBOX,   7, 8, 0, 0,{0},NULL,NULL,0,                                GetMsg(mPropSimpleDelete),           0,0},
+        /* 8*/  {DI_CHECKBOX,   7, 9, 0, 0,{0},NULL,NULL,0,                                GetMsg(mPropSimpleChangePermissions),0,0},
+        /* 9*/  {DI_CHECKBOX,   7,10, 0, 0,{0},NULL,NULL,0,                                GetMsg(mPropSimpleTakeOwnership),    0,0},
+        /*10*/  {DI_BUTTON,     0,12, 0, 0,{0},NULL,NULL,DIF_CENTERGROUP|DIF_DEFAULTBUTTON,GetMsg(mPropButtonOk),               0,0},
+        /*11*/  {DI_BUTTON,     0,12, 0, 0,{0},NULL,NULL,DIF_CENTERGROUP,                  GetMsg(mPropButtonCancel),           0,0}
         };
         if((mask&common_full_access[panel->level])==common_full_access[panel->level])
           DialogItems[2].Selected=TRUE;

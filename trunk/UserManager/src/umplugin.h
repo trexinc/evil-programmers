@@ -697,8 +697,8 @@ extern void free_current_user(void);
 #define ControlKeyAllMask (RIGHT_ALT_PRESSED|LEFT_ALT_PRESSED|RIGHT_CTRL_PRESSED|LEFT_CTRL_PRESSED|SHIFT_PRESSED)
 #define ControlKeyAltMask (RIGHT_ALT_PRESSED|LEFT_ALT_PRESSED)
 #define ControlKeyNonAltMask (RIGHT_CTRL_PRESSED|LEFT_CTRL_PRESSED|SHIFT_PRESSED)
-#define IsShift(rec) static_cast<bool>((rec->Event.KeyEvent.dwControlKeyState&ControlKeyAllMask)==SHIFT_PRESSED)
-#define IsAlt(rec) static_cast<bool>((rec->Event.KeyEvent.dwControlKeyState&ControlKeyAltMask)&&!(rec->Event.KeyEvent.dwControlKeyState&ControlKeyNonAltMask))
-#define IsNone(rec) static_cast<bool>((rec->Event.KeyEvent.dwControlKeyState&ControlKeyAllMask)==0)
+#define IsShift(rec) static_cast<bool>(((rec)->Event.KeyEvent.dwControlKeyState&ControlKeyAllMask)==SHIFT_PRESSED)
+#define IsAlt(rec) static_cast<bool>(((rec)->Event.KeyEvent.dwControlKeyState&ControlKeyAltMask)&&!((rec)->Event.KeyEvent.dwControlKeyState&ControlKeyNonAltMask))
+#define IsNone(rec) static_cast<bool>(((rec)->Event.KeyEvent.dwControlKeyState&ControlKeyAllMask)==0)
 
 #include <ddk/ntifs.h>

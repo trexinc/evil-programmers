@@ -34,15 +34,15 @@ const int updateSize=2;
 
 //FIXME: NetApiBufferFree
 
-static INT_PTR WINAPI ManageGroupDialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
+static INT_PTR WINAPI ManageGroupDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
 {
   bool *updated=(bool *)Info.SendDlgMessage(hDlg,DM_GETDLGDATA,0,0);
   switch(Msg)
   {
     case DN_INITDIALOG:
       Info.SendDlgMessage(hDlg,DM_SETDLGDATA,0,Param2);
-      Info.SendDlgMessage(hDlg,DM_SETMAXTEXTLENGTH,indexName,GNLEN-1);
-      Info.SendDlgMessage(hDlg,DM_SETMAXTEXTLENGTH,indexComment,MAXCOMMENTSZ-1);
+      Info.SendDlgMessage(hDlg,DM_SETMAXTEXTLENGTH,indexName,(void*)(GNLEN-1));
+      Info.SendDlgMessage(hDlg,DM_SETMAXTEXTLENGTH,indexComment,(void*)(MAXCOMMENTSZ-1));
       break;
     case DN_EDITCHANGE:
       if(Param1==indexName) updated[updateName]=true;
@@ -75,14 +75,14 @@ bool ManageGroup(UserManager *panel,bool type,const wchar_t *in_group)
   static const TCHAR *NewGroupHistoryName=_T("UserManager\\NewGroup");
   static const TCHAR *NewGroupHistoryComment=_T("UserManager\\NewGroupComment");
   FarDialogItem DialogItems[]={
-  /* 0*/  {DI_DOUBLEBOX,3,1,72,8,{0},NULL,                  NULL,0,                                0,GetMsg(mGroupNewGroup),0},
-  /* 1*/  {DI_TEXT,     5,2, 0,0,{0},NULL,                  NULL,0,                                0,GetMsg(mGroupName),    0},
-  /* 2*/  {DI_EDIT,     5,3,70,0,{0},NewGroupHistoryName,   NULL,DIF_HISTORY|DIF_FOCUS,            0,_T(""),                0},
-  /* 3*/  {DI_TEXT,     5,4, 0,0,{0},NULL,                  NULL,0,                                0,GetMsg(mGroupComment), 0},
-  /* 4*/  {DI_EDIT,     5,5,70,0,{0},NewGroupHistoryComment,NULL,DIF_HISTORY,                      0,_T(""),                0},
-  /* 5*/  {DI_TEXT,     5,6, 0,0,{0},NULL,                  NULL,DIF_BOXCOLOR|DIF_SEPARATOR,       0,_T(""),                0},
-  /* 6*/  {DI_BUTTON,   0,7, 0,0,{0},NULL,                  NULL,DIF_CENTERGROUP|DIF_DEFAULTBUTTON,0,GetMsg(mButtonOk),     0},
-  /* 7*/  {DI_BUTTON,   0,7, 0,0,{0},NULL,                  NULL,DIF_CENTERGROUP,                  0,GetMsg(mButtonCancel), 0},
+  /* 0*/  {DI_DOUBLEBOX,3,1,72,8,{0},NULL,                  NULL,0,                                GetMsg(mGroupNewGroup),0,0},
+  /* 1*/  {DI_TEXT,     5,2, 0,0,{0},NULL,                  NULL,0,                                GetMsg(mGroupName),    0,0},
+  /* 2*/  {DI_EDIT,     5,3,70,0,{0},NewGroupHistoryName,   NULL,DIF_HISTORY|DIF_FOCUS,            _T(""),                0,0},
+  /* 3*/  {DI_TEXT,     5,4, 0,0,{0},NULL,                  NULL,0,                                GetMsg(mGroupComment), 0,0},
+  /* 4*/  {DI_EDIT,     5,5,70,0,{0},NewGroupHistoryComment,NULL,DIF_HISTORY,                      _T(""),                0,0},
+  /* 5*/  {DI_TEXT,     5,6, 0,0,{0},NULL,                  NULL,DIF_BOXCOLOR|DIF_SEPARATOR,       _T(""),                0,0},
+  /* 6*/  {DI_BUTTON,   0,7, 0,0,{0},NULL,                  NULL,DIF_CENTERGROUP|DIF_DEFAULTBUTTON,GetMsg(mButtonOk),     0,0},
+  /* 7*/  {DI_BUTTON,   0,7, 0,0,{0},NULL,                  NULL,DIF_CENTERGROUP,                  GetMsg(mButtonCancel), 0,0},
   };
   TCHAR name[512],comment[512],title[128];
   if(type)
@@ -94,9 +94,9 @@ bool ManageGroup(UserManager *panel,bool type,const wchar_t *in_group)
       if(NetGroupGetInfo(server,group,1,(LPBYTE *)&info)==NERR_Success)
       {
         _tcscpy(name,info->grpi1_name);
-        DialogItems[indexName].PtrData=name;
+        DialogItems[indexName].Data=name;
         _tcscpy(comment,info->grpi1_comment);
-        DialogItems[indexComment].PtrData=comment;
+        DialogItems[indexComment].Data=comment;
         NetApiBufferFree(info);
       }
       else return false;
@@ -107,19 +107,19 @@ bool ManageGroup(UserManager *panel,bool type,const wchar_t *in_group)
       if(NetLocalGroupGetInfo(server,group,1,(LPBYTE *)&info)==NERR_Success)
       {
         _tcscpy(name,info->lgrpi1_name);
-        DialogItems[indexName].PtrData=name;
+        DialogItems[indexName].Data=name;
         _tcscpy(comment,info->lgrpi1_comment);
-        DialogItems[indexComment].PtrData=comment;
+        DialogItems[indexComment].Data=comment;
         NetApiBufferFree(info);
       }
       else return false;
     }
-    FSF.sprintf(title,GetMsg(mGroupEditGroup),DialogItems[indexName].PtrData);
-    DialogItems[0].PtrData=title;
+    FSF.sprintf(title,GetMsg(mGroupEditGroup),DialogItems[indexName].Data);
+    DialogItems[0].Data=title;
   }
   bool params[updateSize];
   CFarDialog dialog;
-  int DlgCode=dialog.Execute(MainGuid,ManageGroupGuid,-1,-1,76,10,_T("ManageGroup"),DialogItems,ArraySize(DialogItems),0,0,ManageGroupDialogProc,(DWORD)params);
+  int DlgCode=dialog.Execute(MainGuid,ManageGroupGuid,-1,-1,76,10,_T("ManageGroup"),DialogItems,ArraySize(DialogItems),0,0,ManageGroupDialogProc,params);
   if(DlgCode==6)
   {
     if(params[updateName])

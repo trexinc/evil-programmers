@@ -24,7 +24,7 @@
 extern PluginStartupInfo Info;
 #define ArraySize(a) (sizeof(a)/sizeof(a[0]))
 
-#define INIT_DLG_DATA(item,str) item.PtrData=str
+#define INIT_DLG_DATA(item,str) item.Data=str
 class CFarDialog
 {
   private:
@@ -32,14 +32,14 @@ class CFarDialog
   public:
     inline CFarDialog(): iDlg(INVALID_HANDLE_VALUE) {};
     ~CFarDialog();
-    int Execute(const GUID& PluginId,const GUID& Id,int X1,int Y1,int X2,int Y2,const TCHAR* HelpTopic,struct FarDialogItem* Item,int ItemsNumber,DWORD Reserved,DWORD Flags,FARWINDOWPROC DlgProc,LONG_PTR Param);
+    int Execute(const GUID& PluginId,const GUID& Id,int X1,int Y1,int X2,int Y2,const TCHAR* HelpTopic,struct FarDialogItem* Item,int ItemsNumber,DWORD Reserved,DWORD Flags,FARWINDOWPROC DlgProc,void* Param);
     inline HANDLE Handle(void) {return iDlg;};
     int Check(int index);
     const wchar_t* Str(int index);
     inline DWORD Flags(int index)
     {
       FarDialogItem DialogItem;
-      if(Info.SendDlgMessage(iDlg,DM_GETDLGITEMSHORT,index,(LONG_PTR)&DialogItem)) return DialogItem.Flags;
+      if(Info.SendDlgMessage(iDlg,DM_GETDLGITEMSHORT,index,&DialogItem)) return DialogItem.Flags;
       return 0;
     };
     DWORD Type(int index);

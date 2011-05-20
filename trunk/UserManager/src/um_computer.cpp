@@ -26,12 +26,12 @@
 #include "memory.h"
 #include "guid.h"
 
-static INT_PTR WINAPI ComputerDialogProc(HANDLE hDlg, int Msg,int Param1,INT_PTR Param2)
+static INT_PTR WINAPI ComputerDialogProc(HANDLE hDlg, int Msg,int Param1,void* Param2)
 {
   switch(Msg)
   {
     case DN_INITDIALOG:
-      Info.SendDlgMessage(hDlg,DM_SETMAXTEXTLENGTH,2,MAX_PATH-3);
+      Info.SendDlgMessage(hDlg,DM_SETMAXTEXTLENGTH,2,(void*)(MAX_PATH-3));
       break;
   }
   return Info.DefDlgProc(hDlg,Msg,Param1,Param2);
@@ -58,12 +58,12 @@ bool GetComputer(UserManager *panel,bool selection)
     static const TCHAR *ComputerHistoryName=_T("UserManager\\Computer");
     FarDialogItem DialogItems[]=
     {
-    /*0*/  {DI_DOUBLEBOX,3,1,44,5,{0},NULL,               NULL,0,                    0,GetMsg(mSelCompTitle),   0},
-    /*1*/  {DI_TEXT,     5,2, 0,0,{0},NULL,               NULL,0,                    0,GetMsg(mSelCompLabel),   0},
-    /*2*/  {DI_EDIT,     5,3,42,0,{0},ComputerHistoryName,NULL,DIF_HISTORY|DIF_FOCUS,0,_T(""),                  0},
-    /*3*/  {DI_TEXT,     5,4, 0,0,{0},NULL,               NULL,0,                    0,GetMsg(mSelCompFootnote),0},
+    /*0*/  {DI_DOUBLEBOX,3,1,44,5,{0},NULL,               NULL,0,                    GetMsg(mSelCompTitle),   0,0},
+    /*1*/  {DI_TEXT,     5,2, 0,0,{0},NULL,               NULL,0,                    GetMsg(mSelCompLabel),   0,0},
+    /*2*/  {DI_EDIT,     5,3,42,0,{0},ComputerHistoryName,NULL,DIF_HISTORY|DIF_FOCUS,_T(""),                  0,0},
+    /*3*/  {DI_TEXT,     5,4, 0,0,{0},NULL,               NULL,0,                    GetMsg(mSelCompFootnote),0,0},
     };
-    DialogItems[2].PtrData=panel->computer_ptr;
+    DialogItems[2].Data=panel->computer_ptr;
     CFarDialog dialog;
     int DlgCode=dialog.Execute(MainGuid,GetComputerGuid,-1,-1,48,7,NULL,DialogItems,ArraySize(DialogItems),0,0,ComputerDialogProc,0);
     if(DlgCode!=-1)
