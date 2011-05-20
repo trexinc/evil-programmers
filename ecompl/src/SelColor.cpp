@@ -39,7 +39,7 @@ enum
   color_sep    = 40,
 };
 
-static INT_PTR WINAPI ColorDialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
+static INT_PTR WINAPI ColorDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
 {
   int color=0;
   FarDialogItem DialogItem;
@@ -49,7 +49,7 @@ static INT_PTR WINAPI ColorDialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Par
     case DN_BTNCLICK:
       for(int i=1;i<17;i++)
       {
-        if(Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,i,(LONG_PTR)&DialogItem))
+        if(Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,i,&DialogItem))
         {
           if(DialogItem.Selected)
           {
@@ -60,7 +60,7 @@ static INT_PTR WINAPI ColorDialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Par
       }
       for(int i=18;i<34;i++)
       {
-        if(Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,i,(LONG_PTR)&DialogItem))
+        if(Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,i,&DialogItem))
         {
           if(DialogItem.Selected)
           {
@@ -71,10 +71,10 @@ static INT_PTR WINAPI ColorDialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Par
       }
       for(int i=36;i<39;i++)
       {
-        if(Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,i,(LONG_PTR)&DialogItem))
+        if(Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,i,&DialogItem))
         {
           DialogItem.Flags=(DialogItem.Flags&0xffffff00)|color;
-          Info.SendDlgMessage(hDlg,DM_SETDLGITEMSHORT,i,(LONG_PTR)&DialogItem);
+          Info.SendDlgMessage(hDlg,DM_SETDLGITEMSHORT,i,&DialogItem);
         }
       }
       break;

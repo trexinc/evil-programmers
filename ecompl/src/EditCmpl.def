@@ -2,7 +2,7 @@ LIBRARY
 EXPORTS
    SetStartupInfoW=SetStartupInfoW@4
    GetPluginInfoW=GetPluginInfoW@4
-   OpenPluginW=OpenPluginW@12
+   OpenW=OpenW@4
    ConfigureW=ConfigureW@4
    ProcessEditorEventW=ProcessEditorEventW@8
    ProcessEditorInputW=ProcessEditorInputW@4
