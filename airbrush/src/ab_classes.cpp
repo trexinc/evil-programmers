@@ -158,16 +158,16 @@ int OnEditorEvent(int event,void *param)
   };
 
   // search file in list
-  Info.EditorControl(-1,ECTL_GETINFO,0,(INT_PTR)&ei);
+  Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
 
-  editorfilename = (TCHAR *)malloc(Info.EditorControl(-1,ECTL_GETFILENAME,0,(INT_PTR)NULL)*sizeof(TCHAR));
-  Info.EditorControl(-1,ECTL_GETFILENAME,0,(INT_PTR)editorfilename);
+  editorfilename = (TCHAR *)malloc(Info.EditorControl(-1,ECTL_GETFILENAME,0,NULL)*sizeof(TCHAR));
+  Info.EditorControl(-1,ECTL_GETFILENAME,0,editorfilename);
 
   filename=FSF.PointToName(editorfilename); // deletes path...
 
   EditorGetString egs;
   egs.StringNumber=0;
-  Info.EditorControl(-1,ECTL_GETSTRING,0,(INT_PTR)&egs);
+  Info.EditorControl(-1,ECTL_GETSTRING,0,&egs);
 
   if((!(curfile=ef_getfile(ei.EditorID)))&&Opt.Active&&(ei.TotalLines<=Opt.MaxLines))
   {
@@ -265,11 +265,14 @@ int OnEditorEvent(int event,void *param)
     EditorColor ec;
     ec.StartPos=-1;
     ec.EndPos=0;
-    ec.Color=0;
+    ec.Color.Flags=FMSG_FG_4BIT|FMSG_BG_4BIT;
+    ec.Color.ForegroundColor=0;
+    ec.Color.BackgroundColor=0;
+    ec.Color.Reserved=NULL;
     for(int i=ei.TopScreenLine;i<params.endline;i++)
     {
       ec.StringNumber=i;
-      Info.EditorControl(-1,ECTL_ADDCOLOR,0,(INT_PTR)&ec);
+      Info.EditorControl(-1,ECTL_ADDCOLOR,0,&ec);
     }
     return 0;
   }
@@ -394,7 +397,7 @@ int OnEditorEvent(int event,void *param)
   esp.LeftPos=ei.LeftPos;
   esp.CurTabPos=-1;
   esp.Overtype=-1;
-  Info.EditorControl(-1,ECTL_SETPOSITION,0,(INT_PTR)&esp);
+  Info.EditorControl(-1,ECTL_SETPOSITION,0,&esp);
   if(fatal) RaiseException(0,0,0,NULL);
   return 0;
 }
@@ -402,7 +405,7 @@ int OnEditorEvent(int event,void *param)
 int OnEditorInput(const INPUT_RECORD *Rec)
 {
   EditorInfo ei;
-  Info.EditorControl(-1,ECTL_GETINFO,0,(INT_PTR)&ei);
+  Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
   PEditFile curfile=ef_getfile(ei.EditorID);
   if(curfile&&(curfile->type>-1)&&PluginsData[curfile->type].pInput)
     return PluginsData[curfile->type].pInput(Rec);

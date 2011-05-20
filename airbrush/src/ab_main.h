@@ -127,17 +127,16 @@ extern PluginStartupInfo Info;
 extern FARSTANDARDFUNCTIONS FSF;
 extern HANDLE Mutex;
 extern int cursor_row,cursor_col;
-extern TCHAR PluginRootKey[];
-extern TCHAR PluginMaskKey[];
-extern TCHAR PluginColorKey[];
-extern TCHAR PluginStartKey[];
+#define PLUGIN_MASK_KEY _T("masks")
+#define PLUGIN_COLOR_KEY _T("colors")
+#define PLUGIN_START_KEY _T("starts")
 
 extern void LoadPlugs(const TCHAR* ModuleName);
 extern void UnloadPlugs(void);
 
 struct InitDialogItem
 {
-  int Type;
+  FARDIALOGITEMTYPES Type;
   int X1,Y1,X2,Y2;
   DWORD_PTR Selected;
   unsigned __int64 Flags;
@@ -150,7 +149,7 @@ extern bool SelectColor(int *fg,int *bg);
 struct Options
 {
   bool Active;
-  int MaxLines;
+  __int64 MaxLines;
   bool ColorizeAll;
 };
 

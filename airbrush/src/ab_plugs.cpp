@@ -25,26 +25,35 @@
 #include "abplugin.h"
 #include "abversion.h"
 #include "guid.h"
+#include "far_settings.h"
 
 struct PluginItem *PluginsData=NULL;
 int PluginsCount=0;
 
 static TCHAR Unknown[20];
 
+static void ConvertColor(int Color,FarColor& NewColor)
+{
+  NewColor.Flags=FMSG_FG_4BIT|FMSG_BG_4BIT;
+  NewColor.ForegroundColor=Color&0xf;
+  NewColor.BackgroundColor=(Color>>4)&0xf;
+  NewColor.Reserved=NULL;
+}
+
 static void WINAPI addcolor(int lno,int start,int len,int fg,int bg)
 {
   if((fg==-1)&&(bg==-1)) return;
   if(len==0) return;
   WaitForSingleObject(Mutex,INFINITE);
-  if(bg==-1) bg=Info.AdvControl(&MainGuid,ACTL_GETCOLOR,(void *)COL_EDITORTEXT)&0xF0;
+  if(bg==-1) bg=Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_EDITORTEXT,NULL)&0xF0;
   else bg=bg<<4;
-  if(fg==-1) fg=Info.AdvControl(&MainGuid,ACTL_GETCOLOR,(void *)COL_EDITORTEXT)&0x0F;
+  if(fg==-1) fg=Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_EDITORTEXT,NULL)&0x0F;
   EditorColor ec;
   ec.StringNumber=lno;
   ec.StartPos=start;
   ec.EndPos=start+len-1;
-  ec.Color=fg|bg;
-  Info.EditorControl(-1,ECTL_ADDCOLOR,0,(INT_PTR)&ec);
+  ConvertColor(fg|bg,ec.Color);
+  Info.EditorControl(-1,ECTL_ADDCOLOR,0,&ec);
   ReleaseMutex(Mutex);
 }
 
@@ -56,8 +65,8 @@ static const TCHAR WINAPI *getline(int lno,int *len)
   egs.StringNumber=-1;
   esp.CurLine=lno;
   WaitForSingleObject(Mutex,INFINITE);
-  Info.EditorControl(-1,ECTL_SETPOSITION,0,(INT_PTR)&esp);
-  Info.EditorControl(-1,ECTL_GETSTRING,0,(INT_PTR)&egs);
+  Info.EditorControl(-1,ECTL_SETPOSITION,0,&esp);
+  Info.EditorControl(-1,ECTL_GETSTRING,0,&egs);
   ReleaseMutex(Mutex);
   if(len)
     *len=egs.StringLength;
@@ -113,7 +122,7 @@ static void WINAPI getcursor(int *row,int *col)
   {
     EditorInfo ei;
     WaitForSingleObject(Mutex,INFINITE);
-    Info.EditorControl(-1,ECTL_GETINFO,0,(INT_PTR)&ei);
+    Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
     ReleaseMutex(Mutex);
     *row=ei.CurLine;
     *col=ei.CurPos;
@@ -215,13 +224,9 @@ void LoadPlugs(const TCHAR* ModuleName)
                 lstrcpy(buff_mask,mask);
                 if(CurPlugin.Params&PAR_MASK_STORE)
                 {
-                  HKEY hKey; DWORD Type; DWORD DataSize=0;
-                  if((RegOpenKeyEx(HKEY_CURRENT_USER,PluginMaskKey,0,KEY_QUERY_VALUE,&hKey))==ERROR_SUCCESS)
-                  {
-                    DataSize=sizeof(buff_mask);
-                    RegQueryValueEx(hKey,name,0,&Type,(LPBYTE)buff_mask,&DataSize);
-                    RegCloseKey(hKey);
-                  }
+                  CFarSettings settings(MainGuid);
+                  settings.Change(PLUGIN_MASK_KEY);
+                  settings.Get(name,buff_mask,ArraySize(buff_mask));
                 }
               }
               //load starts
@@ -232,13 +237,9 @@ void LoadPlugs(const TCHAR* ModuleName)
                 lstrcpy(buff_start,start);
                 if(CurPlugin.Params&PAR_FILESTART_STORE)
                 {
-                  HKEY hKey; DWORD Type; DWORD DataSize=0;
-                  if((RegOpenKeyEx(HKEY_CURRENT_USER,PluginStartKey,0,KEY_QUERY_VALUE,&hKey))==ERROR_SUCCESS)
-                  {
-                    DataSize=sizeof(buff_start);
-                    RegQueryValueEx(hKey,name,0,&Type,(LPBYTE)buff_start,&DataSize);
-                    RegCloseKey(hKey);
-                  }
+                  CFarSettings settings(MainGuid);
+                  settings.Change(PLUGIN_START_KEY);
+                  settings.Get(name,buff_start,ArraySize(buff_start));
                 }
               }
             }
@@ -257,13 +258,9 @@ void LoadPlugs(const TCHAR* ModuleName)
               int ColorCount; int *Colors;
               if((CurPlugin.Params&PAR_COLORS_STORE)&&CurPlugin.pGetParams(CurPlugin.Index,PAR_GET_COLOR_COUNT,(const char **)&ColorCount)&&CurPlugin.pGetParams(CurPlugin.Index,PAR_GET_COLOR,(const char **)&Colors))
               {
-                HKEY hKey; DWORD Type; DWORD DataSize=0;
-                if((RegOpenKeyEx(HKEY_CURRENT_USER,PluginColorKey,0,KEY_QUERY_VALUE,&hKey))==ERROR_SUCCESS)
-                {
-                  DataSize=ColorCount*2*sizeof(int);
-                  RegQueryValueEx(hKey,CurPlugin.Name,0,&Type,(LPBYTE)Colors,&DataSize);
-                  RegCloseKey(hKey);
-                }
+                CFarSettings settings(MainGuid);
+                settings.Change(PLUGIN_COLOR_KEY);
+                settings.Get(name,(void*)Colors,ColorCount*2*sizeof(int));
               }
             }
             PluginsData[PluginsCount]=CurPlugin;

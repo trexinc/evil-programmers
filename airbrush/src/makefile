@@ -34,7 +34,7 @@ LFLAGS=-mdll -s -nostartfiles
 RCFLAGS=-I ./$(BOOTSTRAPDIR)
 
 TARGET=../$(BINDIR)/airbrush.dll
-OBJS=../$(OBJDIR)/ab_main.o ../$(OBJDIR)/ab_plugs.o ../$(OBJDIR)/ab_selcolor.o ../$(OBJDIR)/ab_classes.o ../$(OBJDIR)/airbrush.res.o
+OBJS=../$(OBJDIR)/far_settings.o ../$(OBJDIR)/ab_main.o ../$(OBJDIR)/ab_plugs.o ../$(OBJDIR)/ab_selcolor.o ../$(OBJDIR)/ab_classes.o ../$(OBJDIR)/airbrush.res.o
 LIBS=
 SUBDIRS=c pas sql html php re2c yacclex zcustom armgnuasm awk
 DOCTARGET=../file_id.diz ../$(BINDIR)/airbrush.hlf ../$(BINDIR)/airbrush.lng
@@ -73,6 +73,9 @@ clear:
 	$(CC) $(CFLAGS) $< -o $@
 
 ../$(OBJDIR)/ab_classes.o: ab_classes.cpp ab_main.h ./$(BOOTSTRAPDIR)/abplugin.h
+	$(CC) $(CFLAGS) $< -o $@
+
+../$(OBJDIR)/far_settings.o: far_settings.cpp far_settings.h
 	$(CC) $(CFLAGS) $< -o $@
 
 ../$(OBJDIR)/airbrush.res.o: airbrush.rc ./$(BOOTSTRAPDIR)/abversion.h
