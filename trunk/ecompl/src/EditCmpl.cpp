@@ -60,7 +60,7 @@ void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
 {
   Info->StructSize=sizeof(GlobalInfo);
   Info->MinFarVersion=FARMANAGERVERSION;
-  Info->Version=MAKEFARVERSION(4,0,0,3);
+  Info->Version=MAKEFARVERSION(4,0,0,3,VS_ALPHA);
   Info->Guid=MainGuid;
   Info->Title=L"Word Completion";
   Info->Description=L"Complete/autocomplete words in editor";
@@ -117,7 +117,7 @@ int WINAPI ProcessEditorInputW(const ProcessEditorInputInfo* Info)
   return ACmpl->ProcessEditorInput(&Info->Rec);
 }
 
-void WINAPI ExitFARW(void)
+void WINAPI ExitFARW(const struct ExitInfo *Info)
 {
   delete ACmpl;
   delete MCmpl;
