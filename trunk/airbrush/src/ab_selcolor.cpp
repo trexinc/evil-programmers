@@ -29,58 +29,49 @@ static inline DWORD GetFlags(int i,HANDLE hDlg)
 {
   DWORD flags=0;
   FarDialogItem DialogItem;
-  if(Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,i,(LONG_PTR)&DialogItem))
+  if(Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,i,&DialogItem))
   {
     flags=DialogItem.Flags;
   }
   return flags;
 }
 
-INT_PTR WINAPI ColorDialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
+INT_PTR WINAPI ColorDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
 {
   int color=0;
-  FarDialogItem* DialogItem;
+  FarDialogItem DialogItem;
   switch(Msg)
   {
     case DN_INITDIALOG:
     case DN_BTNCLICK:
       for(int i=1;i<17;i++)
       {
-        DialogItem=(FarDialogItem*)malloc(Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,0));
-        if(DialogItem)
+        if(Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,i,&DialogItem))
         {
-          Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,(LONG_PTR)DialogItem);
-          if(DialogItem->Selected)
+          if(DialogItem.Selected)
           {
-            color|=(DialogItem->Flags&0xF0)>>4;
+            color|=(DialogItem.Flags&0xF0)>>4;
             break;
           }
-          free(DialogItem);
         }
       }
       for(int i=18;i<34;i++)
       {
-        DialogItem=(FarDialogItem*)malloc(Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,0));
-        if(DialogItem)
+        if(Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,i,&DialogItem))
         {
-          Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,(LONG_PTR)DialogItem);
-          if(DialogItem->Selected)
+          if(DialogItem.Selected)
           {
-            color|=(DialogItem->Flags&0xF0);
+            color|=(DialogItem.Flags&0xF0);
             break;
           }
-          free(DialogItem);
         }
       }
       for(int i=36;i<39;i++)
       {
-        DialogItem=(FarDialogItem*)malloc(Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,0));
-        if(DialogItem)
+        if(Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,i,&DialogItem))
         {
-          Info.SendDlgMessage(hDlg,DM_GETDLGITEM,i,(LONG_PTR)DialogItem);
-          DialogItem->Flags=(DialogItem->Flags&0xffffff00)|color;
-          Info.SendDlgMessage(hDlg,DM_SETDLGITEM,i,(LONG_PTR)DialogItem);
-          free(DialogItem);
+          DialogItem.Flags=(DialogItem.Flags&0xffffff00)|color;
+          Info.SendDlgMessage(hDlg,DM_SETDLGITEMSHORT,i,&DialogItem);
         }
       }
       break;

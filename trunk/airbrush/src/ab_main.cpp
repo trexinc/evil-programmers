@@ -26,6 +26,7 @@
 #include "ab_main.h"
 #include "abplugin.h"
 #include "abversion.h"
+#include "far_settings.h"
 #include <initguid.h>
 #include "guid.h"
 // {2C20419A-CBA1-4a15-AB4C-AFF61510DA0C}
@@ -39,10 +40,6 @@ DEFINE_GUID(Config5Guid, 0x9f54c244, 0x3cd2, 0x4517, 0x9a, 0x47, 0xf8, 0x2e, 0xb
 
 PluginStartupInfo Info;
 FARSTANDARDFUNCTIONS FSF;
-TCHAR PluginRootKey[80];
-TCHAR PluginMaskKey[80];
-TCHAR PluginColorKey[80];
-TCHAR PluginStartKey[80];
 HANDLE Mutex=NULL;
 int cursor_row=-1,cursor_col=-1;
 
@@ -63,13 +60,14 @@ void InitDialogItems(const InitDialogItem *Init,FarDialogItem *Item,int ItemsNum
     Item[i].Y2=Init[i].Y2;
     Item[i].Selected=Init[i].Selected;
     Item[i].Flags=Init[i].Flags;
-    Item[i].MaxLen=0;
+    Item[i].MaxLength=0;
     if((unsigned)Init[i].Data<2000)
-      Item[i].PtrData=GetMsg((unsigned int)(DWORD_PTR)Init[i].Data);
+      Item[i].Data=GetMsg((unsigned int)(DWORD_PTR)Init[i].Data);
     else
-      Item[i].PtrData=Init[i].Data;
+      Item[i].Data=Init[i].Data;
     Item[i].Mask=NULL;
     Item[i].History=NULL;
+    Item[i].UserData=NULL;
   }
 }
 
@@ -110,8 +108,8 @@ TCHAR* GetCommaWord(TCHAR* Src,TCHAR* Word)
 void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
 {
   Info->StructSize=sizeof(GlobalInfo);
-  Info->MinFarVersion=FARMANAGERVERSION;
-  Info->Version=MAKEFARVERSION(VER_MAJOR,VER_MINOR,VER_BUILD);
+  Info->MinFarVersion=MAKEFARVERSION(FARMANAGERVERSION_MAJOR,FARMANAGERVERSION_MINOR, FARMANAGERVERSION_REVISION, FARMANAGERVERSION_BUILD, VS_RELEASE);
+  Info->Version=MAKEFARVERSION(VER_MAJOR,VER_MINOR,0,VER_BUILD,VS_ALPHA);
   Info->Guid=MainGuid;
   Info->Title=L"AirBrush";
   Info->Description=L"Syntax highlighting in editor";
@@ -126,29 +124,12 @@ void WINAPI SetStartupInfoW(const struct PluginStartupInfo *Info)
   ::FSF=*Info->FSF;
   ::Info.FSF=&::FSF;
   Mutex=CreateMutex(NULL,FALSE,NULL);
-  //read settings
-  lstrcpy(PluginRootKey,Info->RootKey);
-  lstrcat(PluginRootKey,_T("\\AirBrush"));
-  lstrcpy(PluginMaskKey,PluginRootKey);
-  lstrcat(PluginMaskKey,_T("\\masks"));
-  lstrcpy(PluginColorKey,PluginRootKey);
-  lstrcat(PluginColorKey,_T("\\colors"));
-  lstrcpy(PluginStartKey,PluginRootKey);
-  lstrcat(PluginStartKey,_T("\\starts"));
 
-  HKEY hKey;
-  DWORD Type;
-  DWORD DataSize=0;
-  if((RegOpenKeyEx(HKEY_CURRENT_USER,PluginRootKey,0,KEY_QUERY_VALUE,&hKey))==ERROR_SUCCESS)
   {
-    DataSize=sizeof(Opt.Active);
-    RegQueryValueEx(hKey,_T("Active"),0,&Type,(LPBYTE)&Opt.Active,&DataSize);
-    DataSize=sizeof(Opt.MaxLines);
-    RegQueryValueEx(hKey,_T("MaxLines"),0,&Type,(LPBYTE)&Opt.MaxLines,&DataSize);
-    DataSize=sizeof(Opt.ColorizeAll);
-    RegQueryValueEx(hKey,_T("ColorizeAll"),0,&Type,(LPBYTE)&Opt.ColorizeAll,&DataSize);
-    RegCloseKey(hKey);
-    if((Opt.MaxLines<0)||(Opt.MaxLines>9999999)) Opt.MaxLines=50000;
+    CFarSettings settings(MainGuid);
+    Opt.Active=settings.Get(_T("Active"),Opt.Active);
+    Opt.MaxLines=settings.Get(_T("MaxLines"),Opt.MaxLines);
+    Opt.ColorizeAll=settings.Get(_T("ColorizeAll"),Opt.ColorizeAll);
   }
   LoadPlugs(Info->ModuleName);
   OnLoad();
@@ -169,16 +150,16 @@ void WINAPI GetPluginInfoW(struct PluginInfo *Info)
   Info->PluginMenu.Strings = &PluginMenuStrings;
 }
 
-void WINAPI ExitFARW(void)
+void WINAPI ExitFARW(const struct ExitInfo *Info)
 {
   OnExit();
   UnloadPlugs();
   CloseHandle(Mutex);
 }
 
-HANDLE WINAPI OpenPluginW(int OpenFrom,const GUID* Guid,INT_PTR Item)
+HANDLE WINAPI OpenW(const struct OpenInfo *Info)
 {
-  if((OpenFrom==OPEN_EDITOR)&&(PluginsCount))
+  if((Info->OpenFrom==OPEN_EDITOR)&&(PluginsCount))
   {
     int Count=0;
     for(int i=0;i<PluginsCount;i++)
@@ -199,7 +180,7 @@ HANDLE WINAPI OpenPluginW(int OpenFrom,const GUID* Guid,INT_PTR Item)
         EditorInfo ei;
         PEditFile curfile;
         int index=-1;
-        Info.EditorControl(-1,ECTL_GETINFO,0,(INT_PTR)&ei);
+        ::Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
         curfile=ef_getfile(ei.EditorID);
         if(curfile) index=curfile->type+1;
         FSF.sprintf(text,_T("%c. %s"),hotkeys[0],GetMsg(mDefault));
@@ -229,7 +210,7 @@ HANDLE WINAPI OpenPluginW(int OpenFrom,const GUID* Guid,INT_PTR Item)
             SyntaxTypes[i].Flags&=~MIF_SELECTED;
           SyntaxTypes[MenuCode].Flags|=MIF_SELECTED;
           BreakCode=-1;
-          MenuCode=Info.Menu(&MainGuid,-1,-1,0,FMENU_AUTOHIGHLIGHT|FMENU_WRAPMODE,_T(""),NULL,NULL,BreakKeys,&BreakCode,SyntaxTypes,Count+1);
+          MenuCode=::Info.Menu(&MainGuid,-1,-1,0,FMENU_AUTOHIGHLIGHT|FMENU_WRAPMODE,_T(""),NULL,NULL,BreakKeys,&BreakCode,SyntaxTypes,Count+1);
           if(BreakCode==-1) break;
           if((BreakCode==0)&&(MenuCode>0))
             if(PluginsData[ids[MenuCode]].pGetParams)
@@ -238,7 +219,7 @@ HANDLE WINAPI OpenPluginW(int OpenFrom,const GUID* Guid,INT_PTR Item)
         if(MenuCode>-1)
         {
           EditorInfo ei;
-          Info.EditorControl(-1,ECTL_GETINFO,0,(INT_PTR)&ei);
+          ::Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
           ef_deletefile(ei.EditorID);
           loadfile(ei.EditorID,ids[MenuCode]);
         }
@@ -250,7 +231,7 @@ HANDLE WINAPI OpenPluginW(int OpenFrom,const GUID* Guid,INT_PTR Item)
   return INVALID_HANDLE_VALUE;
 }
 
-INT_PTR WINAPI Config1DialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
+INT_PTR WINAPI Config1DialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
 {
   return Info.DefDlgProc(hDlg,Msg,Param1,Param2);
 }
@@ -315,7 +296,7 @@ int WINAPI ConfigureW(const GUID* Guid)
       DialogItems[4].Mask=_T("######9");
 
       TCHAR lines[32];
-      DialogItems[4].PtrData=lines;
+      DialogItems[4].Data=lines;
       FSF.sprintf(lines,_T("%d"),Opt.MaxLines);
       int DlgCode=-1;
       HANDLE hDlg=Info.DialogInit(&MainGuid,&Config1Guid,-1,-1,76,9,_T("Config1"),DialogItems,(sizeof(DialogItems)/sizeof(DialogItems[0])),0,0,Config1DialogProc,0);
@@ -324,15 +305,13 @@ int WINAPI ConfigureW(const GUID* Guid)
       {
         Opt.Active=GetCheck(1);
         Opt.ColorizeAll=GetCheck(2);
-        Opt.MaxLines=FSF.atoi(GetDataPtr(4)); if((Opt.MaxLines<0)||(Opt.MaxLines>9999999)) Opt.MaxLines=50000;
-        HKEY hKey;
-        DWORD Disposition;
-        if((RegCreateKeyEx(HKEY_CURRENT_USER,PluginRootKey,0,NULL,0,KEY_WRITE,NULL,&hKey,&Disposition))==ERROR_SUCCESS)
+        Opt.MaxLines=FSF.atoi(GetDataPtr(4));
+
         {
-          RegSetValueEx(hKey,_T("Active"),0,REG_BINARY,(LPBYTE)&Opt.Active,sizeof(Opt.Active));
-          RegSetValueEx(hKey,_T("MaxLines"),0,REG_DWORD,(LPBYTE)&Opt.MaxLines,sizeof(Opt.MaxLines));
-          RegSetValueEx(hKey,_T("ColorizeAll"),0,REG_DWORD,(LPBYTE)&Opt.ColorizeAll,sizeof(Opt.ColorizeAll));
-          RegCloseKey(hKey);
+          CFarSettings settings(MainGuid);
+          settings.Set(_T("Active"),Opt.Active);
+          settings.Set(_T("MaxLines"),Opt.MaxLines);
+          settings.Set(_T("ColorizeAll"),Opt.ColorizeAll);
         }
       }
       if(hDlg!=INVALID_HANDLE_VALUE) Info.DialogFree(hDlg);
@@ -390,9 +369,9 @@ int WINAPI ConfigureW(const GUID* Guid)
               };
               struct FarDialogItem DialogItems[sizeof(InitItems)/sizeof(InitItems[0])];
               InitDialogItems(InitItems,DialogItems,sizeof(InitItems)/sizeof(InitItems[0]));
-              DialogItems[1].MaxLen=sizeof(mask);
-              DialogItems[1].PtrData=mask;
-              DialogItems[0].PtrData=PluginsData[ids[MenuCode]].Name;
+              DialogItems[1].MaxLength=sizeof(mask);
+              DialogItems[1].Data=mask;
+              DialogItems[0].Data=PluginsData[ids[MenuCode]].Name;
               int DlgCode=-1;
               HANDLE hDlg=Info.DialogInit(&MainGuid,&Config3Guid,-1,-1,76,7,_T("Config3"),DialogItems,(sizeof(DialogItems)/sizeof(DialogItems[0])),0,0,Config1DialogProc,0);
               if(hDlg!=INVALID_HANDLE_VALUE) DlgCode=Info.DialogRun(hDlg);
@@ -400,12 +379,9 @@ int WINAPI ConfigureW(const GUID* Guid)
               {
                 if(PluginsData[ids[MenuCode]].Params&PAR_MASK_STORE)
                 {
-                  HKEY hKey; DWORD Disposition;
-                  if((RegCreateKeyEx(HKEY_CURRENT_USER,PluginMaskKey,0,NULL,0,KEY_WRITE,NULL,&hKey,&Disposition))==ERROR_SUCCESS)
-                  {
-                    RegSetValueEx(hKey,PluginsData[ids[MenuCode]].Name,0,REG_SZ,(LPBYTE)GetDataPtr(1),(lstrlen(GetDataPtr(1))+1)*sizeof(TCHAR));
-                    RegCloseKey(hKey);
-                  }
+                  CFarSettings settings(MainGuid);
+                  settings.Change(PLUGIN_MASK_KEY);
+                  settings.Set(PluginsData[ids[MenuCode]].Name,GetDataPtr(1));
                 }
                 free(PluginsData[ids[MenuCode]].Mask);
                 PluginsData[ids[MenuCode]].Mask=(TCHAR*)malloc((lstrlen(GetDataPtr(1))+1)*sizeof(TCHAR));
@@ -473,9 +449,9 @@ int WINAPI ConfigureW(const GUID* Guid)
               };
               struct FarDialogItem DialogItems[sizeof(InitItems)/sizeof(InitItems[0])];
               InitDialogItems(InitItems,DialogItems,sizeof(InitItems)/sizeof(InitItems[0]));
-              DialogItems[1].MaxLen=sizeof(start);
-              DialogItems[1].PtrData=start;
-              DialogItems[0].PtrData=PluginsData[ids[MenuCode]].Name;
+              DialogItems[1].MaxLength=sizeof(start);
+              DialogItems[1].Data=start;
+              DialogItems[0].Data=PluginsData[ids[MenuCode]].Name;
               int DlgCode=-1;
               HANDLE hDlg=Info.DialogInit(&MainGuid,&Config5Guid,-1,-1,76,7,_T("Config5"),DialogItems,(sizeof(DialogItems)/sizeof(DialogItems[0])),0,0,Config1DialogProc,0);
               if(hDlg!=INVALID_HANDLE_VALUE) DlgCode=Info.DialogRun(hDlg);
@@ -483,12 +459,9 @@ int WINAPI ConfigureW(const GUID* Guid)
               {
                 if(PluginsData[ids[MenuCode]].Params&PAR_FILESTART_STORE)
                 {
-                  HKEY hKey; DWORD Disposition;
-                  if((RegCreateKeyEx(HKEY_CURRENT_USER,PluginStartKey,0,NULL,0,KEY_WRITE,NULL,&hKey,&Disposition))==ERROR_SUCCESS)
-                  {
-                    RegSetValueEx(hKey,PluginsData[ids[MenuCode]].Name,0,REG_SZ,(LPBYTE)GetDataPtr(1),(lstrlen(GetDataPtr(1))+1)*sizeof(TCHAR));
-                    RegCloseKey(hKey);
-                  }
+                  CFarSettings settings(MainGuid);
+                  settings.Change(PLUGIN_START_KEY);
+                  settings.Set(PluginsData[ids[MenuCode]].Name,GetDataPtr(1));
                 }
                 free(PluginsData[ids[MenuCode]].Start);
                 PluginsData[ids[MenuCode]].Start=(TCHAR*)malloc((lstrlen(GetDataPtr(1))+1)*sizeof(TCHAR));
@@ -570,21 +543,18 @@ int WINAPI ConfigureW(const GUID* Guid)
                     ColorCode=Info.Menu(&MainGuid,-1,-1,0,FMENU_AUTOHIGHLIGHT|FMENU_WRAPMODE,PluginsData[ids[MenuCode]].Name,NULL,_T("Config7"),NULL,NULL,ColorTypes,ColorCount);
                     if(ColorCode==-1) break;
                     if(Colors[ColorCode*2]==-1)
-                      Colors[ColorCode*2]=Info.AdvControl(&MainGuid,ACTL_GETCOLOR,(void *)COL_EDITORTEXT)&0x0F;
+                      Colors[ColorCode*2]=Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_EDITORTEXT,NULL)&0x0F;
                     if(Colors[ColorCode*2+1]==-1)
-                      Colors[ColorCode*2+1]=(Info.AdvControl(&MainGuid,ACTL_GETCOLOR,(void *)COL_EDITORTEXT)&0xF0)>>4;
+                      Colors[ColorCode*2+1]=(Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_EDITORTEXT,NULL)&0xF0)>>4;
                     if(SelectColor(Colors+ColorCode*2,Colors+ColorCode*2+1))
                     {
-                      if(Colors[ColorCode*2]==(Info.AdvControl(&MainGuid,ACTL_GETCOLOR,(void *)COL_EDITORTEXT)&0x0F))
+                      if(Colors[ColorCode*2]==(Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_EDITORTEXT,NULL)&0x0F))
                         Colors[ColorCode*2]=-1;
-                      if(Colors[ColorCode*2+1]==(Info.AdvControl(&MainGuid,ACTL_GETCOLOR,(void *)COL_EDITORTEXT)&0xF0)>>4)
+                      if(Colors[ColorCode*2+1]==(Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_EDITORTEXT,NULL)&0xF0)>>4)
                         Colors[ColorCode*2+1]=-1;
-                      HKEY hKey; DWORD Disposition;
-                      if((RegCreateKeyEx(HKEY_CURRENT_USER,PluginColorKey,0,NULL,0,KEY_WRITE,NULL,&hKey,&Disposition))==ERROR_SUCCESS)
-                      {
-                        RegSetValueEx(hKey,PluginsData[ids[MenuCode]].Name,0,REG_BINARY,(LPBYTE)Colors,ColorCount*2*sizeof(int));
-                        RegCloseKey(hKey);
-                      }
+                      CFarSettings settings(MainGuid);
+                      settings.Change(PLUGIN_COLOR_KEY);
+                      settings.Set(PluginsData[ids[MenuCode]].Name,(void*)Colors,ColorCount*2*sizeof(int));
                     }
                   }
                 }
@@ -605,9 +575,9 @@ int WINAPI ProcessEditorEventW(int Event,void *Param)
   return OnEditorEvent(Event,Param);;
 }
 
-int WINAPI ProcessEditorInputW(const INPUT_RECORD *Rec)
+int WINAPI ProcessEditorInputW(const ProcessEditorInputInfo *Info)
 {
-  return OnEditorInput(Rec);
+  return OnEditorInput(&Info->Rec);
 }
 
 #ifdef __cplusplus
