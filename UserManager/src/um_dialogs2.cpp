@@ -25,31 +25,31 @@
 #include "memory.h"
 #include "guid.h"
 
-static INT_PTR WINAPI EditShareDialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
+static INT_PTR WINAPI EditShareDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
 {
   FarDialogItem DialogItem;
   switch(Msg)
   {
     case DN_INITDIALOG:
-      Info.SendDlgMessage(hDlg,DM_SETMAXTEXTLENGTH,4,MAX_COMMENT-1);
+      Info.SendDlgMessage(hDlg,DM_SETMAXTEXTLENGTH,4,(void*)(MAX_COMMENT-1));
     case DN_BTNCLICK:
-      Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,6,(long)&DialogItem);
+      Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,6,&DialogItem);
       if(DialogItem.Selected)
       {
         for(int i=8;i<10;i++)
         {
-          Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,i,(long)&DialogItem);
+          Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,i,&DialogItem);
           DialogItem.Flags|=DIF_DISABLE;
-          Info.SendDlgMessage(hDlg,DM_SETDLGITEMSHORT,i,(long)&DialogItem);
+          Info.SendDlgMessage(hDlg,DM_SETDLGITEMSHORT,i,&DialogItem);
         }
       }
       else
       {
         for(int i=8;i<10;i++)
         {
-          Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,i,(long)&DialogItem);
+          Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,i,&DialogItem);
           DialogItem.Flags&=~DIF_DISABLE;
-          Info.SendDlgMessage(hDlg,DM_SETDLGITEMSHORT,i,(long)&DialogItem);
+          Info.SendDlgMessage(hDlg,DM_SETDLGITEMSHORT,i,&DialogItem);
         }
       }
       break;
@@ -95,34 +95,34 @@ bool EditShareProperties(UserManager *panel)
           static const TCHAR *CommentShareHistoryName=_T("UserManager\\CommentShare");
           FarDialogItem DialogItems[]=
           {
-          /* 0*/  {DI_DOUBLEBOX,  3, 1,72,13,{0},NULL,                   NULL,           0,                                0,GetMsg(mShareEditShare),     0},
-          /* 1*/  {DI_TEXT,       5, 2, 0, 0,{0},NULL,                   NULL,           0,                                0,GetMsg(mShareShareName),     0},
-          /* 2*/  {DI_TEXT,       5, 3, 0, 0,{0},NULL,                   NULL,           DIF_SHOWAMPERSAND,                0,_T(""),                      0},
-          /* 3*/  {DI_TEXT,       5, 4, 0, 0,{0},NULL,                   NULL,           0,                                0,GetMsg(mShareComment),       0},
-          /* 4*/  {DI_EDIT,       5, 5,70, 0,{0},CommentShareHistoryName,NULL,           DIF_HISTORY|DIF_FOCUS,            0,_T(""),                      0},
-          /* 5*/  {DI_SINGLEBOX,  5, 6,70,10,{0},NULL,                   NULL,           DIF_LEFTTEXT,                     0,GetMsg(mShareUserLimit),     0},
-          /* 6*/  {DI_RADIOBUTTON,7, 7, 0, 0,{0},NULL,                   NULL,           DIF_GROUP,                        0,GetMsg(mShareMaximumAllowed),0},
-          /* 7*/  {DI_RADIOBUTTON,7, 8, 0, 0,{0},NULL,                   NULL,           0,                                0,GetMsg(mShareAllow),         0},
-          /* 8*/  {DI_FIXEDIT,   11, 9,19, 0,{0},NULL,                   _T("########9"),DIF_MASKEDIT,                     0,_T(""),                      0},
-          /* 9*/  {DI_TEXT,      21, 9, 0, 0,{0},NULL,                   NULL,           0,                                0,GetMsg(mShareUsers),         0},
-          /*10*/  {DI_TEXT,       5,11, 0, 0,{0},NULL,                   NULL,           DIF_BOXCOLOR|DIF_SEPARATOR,       0,_T(""),                      0},
-          /*11*/  {DI_BUTTON,     0,12, 0, 0,{0},NULL,                   NULL,           DIF_CENTERGROUP|DIF_DEFAULTBUTTON,0,GetMsg(mButtonOk),           0},
-          /*12*/  {DI_BUTTON,     0,12, 0, 0,{0},NULL,                   NULL,           DIF_CENTERGROUP,                  0,GetMsg(mButtonCancel),       0},
+          /* 0*/  {DI_DOUBLEBOX,  3, 1,72,13,{0},NULL,                   NULL,           0,                                GetMsg(mShareEditShare),     0,0},
+          /* 1*/  {DI_TEXT,       5, 2, 0, 0,{0},NULL,                   NULL,           0,                                GetMsg(mShareShareName),     0,0},
+          /* 2*/  {DI_TEXT,       5, 3, 0, 0,{0},NULL,                   NULL,           DIF_SHOWAMPERSAND,                _T(""),                      0,0},
+          /* 3*/  {DI_TEXT,       5, 4, 0, 0,{0},NULL,                   NULL,           0,                                GetMsg(mShareComment),       0,0},
+          /* 4*/  {DI_EDIT,       5, 5,70, 0,{0},CommentShareHistoryName,NULL,           DIF_HISTORY|DIF_FOCUS,            _T(""),                      0,0},
+          /* 5*/  {DI_SINGLEBOX,  5, 6,70,10,{0},NULL,                   NULL,           DIF_LEFTTEXT,                     GetMsg(mShareUserLimit),     0,0},
+          /* 6*/  {DI_RADIOBUTTON,7, 7, 0, 0,{0},NULL,                   NULL,           DIF_GROUP,                        GetMsg(mShareMaximumAllowed),0,0},
+          /* 7*/  {DI_RADIOBUTTON,7, 8, 0, 0,{0},NULL,                   NULL,           0,                                GetMsg(mShareAllow),         0,0},
+          /* 8*/  {DI_FIXEDIT,   11, 9,19, 0,{0},NULL,                   _T("########9"),DIF_MASKEDIT,                     _T(""),                      0,0},
+          /* 9*/  {DI_TEXT,      21, 9, 0, 0,{0},NULL,                   NULL,           0,                                GetMsg(mShareUsers),         0,0},
+          /*10*/  {DI_TEXT,       5,11, 0, 0,{0},NULL,                   NULL,           DIF_BOXCOLOR|DIF_SEPARATOR,       _T(""),                      0,0},
+          /*11*/  {DI_BUTTON,     0,12, 0, 0,{0},NULL,                   NULL,           DIF_CENTERGROUP|DIF_DEFAULTBUTTON,GetMsg(mButtonOk),           0,0},
+          /*12*/  {DI_BUTTON,     0,12, 0, 0,{0},NULL,                   NULL,           DIF_CENTERGROUP,                  GetMsg(mButtonCancel),       0,0},
           };
-          DialogItems[2].PtrData=(wchar_t *)info->shi502_netname;
-          DialogItems[4].PtrData=(wchar_t *)info->shi502_remark;
+          DialogItems[2].Data=(wchar_t *)info->shi502_netname;
+          DialogItems[4].Data=(wchar_t *)info->shi502_remark;
           TCHAR users[21];
           if(info->shi502_max_uses==0xffffffff)
           {
             DialogItems[6].Selected=TRUE;
             FSF.itoa(0,users,10);
-            DialogItems[8].PtrData=users;
+            DialogItems[8].Data=users;
           }
           else
           {
             DialogItems[7].Selected=TRUE;
             FSF.itoa(info->shi502_max_uses,users,10);
-            DialogItems[8].PtrData=users;
+            DialogItems[8].Data=users;
           }
           CFarDialog dialog;
           int DlgCode=dialog.Execute(MainGuid,EditSharePropertiesGuid,-1,-1,76,15,_T("EditShare"),DialogItems,ArraySize(DialogItems),0,0,EditShareDialogProc,0);
@@ -146,12 +146,12 @@ bool EditShareProperties(UserManager *panel)
   return res;
 }
 
-static INT_PTR WINAPI NewShareDialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
+static INT_PTR WINAPI NewShareDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
 {
   switch(Msg)
   {
     case DN_INITDIALOG:
-      Info.SendDlgMessage(hDlg,DM_SETMAXTEXTLENGTH,2,MAX_PATH-1);
+      Info.SendDlgMessage(hDlg,DM_SETMAXTEXTLENGTH,2,(void*)(MAX_PATH-1));
       break;
   }
   return Info.DefDlgProc(hDlg,Msg,Param1,Param2);
@@ -177,12 +177,12 @@ bool AddShare(UserManager *panel)
   */
   static const TCHAR *NewShareHistoryName=_T("UserManager\\NewShare");
   FarDialogItem DialogItems[]={
-  /* 0*/  {DI_DOUBLEBOX,3,1,72,6,{0},NULL,               NULL,0,                                0,GetMsg(mShareNewShare), 0},
-  /* 1*/  {DI_TEXT,     5,2, 0,0,{0},NULL,               NULL,0,                                0,GetMsg(mShareShareName),0},
-  /* 2*/  {DI_EDIT,     5,3,70,0,{0},NewShareHistoryName,NULL,DIF_HISTORY|DIF_FOCUS,            0,_T(""),                 0},
-  /* 3*/  {DI_TEXT,     5,4, 0,0,{0},NULL,               NULL,DIF_BOXCOLOR|DIF_SEPARATOR,       0,_T(""),                 0},
-  /* 4*/  {DI_BUTTON,   0,5, 0,0,{0},NULL,               NULL,DIF_CENTERGROUP|DIF_DEFAULTBUTTON,0,GetMsg(mButtonOk),      0},
-  /* 5*/  {DI_BUTTON,   0,5, 0,0,{0},NULL,               NULL,DIF_CENTERGROUP,                  0,GetMsg(mButtonCancel),  0},
+  /* 0*/  {DI_DOUBLEBOX,3,1,72,6,{0},NULL,               NULL,0,                                GetMsg(mShareNewShare), 0,0},
+  /* 1*/  {DI_TEXT,     5,2, 0,0,{0},NULL,               NULL,0,                                GetMsg(mShareShareName),0,0},
+  /* 2*/  {DI_EDIT,     5,3,70,0,{0},NewShareHistoryName,NULL,DIF_HISTORY|DIF_FOCUS,            _T(""),                 0,0},
+  /* 3*/  {DI_TEXT,     5,4, 0,0,{0},NULL,               NULL,DIF_BOXCOLOR|DIF_SEPARATOR,       _T(""),                 0,0},
+  /* 4*/  {DI_BUTTON,   0,5, 0,0,{0},NULL,               NULL,DIF_CENTERGROUP|DIF_DEFAULTBUTTON,GetMsg(mButtonOk),      0,0},
+  /* 5*/  {DI_BUTTON,   0,5, 0,0,{0},NULL,               NULL,DIF_CENTERGROUP,                  GetMsg(mButtonCancel),  0,0},
   };
   INIT_DLG_DATA(DialogItems[2],FSF.PointToName(panel->hostfile_oem));
   CFarDialog dialog;

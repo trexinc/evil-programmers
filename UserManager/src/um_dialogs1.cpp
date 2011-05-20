@@ -26,7 +26,7 @@
 #include "memory.h"
 #include "guid.h"
 
-static INT_PTR WINAPI EditAdvancedAccessDialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
+static INT_PTR WINAPI EditAdvancedAccessDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
 {
   int *DlgParams=(int *)Info.SendDlgMessage(hDlg,DM_GETDLGDATA,0,0);
   switch(Msg)
@@ -43,9 +43,9 @@ static INT_PTR WINAPI EditAdvancedAccessDialogProc(HANDLE hDlg,int Msg,int Param
             FarDialogItem DialogItem;
             for(int i=0;i<DlgParams[1];i++)
             {
-              Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,DlgParams[0]+i,(long)&DialogItem);
+              Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,DlgParams[0]+i,&DialogItem);
               DialogItem.Selected=state;
-              Info.SendDlgMessage(hDlg,DM_SETDLGITEMSHORT,DlgParams[0]+i,(long)&DialogItem);
+              Info.SendDlgMessage(hDlg,DM_SETDLGITEMSHORT,DlgParams[0]+i,&DialogItem);
             }
           }
         }
@@ -119,7 +119,7 @@ static bool EditAdvancedAccess(UserManager *panel,int size,int *messages,unsigne
           }
           int params[2]={check_index,size};
           CFarDialog dialog;
-          int DlgCode=dialog.Execute(MainGuid,EditAdvancedAccessGuid,-1,-1,76,ItemCount+2,_T("EditAdvancedAccess"),DialogItems,ItemCount,0,0,EditAdvancedAccessDialogProc,(long)params);
+          int DlgCode=dialog.Execute(MainGuid,EditAdvancedAccessGuid,-1,-1,76,ItemCount+2,_T("EditAdvancedAccess"),DialogItems,ItemCount,0,0,EditAdvancedAccessDialogProc,params);
           if(DlgCode==button_index)
           {
             mask=0;
