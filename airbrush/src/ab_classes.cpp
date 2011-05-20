@@ -262,17 +262,14 @@ int OnEditorEvent(int event,void *param)
   if(ei.TotalLines>Opt.MaxLines) curfile->type=-1;
   if((curfile->type<0)||(!Opt.Active))
   {
-    EditorColor ec;
-    ec.StartPos=-1;
-    ec.EndPos=0;
-    ec.Color.Flags=FMSG_FG_4BIT|FMSG_BG_4BIT;
-    ec.Color.ForegroundColor=0;
-    ec.Color.BackgroundColor=0;
-    ec.Color.Reserved=NULL;
+    EditorDeleteColor edc;
+    edc.StructSize=sizeof(edc);
+    edc.Owner=MainGuid;
+    edc.StartPos=-1;
     for(int i=ei.TopScreenLine;i<params.endline;i++)
     {
-      ec.StringNumber=i;
-      Info.EditorControl(-1,ECTL_ADDCOLOR,0,&ec);
+      edc.StringNumber=i;
+      Info.EditorControl(-1,ECTL_DELCOLOR,0,&edc);
     }
     return 0;
   }

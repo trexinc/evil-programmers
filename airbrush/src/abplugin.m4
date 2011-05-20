@@ -42,6 +42,7 @@ struct ColorizeParams
 };
 
 typedef void (WINAPI *PLUGINADDCOLOR)(int lno,int start,int len,int fg,int bg);
+typedef void (WINAPI *PLUGINDELCOLOR)(int lno);
 typedef const TCHAR *(WINAPI *PLUGINGETLINE)(int lno,int *len);
 typedef bool (WINAPI *PLUGINADDSTATE)(int eid,int pos,unsigned long size,unsigned char *data);
 typedef void (WINAPI *PLUGINGETCURSOR)(int *row,int *col);
@@ -57,6 +58,7 @@ struct ColorizeInfo
   TCHAR regkey[80];
   void *reserved;
   PLUGINADDCOLOR pAddColor;
+  PLUGINDELCOLOR pDelColor;
   PLUGINGETLINE pGetLine;
   PLUGINADDSTATE pAddState;
   PLUGINGETCURSOR pGetCursor;
