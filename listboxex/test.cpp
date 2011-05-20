@@ -55,14 +55,14 @@ void InitDialogItems(InitDialogItem *Init,FarDialogItem *Item,int ItemsNumber)
     Item[i].Y2=Init[i].Y2;
     Item[i].Selected=Init[i].Selected;
     Item[i].Flags=Init[i].Flags;
-    Item[i].MaxLen=0;
+    Item[i].MaxLength=0;
     if((unsigned)Init[i].Data<2000)
-      Item[i].PtrData=GetMsg((unsigned int)(DWORD_PTR)Init[i].Data);
+      Item[i].Data=GetMsg((unsigned int)(DWORD_PTR)Init[i].Data);
     else
-      Item[i].PtrData=Init[i].Data;
+      Item[i].Data=Init[i].Data;
     Item[i].Mask=NULL;
     Item[i].History=NULL;
-    Item[i].UserParam=0;
+    Item[i].UserData=NULL;
   }
 }
 
@@ -70,7 +70,7 @@ void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
 {
   Info->StructSize=sizeof(GlobalInfo);
   Info->MinFarVersion=FARMANAGERVERSION;
-  Info->Version=0x00000001;
+  Info->Version=MAKEFARVERSION(1,0,0,1);;
   Info->Guid=MainGuid;
   Info->Title=L"ListBoxEx Demo";
   Info->Description=L"ListBoxEx demo plugin";
@@ -98,70 +98,70 @@ void WINAPI GetPluginInfoW(struct PluginInfo *Info)
   Info->PluginConfig.Count=0;
 }
 
-static INT_PTR WINAPI MainDialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
+static INT_PTR WINAPI MainDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
 {
   switch(Msg)
   {
     case DN_INITDIALOG:
       Info.SendDlgMessage(hDlg,DM_LISTBOXEX_INIT,1,0);
-      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(long)_T("aaa"));
-      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(long)_T("bbb"));
-      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(long)_T("ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"));
-      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(long)_T("1 bbb"));
-      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(long)_T("2 bbb"));
-      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(long)_T("3 bbb"));
-      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(long)_T("4 bbb"));
-      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(long)_T("5 bbb"));
-      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(long)_T("6 bbb"));
-      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(long)_T("7 bbb"));
-      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(long)_T("8 bbb"));
-      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(long)_T("9 bbb"));
-      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(long)_T("0 bbb"));
-      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(long)_T("1 bbb"));
-      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(long)_T("2 bbb"));
-      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(long)_T("3 bbb"));
-      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(long)_T("4 bbb"));
-      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(long)_T("5 bbb"));
-      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(long)_T("6 bbb"));
-      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(long)_T("7 bbb"));
-      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(long)_T("8 bbb"));
-      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(long)_T("9 bbb"));
-      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(long)_T("0 bbb"));
-      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(long)_T("1 bbb"));
-      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(long)_T("2 bbb"));
-      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(long)_T("3 bbb"));
-      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(long)_T("4 bbb"));
-      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(long)_T("5 bbb"));
-      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(long)_T("6 bbb"));
-      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(long)_T("7 bbb"));
+      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(void*)_T("aaa"));
+      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(void*)_T("bbb"));
+      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(void*)_T("ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"));
+      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(void*)_T("1 bbb"));
+      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(void*)_T("2 bbb"));
+      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(void*)_T("3 bbb"));
+      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(void*)_T("4 bbb"));
+      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(void*)_T("5 bbb"));
+      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(void*)_T("6 bbb"));
+      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(void*)_T("7 bbb"));
+      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(void*)_T("8 bbb"));
+      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(void*)_T("9 bbb"));
+      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(void*)_T("0 bbb"));
+      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(void*)_T("1 bbb"));
+      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(void*)_T("2 bbb"));
+      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(void*)_T("3 bbb"));
+      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(void*)_T("4 bbb"));
+      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(void*)_T("5 bbb"));
+      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(void*)_T("6 bbb"));
+      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(void*)_T("7 bbb"));
+      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(void*)_T("8 bbb"));
+      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(void*)_T("9 bbb"));
+      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(void*)_T("0 bbb"));
+      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(void*)_T("1 bbb"));
+      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(void*)_T("2 bbb"));
+      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(void*)_T("3 bbb"));
+      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(void*)_T("4 bbb"));
+      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(void*)_T("5 bbb"));
+      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(void*)_T("6 bbb"));
+      Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(void*)_T("7 bbb"));
       {
         ListBoxExSetColor color={2,LISTBOXEX_COLORS_ITEM,0,0x7C};
         for(int i=2;i<5;i++)
         {
           color.ColorIndex=i;
-          Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETCOLOR,1,(long)&color);
+          Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETCOLOR,1,&color);
         }
         color.Color=0x7A;
         for(int i=7;i<10;i++)
         {
           color.ColorIndex=i;
-          Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETCOLOR,1,(long)&color);
+          Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETCOLOR,1,&color);
         }
         color.Color=0x79;
         for(int i=12;i<15;i++)
         {
           color.ColorIndex=i;
-          Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETCOLOR,1,(long)&color);
+          Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETCOLOR,1,&color);
         }
         color.Color=0x09;
         color.TypeIndex=LISTBOXEX_COLORS_SELECTED;
         for(int i=12;i<15;i++)
         {
           color.ColorIndex=i;
-          Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETCOLOR,1,(long)&color);
+          Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETCOLOR,1,&color);
         }
         ListBoxExSetHotkey hotkey={16,'a'};
-        Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETHOTKEY,1,(long)&hotkey);
+        Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETHOTKEY,1,&hotkey);
       }
       break;
     case DN_CONTROLINPUT:
@@ -173,40 +173,40 @@ static INT_PTR WINAPI MainDialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Para
           if(key==KEY_DEL)
           {
             FarListDelete list={3,4};
-            Info.SendDlgMessage(hDlg,DM_LISTBOXEX_DELETE,1,(long)&list);
+            Info.SendDlgMessage(hDlg,DM_LISTBOXEX_DELETE,1,&list);
           }
           else if(key==KEY_F2)
           {
             ListBoxExSetFlags flags={Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L),LIFEX_DISABLE};
-            Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETFLAGS,1,(long)&flags);
+            Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETFLAGS,1,&flags);
           }
           else if(key==KEY_F3)
           {
             ListBoxExSetFlags flags={Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L)-1,0};
-            Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETFLAGS,1,(long)&flags);
+            Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETFLAGS,1,&flags);
           }
           else if(key==KEY_INS)
           {
-            Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_TOGGLE,1,Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L));
+            Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_TOGGLE,1,(void*)Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L));
           }
           else if(key==KEY_SHIFTDEL)
           {
             ListBoxExSetFlags flags={Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L),LIFEX_HIDDEN};
-            Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETFLAGS,1,(long)&flags);
+            Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETFLAGS,1,&flags);
           }
           else if(key==KEY_CTRLUP)
           {
             FarListPos pos={Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L),-1};
-            Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_MOVE_UP,1,pos.SelectPos);
+            Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_MOVE_UP,1,(void*)pos.SelectPos);
             pos.SelectPos--;
-            Info.SendDlgMessage(hDlg,DM_LISTBOXEX_SETCURPOS,1,(long)&pos);
+            Info.SendDlgMessage(hDlg,DM_LISTBOXEX_SETCURPOS,1,&pos);
           }
           else if(key==KEY_CTRLDOWN)
           {
             FarListPos pos={Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L),-1};
-            Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_MOVE_DOWN,1,pos.SelectPos);
+            Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_MOVE_DOWN,1,(void*)pos.SelectPos);
             pos.SelectPos++;
-            Info.SendDlgMessage(hDlg,DM_LISTBOXEX_SETCURPOS,1,(long)&pos);
+            Info.SendDlgMessage(hDlg,DM_LISTBOXEX_SETCURPOS,1,&pos);
           }
         }
       }
@@ -221,7 +221,7 @@ static INT_PTR WINAPI MainDialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Para
   return ListBoxExDialogProc(hDlg,Msg,Param1,Param2);
 }
 
-HANDLE WINAPI OpenPluginW(OPENPLUGIN_OPENFROM OpenFrom,const GUID* Guid,int Item)
+HANDLE WINAPI OpenW(const struct OpenInfo*)
 {
   InitDialogItem InitItems[]=
   {
@@ -235,19 +235,12 @@ HANDLE WINAPI OpenPluginW(OPENPLUGIN_OPENFROM OpenFrom,const GUID* Guid,int Item
   InitDialogItems(InitItems,DialogItems,sizeof(InitItems)/sizeof(InitItems[0]));
   CHAR_INFO *VirtualBuffer=(CHAR_INFO *)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,(DialogItems[1].X2-DialogItems[1].X1+1)*(DialogItems[1].Y2-DialogItems[1].Y1+1)*sizeof(CHAR_INFO));
   DialogItems[1].VBuf=VirtualBuffer;
-#ifdef UNICODE
-  HANDLE hDlg=Info.DialogInit
-#else
-  Info.DialogEx
-#endif
-  (&MainGuid,&DialogGuid,-1,-1,71,21,NULL,DialogItems,sizeof(DialogItems)/sizeof(DialogItems[0]),0,0,MainDialogProc,0);
-#ifdef UNICODE
+  HANDLE hDlg=Info.DialogInit(&MainGuid,&DialogGuid,-1,-1,71,21,NULL,DialogItems,sizeof(DialogItems)/sizeof(DialogItems[0]),0,0,MainDialogProc,0);
   if(hDlg!=INVALID_HANDLE_VALUE)
   {
     Info.DialogRun(hDlg);
     Info.DialogFree(hDlg);
   }
-#endif
   if(VirtualBuffer) HeapFree(GetProcessHeap(),0,VirtualBuffer);
   return(INVALID_HANDLE_VALUE);
 }
