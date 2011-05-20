@@ -70,7 +70,7 @@ void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
 {
   Info->StructSize=sizeof(GlobalInfo);
   Info->MinFarVersion=FARMANAGERVERSION;
-  Info->Version=MAKEFARVERSION(1,0,0,1);;
+  Info->Version=MAKEFARVERSION(1,0,0,1,VS_RELEASE);
   Info->Guid=MainGuid;
   Info->Title=L"ListBoxEx Demo";
   Info->Description=L"ListBoxEx demo plugin";
