@@ -35,22 +35,14 @@ static long upper_key(long Key)
 static long get_height(HANDLE hDlg,int Index)
 {
   long result=0;
-#ifdef UNICODE
-  FarDialogItem* DialogItem;
-  DialogItem=(FarDialogItem*)malloc(Info.SendDlgMessage(hDlg,DM_GETDLGITEM,Index,0));
-#else
-  FarDialogItem DialogItem_; FarDialogItem* DialogItem=&DialogItem_;
-  Info.SendDlgMessage(hDlg,DM_GETDLGITEM,Index,(LONG_PTR)DialogItem);
-#endif
-  if(DialogItem)
+  FarGetDialogItem DialogItemInfo={0,NULL};
+  DialogItemInfo.Size=Info.SendDlgMessage(hDlg,DM_GETDLGITEM,Index,&DialogItemInfo);
+  DialogItemInfo.Item=(FarDialogItem*)malloc(DialogItemInfo.Size);
+  if(DialogItemInfo.Item)
   {
-#ifdef UNICODE
-    Info.SendDlgMessage(hDlg,DM_GETDLGITEM,Index,(LONG_PTR)DialogItem);
-#endif
-    result=DialogItem->Y2-DialogItem->Y1+1;
-#ifdef UNICODE
-    free(DialogItem);
-#endif
+    Info.SendDlgMessage(hDlg,DM_GETDLGITEM,Index,&DialogItemInfo);
+    result=DialogItemInfo.Item->Y2-DialogItemInfo.Item->Y1+1;
+    free(DialogItemInfo.Item);
   }
   return result;
 }
@@ -165,8 +157,9 @@ static void free_item(ListBoxExData *data,long Index)
     if(data->Items[Index].Attribute[i]) HeapFree(GetProcessHeap(),0,data->Items[Index].Attribute[i]);
 }
 
-long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
+long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
 {
+  if(DM_LISTBOXEX_ISLBE==Msg) return 0;
   bool return_flag=false; long return_result=FALSE,old_curpos=0L;
   const unsigned short default_colors[LISTBOXEX_COLORS_COUNT]={LISTBOXEX_COLOR_DEFAULT+LISTBOXEX_COLOR_ITEM,LISTBOXEX_COLOR_DEFAULT+LISTBOXEX_COLOR_SELECTEDITEM,LISTBOXEX_COLOR_DEFAULT+LISTBOXEX_COLOR_DISABLED};
   ListBoxExData *data=NULL;
@@ -193,17 +186,17 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
         {
           if(!Param2)
           {
-            data->Colors[LISTBOXEX_COLOR_BACKGROUND]=Info.AdvControl(&MainGuid,ACTL_GETCOLOR,(void*)COL_DIALOGLISTBOX);
-            data->Colors[LISTBOXEX_COLOR_ITEM]=Info.AdvControl(&MainGuid,ACTL_GETCOLOR,(void*)COL_DIALOGLISTTEXT);
-            data->Colors[LISTBOXEX_COLOR_HOTKEY]=Info.AdvControl(&MainGuid,ACTL_GETCOLOR,(void*)COL_DIALOGLISTHIGHLIGHT);
-            data->Colors[LISTBOXEX_COLOR_SELECTEDITEM]=Info.AdvControl(&MainGuid,ACTL_GETCOLOR,(void*)COL_DIALOGLISTSELECTEDTEXT);
-            data->Colors[LISTBOXEX_COLOR_SELECTEDHOTKEY]=Info.AdvControl(&MainGuid,ACTL_GETCOLOR,(void*)COL_DIALOGLISTSELECTEDHIGHLIGHT);
-            data->Colors[LISTBOXEX_COLOR_DISABLED]=Info.AdvControl(&MainGuid,ACTL_GETCOLOR,(void*)COL_DIALOGLISTDISABLED);
+            data->Colors[LISTBOXEX_COLOR_BACKGROUND]=Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_DIALOGLISTBOX,NULL);
+            data->Colors[LISTBOXEX_COLOR_ITEM]=Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_DIALOGLISTTEXT,NULL);
+            data->Colors[LISTBOXEX_COLOR_HOTKEY]=Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_DIALOGLISTHIGHLIGHT,NULL);
+            data->Colors[LISTBOXEX_COLOR_SELECTEDITEM]=Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_DIALOGLISTSELECTEDTEXT,NULL);
+            data->Colors[LISTBOXEX_COLOR_SELECTEDHOTKEY]=Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_DIALOGLISTSELECTEDHIGHLIGHT,NULL);
+            data->Colors[LISTBOXEX_COLOR_DISABLED]=Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_DIALOGLISTDISABLED,NULL);
             data->Top=-1;
             data->CurPos=-1;
           }
-          Info.SendDlgMessage(hDlg,DM_SETITEMDATA,Param1,(long)data);
-          Info.SendDlgMessage(hDlg,DM_SETMOUSEEVENTNOTIFY,1,0);
+          Info.SendDlgMessage(hDlg,DM_SETITEMDATA,Param1,data);
+          Info.SendDlgMessage(hDlg,DM_SETMOUSEEVENTNOTIFY,1,NULL);
           return_result=TRUE;
         }
       }
@@ -230,7 +223,7 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
     case DM_LISTBOXEX_SETFLAGS:
       if(data)
       {
-        data->Flags=Param2;
+        data->Flags=(long)Param2;
         return_result=TRUE;
       }
       break;
@@ -249,7 +242,7 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
             {
               ListBoxExManageItem upd_item={data->ItemCount,item->Items[i]};
               data->ItemCount++;
-              Info.SendDlgMessage(hDlg,DM_LISTBOXEX_UPDATE,Param1,(long)&upd_item);
+              Info.SendDlgMessage(hDlg,DM_LISTBOXEX_UPDATE,Param1,&upd_item);
             }
             return_result=TRUE;
           }
@@ -438,7 +431,7 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
       if(data)
       {
         return_result=data->UserData;
-        data->UserData=Param2;
+        data->UserData=(long)Param2;
       }
       break;
     /*
@@ -468,9 +461,9 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
       }
       break;
     case DM_LISTBOXEX_ITEM_GETFLAGS:
-      if(data&&Param2<data->ItemCount&&Param2>=0)
+      if(data&&(long)Param2<data->ItemCount&&(long)Param2>=0)
       {
-        return_result=data->Items[Param2].Flags;
+        return_result=data->Items[(long)Param2].Flags;
       }
       break;
     case DM_LISTBOXEX_ITEM_SETFLAGS:
@@ -487,30 +480,30 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
       }
       break;
     case DM_LISTBOXEX_ITEM_TOGGLE:
-      if(data&&Param2<data->ItemCount&&Param2>=0)
+      if(data&&(long)Param2<data->ItemCount&&(long)Param2>=0)
       {
-        if(data->Items[Param2].Flags&LIFEX_CHECKED) data->Items[Param2].Flags&=~LIFEX_CHECKED;
-        else data->Items[Param2].Flags|=LIFEX_CHECKED;
+        if(data->Items[(long)Param2].Flags&LIFEX_CHECKED) data->Items[(long)Param2].Flags&=~LIFEX_CHECKED;
+        else data->Items[(long)Param2].Flags|=LIFEX_CHECKED;
         Info.SendDlgMessage(hDlg,DM_REDRAW,0,0);
         return_result=TRUE;
       }
       break;
     case DM_LISTBOXEX_ITEM_MOVE_UP:
-      if(data&&Param2<data->ItemCount&&Param2>0)
+      if(data&&(long)Param2<data->ItemCount&&(long)Param2>0)
       {
-        ListBoxExItem temp_item=data->Items[Param2-1];
-        data->Items[Param2-1]=data->Items[Param2];
-        data->Items[Param2]=temp_item;
+        ListBoxExItem temp_item=data->Items[(long)Param2-1];
+        data->Items[(long)Param2-1]=data->Items[(long)Param2];
+        data->Items[(long)Param2]=temp_item;
         Info.SendDlgMessage(hDlg,DM_REDRAW,0,0);
         return_result=TRUE;
       }
       break;
     case DM_LISTBOXEX_ITEM_MOVE_DOWN:
-      if(data&&Param2<(data->ItemCount-1)&&Param2>=0)
+      if(data&&(long)Param2<(data->ItemCount-1)&&(long)Param2>=0)
       {
-        ListBoxExItem temp_item=data->Items[Param2+1];
-        data->Items[Param2+1]=data->Items[Param2];
-        data->Items[Param2]=temp_item;
+        ListBoxExItem temp_item=data->Items[(long)Param2+1];
+        data->Items[(long)Param2+1]=data->Items[(long)Param2];
+        data->Items[(long)Param2]=temp_item;
         Info.SendDlgMessage(hDlg,DM_REDRAW,0,0);
         return_result=TRUE;
       }
@@ -551,21 +544,15 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
       return_flag=false;
       if(data)
       {
-#ifdef UNICODE
-        FarDialogItem* DialogItem;
-        DialogItem=(FarDialogItem*)malloc(Info.SendDlgMessage(hDlg,DM_GETDLGITEM,Param1,0));
-#else
-        FarDialogItem DialogItem_; FarDialogItem* DialogItem=&DialogItem_;
-        Info.SendDlgMessage(hDlg,DM_GETDLGITEM,Param1,(LONG_PTR)DialogItem);
-#endif
-        if(DialogItem)
+        FarGetDialogItem DialogItemInfo={0,NULL};
+        DialogItemInfo.Size=Info.SendDlgMessage(hDlg,DM_GETDLGITEM,Param1,&DialogItemInfo);
+        DialogItemInfo.Item=(FarDialogItem*)malloc(DialogItemInfo.Size);
+        if(DialogItemInfo.Item)
         {
-#ifdef UNICODE
-          Info.SendDlgMessage(hDlg,DM_GETDLGITEM,Param1,(LONG_PTR)DialogItem);
-#endif
-          if(DialogItem->VBuf)
+          Info.SendDlgMessage(hDlg,DM_GETDLGITEM,Param1,&DialogItemInfo);
+          if(DialogItemInfo.Item->VBuf)
           {
-            int width=DialogItem->X2-DialogItem->X1+1,height=DialogItem->Y2-DialogItem->Y1+1;
+            int width=DialogItemInfo.Item->X2-DialogItemInfo.Item->X1+1,height=DialogItemInfo.Item->Y2-DialogItemInfo.Item->Y1+1;
             TCHAR *char_buffer=(TCHAR*)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,width*sizeof(TCHAR));
             unsigned short *attr_buffer=(unsigned short *)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,width*sizeof(unsigned short));
             if(char_buffer&&attr_buffer)
@@ -605,13 +592,7 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
                       char_buffer[j]=' ';
                       if((data->Items[current_item].Flags&LIFEX_CHECKED)&&!j)
                       {
-                        char_buffer[j]=
-#ifdef UNICODE
-                        0x221a
-#else
-                        'û'
-#endif
-                        ;
+                        char_buffer[j]=0x221a;
                         if(data->Items[current_item].CheckMark) char_buffer[j]=data->Items[current_item].CheckMark;
                       }
                       if(current_item==data->CurPos)
@@ -625,23 +606,15 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
                 }
                 for(int j=0;j<width;j++)
                 {
-                  DialogItem->VBuf[i*width+j].Char.
-#ifdef UNICODE
-                  UnicodeChar
-#else
-                  AsciiChar
-#endif
-                  =char_buffer[j];
-                  DialogItem->VBuf[i*width+j].Attributes=attr_buffer[j];
+                  DialogItemInfo.Item->VBuf[i*width+j].Char.UnicodeChar=char_buffer[j];
+                  DialogItemInfo.Item->VBuf[i*width+j].Attributes=attr_buffer[j];
                 }
               }
             }
             if(char_buffer) HeapFree(GetProcessHeap(),0,char_buffer);
             if(attr_buffer) HeapFree(GetProcessHeap(),0,attr_buffer);
           }
-#ifdef UNICODE
-          free(DialogItem);
-#endif
+          free(DialogItemInfo.Item);
         }
       }
       break;
@@ -739,7 +712,7 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
               normalize_curpos(data,direction);
               normalize_top(data,hDlg,Param1);
               Info.SendDlgMessage(hDlg,DM_REDRAW,0,0);
-              if(hotkey) Info.SendDlgMessage(hDlg,DN_LISTBOXEX_HOTKEY,Param1,data->CurPos);
+              if(hotkey) Info.SendDlgMessage(hDlg,DN_LISTBOXEX_HOTKEY,Param1,(void*)data->CurPos);
               return_flag=true;
               return_result=TRUE;
             }
@@ -756,15 +729,15 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
           if(record->Event.MouseEvent.dwEventFlags&MOUSE_MOVED)
           {
             SMALL_RECT rect;
-            Info.SendDlgMessage(hDlg,DM_GETDLGRECT,0,(long)&rect);
+            Info.SendDlgMessage(hDlg,DM_GETDLGRECT,0,&rect);
             COORD relative={record->Event.MouseEvent.dwMousePosition.X-rect.Left,record->Event.MouseEvent.dwMousePosition.Y-rect.Top};
             int cur_item=0; SMALL_RECT item_rect;
-            while(Info.SendDlgMessage(hDlg,DM_GETITEMPOSITION,cur_item,(long)&item_rect))
+            while(Info.SendDlgMessage(hDlg,DM_GETITEMPOSITION,cur_item,&item_rect))
             {
               if(Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ISLBE,cur_item,0L)&&relative.X>=item_rect.Left&&relative.X<=item_rect.Right&&relative.Y>=item_rect.Top&&relative.Y<=item_rect.Bottom)
               {
                 COORD item_relative={relative.X-item_rect.Left,relative.Y-item_rect.Top};
-                Info.SendDlgMessage(hDlg,DN_LISTBOXEX_MOUSEMOVE,cur_item,(long)&item_relative);
+                Info.SendDlgMessage(hDlg,DN_LISTBOXEX_MOUSEMOVE,cur_item,&item_relative);
               }
               cur_item++;
             }
@@ -776,7 +749,7 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
       return_flag=false;
       break;
   }
-  if(data&&old_curpos!=data->CurPos) Info.SendDlgMessage(hDlg,DN_LISTBOXEX_POSCHANGED,Param1,data->CurPos);
+  if(data&&old_curpos!=data->CurPos) Info.SendDlgMessage(hDlg,DN_LISTBOXEX_POSCHANGED,Param1,(void*)data->CurPos);
   if(return_flag) return return_result;
   return Info.DefDlgProc(hDlg,Msg,Param1,Param2);
 }

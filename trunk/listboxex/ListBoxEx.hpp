@@ -91,7 +91,7 @@
 #define LIFEX_DISABLE                   2
 #define LIFEX_HIDDEN                    4
 
-extern long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2);
+extern long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2);
 
 extern PluginStartupInfo Info;
 extern FARSTANDARDFUNCTIONS FSF;
