@@ -79,7 +79,7 @@ class TCompletion
   protected: //options
     static bool GetValue(HANDLE Handle,int Root,const TCHAR* Name,bool Default);
     static __int64 GetValue(HANDLE Handle,int Root,const TCHAR* Name,__int64 Default);
-    static void GetValue(HANDLE Handle,int Root,const TCHAR* Name,TCHAR* Value,size_t Size);
+    static bool GetValue(HANDLE Handle,int Root,const TCHAR* Name,TCHAR* Value,size_t Size);
     static void SetValue(HANDLE Handle,int Root,const TCHAR* Name,__int64 Value);
     static void SetValue(HANDLE Handle,int Root,const TCHAR* Name,TCHAR* Value);
     void GetOptions(void);
@@ -87,7 +87,7 @@ class TCompletion
     virtual int GetItemCount(void)=0;
     virtual int DialogWidth(void)=0;
     virtual int DialogHeight(void)=0;
-    virtual INT_PTR DialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)=0;
+    virtual INT_PTR DialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)=0;
     virtual void InitItems(FarDialogItem *DialogItems);
     virtual void StoreItems(CFarDialog& Dialog);
     virtual int Root(HANDLE Handle);
@@ -95,7 +95,7 @@ class TCompletion
     TCompletion();
     virtual ~TCompletion();
     void ShowDialog();
-  friend INT_PTR WINAPI ConfigDialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2);
+  friend INT_PTR WINAPI ConfigDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2);
 };
 
 #define CMPL_DIALOG_ITEMS (IAddTrailingSpace+1)

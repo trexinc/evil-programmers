@@ -26,11 +26,11 @@ extern PluginStartupInfo Info;
 typedef unsigned short UTCHAR;
 #define t_FarKeyToName(Key,KeyText,Size) FSF.FarKeyToName(Key,KeyText,Size)
 #define t_KEY_CHAR UnicodeChar
-#define INIT_DLG_DATA(item,str) item.PtrData=str
-#define DLG_DATA(item) item.PtrData
-#define DLG_DATA_SPRINTF(item,val,mask) FSF.sprintf(val##Text,mask,val); item.PtrData=val##Text
-#define DLG_DATA_FARKEYTONAME(item,val) t_FarKeyToName(val,val##Text,ArraySize(val##Text)); item.PtrData=val##Text
-#define DLG_DATA_ITOA(item,val) FSF.itoa(val,val##Text,10); item.PtrData=val##Text
+#define INIT_DLG_DATA(item,str) item.Data=str
+#define DLG_DATA(item) item.Data
+#define DLG_DATA_SPRINTF(item,val,mask) FSF.sprintf(val##Text,mask,val); item.Data=val##Text
+#define DLG_DATA_FARKEYTONAME(item,val) t_FarKeyToName(val,val##Text,ArraySize(val##Text)); item.Data=val##Text
+#define DLG_DATA_ITOA(item,val) FSF.itoa(val,val##Text,10); item.Data=val##Text
 class CFarDialog
 {
   private:
@@ -38,7 +38,7 @@ class CFarDialog
   public:
     inline CFarDialog(): iDlg(INVALID_HANDLE_VALUE) {};
     inline ~CFarDialog() {Info.DialogFree(iDlg);};
-    inline int Execute(const GUID& PluginId,const GUID& Id,int X1,int Y1,int X2,int Y2,const TCHAR* HelpTopic,struct FarDialogItem* Item,int ItemsNumber,DWORD Reserved,DWORD Flags,FARWINDOWPROC DlgProc,LONG_PTR Param)
+    inline int Execute(const GUID& PluginId,const GUID& Id,int X1,int Y1,int X2,int Y2,const TCHAR* HelpTopic,struct FarDialogItem* Item,int ItemsNumber,DWORD Reserved,DWORD Flags,FARWINDOWPROC DlgProc,void* Param)
     {
       iDlg=Info.DialogInit(&PluginId,&Id,X1,Y1,X2,Y2,HelpTopic,Item,ItemsNumber,Reserved,Flags,DlgProc,Param);
       return Info.DialogRun(iDlg);
@@ -49,7 +49,7 @@ class CFarDialog
     inline DWORD Flags(int index)
     {
       FarDialogItem DialogItem;
-      if(Info.SendDlgMessage(iDlg,DM_GETDLGITEMSHORT,index,(LONG_PTR)&DialogItem)) return DialogItem.Flags;
+      if(Info.SendDlgMessage(iDlg,DM_GETDLGITEMSHORT,index,&DialogItem)) return DialogItem.Flags;
       return 0;
     };
 };

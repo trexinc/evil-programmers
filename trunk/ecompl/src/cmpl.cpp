@@ -67,7 +67,7 @@ int TCompletion::GetPreWord(void)
   EditorInfo ei;
   EditorGetString gs;
 
-  Info.EditorControl(-1,ECTL_GETINFO,0,(INT_PTR)&ei);
+  Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
   if(ei.CurState&ECSTATE_LOCKED) return 0;
   avl_window_data *Window=windows->query(ei.EditorID);
   if(!Window) return 0;
@@ -78,7 +78,7 @@ int TCompletion::GetPreWord(void)
   Word.clear();
 
   gs.StringNumber=-1; // current string
-  Info.EditorControl(-1,ECTL_GETSTRING,0,(INT_PTR)&gs);
+  Info.EditorControl(-1,ECTL_GETSTRING,0,&gs);
   // в начале и в конце строки искать нечего!!!
   if(ei.CurPos>0&&ei.CurPos<=gs.StringLength)
   {
@@ -111,9 +111,9 @@ int TCompletion::DoSearch(void)
   int Line2Browse[2]; // Сколько строк будем просматривать вперед и назад
 
   WordList.clear();
-  Info.EditorControl(-1,ECTL_GETINFO,0,(INT_PTR)&ei); //SEELATER use stored data for currsor position and check eid
+  Info.EditorControl(-1,ECTL_GETINFO,0,&ei); //SEELATER use stored data for currsor position and check eid
   gs.StringNumber=-1; // current string
-  Info.EditorControl(-1,ECTL_GETSTRING,0,(INT_PTR)&gs);
+  Info.EditorControl(-1,ECTL_GETSTRING,0,&gs);
 
   string Line((const UTCHAR *)gs.StringText,gs.StringLength);
   if(Line.length()==(size_t)gs.StringLength)
@@ -138,8 +138,8 @@ int TCompletion::DoSearch(void)
     {
       if(Line2Browse[j]<i) continue;
       sp.CurLine=ei.CurLine+(j?i:-i); //вычисляем тек. строку
-      Info.EditorControl(-1,ECTL_SETPOSITION,0,(INT_PTR)&sp);
-      Info.EditorControl(-1,ECTL_GETSTRING,0,(INT_PTR)&gs);
+      Info.EditorControl(-1,ECTL_SETPOSITION,0,&sp);
+      Info.EditorControl(-1,ECTL_GETSTRING,0,&gs);
       Line((const UTCHAR *)gs.StringText,gs.StringLength);
       AddWords(Line,Line.length(),j);
       if(WordList.count()>=WordsToFindCnt) break;
@@ -150,7 +150,7 @@ int TCompletion::DoSearch(void)
   sp.CurPos=ei.CurPos;
   sp.TopScreenLine=ei.TopScreenLine;
   sp.LeftPos=ei.LeftPos;
-  Info.EditorControl(-1,ECTL_SETPOSITION,0,(INT_PTR)&sp);
+  Info.EditorControl(-1,ECTL_SETPOSITION,0,&sp);
   return WordList.count();
 }
 
@@ -249,7 +249,7 @@ bool TCompletion::IsAlpha(unsigned int c)
 avl_window_data *TCompletion::GetLocalData(void)
 {
   EditorInfo ei;
-  Info.EditorControl(-1,ECTL_GETINFO,0,(INT_PTR)&ei);
+  Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
   return windows->query(ei.EditorID);
 }
 
@@ -259,27 +259,27 @@ string TCompletion::PutWord(string NewWord)
   EditorInfo ei; EditorGetString gs;
   int OldPos;
   string OverwritedText;
-  Info.EditorControl(-1,ECTL_GETINFO,0,(INT_PTR)&ei);
+  Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
   OldPos=ei.CurPos;
   if(AddTrailingSpace) NewWord+=' ';
   SetCurPos(WordPos);
 
   gs.StringNumber=-1;
-  Info.EditorControl(-1,ECTL_GETSTRING,0,(INT_PTR)&gs);
+  Info.EditorControl(-1,ECTL_GETSTRING,0,&gs);
   if(!ei.Overtype)
   {
     if(gs.StringLength>WordPos) OverwritedText((const UTCHAR *)&gs.StringText[WordPos],MIN(ei.CurPos-WordPos,gs.StringLength-WordPos));
-    for(int i=WordPos;i<ei.CurPos;i++) Info.EditorControl(-1,ECTL_DELETECHAR,0,(INT_PTR)NULL);
+    for(int i=WordPos;i<ei.CurPos;i++) Info.EditorControl(-1,ECTL_DELETECHAR,0,NULL);
     //workaround
-    Info.EditorControl(-1,ECTL_GETINFO,0,(INT_PTR)&ei);
+    Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
     if(ei.BlockType==BTYPE_STREAM&&ei.BlockStartLine==ei.CurLine)
     {
       gs.StringNumber=-1;
-      Info.EditorControl(-1,ECTL_GETSTRING,0,(INT_PTR)&gs);
+      Info.EditorControl(-1,ECTL_GETSTRING,0,&gs);
       if(gs.SelStart==-1)
       {
         EditorSelect es={BTYPE_NONE,0,0,0,0};
-        Info.EditorControl(-1,ECTL_SELECT,0,(INT_PTR)&es);
+        Info.EditorControl(-1,ECTL_SELECT,0,&es);
       }
     }
   }
@@ -288,7 +288,7 @@ string TCompletion::PutWord(string NewWord)
     if(gs.StringLength>WordPos) OverwritedText((const UTCHAR *)&gs.StringText[WordPos],MIN(NewWord.length(),(size_t)(gs.StringLength-WordPos)));
   }
 
-  Info.EditorControl(-1,ECTL_INSERTTEXT,0,(INT_PTR)NewWord.get());
+  Info.EditorControl(-1,ECTL_INSERTTEXT,0,NewWord.get());
   SetCurPos(OldPos);
   return OverwritedText;
 }
@@ -302,14 +302,14 @@ void TCompletion::SetCurPos(int NewPos,int NewRow)
   sp.TopScreenLine=-1;
   sp.LeftPos=-1;
   sp.Overtype=-1;
-  Info.EditorControl(-1,ECTL_SETPOSITION,0,(INT_PTR)&sp);
+  Info.EditorControl(-1,ECTL_SETPOSITION,0,&sp);
 }
 
 bool TCompletion::GetValue(HANDLE Handle,int Root,const TCHAR* Name,bool Default)
 {
   bool result=Default;
   FarSettingsItem item={Root,Name,FST_QWORD};
-  if(Info.SettingsControl(Handle,SCTL_GET,0,(INT_PTR)&item))
+  if(Info.SettingsControl(Handle,SCTL_GET,0,&item))
   {
     result=item.Number?true:false;
   }
@@ -320,35 +320,37 @@ __int64 TCompletion::GetValue(HANDLE Handle,int Root,const TCHAR* Name,__int64 D
 {
   __int64 result=Default;
   FarSettingsItem item={Root,Name,FST_QWORD};
-  if(Info.SettingsControl(Handle,SCTL_GET,0,(INT_PTR)&item))
+  if(Info.SettingsControl(Handle,SCTL_GET,0,&item))
   {
     result=item.Number;
   }
   return result;
 }
 
-void TCompletion::GetValue(HANDLE Handle,int Root,const TCHAR* Name,TCHAR* Value,size_t Size)
+bool TCompletion::GetValue(HANDLE Handle,int Root,const TCHAR* Name,TCHAR* Value,size_t Size)
 {
   FarSettingsItem item={Root,Name,FST_STRING};
-  if(Info.SettingsControl(Handle,SCTL_GET,0,(INT_PTR)&item))
+  if(Info.SettingsControl(Handle,SCTL_GET,0,&item))
   {
     _tcsncpy(Value,item.String,Size-1);
     Value[Size-1]=0;
+    return true;
   }
+  return false;
 }
 
 void TCompletion::SetValue(HANDLE Handle,int Root,const TCHAR* Name,__int64 Value)
 {
   FarSettingsItem item={Root,Name,FST_QWORD};
   item.Number=Value;
-  Info.SettingsControl(Handle,SCTL_SET,0,(INT_PTR)&item);
+  Info.SettingsControl(Handle,SCTL_SET,0,&item);
 }
 
 void TCompletion::SetValue(HANDLE Handle,int Root,const TCHAR* Name,TCHAR* Value)
 {
   FarSettingsItem item={Root,Name,FST_STRING};
   item.String=Value;
-  Info.SettingsControl(Handle,SCTL_SET,0,(INT_PTR)&item);
+  Info.SettingsControl(Handle,SCTL_SET,0,&item);
 }
 
 int TCompletion::Root(HANDLE Handle)
@@ -359,7 +361,7 @@ int TCompletion::Root(HANDLE Handle)
 void TCompletion::GetOptions(void)
 {
   FarSettingsCreate settings={sizeof(FarSettingsCreate),MainGuid,INVALID_HANDLE_VALUE};
-  if(Info.SettingsControl(INVALID_HANDLE_VALUE,SCTL_CREATE,0,(INT_PTR)&settings))
+  if(Info.SettingsControl(INVALID_HANDLE_VALUE,SCTL_CREATE,0,&settings))
   {
     int root=Root(settings.Handle);
     WorkInsideWord=GetValue(settings.Handle,root,_T("WorkInsideWord"),WorkInsideWord);
@@ -376,6 +378,10 @@ void TCompletion::GetOptions(void)
 
     GetValue(settings.Handle,root,_T("AdditionalLetters"),AdditionalLetters,ArraySize(AdditionalLetters));
 
+    FarSettingsItem item={root,L"1234",FST_SUBKEY};
+    Info.SettingsControl(settings.Handle,SCTL_SET,0,&item);
+
+
     Info.SettingsControl(settings.Handle,SCTL_FREE,0,0);
   }
 }
@@ -383,7 +389,7 @@ void TCompletion::GetOptions(void)
 void TCompletion::SetOptions(void)
 {
   FarSettingsCreate settings={sizeof(FarSettingsCreate),MainGuid,INVALID_HANDLE_VALUE};
-  if(Info.SettingsControl(INVALID_HANDLE_VALUE,SCTL_CREATE,0,(INT_PTR)&settings))
+  if(Info.SettingsControl(INVALID_HANDLE_VALUE,SCTL_CREATE,0,&settings))
   {
     int root=Root(settings.Handle);
     SetValue(settings.Handle,root,_T("WorkInsideWord"),WorkInsideWord);
@@ -449,7 +455,7 @@ void TCompletion::InitItems(FarDialogItem *DialogItems)
     DialogItems[i].Flags=0;
     DialogItems[i].History=NULL;
     DialogItems[i].Mask=NULL;
-    DialogItems[i].UserParam=0;
+    DialogItems[i].UserData=NULL;
     INIT_DLG_DATA(DialogItems[i],GetMsg(Msgs[i])); // Надписи на эл-тах диалога
   }
 
@@ -494,14 +500,14 @@ void TCompletion::StoreItems(CFarDialog& Dialog)
   FSF.sprintf(AdditionalLetters,_T("%s"),Dialog.Str(IAdditionalLetters));
 }
 
-INT_PTR WINAPI ConfigDialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
+INT_PTR WINAPI ConfigDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
 {
   TCompletion *sender;
   if(Msg==DN_INITDIALOG)
   {
     Info.SendDlgMessage(hDlg,DM_SETDLGDATA,0,Param2);
     sender=(TCompletion *)Param2;
-    Info.SendDlgMessage(hDlg,DM_SETMAXTEXTLENGTH,IAdditionalLetters,sizeof(sender->AdditionalLetters)-1);
+    Info.SendDlgMessage(hDlg,DM_SETMAXTEXTLENGTH,IAdditionalLetters,(void*)(sizeof(sender->AdditionalLetters)-1));
   }
   else sender=(TCompletion *)Info.SendDlgMessage(hDlg,DM_GETDLGDATA,0,0);
   return sender->DialogProc(hDlg,Msg,Param1,Param2);
@@ -514,7 +520,7 @@ void TCompletion::ShowDialog()
   {
     InitItems(DialogItems);
     CFarDialog dialog;
-    int DlgCode=dialog.Execute(MainGuid,CmplGuid,-1,-1,DialogWidth(),DialogHeight(),ConfigHelpTopic,DialogItems,GetItemCount(),0,0,ConfigDialogProc,(DWORD)this);
+    int DlgCode=dialog.Execute(MainGuid,CmplGuid,-1,-1,DialogWidth(),DialogHeight(),ConfigHelpTopic,DialogItems,GetItemCount(),0,0,ConfigDialogProc,this);
     if(DlgCode==IOk)
     {
       StoreItems(dialog);

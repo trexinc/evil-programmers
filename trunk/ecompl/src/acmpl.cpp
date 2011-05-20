@@ -78,7 +78,7 @@ int TAutoCompletion::ProcessEditorInput(const INPUT_RECORD *Rec)
         {
           Window->On=true;
           EditorInfo ei;
-          if(Info.EditorControl(-1,ECTL_GETINFO,0,(INT_PTR)&ei)&&ei.BlockType==BTYPE_STREAM&&(ei.Options&EOPT_PERSISTENTBLOCKS)==0)
+          if(Info.EditorControl(-1,ECTL_GETINFO,0,&ei)&&ei.BlockType==BTYPE_STREAM&&(ei.Options&EOPT_PERSISTENTBLOCKS)==0)
           {
             Window->BlockDeleted=true;
           }
@@ -103,7 +103,7 @@ int TAutoCompletion::ProcessEditorEvent(int Event,void *Param)
   else if(Event==EE_READ)
   {
     EditorInfo ei;
-    if(Info.EditorControl(-1,ECTL_GETINFO,0,(INT_PTR)&ei))
+    if(Info.EditorControl(-1,ECTL_GETINFO,0,&ei))
     {
       avl_window_data *Add=new avl_window_data(ei.EditorID);
       Add=windows->insert(Add);
@@ -147,7 +147,7 @@ bool TAutoCompletion::CheckText(int Pos,int Row,avl_window_data *Window)
   SetCurPos(Pos,Row);
   EditorGetString gs;
   gs.StringNumber=-1; // current string
-  Info.EditorControl(-1,ECTL_GETSTRING,0,(INT_PTR)&gs);
+  Info.EditorControl(-1,ECTL_GETSTRING,0,&gs);
   if(gs.StringLength>Pos)
   {
     string Line((const UTCHAR*)gs.StringText,gs.StringLength);
@@ -167,7 +167,7 @@ void TAutoCompletion::DeleteVariant(avl_window_data *Window)
   {
     bool process=false;
     EditorInfo ei;
-    Info.EditorControl(-1,ECTL_GETINFO,0,(INT_PTR)&ei);
+    Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
     Colorize(0,Window);
     Window->Active=false;
     {
@@ -177,8 +177,8 @@ void TAutoCompletion::DeleteVariant(avl_window_data *Window)
     if(process)
     {
       if(!ei.Overtype)
-        for(size_t i=0;i<(Window->AddedLen+Window->OldLen);i++) Info.EditorControl(-1,ECTL_DELETECHAR,0,(INT_PTR)NULL);
-      Info.EditorControl(-1,ECTL_INSERTTEXT,0,(INT_PTR)Window->Rewrited.get());
+        for(size_t i=0;i<(Window->AddedLen+Window->OldLen);i++) Info.EditorControl(-1,ECTL_DELETECHAR,0,NULL);
+      Info.EditorControl(-1,ECTL_INSERTTEXT,0,Window->Rewrited.get());
     }
     SetCurPos(ei.CurPos,ei.CurLine);
     Window->Rewrited.clear();
@@ -199,7 +199,7 @@ bool TAutoCompletion::AcceptVariant(avl_window_data *Window)
     Window->Rewrited.clear();
     SetCurPos(Window->col+Window->AddedLen,Window->row);
     if(PartialCompletion) Window->On=true;
-    Info.EditorControl(-1,ECTL_REDRAW,0,(INT_PTR)NULL);
+    Info.EditorControl(-1,ECTL_REDRAW,0,NULL);
     Accepted=true;
   }
   return Accepted;
@@ -297,14 +297,22 @@ bool TAutoCompletion::PutVariant(avl_window_data *Window)
   return false;
 }
 
+static void ConvertColor(int Color,FarColor& NewColor)
+{
+  NewColor.Flags=FMSG_FG_4BIT|FMSG_BG_4BIT;
+  NewColor.ForegroundColor=Color&0xf;
+  NewColor.BackgroundColor=(Color>>4)&0xf;
+  NewColor.Reserved=NULL;
+}
+
 void TAutoCompletion::Colorize(int NewColor,avl_window_data *Window)
 {
   EditorColor ec;
   ec.StringNumber=Window->row;
   ec.StartPos=Window->col;
   ec.EndPos=Window->col+Window->AddedLen-1;
-  ec.Color=NewColor;
-  Info.EditorControl(-1,ECTL_ADDCOLOR,0,(INT_PTR)&ec);
+  ConvertColor(NewColor,ec.Color);
+  Info.EditorControl(-1,ECTL_ADDCOLOR,0,&ec);
 }
 
 bool TAutoCompletion::CompleteWord(void)
@@ -330,22 +338,20 @@ bool TAutoCompletion::CompleteWord(void)
 int TAutoCompletion::Root(HANDLE Handle)
 {
   FarSettingsValue value={0,_T("Auto Completion")};
-  return Info.SettingsControl(Handle,SCTL_SUBKEY,0,(INT_PTR)&value);
+  return Info.SettingsControl(Handle,SCTL_CREATESUBKEY,0,&value);
 }
 
 void TAutoCompletion::GetOptions(void)
 {
   TCompletion::GetOptions();
   FarSettingsCreate settings={sizeof(FarSettingsCreate),MainGuid,INVALID_HANDLE_VALUE};
-  if(Info.SettingsControl(INVALID_HANDLE_VALUE,SCTL_CREATE,0,(INT_PTR)&settings))
+  if(Info.SettingsControl(INVALID_HANDLE_VALUE,SCTL_CREATE,0,&settings))
   {
     int root=Root(settings.Handle);
     Color=GetValue(settings.Handle,root,_T("Color"),Color);
     TCHAR Key[256];
-    GetValue(settings.Handle,root,_T("AcceptKey"),Key,ArraySize(Key));
-    AcceptKey=FSF.FarNameToKey(Key);
-    GetValue(settings.Handle,root,_T("DeleteKey"),Key,ArraySize(Key));
-    DeleteKey=FSF.FarNameToKey(Key);
+    AcceptKey=FSF.FarNameToKey(GetValue(settings.Handle,root,_T("AcceptKey"),Key,ArraySize(Key))?Key:_T("CtrlEnd"));
+    DeleteKey=FSF.FarNameToKey(GetValue(settings.Handle,root,_T("DeleteKey"),Key,ArraySize(Key))?Key:_T("Del"));
     AcceptFromMenu=GetValue(settings.Handle,root,_T("AcceptFromMenu"),AcceptFromMenu);
     GetValue(settings.Handle,root,_T("AcceptChars"),AcceptChars,ArraySize(AcceptChars));
     Info.SettingsControl(settings.Handle,SCTL_FREE,0,0);
@@ -356,7 +362,7 @@ void TAutoCompletion::SetOptions(void)
 {
   TCompletion::SetOptions();
   FarSettingsCreate settings={sizeof(FarSettingsCreate),MainGuid,INVALID_HANDLE_VALUE};
-  if(Info.SettingsControl(INVALID_HANDLE_VALUE,SCTL_CREATE,0,(INT_PTR)&settings))
+  if(Info.SettingsControl(INVALID_HANDLE_VALUE,SCTL_CREATE,0,&settings))
   {
     int root=Root(settings.Handle);
     SetValue(settings.Handle,root,_T("Color"),Color);
@@ -388,7 +394,7 @@ int TAutoCompletion::DialogHeight(void)
   return 25;
 }
 
-INT_PTR WINAPI GetKey(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
+INT_PTR WINAPI GetKey(HANDLE hDlg,int Msg,int Param1,void* Param2)
 {
   if(Msg==DN_INITDIALOG)
   {
@@ -407,7 +413,7 @@ INT_PTR WINAPI GetKey(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
   return Info.DefDlgProc(hDlg,Msg,Param1,Param2);
 }
 
-INT_PTR TAutoCompletion::DialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
+INT_PTR TAutoCompletion::DialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
 {
   if(Msg==DN_BTNCLICK)
   {
@@ -415,7 +421,7 @@ INT_PTR TAutoCompletion::DialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param
     {
       Info.SendDlgMessage(hDlg,DM_SHOWDIALOG,FALSE,0);
       TCHAR KeyName[256];
-      Info.SendDlgMessage(hDlg,DM_GETTEXTPTR,Param1,(long)&KeyName);
+      Info.SendDlgMessage(hDlg,DM_GETTEXTPTR,Param1,KeyName);
       FarDialogItem DialogFrame;
       INIT_DLG_DATA(DialogFrame,GetMsg(MPressDesiredKey));
       DialogFrame.Type=DI_DOUBLEBOX;
@@ -427,11 +433,12 @@ INT_PTR TAutoCompletion::DialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param
       DialogFrame.Flags=DIF_BOXCOLOR;
       DialogFrame.History=NULL;
       DialogFrame.Mask=NULL;
-      DialogFrame.UserParam=0;
+      DialogFrame.UserData=NULL;
+      DialogFrame.MaxLength=0;
       int width=_tcslen(DLG_DATA(DialogFrame))+6;
       CFarDialog dialog;
-      dialog.Execute(MainGuid,ACmplGuid,-1,-1,width,5,ConfigHelpTopic,&DialogFrame,1,0,0,GetKey,(DWORD)KeyName);
-      Info.SendDlgMessage(hDlg,DM_SETTEXTPTR,(Param1==IAcceptKeyCfg)?IAcceptKey:IDeleteKey,(long)&KeyName);
+      dialog.Execute(MainGuid,ACmplGuid,-1,-1,width,5,ConfigHelpTopic,&DialogFrame,1,0,0,GetKey,KeyName);
+      Info.SendDlgMessage(hDlg,DM_SETTEXTPTR,(Param1==IAcceptKeyCfg)?IAcceptKey:IDeleteKey,KeyName);
       Info.SendDlgMessage(hDlg,DM_SHOWDIALOG,TRUE,0);
       return TRUE;
     }
@@ -446,7 +453,7 @@ INT_PTR TAutoCompletion::DialogProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param
   }
   else if(Msg==DN_INITDIALOG)
   {
-    Info.SendDlgMessage(hDlg,DM_SETMAXTEXTLENGTH,IAcceptChars,sizeof(AcceptChars)-1);
+    Info.SendDlgMessage(hDlg,DM_SETMAXTEXTLENGTH,IAcceptChars,(void*)(sizeof(AcceptChars)-1));
   }
   return Info.DefDlgProc(hDlg,Msg,Param1,Param2);
 }
@@ -507,14 +514,14 @@ void TAutoCompletion::InitItems(FarDialogItem *DialogItems)
   DialogItems[IAcceptKeyCfg].X1=DialogWidth()-_tcslen(GetMsg(MKeyCfg))-7;
   DialogItems[IAcceptKeyCfg].Flags=DIF_NOBRACKETS;
   FSF.sprintf(AcceptKeyCfgText,_T("&[ %s ]"),GetMsg(MKeyCfg));
-  DialogItems[IAcceptKeyCfg].PtrData=AcceptKeyCfgText;
+  DialogItems[IAcceptKeyCfg].Data=AcceptKeyCfgText;
 
   DLG_DATA_FARKEYTONAME(DialogItems[IDeleteKey],DeleteKey);
   DialogItems[IDeleteKey].X2=DialogWidth()-_tcslen(GetMsg(MKeyCfg))-9;
   DialogItems[IDeleteKeyCfg].X1=DialogWidth()-_tcslen(GetMsg(MKeyCfg))-7;
   DialogItems[IDeleteKeyCfg].Flags=DIF_NOBRACKETS;
   FSF.sprintf(DeleteKeyCfgText,_T("[ %s &]"),GetMsg(MKeyCfg));
-  DialogItems[IDeleteKeyCfg].PtrData=DeleteKeyCfgText;
+  DialogItems[IDeleteKeyCfg].Data=DeleteKeyCfgText;
 
   INIT_DLG_DATA(DialogItems[ICfg],GetMsg(MAutoCfg)); // Заголовок
   INIT_DLG_DATA(DialogItems[IAdditional],GetMsg(MColor));

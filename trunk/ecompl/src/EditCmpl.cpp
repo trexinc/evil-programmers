@@ -60,7 +60,7 @@ void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
 {
   Info->StructSize=sizeof(GlobalInfo);
   Info->MinFarVersion=FARMANAGERVERSION;
-  Info->Version=MAKEFARVERSION(4,0,2);
+  Info->Version=MAKEFARVERSION(4,0,0,3);
   Info->Guid=MainGuid;
   Info->Title=L"Word Completion";
   Info->Description=L"Complete/autocomplete words in editor";
@@ -94,10 +94,9 @@ void WINAPI GetPluginInfoW(struct PluginInfo *Info)
   Info->PluginMenu.Count=sizeof(PluginMenuStrings)/sizeof(PluginMenuStrings[0]);
 }
 
-HANDLE WINAPI OpenPluginW(OPENPLUGIN_OPENFROM OpenFrom,const GUID* Guid,int Item)
+HANDLE WINAPI OpenW(const struct OpenInfo* Info)
 {
-  (void)OpenFrom;
-  (void)Item;
+  (void)Info;
   ShowMenu();
   return INVALID_HANDLE_VALUE;
 }
@@ -113,9 +112,9 @@ int WINAPI ProcessEditorEventW(int Event,void *Param)
   return ACmpl->ProcessEditorEvent(Event,Param);
 }
 
-int WINAPI ProcessEditorInputW(const INPUT_RECORD *Rec)
+int WINAPI ProcessEditorInputW(const ProcessEditorInputInfo* Info)
 {
-  return ACmpl->ProcessEditorInput(Rec);
+  return ACmpl->ProcessEditorInput(&Info->Rec);
 }
 
 void WINAPI ExitFARW(void)
