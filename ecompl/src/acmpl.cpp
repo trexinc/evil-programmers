@@ -168,7 +168,7 @@ void TAutoCompletion::DeleteVariant(avl_window_data *Window)
     bool process=false;
     EditorInfo ei;
     Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
-    Colorize(0,Window);
+    DeColorize(Window);
     Window->Active=false;
     {
       process=CheckText(Window->col,Window->row,Window);
@@ -194,7 +194,7 @@ bool TAutoCompletion::AcceptVariant(avl_window_data *Window)
   bool Accepted=false;
   if(Window->Active)
   {
-    Colorize(0,Window);
+    DeColorize(Window);
     Window->Active=false;
     Window->Rewrited.clear();
     SetCurPos(Window->col+Window->AddedLen,Window->row);
@@ -308,11 +308,24 @@ static void ConvertColor(int Color,FarColor& NewColor)
 void TAutoCompletion::Colorize(int NewColor,avl_window_data *Window)
 {
   EditorColor ec;
+  ec.StructSize=sizeof(ec);
   ec.StringNumber=Window->row;
   ec.StartPos=Window->col;
   ec.EndPos=Window->col+Window->AddedLen-1;
   ConvertColor(NewColor,ec.Color);
+  ec.Owner=MainGuid;
+  ec.Priority=100;
   Info.EditorControl(-1,ECTL_ADDCOLOR,0,&ec);
+}
+
+void TAutoCompletion::DeColorize(avl_window_data *Window)
+{
+  EditorDeleteColor edc;
+  edc.StructSize=sizeof(edc);
+  edc.Owner=MainGuid;
+  edc.StringNumber=Window->row;
+  edc.StartPos=-1;
+  Info.EditorControl(-1,ECTL_DELCOLOR,0,&edc);
 }
 
 bool TAutoCompletion::CompleteWord(void)

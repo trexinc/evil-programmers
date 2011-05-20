@@ -44,6 +44,7 @@ class TAutoCompletion: public TCompletion
     bool AcceptVariant(avl_window_data *Window);
     bool PutVariant(avl_window_data *Window);
     void Colorize(int NewColor,avl_window_data *Window);
+    void DeColorize(avl_window_data *Window);
   protected: //options
     void GetOptions(void);
     void SetOptions(void);
