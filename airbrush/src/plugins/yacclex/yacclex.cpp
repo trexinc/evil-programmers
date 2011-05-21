@@ -62,7 +62,7 @@ static int WINAPI c_callback(int from,int row,int col,void *param)
       {
         if((!_tcsncmp(line+col,_T("%}"),2))&&(!col))
         {
-          if(((CallbackParam *)param)->topline<=row) Info.pAddColor(row,col,2,colors[HC_KEYWORD],colors[HC_KEYWORD+1]);
+          if(((CallbackParam *)param)->topline<=row) Info.pAddColor(row,col,2,colors[HC_KEYWORD],colors[HC_KEYWORD+1],EPriorityNormal);
           ((CallbackParam *)param)->ok=1;
           ((CallbackParam *)param)->row=row;
           ((CallbackParam *)param)->col=col+2;
@@ -189,7 +189,7 @@ colorize_start:
               }
               else if(*(line+i)=='\'')
               {
-                if(lColorize) Info.pAddColor(lno,stringstart,i + 1 - stringstart,colors[HC_STRING],colors[HC_STRING+1]);
+                if(lColorize) Info.pAddColor(lno,stringstart,i + 1 - stringstart,colors[HC_STRING],colors[HC_STRING+1],EPriorityNormal);
                 break;
               }
               i++;
@@ -202,7 +202,7 @@ colorize_start:
           }
           else if (!_tcsncmp(line+i,_T("//"),2))
           {
-            if(lColorize) Info.pAddColor(lno,i,linelen-i,colors[HC_COMMENT],colors[HC_COMMENT+1]);
+            if(lColorize) Info.pAddColor(lno,i,linelen-i,colors[HC_COMMENT],colors[HC_COMMENT+1],EPriorityNormal);
             i=linelen;
           }
           else if(*(line+i)=='[')
@@ -217,7 +217,7 @@ colorize_start:
                 goto colorize_exit;
             if((!_tcsncmp(line+i,_T("%%"),2))&&(!i))
             {
-              if(lColorize) Info.pAddColor(lno,i,2,colors[HC_KEYWORD],colors[HC_KEYWORD+1]);
+              if(lColorize) Info.pAddColor(lno,i,2,colors[HC_KEYWORD],colors[HC_KEYWORD+1],EPriorityNormal);
               if(state[0].lex_state==PARSER_CLEAR)
               {
                 state[0].lex_state=PARSER_RULES;
@@ -236,7 +236,7 @@ colorize_start:
             {
               if((!_tcsncmp(line+i,_T("%{"),2))&&(!i))
               {
-                if(lColorize) Info.pAddColor(lno,i,2,colors[HC_KEYWORD],colors[HC_KEYWORD+1]);
+                if(lColorize) Info.pAddColor(lno,i,2,colors[HC_KEYWORD],colors[HC_KEYWORD+1],EPriorityNormal);
                 callback_data.row=lno;
                 callback_data.col=i+2;
                 state[0].diff=1+state[0].lex_state;
@@ -266,14 +266,14 @@ colorize_start:
           {
             i++;
             state[0].lex_state=state[0].lex_state>>16;
-            if(lColorize) Info.pAddColor(lno,commentstart,i+1-commentstart,colors[HC_COMMENT],colors[HC_COMMENT+1]);
+            if(lColorize) Info.pAddColor(lno,commentstart,i+1-commentstart,colors[HC_COMMENT],colors[HC_COMMENT+1],EPriorityNormal);
           }
           break;
         case PARSER_STRING:
           if(*(line+i)=='\"')
           {
             state[0].lex_state=state[0].lex_state>>16;
-            if(lColorize) Info.pAddColor(lno,commentstart,i+1-commentstart,colors[HC_STRING],colors[HC_STRING+1]);
+            if(lColorize) Info.pAddColor(lno,commentstart,i+1-commentstart,colors[HC_STRING],colors[HC_STRING+1],EPriorityNormal);
           }
           else if(*(line+i)=='\\')
             i++;
@@ -282,7 +282,7 @@ colorize_start:
           if(*(line+i)==']')
           {
             state[0].lex_state=state[0].lex_state>>16;
-            if(lColorize) Info.pAddColor(lno,commentstart,i+1-commentstart,colors[HC_SET],colors[HC_SET+1]);
+            if(lColorize) Info.pAddColor(lno,commentstart,i+1-commentstart,colors[HC_SET],colors[HC_SET+1],EPriorityNormal);
           }
           else if(*(line+i)=='\\')
             i++;
@@ -290,11 +290,11 @@ colorize_start:
       }
     }
     if((state[0].lex_state&0xffff)==PARSER_COMMENT)
-      if(lColorize) Info.pAddColor(lno,commentstart,linelen-commentstart,colors[HC_COMMENT],colors[HC_COMMENT+1]);
+      if(lColorize) Info.pAddColor(lno,commentstart,linelen-commentstart,colors[HC_COMMENT],colors[HC_COMMENT+1],EPriorityNormal);
     if((state[0].lex_state&0xffff)==PARSER_STRING)
-      if(lColorize) Info.pAddColor(lno,commentstart,linelen-commentstart,colors[HC_STRING],colors[HC_STRING+1]);
+      if(lColorize) Info.pAddColor(lno,commentstart,linelen-commentstart,colors[HC_STRING],colors[HC_STRING+1],EPriorityNormal);
     if((state[0].lex_state&0xffff)==PARSER_SET)
-      if(lColorize) Info.pAddColor(lno,commentstart,linelen-commentstart,colors[HC_SET],colors[HC_SET+1]);
+      if(lColorize) Info.pAddColor(lno,commentstart,linelen-commentstart,colors[HC_SET],colors[HC_SET+1],EPriorityNormal);
   }
 colorize_exit:
   return;

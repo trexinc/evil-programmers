@@ -40,7 +40,7 @@ static void ConvertColor(int Color,FarColor& NewColor)
   NewColor.Reserved=NULL;
 }
 
-static void WINAPI addcolor(int lno,int start,int len,int fg,int bg)
+static void WINAPI addcolor(int lno,int start,int len,int fg,int bg,enum ColorizePriority priority)
 {
   if((fg==-1)&&(bg==-1)) return;
   if(len==0) return;
@@ -55,7 +55,15 @@ static void WINAPI addcolor(int lno,int start,int len,int fg,int bg)
   ec.EndPos=start+len-1;
   ConvertColor(fg|bg,ec.Color);
   ec.Owner=MainGuid;
-  ec.Priority=0;
+  switch(priority)
+  {
+    case EPriorityNormal:
+      ec.Priority=0;
+      break;
+    case EPriorityBrackets:
+      ec.Priority=100;
+      break;
+  }
   Info.EditorControl(-1,ECTL_ADDCOLOR,0,&ec);
   ReleaseMutex(Mutex);
 }

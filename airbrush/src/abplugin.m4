@@ -41,7 +41,13 @@ struct ColorizeParams
   void *param;
 };
 
-typedef void (WINAPI *PLUGINADDCOLOR)(int lno,int start,int len,int fg,int bg);
+enum ColorizePriority
+{
+  EPriorityNormal,
+  EPriorityBrackets
+};
+
+typedef void (WINAPI *PLUGINADDCOLOR)(int lno,int start,int len,int fg,int bg,enum ColorizePriority priority);
 typedef void (WINAPI *PLUGINDELCOLOR)(int lno);
 typedef const TCHAR *(WINAPI *PLUGINGETLINE)(int lno,int *len);
 typedef bool (WINAPI *PLUGINADDSTATE)(int eid,int pos,unsigned long size,unsigned char *data);
