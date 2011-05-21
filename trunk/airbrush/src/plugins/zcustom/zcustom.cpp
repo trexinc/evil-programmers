@@ -726,8 +726,8 @@ void WINAPI _export Colorize(int index,struct ColorizeParams *params)
             pos_next=0;
           else
           {
-            if(lColorize) Info.pAddColor(lno,context_start,pos-context_start,rules[index].contexts[state[0]].fg,rules[index].contexts[state[0]].bg);
-            if(lColorize) Info.pAddColor(lno,pos,pos_next-pos,rules[index].contexts[state[0]].keywords[i].fg,rules[index].contexts[state[0]].keywords[i].bg);
+            if(lColorize) Info.pAddColor(lno,context_start,pos-context_start,rules[index].contexts[state[0]].fg,rules[index].contexts[state[0]].bg,EPriorityNormal);
+            if(lColorize) Info.pAddColor(lno,pos,pos_next-pos,rules[index].contexts[state[0]].keywords[i].fg,rules[index].contexts[state[0]].keywords[i].bg,EPriorityNormal);
             pos=pos_next-1;
             context_start=pos_next;
           }
@@ -747,12 +747,12 @@ void WINAPI _export Colorize(int index,struct ColorizeParams *params)
               end_temp=pos;
               if(rules[index].contexts[state[0]].exclusive_right>=0)
               {
-                if(lColorize) Info.pAddColor(lno,pos,pos_next-pos,rules[index].contexts[0].keywords[rules[index].contexts[state[0]].exclusive_right].fg,rules[index].contexts[0].keywords[rules[index].contexts[state[0]].exclusive_right].bg);
+                if(lColorize) Info.pAddColor(lno,pos,pos_next-pos,rules[index].contexts[0].keywords[rules[index].contexts[state[0]].exclusive_right].fg,rules[index].contexts[0].keywords[rules[index].contexts[state[0]].exclusive_right].bg,EPriorityNormal);
               }
               else
                 start_temp=pos;
             }
-            if(lColorize) Info.pAddColor(lno,context_start,end_temp-context_start,rules[index].contexts[state[0]].fg,rules[index].contexts[state[0]].bg);
+            if(lColorize) Info.pAddColor(lno,context_start,end_temp-context_start,rules[index].contexts[state[0]].fg,rules[index].contexts[state[0]].bg,EPriorityNormal);
             context_start=start_temp;
             state[0]=0;
             pos=pos_next-1;
@@ -770,13 +770,13 @@ void WINAPI _export Colorize(int index,struct ColorizeParams *params)
               {
                 if(rules[index].contexts[i].exclusive_left>=0)
                 {
-                  if(lColorize) Info.pAddColor(lno,pos,pos_next-pos,rules[index].contexts[0].keywords[rules[index].contexts[i].exclusive_left].fg,rules[index].contexts[0].keywords[rules[index].contexts[i].exclusive_left].bg);
+                  if(lColorize) Info.pAddColor(lno,pos,pos_next-pos,rules[index].contexts[0].keywords[rules[index].contexts[i].exclusive_left].fg,rules[index].contexts[0].keywords[rules[index].contexts[i].exclusive_left].bg,EPriorityNormal);
                 }
                 else
                   end_temp=pos_next;
                 start_temp=pos_next;
               }
-              if(lColorize) Info.pAddColor(lno,context_start,end_temp-context_start,rules[index].contexts[state[0]].fg,rules[index].contexts[state[0]].bg);
+              if(lColorize) Info.pAddColor(lno,context_start,end_temp-context_start,rules[index].contexts[state[0]].fg,rules[index].contexts[state[0]].bg,EPriorityNormal);
               context_start=start_temp;
               state[0]=i;
               pos=pos_next-1;
@@ -795,7 +795,7 @@ void WINAPI _export Colorize(int index,struct ColorizeParams *params)
         }
       pos++;
     }
-    if(lColorize) Info.pAddColor(lno,context_start,linelen-context_start,rules[index].contexts[state[0]].fg,rules[index].contexts[state[0]].bg);
+    if(lColorize) Info.pAddColor(lno,context_start,linelen-context_start,rules[index].contexts[state[0]].fg,rules[index].contexts[state[0]].bg,EPriorityNormal);
 #ifdef UNICODE
     free((void*)line); line=NULL;
 #endif
