@@ -1,0 +1,13 @@
+EXPORTS
+    GetPluginInfo   = GetPluginInfo
+    SetStartupInfo  = SetStartupInfo
+    OpenPlugin      = OpenPlugin
+    ClosePlugin     = ClosePlugin
+    GetPluginInfoW  = GetPluginInfoW
+    SetStartupInfoW = SetStartupInfoW
+    OpenPluginW     = OpenPluginW
+    ClosePluginW    = ClosePluginW
+    Export          = Export
+
+
+
