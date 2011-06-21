@@ -33,7 +33,7 @@ class CFarDialog
   public:
     inline CFarDialog(): iDlg(INVALID_HANDLE_VALUE) {};
     inline ~CFarDialog() {Info.DialogFree(iDlg);};
-    inline int Execute(const GUID& PluginId,const GUID& Id,int X1,int Y1,int X2,int Y2,const TCHAR* HelpTopic,struct FarDialogItem* Item,int ItemsNumber,DWORD Reserved,DWORD Flags,FARWINDOWPROC DlgProc,LONG_PTR Param)
+    inline int Execute(const GUID& PluginId,const GUID& Id,int X1,int Y1,int X2,int Y2,const TCHAR* HelpTopic,FarDialogItem* Item,int ItemsNumber,DWORD Reserved,FARDIALOGFLAGS Flags,FARWINDOWPROC DlgProc,void* Param)
     {
       iDlg=Info.DialogInit(&PluginId,&Id,X1,Y1,X2,Y2,HelpTopic,Item,ItemsNumber,Reserved,Flags,DlgProc,Param);
       return Info.DialogRun(iDlg);
@@ -44,15 +44,30 @@ class CFarDialog
     inline DWORD Flags(int index)
     {
       FarDialogItem DialogItem;
-      if(Info.SendDlgMessage(iDlg,DM_GETDLGITEMSHORT,index,(LONG_PTR)&DialogItem)) return DialogItem.Flags;
+      if(Info.SendDlgMessage(iDlg,DM_GETDLGITEMSHORT,index,&DialogItem)) return DialogItem.Flags;
       return 0;
     };
     inline DWORD Type(int index)
     {
       FarDialogItem DialogItem;
-      if(Info.SendDlgMessage(iDlg,DM_GETDLGITEMSHORT,index,(LONG_PTR)&DialogItem)) return DialogItem.Type;
+      if(Info.SendDlgMessage(iDlg,DM_GETDLGITEMSHORT,index,&DialogItem)) return DialogItem.Type;
       return 0;
     };
+};
+
+class CFarSettings
+{
+  private:
+    HANDLE iSettings;
+    size_t iRoot;
+    CFarSettings();
+  public:
+    CFarSettings(const GUID& PluginId);
+    ~CFarSettings();
+    void Set(const wchar_t* aName,__int64 aValue);
+    void Set(const wchar_t* aName,const wchar_t* aValue);
+    void Get(const wchar_t* aName,__int64& aValue);
+    void Get(const wchar_t* aName,wchar_t* aValue,size_t aSize);
 };
 
 #endif

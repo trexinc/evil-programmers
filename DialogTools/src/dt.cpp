@@ -39,32 +39,10 @@ DEFINE_GUID(EditGuid, 0xd0c5118d, 0xe750, 0x4e00, 0xa4, 0xd4, 0xe, 0xe, 0x0, 0x6
 
 PluginStartupInfo Info;
 FARSTANDARDFUNCTIONS FSF;
-TCHAR PluginRootKey[100];
 
 const TCHAR* GetMsg(int MsgId)
 {
   return(Info.GetMsg(&MainGuid,MsgId));
-}
-
-void InitDialogItems(const InitDialogItem *Init,FarDialogItem *Item,int ItemsNumber)
-{
-  for (int i=0;i<ItemsNumber;i++)
-  {
-    Item[i].Type=Init[i].Type;
-    Item[i].X1=Init[i].X1;
-    Item[i].Y1=Init[i].Y1;
-    Item[i].X2=Init[i].X2;
-    Item[i].Y2=Init[i].Y2;
-    Item[i].Selected=Init[i].Selected;
-    Item[i].Flags=Init[i].Flags;
-    Item[i].MaxLen=0;
-    if((unsigned)Init[i].Data<2000)
-      Item[i].PtrData=GetMsg((unsigned int)(DWORD_PTR)Init[i].Data);
-    else
-      Item[i].PtrData=Init[i].Data;
-    Item[i].Mask=NULL;
-    Item[i].History=NULL;
-  }
 }
 
 void WINAPI SetStartupInfoW(const struct PluginStartupInfo* Info)
@@ -73,8 +51,6 @@ void WINAPI SetStartupInfoW(const struct PluginStartupInfo* Info)
   memmove(&::Info,Info,(Info->StructSize>(int)sizeof(::Info))?sizeof(::Info):Info->StructSize);
   ::FSF=*Info->FSF;
   ::Info.FSF=&::FSF;
-  _tcscpy(PluginRootKey,Info->RootKey);
-  _tcscat(PluginRootKey,_T("\\DialogTools"));
   InitCase();
 }
 
@@ -92,40 +68,40 @@ void WINAPI GetPluginInfoW(struct PluginInfo* Info)
   Info->PluginMenu.Count=ArraySize(PluginMenuStrings);
 }
 
-HANDLE WINAPI OpenPluginW(int OpenFrom,const GUID* Guid,INT_PTR Item)
+HANDLE WINAPI OpenW(const struct OpenInfo *anInfo)
 {
-  if(OpenFrom==OPEN_DIALOG)
+  if(anInfo->OpenFrom==OPEN_DIALOG)
   {
-    OpenDlgPluginData* data=(OpenDlgPluginData*)Item;
-    if(IsEqualGUID(*Guid,CaseGuid))
+    OpenDlgPluginData* data=(OpenDlgPluginData*)anInfo->Data;
+    if(IsEqualGUID(*anInfo->Guid,CaseGuid))
     {
       DoCase(data->hDlg);
     }
-    else if(IsEqualGUID(*Guid,FileGuid))
+    else if(IsEqualGUID(*anInfo->Guid,FileGuid))
     {
       DoOpenFile(data->hDlg);
     }
-    else if(IsEqualGUID(*Guid,PasteGuid))
+    else if(IsEqualGUID(*anInfo->Guid,PasteGuid))
     {
       DoPaste(data->hDlg);
     }
-    else if(IsEqualGUID(*Guid,PwdGuid))
+    else if(IsEqualGUID(*anInfo->Guid,PwdGuid))
     {
       DoPwd(data->hDlg);
     }
-    else if(IsEqualGUID(*Guid,SearchGuid))
+    else if(IsEqualGUID(*anInfo->Guid,SearchGuid))
     {
       DoSearch(data->hDlg);
     }
-    else if(IsEqualGUID(*Guid,ReplaceGuid))
+    else if(IsEqualGUID(*anInfo->Guid,ReplaceGuid))
     {
       DoReplace(data->hDlg);
     }
-    else if(IsEqualGUID(*Guid,UndoGuid))
+    else if(IsEqualGUID(*anInfo->Guid,UndoGuid))
     {
       DoUndo(data->hDlg);
     }
-    else if(IsEqualGUID(*Guid,EditGuid))
+    else if(IsEqualGUID(*anInfo->Guid,EditGuid))
     {
       DoEdit(data->hDlg);
     }
@@ -133,7 +109,7 @@ HANDLE WINAPI OpenPluginW(int OpenFrom,const GUID* Guid,INT_PTR Item)
   return INVALID_HANDLE_VALUE;
 }
 
-void WINAPI ExitFARW(void)
+void WINAPI ExitFARW(const struct ExitInfo *Info)
 {
   FinishUndo();
 }
@@ -152,7 +128,7 @@ void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
 {
   Info->StructSize=sizeof(GlobalInfo);
   Info->MinFarVersion=FARMANAGERVERSION;
-  Info->Version=MAKEFARVERSION(1,0,2);
+  Info->Version=MAKEFARVERSION(1,0,0,2,VS_RELEASE);
   Info->Guid=MainGuid;
   Info->Title=L"Dialog Tools";
   Info->Description=L"Small tools for Far dialogs";
