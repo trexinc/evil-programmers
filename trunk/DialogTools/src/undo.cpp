@@ -57,9 +57,9 @@ static UndoItem *add_to_stack(UndoItem *OldStack,HANDLE hDlg,int item)
     NewStack->data=(TCHAR *)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,(length+1)*sizeof(TCHAR));
     if(NewStack->data)
     {
-      Info.SendDlgMessage(hDlg,DM_GETTEXTPTR,item,(long)NewStack->data);
-      NewStack->unchanged=Info.SendDlgMessage(hDlg,DM_EDITUNCHANGEDFLAG,item,-1);
-      Info.SendDlgMessage(hDlg,DM_GETCURSORPOS,item,(LONG_PTR)&NewStack->pos);
+      Info.SendDlgMessage(hDlg,DM_GETTEXTPTR,item,NewStack->data);
+      NewStack->unchanged=Info.SendDlgMessage(hDlg,DM_EDITUNCHANGEDFLAG,item,(void*)-1);
+      Info.SendDlgMessage(hDlg,DM_GETCURSORPOS,item,&NewStack->pos);
       NewStack->next=OldStack;
       CurrDialog=hDlg;
       CurrItem=item;
@@ -91,9 +91,9 @@ static void pop_stack(void)
 static void restore_state(UndoItem *Data,HANDLE hDlg,int item)
 {
   inside_undo++;
-  Info.SendDlgMessage(hDlg,DM_SETTEXTPTR,item,(long)Data->data);
-  Info.SendDlgMessage(hDlg,DM_SETCURSORPOS,item,(LONG_PTR)&Data->pos);
-  Info.SendDlgMessage(hDlg,DM_EDITUNCHANGEDFLAG,item,Data->unchanged);
+  Info.SendDlgMessage(hDlg,DM_SETTEXTPTR,item,Data->data);
+  Info.SendDlgMessage(hDlg,DM_SETCURSORPOS,item,&Data->pos);
+  Info.SendDlgMessage(hDlg,DM_EDITUNCHANGEDFLAG,item,(void*)Data->unchanged);
   inside_undo--;
 }
 
@@ -111,7 +111,7 @@ void DoUndo(HANDLE aDlg)
   if(MenuCode>=0)
   {
     FarDialogItem DialogItem;
-    Info.SendDlgMessage(aDlg,DM_GETDLGITEMSHORT,itemID,(LONG_PTR)&DialogItem);
+    Info.SendDlgMessage(aDlg,DM_GETDLGITEMSHORT,itemID,&DialogItem);
     if(DialogItem.Type==DI_EDIT&&Stack)
     {
       if(MenuCode==0&&Top)
@@ -133,14 +133,14 @@ void DoUndo(HANDLE aDlg)
   }
 }
 
-void FilterUndo(HANDLE aDlg,int aMsg,int aParam1,LONG_PTR aParam2)
+void FilterUndo(HANDLE aDlg,int aMsg,int aParam1,void* aParam2)
 {
   if(inside_undo) return;
   if(aMsg==DN_GOTFOCUS||aMsg==DN_INITDIALOG||(aMsg==DN_EDITCHANGE&&!Stack))
   {
     free_stack();
     FarDialogItem DialogItem;
-    Info.SendDlgMessage(aDlg,DM_GETDLGITEMSHORT,aParam1,(LONG_PTR)&DialogItem);
+    Info.SendDlgMessage(aDlg,DM_GETDLGITEMSHORT,aParam1,&DialogItem);
     if(DialogItem.Type==DI_EDIT)
     {
       Top=Stack;

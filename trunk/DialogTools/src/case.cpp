@@ -35,7 +35,7 @@ enum
 
 TCHAR WordDiv[80];
 int WordDivLen;
-DWORD ProcessWholeLine=1;
+__int64 ProcessWholeLine=1;
 
 BOOL FindBounds(TCHAR *Str, int Len, int Pos, int *Start, int *End);
 int FindEnd(TCHAR *Str, int Len, int Pos);
@@ -51,7 +51,7 @@ BOOL MyIsAlpha(TCHAR c)
 
 void InitCase(void)
 {
-  WordDivLen=Info.AdvControl(&MainGuid,ACTL_GETSYSWORDDIV,WordDiv);
+  WordDivLen=Info.AdvControl(&MainGuid,ACTL_GETSYSWORDDIV,0,WordDiv);
   WordDivLen+=sizeof(" \n\r\t");
   _tcscat(WordDiv,_T(" \n\r\t"));
 }
@@ -68,15 +68,12 @@ void DoCase(HANDLE aDlg)
   INIT_MENU_TEXT(4,GetMsg(mCyclic));
   MenuItems[5].Flags|=MIF_SEPARATOR;
   INIT_MENU_TEXT(6,GetMsg(mProcessWholeLine));
-  HKEY hKey;
-  if(RegOpenKeyEx(HKEY_CURRENT_USER,PluginRootKey,0,KEY_READ,&hKey)==ERROR_SUCCESS)
   {
-    DWORD Type,DataSize=sizeof(ProcessWholeLine);
-    RegQueryValueEx(hKey,_T("ProcessWholeLine"),0,&Type,(BYTE *)&ProcessWholeLine,&DataSize);
-    RegCloseKey(hKey);
+    CFarSettings set(MainGuid);
+    set.Get(_T("ProcessWholeLine"),ProcessWholeLine);
   }
   MenuItems[6].Flags|=(ProcessWholeLine?MIF_CHECKED:0);
-  int BreakKeys[2]={VK_SPACE,0};
+  FarKey BreakKeys[]={{VK_SPACE,0},{0,0}};
   int MenuCode;
   while (6==(MenuCode=Info.Menu(&MainGuid,-1,-1,0,FMENU_WRAPMODE,GetMsg(mNameCase),NULL,NULL,BreakKeys,NULL,MenuItems,ArraySize(MenuItems))))
   {
@@ -93,17 +90,15 @@ void DoCase(HANDLE aDlg)
     MenuItems[0].Flags&=~MIF_SELECTED;
     MenuItems[6].Flags|=MIF_SELECTED;
   }
-  DWORD Disposition;
-  if(RegCreateKeyEx(HKEY_CURRENT_USER,PluginRootKey,0,NULL,0,KEY_WRITE,NULL,&hKey,&Disposition)==ERROR_SUCCESS)
   {
-    RegSetValueEx(hKey,_T("ProcessWholeLine"),0,REG_DWORD,(BYTE *)&ProcessWholeLine,sizeof(ProcessWholeLine));
-    RegCloseKey(hKey);
+    CFarSettings set(MainGuid);
+    set.Set(_T("ProcessWholeLine"),ProcessWholeLine);
   }
   if(MenuCode>=0)
   {
     LONG_PTR itemID=Info.SendDlgMessage(aDlg,DM_GETFOCUS,0,0);
     FarDialogItem DialogItem;
-    Info.SendDlgMessage(aDlg,DM_GETDLGITEMSHORT,itemID,(LONG_PTR)&DialogItem);
+    Info.SendDlgMessage(aDlg,DM_GETDLGITEMSHORT,itemID,&DialogItem);
     if(DialogItem.Type==DI_EDIT)
     {
       long length=Info.SendDlgMessage(aDlg,DM_GETTEXTLENGTH,itemID,0)+1;
@@ -112,9 +107,9 @@ void DoCase(HANDLE aDlg)
       {
         EditorSelect es;
         es.BlockType=BTYPE_NONE;
-        Info.SendDlgMessage(aDlg,DM_GETSELECTION,itemID,(LONG_PTR)&es);
-        COORD Pos; Info.SendDlgMessage(aDlg,DM_GETCURSORPOS,itemID,(LONG_PTR)&Pos);
-        Info.SendDlgMessage(aDlg,DM_GETTEXTPTR,itemID,(LONG_PTR)buffer);
+        Info.SendDlgMessage(aDlg,DM_GETSELECTION,itemID,&es);
+        COORD Pos; Info.SendDlgMessage(aDlg,DM_GETCURSORPOS,itemID,&Pos);
+        Info.SendDlgMessage(aDlg,DM_GETTEXTPTR,itemID,buffer);
         int Start=0,End=length-1;
         if (es.BlockType==BTYPE_NONE||es.BlockStartPos<0)
         {
@@ -137,9 +132,9 @@ void DoCase(HANDLE aDlg)
           //Do the conversion
           ChangeCase(buffer, Start, End, MenuCode);
         }
-        Info.SendDlgMessage(aDlg,DM_SETTEXTPTR,itemID,(LONG_PTR)buffer);
-        Info.SendDlgMessage(aDlg,DM_SETCURSORPOS,itemID,(LONG_PTR)&Pos);
-        Info.SendDlgMessage(aDlg,DM_SETSELECTION,itemID,(LONG_PTR)&es);
+        Info.SendDlgMessage(aDlg,DM_SETTEXTPTR,itemID,buffer);
+        Info.SendDlgMessage(aDlg,DM_SETCURSORPOS,itemID,&Pos);
+        Info.SendDlgMessage(aDlg,DM_SETSELECTION,itemID,&es);
         HeapFree(GetProcessHeap(),0,buffer);
       }
     }

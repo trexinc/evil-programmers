@@ -48,20 +48,20 @@ void DoOpenFile(HANDLE aDlg)
 {
   LONG_PTR itemID=Info.SendDlgMessage(aDlg,DM_GETFOCUS,0,0);
   FarDialogItem DialogItem;
-  Info.SendDlgMessage(aDlg,DM_GETDLGITEMSHORT,itemID,(LONG_PTR)&DialogItem);
+  Info.SendDlgMessage(aDlg,DM_GETDLGITEMSHORT,itemID,&DialogItem);
   if(DialogItem.Type==DI_EDIT)
   {
     TCHAR path[MAX_PATH],filename[MAX_PATH];
     path[0]=0;
-    if(Info.Control(PANEL_ACTIVE,FCTL_GETPANELDIR,ArraySize(path),(LONG_PTR)path))
+    if(Info.PanelControl(PANEL_ACTIVE,FCTL_GETPANELDIR,ArraySize(path),path))
       FSF.AddEndSlash(path);
     if(open_file_dialog(path,filename))
     {
-      Info.SendDlgMessage(aDlg,DM_SETTEXTPTR,itemID,(long)filename);
+      Info.SendDlgMessage(aDlg,DM_SETTEXTPTR,itemID,filename);
       COORD Pos={0,0};
-      Info.SendDlgMessage(aDlg,DM_SETCURSORPOS,itemID,(LONG_PTR)&Pos);
+      Info.SendDlgMessage(aDlg,DM_SETCURSORPOS,itemID,&Pos);
       Pos.X=(short)lstrlen(filename);
-      Info.SendDlgMessage(aDlg,DM_SETCURSORPOS,itemID,(LONG_PTR)&Pos);
+      Info.SendDlgMessage(aDlg,DM_SETCURSORPOS,itemID,&Pos);
     }
   }
 }

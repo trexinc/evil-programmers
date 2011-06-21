@@ -24,14 +24,14 @@ void DoEdit(HANDLE aDlg)
 {
   LONG_PTR itemID=Info.SendDlgMessage(aDlg,DM_GETFOCUS,0,0);
   FarDialogItem DialogItem;
-  Info.SendDlgMessage(aDlg,DM_GETDLGITEMSHORT,itemID,(LONG_PTR)&DialogItem);
+  Info.SendDlgMessage(aDlg,DM_GETDLGITEMSHORT,itemID,&DialogItem);
   if(DialogItem.Type==DI_EDIT)
   {
     long length=Info.SendDlgMessage(aDlg,DM_GETTEXTLENGTH,itemID,0)+1;
     TCHAR* buffer=(TCHAR*)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,length*sizeof(TCHAR));
     if(buffer)
     {
-      Info.SendDlgMessage(aDlg,DM_GETTEXTPTR,itemID,(LONG_PTR)buffer);
+      Info.SendDlgMessage(aDlg,DM_GETTEXTPTR,itemID,buffer);
       TCHAR filename[MAX_PATH];
       if(FSF.MkTemp(filename,ArraySize(filename),_T("DTE")))
       {
@@ -72,7 +72,7 @@ void DoEdit(HANDLE aDlg)
                   outBuffer[ii]=0x20;
                 }
               }
-              Info.SendDlgMessage(aDlg,DM_SETTEXTPTR,itemID,(LONG_PTR)outBuffer);
+              Info.SendDlgMessage(aDlg,DM_SETTEXTPTR,itemID,outBuffer);
               HeapFree(GetProcessHeap(),0,outBuffer);
             }
             CloseHandle(file);
@@ -83,5 +83,5 @@ void DoEdit(HANDLE aDlg)
       HeapFree(GetProcessHeap(),0,buffer);
     }
   }
-  Info.AdvControl(&MainGuid,ACTL_REDRAWALL,NULL);
+  Info.AdvControl(&MainGuid,ACTL_REDRAWALL,0,NULL);
 }

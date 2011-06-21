@@ -134,7 +134,7 @@ static int TryLoadDir(HANDLE hDlg, OFDData *DlgParams, TCHAR *newdir)
     lstrcpy(DlgParams->curr_dir,newdir);
 
     FarList list={count,Items};
-    Info.SendDlgMessage(hDlg,DM_LISTSET,0,(long)&list);
+    Info.SendDlgMessage(hDlg,DM_LISTSET,0,&list);
 
     free(Items);
     free(newnames);
@@ -146,7 +146,7 @@ static int TryLoadDir(HANDLE hDlg, OFDData *DlgParams, TCHAR *newdir)
       _tcscpy(tmp,GetMsg(mBottomTitle));
       titles.Bottom=tmp;
       titles.BottomLen=lstrlen(titles.Bottom);
-      Info.SendDlgMessage(hDlg,DM_LISTSETTITLES,0,(long)&titles);
+      Info.SendDlgMessage(hDlg,DM_LISTSETTITLES,0,&titles);
     }
   }
   return count;
@@ -154,7 +154,7 @@ static int TryLoadDir(HANDLE hDlg, OFDData *DlgParams, TCHAR *newdir)
 
 #define DM_UPDATESIZE DM_USER+1
 
-static INT_PTR WINAPI OFDProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
+static INT_PTR WINAPI OFDProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
 {
   OFDData *DlgParams=(OFDData *)Info.SendDlgMessage(hDlg,DM_GETDLGDATA,0,0);
   TCHAR newdir[MAX_PATH];
@@ -165,7 +165,7 @@ static INT_PTR WINAPI OFDProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
   if (Msg==DN_CONTROLINPUT||Msg==DN_CLOSE)
   {
     item.ItemIndex=Info.SendDlgMessage(hDlg,DM_LISTGETCURPOS,0,0);
-    ItemPresent=Info.SendDlgMessage(hDlg,DM_LISTGETITEM,0,(long)&item);
+    ItemPresent=Info.SendDlgMessage(hDlg,DM_LISTGETITEM,0,&item);
     if(ItemPresent)
     {
       lstrcpy(newcurdir,DlgParams->curr_dir);
@@ -225,10 +225,10 @@ static INT_PTR WINAPI OFDProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
                       }
                       FarListPos Pos;
                       FarListFind find={0,ptr,LIFIND_EXACTMATCH,0};
-                      Pos.SelectPos=Info.SendDlgMessage(hDlg,DM_LISTFINDSTRING,0,(long)&find);
+                      Pos.SelectPos=Info.SendDlgMessage(hDlg,DM_LISTFINDSTRING,0,&find);
                       Pos.TopPos=-1;
                       if(Pos.SelectPos>=0)
-                        Info.SendDlgMessage(hDlg,DM_LISTSETCURPOS,0,(long)&Pos);
+                        Info.SendDlgMessage(hDlg,DM_LISTSETCURPOS,0,&Pos);
                     }
                   }
                 }
@@ -271,6 +271,7 @@ static INT_PTR WINAPI OFDProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
             }
             return TRUE;
           }
+#if 0
           else if(keyIn>=KEY_RCTRL0&&keyIn<=KEY_RCTRL9)
           {
             TCHAR key_path[MAX_PATH], value[64], data[MAX_PATH];;
@@ -290,23 +291,25 @@ static INT_PTR WINAPI OFDProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
             }
             return TRUE;
           }
+#endif
           else if(keyIn==KEY_LEFT)
           {
             INPUT_RECORD keyOut;
             FSF.FarKeyToInputRecord(KEY_HOME,&keyOut);
-            Info.SendDlgMessage(hDlg,DM_KEY,1,(INT_PTR)&keyOut);
+            Info.SendDlgMessage(hDlg,DM_KEY,1,&keyOut);
             return TRUE;
           }
           else if(keyIn==KEY_RIGHT)
           {
             INPUT_RECORD keyOut;
             FSF.FarKeyToInputRecord(KEY_END,&keyOut);
-            Info.SendDlgMessage(hDlg,DM_KEY,1,(INT_PTR)&keyOut);
+            Info.SendDlgMessage(hDlg,DM_KEY,1,&keyOut);
             return TRUE;
           }
         }
       }
       break;
+#if 0
     case DN_CTLCOLORDIALOG:
       return Info.AdvControl(&MainGuid,ACTL_GETCOLOR,(void *)COL_MENUTEXT);
     case DN_CTLCOLORDLGLIST:
@@ -321,6 +324,7 @@ static INT_PTR WINAPI OFDProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
         return TRUE;
       }
       break;
+#endif
     case DN_INITDIALOG:
       Info.SendDlgMessage(hDlg,DM_UPDATESIZE,0,0);
       TryLoadDir(hDlg,(OFDData *)Param2,((OFDData *)Param2)->curr_dir);
@@ -356,7 +360,7 @@ static INT_PTR WINAPI OFDProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
         {
           COORD console_size={80,25};
           SMALL_RECT console_rect;
-          if(Info.AdvControl(&MainGuid,ACTL_GETFARRECT,(void*)&console_rect))
+          if(Info.AdvControl(&MainGuid,ACTL_GETFARRECT,0,&console_rect))
           {
             console_size.X=console_rect.Right-console_rect.Left+1;
             console_size.Y=console_rect.Bottom-console_rect.Top+1;
@@ -372,17 +376,17 @@ static INT_PTR WINAPI OFDProc(HANDLE hDlg,int Msg,int Param1,INT_PTR Param2)
         Info.SendDlgMessage(hDlg,DM_ENABLEREDRAW,FALSE,0);
         { //minimize listbox
           SMALL_RECT listbox_size={3,1,4,2};
-          Info.SendDlgMessage(hDlg,DM_SETITEMPOSITION,0,(long)&listbox_size);
+          Info.SendDlgMessage(hDlg,DM_SETITEMPOSITION,0,&listbox_size);
         }
         { //resize and move dialog
           COORD dialog_size={(short)(width+6),(short)(height+2)};
-          Info.SendDlgMessage(hDlg,DM_RESIZEDIALOG,0,(long)&dialog_size);
+          Info.SendDlgMessage(hDlg,DM_RESIZEDIALOG,0,&dialog_size);
           COORD position={-1,-1};
-          Info.SendDlgMessage(hDlg,DM_MOVEDIALOG,TRUE,(long)&position);
+          Info.SendDlgMessage(hDlg,DM_MOVEDIALOG,TRUE,&position);
         }
         { //resize listbox
           SMALL_RECT listbox_size={3,1,(short)(width+2),(short)(height)};
-          Info.SendDlgMessage(hDlg,DM_SETITEMPOSITION,0,(long)&listbox_size);
+          Info.SendDlgMessage(hDlg,DM_SETITEMPOSITION,0,&listbox_size);
         }
         Info.SendDlgMessage(hDlg,DM_ENABLEREDRAW,TRUE,0);
       }
@@ -402,6 +406,6 @@ bool open_file_dialog(const TCHAR *curr_dir,TCHAR *filename)
   ZeroMemory(DialogItems,sizeof(DialogItems));
   DialogItems[0].Type=DI_LISTBOX; //DialogItems[0].Flags=DIF_LISTWRAPMODE;
   CFarDialog dialog;
-  dialog.Execute(MainGuid,FileDialogGuid,-1,-1,0,0,NULL,DialogItems,ArraySize(DialogItems),0,0,OFDProc,(DWORD)&params);
+  dialog.Execute(MainGuid,FileDialogGuid,-1,-1,0,0,NULL,DialogItems,ArraySize(DialogItems),0,0,OFDProc,&params);
   return params.result;
 }

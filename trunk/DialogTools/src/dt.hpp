@@ -67,22 +67,16 @@ extern PluginStartupInfo Info;
 extern FARSTANDARDFUNCTIONS FSF;
 extern TCHAR PluginRootKey[];
 extern const TCHAR* GetMsg(int MsgId);
-extern void InitDialogItems(const InitDialogItem *Init,FarDialogItem *Item,int ItemsNumber);
 extern void DoCase(HANDLE aDlg);
 extern void InitCase(void);
 extern void DoPwd(HANDLE aDlg);
 extern void DoOpenFile(HANDLE aDlg);
 extern void FinishUndo(void);
 extern void DoUndo(HANDLE aDlg);
-extern void FilterUndo(HANDLE aDlg,int aMsg,int aParam1,LONG_PTR aParam2);
+extern void FilterUndo(HANDLE aDlg,int aMsg,int aParam1,void* aParam2);
 extern void DoPaste(HANDLE aDlg);
 extern void DoSearch(HANDLE aDlg);
 extern void DoReplace(HANDLE aDlg);
 extern void DoEdit(HANDLE aDlg);
-
-extern int GetRegKey(HKEY hRoot,const TCHAR * root, const TCHAR *Key,const TCHAR *ValueName,TCHAR *ValueData,const TCHAR *Default,DWORD DataSize);
-
-extern void SetRegKey(HKEY hRoot,const TCHAR *Key,const TCHAR *ValueName,DWORD ValueData);
-extern int GetRegKey(HKEY hRoot,const TCHAR *Key,const TCHAR *ValueName,DWORD Default);
 
 #endif
