@@ -114,12 +114,11 @@ void WINAPI ExitFARW(const struct ExitInfo *Info)
   FinishUndo();
 }
 
-int WINAPI ProcessDialogEventW(int Event,void* Param)
+int WINAPI ProcessDialogEventW(const struct ProcessDialogEventInfo *Info)
 {
-  if(Event==DE_DLGPROCINIT)
+  if(Info->Event==DE_DLGPROCINIT)
   {
-    FarDialogEvent* event=(FarDialogEvent*)Param;
-    FilterUndo(event->hDlg,event->Msg,event->Param1,event->Param2);
+    FilterUndo(Info->Param->hDlg,Info->Param->Msg,Info->Param->Param1,Info->Param->Param2);
   }
   return FALSE;
 }

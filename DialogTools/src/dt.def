@@ -4,5 +4,5 @@ EXPORTS
   GetPluginInfoW=GetPluginInfoW@4
   OpenW=OpenW@4
   ExitFARW=ExitFARW@4
-  ProcessDialogEventW=ProcessDialogEventW@8
+  ProcessDialogEventW=ProcessDialogEventW@4
   GetGlobalInfoW=GetGlobalInfoW@4
