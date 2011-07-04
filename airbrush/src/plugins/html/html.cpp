@@ -22,7 +22,7 @@
 #include "abhtml.h"
 
 ColorizeInfo Info;
-int colors[]={0x01,0x0C,0x03,-1,0x0F,-1,0x0F,-1,0x0A,-1,0x0F,-1,0x0E,-1,0x07,-1,0x03,-1,0x07,-1};
+ABColor colors[]={{0x01,0x0C,false,false,true},{0x03,0,false,true,true},{0x0F,0,false,true,true},{0x0F,0,false,true,true},{0x0A,0,false,true,true},{0x0F,0,false,true,true},{0x0E,0,false,true,true},{0x07,0,false,true,true},{0x03,0,false,true,true},{0x07,0,false,true,true}};
 const TCHAR* colornames[]={_T("Error"),_T("Comment"),_T("Open Tag"),_T("Close Tag"),_T("Reference"),_T("Attribute Name"),_T("Attribute Value"),_T("Markup Declarations"),_T("Declaration Subset"),_T("Processing Instruction")};
 
 int WINAPI SetColorizeInfo(ColorizeInfo *AInfo)
@@ -51,7 +51,7 @@ int WINAPI _export GetParams(int index,int command,const char **param)
       *(int *)param=sizeof(colornames)/sizeof(colornames[0]);
       return true;
     case PAR_GET_COLOR:
-      *(const int **)param=colors;
+      *(const ABColor**)param=colors;
       return true;
     case PAR_GET_COLOR_NAME:
       *param=(const char *)colornames;

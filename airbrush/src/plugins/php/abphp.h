@@ -17,12 +17,12 @@
 */
 
 #define HC_COMMON   0
-#define HC_COMMENT  2
-#define HC_KEYWORD1 4
-#define HC_KEYWORD2 6
-#define HC_STRING   8
-#define HC_NUMBER   10
-#define HC_VAR      12
+#define HC_COMMENT  1
+#define HC_KEYWORD1 2
+#define HC_KEYWORD2 3
+#define HC_STRING   4
+#define HC_NUMBER   5
+#define HC_VAR      6
 
 #define PARSER_CLEAR   0x10
 #define PARSER_COMMENT 0x20
@@ -31,5 +31,5 @@
 
 #define PARSER_PHP     0xf0
 
-extern int colors[];
+extern ABColor colors[];
 extern struct ColorizeInfo Info;

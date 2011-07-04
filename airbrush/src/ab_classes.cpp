@@ -19,8 +19,8 @@
 #include <tchar.h>
 #include "plugin.hpp"
 #include "memory.h"
-#include "ab_main.h"
 #include "abplugin.h"
+#include "ab_main.h"
 #include "guid.h"
 
 PEditFile editfiles;

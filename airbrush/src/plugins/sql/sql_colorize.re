@@ -81,12 +81,12 @@ colorize_clear:
   "/*" { state[0]=PARSER_COMMENT; commentstart=yytok; goto colorize_comment; }
   [ \t]*"--"
   {
-    if((yytok==line)&&lColorize) Info.pAddColor(lno,yytok-line,yyend-yytok,colors[HC_COMMENT],colors[HC_COMMENT+1],EPriorityNormal);
+    if((yytok==line)&&lColorize) Info.pAddColor(lno,yytok-line,yyend-yytok,colors+HC_COMMENT,EPriorityNormal);
     goto colorize_end;
   }
   ['] { state[0]=PARSER_STRING; commentstart=yytok; goto colorize_string; }
   (["] (any\["])* ["])
-  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_STRING1],colors[HC_STRING1+1],EPriorityNormal); goto colorize_clear; }
+  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_STRING1,EPriorityNormal); goto colorize_clear; }
   ([Aa][Cc][Tt][Ii][Oo][Nn])|([Aa][Cc][Tt][Ii][Vv][Ee])|([Aa][Dd][Dd])|([Aa][Dd][Mm][Ii][Nn])|([Aa][Ff][Tt][Ee][Rr])|
   ([Aa][Ll][Ll])|([Aa][Ll][Tt][Ee][Rr])|([Aa][Nn][Dd])|([Aa][Nn][Yy])|([Aa][Ss])|([Aa][Ss][Cc])|
   ([Aa][Ss][Cc][Ee][Nn][Dd][Ii][Nn][Gg])|([Aa][Tt])|([Aa][Uu][Tt][Oo])|([Aa][Uu][Tt][Oo][Dd][Dd][Ll])|
@@ -172,25 +172,25 @@ colorize_clear:
   ([Vv][Ii][Ee][Ww])|([Ww][Aa][Ii][Tt])|([Ww][Ee][Ee][Kk][Dd][Aa][Yy])|([Ww][Hh][Ee][Nn])|
   ([Ww][Hh][Ee][Nn][Ee][Vv][Ee][Rr])|([Ww][Hh][Ee][Rr][Ee])|([Ww][Hh][Ii][Ll][Ee])|([Ww][Ii][Tt][Hh])|
   ([Ww][Oo][Rr][Kk])|([Ww][Rr][Ii][Tt][Ee])|([Yy][Ee][Aa][Rr])|([Yy][Ee][Aa][Rr][Dd][Aa][Yy])
-  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_KEYWORD1],colors[HC_KEYWORD1+1],EPriorityNormal); goto colorize_clear; }
+  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_KEYWORD1,EPriorityNormal); goto colorize_clear; }
   [Bb][Ee][Gg][Ii][Nn] {PUSH_PAIR(1)}
   [Ee][Nn][Dd] {POP_PAIR(1,1)}
   [Ii][Ff] {PUSH_PAIR(2)}
   [Tt][Hh][Ee][Nn] {POP_PAIR(2,2)}
   ":"L L2*
-  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_KEYWORD2],colors[HC_KEYWORD2+1],EPriorityNormal); goto colorize_clear; }
+  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_KEYWORD2,EPriorityNormal); goto colorize_clear; }
   L L2*
   { goto colorize_clear; }
   D+("." D+)?
-  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_NUMBER1],colors[HC_NUMBER1+1],EPriorityNormal); goto colorize_clear; }
+  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_NUMBER1,EPriorityNormal); goto colorize_clear; }
   "||"|[\-=+*/^<>,]
   {
-    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_KEYWORD1],colors[HC_KEYWORD1+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_KEYWORD1,EPriorityNormal);
     goto colorize_clear;
   }
   "(" {PUSH_PAIR(0)}
   ")" {POP_PAIR(0,0)}
-  ";" { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_KEYWORD3],colors[HC_KEYWORD3+1],EPriorityNormal); goto colorize_clear; }
+  ";" { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_KEYWORD3,EPriorityNormal); goto colorize_clear; }
   [ \t\v\f]+ { goto colorize_clear; }
   [\000]
   {
@@ -207,7 +207,7 @@ colorize_comment:
 /*!re2c
   "*/"
   {
-    if(lColorize) Info.pAddColor(lno,commentstart-line,yycur-commentstart,colors[HC_COMMENT],colors[HC_COMMENT+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,commentstart-line,yycur-commentstart,colors+HC_COMMENT,EPriorityNormal);
     state[0]=PARSER_CLEAR;
     goto colorize_clear;
   }
@@ -221,7 +221,7 @@ colorize_string:
 /*!re2c
   [']
   {
-    if(lColorize) Info.pAddColor(lno,commentstart-line,yycur-commentstart,colors[HC_STRING1],colors[HC_STRING1+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,commentstart-line,yycur-commentstart,colors+HC_STRING1,EPriorityNormal);
     state[0]=PARSER_CLEAR;
     goto colorize_clear;
   }
@@ -232,9 +232,9 @@ colorize_string:
 */
 colorize_end:
     if(state[0]==PARSER_COMMENT)
-      if(lColorize) Info.pAddColor(lno,commentstart-line,yyend-commentstart,colors[HC_COMMENT],colors[HC_COMMENT+1],EPriorityNormal);
+      if(lColorize) Info.pAddColor(lno,commentstart-line,yyend-commentstart,colors+HC_COMMENT,EPriorityNormal);
     if(state[0]==PARSER_STRING)
-      if(lColorize) Info.pAddColor(lno,commentstart-line,yyend-commentstart,colors[HC_STRING1],colors[HC_STRING1+1],EPriorityNormal);
+      if(lColorize) Info.pAddColor(lno,commentstart-line,yyend-commentstart,colors+HC_STRING1,EPriorityNormal);
   }
 colorize_exit:
   PairStackClear(params->LocalHeap,&hl_state);

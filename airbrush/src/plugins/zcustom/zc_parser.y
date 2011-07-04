@@ -19,6 +19,7 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <windows.h>
+#include "abplugin.h"
 #include "../plugins/zcustom/abzcustom.h"
 #include "../memory.h"
 #define YYPARSE_PARAM cc_param

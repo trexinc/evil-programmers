@@ -418,8 +418,11 @@ static void load_syntax_from_file(char *dirname,char *filename,char *whole_chars
                 rules[rules_count-1].contexts=(Context *)malloc(sizeof(Context));
                 rules[rules_count-1].contexts->left=NULL;
                 rules[rules_count-1].contexts->right=NULL;
-                rules[rules_count-1].contexts->fg=-1;
-                rules[rules_count-1].contexts->bg=-1;
+                rules[rules_count-1].contexts->color.ForegroundColor=0;
+                rules[rules_count-1].contexts->color.BackgroundColor=0;
+                rules[rules_count-1].contexts->color.ForegroundDefault=true;
+                rules[rules_count-1].contexts->color.BackgroundDefault=true;
+                rules[rules_count-1].contexts->color.FourBits=true;
                 rules[rules_count-1].contexts->exclusive=0;
                 rules[rules_count-1].contexts->exclusive_left=-1;
                 rules[rules_count-1].contexts->exclusive_right=-1;
@@ -429,8 +432,16 @@ static void load_syntax_from_file(char *dirname,char *filename,char *whole_chars
                 rules[rules_count-1].contexts->whole_chars_right=NULL;
                 rules[rules_count-1].contexts->keywords=NULL;
                 rules[rules_count-1].contexts->keywords_count=0;
-                if(argc>2) rules[rules_count-1].contexts->fg=color_by_name(argv[2]);
-                if(argc>3) rules[rules_count-1].contexts->bg=color_by_name(argv[3]);
+                if(argc>2)
+                {
+                  rules[rules_count-1].contexts->color.ForegroundColor=color_by_name(argv[2]);
+                  rules[rules_count-1].contexts->color.ForegroundDefault=false;
+                }
+                if(argc>3)
+                {
+                  rules[rules_count-1].contexts->color.BackgroundColor=color_by_name(argv[3]);
+                  rules[rules_count-1].contexts->color.BackgroundDefault=false;
+                }
                 rules[rules_count-1].contexts_count=1;
               }
               else
@@ -485,8 +496,7 @@ static void load_syntax_from_file(char *dirname,char *filename,char *whole_chars
                   NewContexts->right=(char *)malloc(strlen(right)+1);
                   if(NewContexts->right)
                     strcpy(NewContexts->right,right);
-                  NewContexts->fg=rules[rules_count-1].contexts[0].fg;
-                  NewContexts->bg=rules[rules_count-1].contexts[0].bg;
+                  NewContexts->color=rules[rules_count-1].contexts[0].color;
                   NewContexts->exclusive=exclusive;
                   NewContexts->exclusive_left=-1;
                   NewContexts->exclusive_right=-1;
@@ -509,9 +519,15 @@ static void load_syntax_from_file(char *dirname,char *filename,char *whole_chars
                   NewContexts->keywords=NULL;
                   NewContexts->keywords_count=0;
                   if(argc>key_count)
-                    NewContexts->fg=color_by_name(argv[key_count++]);
+                  {
+                    NewContexts->color.ForegroundColor=color_by_name(argv[key_count++]);
+                    NewContexts->color.ForegroundDefault=false;
+                  }
                   if(argc>key_count)
-                    NewContexts->bg=color_by_name(argv[key_count++]);
+                  {
+                    NewContexts->color.BackgroundColor=color_by_name(argv[key_count++]);
+                    NewContexts->color.BackgroundDefault=false;
+                  }
                   rules[rules_count-1].contexts_count++;
                 }
               }
@@ -561,8 +577,7 @@ static void load_syntax_from_file(char *dirname,char *filename,char *whole_chars
                   if(NewKeyword->keyword)
                     strcpy(NewKeyword->keyword,keyword);
                   NewKeyword->line_start=line_start;
-                  NewKeyword->fg=rules[rules_count-1].contexts[rules[rules_count-1].contexts_count-1].fg;
-                  NewKeyword->bg=rules[rules_count-1].contexts[rules[rules_count-1].contexts_count-1].bg;
+                  NewKeyword->color=rules[rules_count-1].contexts[rules[rules_count-1].contexts_count-1].color;
                   NewKeyword->exclusive=0;
                   NewKeyword->recursive=recursive;
                   NewKeyword->whole_chars_left=NULL;
@@ -580,9 +595,15 @@ static void load_syntax_from_file(char *dirname,char *filename,char *whole_chars
                       memcpy(NewKeyword->whole_chars_right,whole_chars_right,WHOLE_SIZE);
                   }
                   if(argc>key_count)
-                    NewKeyword->fg=color_by_name(argv[key_count++]);
+                  {
+                    NewKeyword->color.ForegroundColor=color_by_name(argv[key_count++]);
+                    NewKeyword->color.ForegroundDefault=false;
+                  }
                   if(argc>key_count)
-                    NewKeyword->bg=color_by_name(argv[key_count++]);
+                  {
+                    NewKeyword->color.BackgroundColor=color_by_name(argv[key_count++]);
+                    NewKeyword->color.BackgroundDefault=false;
+                  }
                   rules[rules_count-1].contexts[rules[rules_count-1].contexts_count-1].keywords_count++;
                 }
               }
@@ -726,8 +747,8 @@ void WINAPI _export Colorize(int index,struct ColorizeParams *params)
             pos_next=0;
           else
           {
-            if(lColorize) Info.pAddColor(lno,context_start,pos-context_start,rules[index].contexts[state[0]].fg,rules[index].contexts[state[0]].bg,EPriorityNormal);
-            if(lColorize) Info.pAddColor(lno,pos,pos_next-pos,rules[index].contexts[state[0]].keywords[i].fg,rules[index].contexts[state[0]].keywords[i].bg,EPriorityNormal);
+            if(lColorize) Info.pAddColor(lno,context_start,pos-context_start,&rules[index].contexts[state[0]].color,EPriorityNormal);
+            if(lColorize) Info.pAddColor(lno,pos,pos_next-pos,&rules[index].contexts[state[0]].keywords[i].color,EPriorityNormal);
             pos=pos_next-1;
             context_start=pos_next;
           }
@@ -747,12 +768,12 @@ void WINAPI _export Colorize(int index,struct ColorizeParams *params)
               end_temp=pos;
               if(rules[index].contexts[state[0]].exclusive_right>=0)
               {
-                if(lColorize) Info.pAddColor(lno,pos,pos_next-pos,rules[index].contexts[0].keywords[rules[index].contexts[state[0]].exclusive_right].fg,rules[index].contexts[0].keywords[rules[index].contexts[state[0]].exclusive_right].bg,EPriorityNormal);
+                if(lColorize) Info.pAddColor(lno,pos,pos_next-pos,&rules[index].contexts[0].keywords[rules[index].contexts[state[0]].exclusive_right].color,EPriorityNormal);
               }
               else
                 start_temp=pos;
             }
-            if(lColorize) Info.pAddColor(lno,context_start,end_temp-context_start,rules[index].contexts[state[0]].fg,rules[index].contexts[state[0]].bg,EPriorityNormal);
+            if(lColorize) Info.pAddColor(lno,context_start,end_temp-context_start,&rules[index].contexts[state[0]].color,EPriorityNormal);
             context_start=start_temp;
             state[0]=0;
             pos=pos_next-1;
@@ -770,13 +791,13 @@ void WINAPI _export Colorize(int index,struct ColorizeParams *params)
               {
                 if(rules[index].contexts[i].exclusive_left>=0)
                 {
-                  if(lColorize) Info.pAddColor(lno,pos,pos_next-pos,rules[index].contexts[0].keywords[rules[index].contexts[i].exclusive_left].fg,rules[index].contexts[0].keywords[rules[index].contexts[i].exclusive_left].bg,EPriorityNormal);
+                  if(lColorize) Info.pAddColor(lno,pos,pos_next-pos,&rules[index].contexts[0].keywords[rules[index].contexts[i].exclusive_left].color,EPriorityNormal);
                 }
                 else
                   end_temp=pos_next;
                 start_temp=pos_next;
               }
-              if(lColorize) Info.pAddColor(lno,context_start,end_temp-context_start,rules[index].contexts[state[0]].fg,rules[index].contexts[state[0]].bg,EPriorityNormal);
+              if(lColorize) Info.pAddColor(lno,context_start,end_temp-context_start,&rules[index].contexts[state[0]].color,EPriorityNormal);
               context_start=start_temp;
               state[0]=i;
               pos=pos_next-1;
@@ -795,7 +816,7 @@ void WINAPI _export Colorize(int index,struct ColorizeParams *params)
         }
       pos++;
     }
-    if(lColorize) Info.pAddColor(lno,context_start,linelen-context_start,rules[index].contexts[state[0]].fg,rules[index].contexts[state[0]].bg,EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,context_start,linelen-context_start,&rules[index].contexts[state[0]].color,EPriorityNormal);
 #ifdef UNICODE
     free((void*)line); line=NULL;
 #endif
@@ -829,7 +850,6 @@ int WINAPI _export GetParams(int index,int command,const char **param)
     case PAR_CHECK_FILESTART:
       if((index<rules_count)&&(index>=0)&&rules[index].start)
       {
-#ifdef UNICODE
         char* filestart=NULL;
         int res=0;
         size_t filestart_len=wcslen((const wchar_t*)*param),start_len=wcslen(rules[index].start);
@@ -842,9 +862,6 @@ int WINAPI _export GetParams(int index,int command,const char **param)
           free(filestart);
         }
         return res;
-#else
-        return syntax_strcmp(*param,strlen(*param),0,rules[index].start,NULL,NULL,true,false);
-#endif
       }
       break;
   }

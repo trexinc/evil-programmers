@@ -46,7 +46,7 @@ static int WINAPI code_callback(int from,int row,int col,void *param)
   {
     if(!_tcsncmp(line+col,_T("?>"),2))
     {
-      if(((CallbackParam *)param)->topline<=row) Info.pAddColor(row,col,2,colors[HC_PI],colors[HC_PI+1],EPriorityNormal);
+      if(((CallbackParam *)param)->topline<=row) Info.pAddColor(row,col,2,colors+HC_PI,EPriorityNormal);
       ((CallbackParam *)param)->ok=1;
       ((CallbackParam *)param)->row=row;
       ((CallbackParam *)param)->col=col+2;
@@ -141,7 +141,7 @@ PHP                     = "php";
 */
 
 #define CALL_PHP \
-if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_PI],colors[HC_PI+1],EPriorityNormal); \
+if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_PI,EPriorityNormal); \
 callback_data.row=lno; \
 callback_data.col=yycur-line; \
 CallParser(params,&callback_data); \
@@ -211,38 +211,38 @@ colorize_clear:
   {
     state[0]=PARSER_OPENTAG;
     commentstart=yytok;
-    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_OPENTAG],colors[HC_OPENTAG+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_OPENTAG,EPriorityNormal);
     goto colorize_opentag;
   }
   STAGO TAGC
-  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_ERROR],colors[HC_ERROR+1],EPriorityNormal); goto colorize_clear; }
+  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_ERROR,EPriorityNormal); goto colorize_clear; }
   /*close tag*/
   ETAGO name ws
   {
     state[0]=PARSER_CLOSETAG;
     commentstart=yytok;
-    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_CLOSETAG],colors[HC_CLOSETAG+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_CLOSETAG,EPriorityNormal);
     goto colorize_closetag;
   }
   ETAGO TAGC
-  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_ERROR],colors[HC_ERROR+1],EPriorityNormal); goto colorize_clear; }
+  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_ERROR,EPriorityNormal); goto colorize_clear; }
   /*markup delcarations*/
   MDO name ws
   {
-    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_MARKUP],colors[HC_MARKUP+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_MARKUP,EPriorityNormal);
     state[0]=PARSER_MARKUP;
     commentstart=yytok;
     goto colorize_markup;
   }
   MDO MDC
   {
-    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_MARKUP],colors[HC_MARKUP+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_MARKUP,EPriorityNormal);
     goto colorize_clear;
   }
   /*comment*/
   (MDO)/(COM)
   {
-    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_MARKUP],colors[HC_MARKUP+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_MARKUP,EPriorityNormal);
     state[0]=PARSER_MARKUP;
     commentstart=yytok;
     goto colorize_markup;
@@ -251,7 +251,7 @@ colorize_clear:
   MDO DSO ws
   { state[0]=PARSER_SUBSET; commentstart=yytok; goto colorize_subset; }
   MSC MDC
-  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_ERROR],colors[HC_ERROR+1],EPriorityNormal); goto colorize_clear; }
+  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_ERROR,EPriorityNormal); goto colorize_clear; }
   /*processing instruction*/
   PIO
   { state[0]=PARSER_PI; commentstart=yytok; goto colorize_pi; }
@@ -262,9 +262,9 @@ colorize_clear:
   }
   /*reference*/
   (CRO number (reference0end)?)|(ERO name (reference0end)?)
-  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_REFERENCE],colors[HC_REFERENCE+1],EPriorityNormal); goto colorize_clear; }
+  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_REFERENCE,EPriorityNormal); goto colorize_clear; }
   (CRO number0token (reference0end)?)|(CRO name (reference0end)?)
-  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_ERROR],colors[HC_ERROR+1],EPriorityNormal); goto colorize_clear; }
+  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_ERROR,EPriorityNormal); goto colorize_clear; }
   [\000]
   {
     if(yytok==yyend) goto colorize_end;
@@ -280,7 +280,7 @@ colorize_comment:
 /*!re2c
   COM ws
   {
-    if(lColorize) Info.pAddColor(lno,commentstart-line,yycur-commentstart,colors[HC_COMMENT],colors[HC_COMMENT+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,commentstart-line,yycur-commentstart,colors+HC_COMMENT,EPriorityNormal);
     state[0]=PARSER_MARKUP;
     goto colorize_markup;
   }
@@ -300,51 +300,51 @@ colorize_opentag:
   /*work around end*/
   name (s)* "=" ws
   {
-    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_ATTRNAME],colors[HC_ATTRNAME+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_ATTRNAME,EPriorityNormal);
     state[0]=PARSER_VALUES;
     goto colorize_values;
   }
   /*work around start*/
   (name (s)*)/("\000")
   {
-    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_ATTRNAME],colors[HC_ATTRNAME+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_ATTRNAME,EPriorityNormal);
     goto colorize_opentag;
   }
   (s)* "=" ws
   {
     if(!(yytok-line))
     {
-      if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_ATTRNAME],colors[HC_ATTRNAME+1],EPriorityNormal);
+      if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_ATTRNAME,EPriorityNormal);
       state[0]=PARSER_VALUES;
       goto colorize_values;
     }
     else
     {
-      if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_ERROR],colors[HC_ERROR+1],EPriorityNormal);
+      if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_ERROR,EPriorityNormal);
       goto colorize_opentag;
     }
   }
   /*work around end*/
   name ws
   {
-    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_ATTRNAME],colors[HC_ATTRNAME+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_ATTRNAME,EPriorityNormal);
     goto colorize_opentag;
   }
   TAGC
   {
-    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_OPENTAG],colors[HC_OPENTAG+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_OPENTAG,EPriorityNormal);
     state[0]=PARSER_CLEAR;
     goto colorize_clear;
   }
   NET
   {
-    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_ERROR],colors[HC_ERROR+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_ERROR,EPriorityNormal);
     state[0]=PARSER_CLEAR;
     goto colorize_clear;
   }
   STAGO
   {
-    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_ERROR],colors[HC_ERROR+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_ERROR,EPriorityNormal);
     state[0]=PARSER_CLEAR;
     goto colorize_clear;
   }
@@ -357,7 +357,7 @@ colorize_opentag:
   { if(yytok==yyend) goto colorize_end; goto colorize_opentag; }
   any
   {
-    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_ERROR],colors[HC_ERROR+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_ERROR,EPriorityNormal);
     goto colorize_opentag;
   }
 */
@@ -366,13 +366,13 @@ colorize_closetag:
 /*!re2c
   TAGC
   {
-    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_CLOSETAG],colors[HC_CLOSETAG+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_CLOSETAG,EPriorityNormal);
     state[0]=PARSER_CLEAR;
     goto colorize_clear;
   }
   STAGO
   {
-    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_ERROR],colors[HC_ERROR+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_ERROR,EPriorityNormal);
     state[0]=PARSER_CLEAR;
     goto colorize_clear;
   }
@@ -385,7 +385,7 @@ colorize_closetag:
   { if(yytok==yyend) goto colorize_end; goto colorize_closetag; }
   any
   {
-    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_ERROR],colors[HC_ERROR+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_ERROR,EPriorityNormal);
     goto colorize_opentag;
   }
 */
@@ -400,17 +400,17 @@ colorize_markup:
   }
   PERO name (reference0end)? ws
   {
-    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_ERROR],colors[HC_ERROR+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_ERROR,EPriorityNormal);
     goto colorize_markup;
   }
   (number ws)|(name ws)|(literal ws)
   {
-    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_MARKUP],colors[HC_MARKUP+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_MARKUP,EPriorityNormal);
     goto colorize_markup;
   }
   MDC
   {
-    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_MARKUP],colors[HC_MARKUP+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_MARKUP,EPriorityNormal);
     state[0]=PARSER_CLEAR;
     goto colorize_clear;
   }
@@ -424,7 +424,7 @@ colorize_markup:
   { if(yytok==yyend) goto colorize_end; goto colorize_markup; }
   any
   {
-    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_ERROR],colors[HC_ERROR+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_ERROR,EPriorityNormal);
     goto colorize_markup;
   }
 */
@@ -433,13 +433,13 @@ colorize_subset:
 /*!re2c
   MSC MDC
   {
-    if(lColorize) Info.pAddColor(lno,commentstart-line,yycur-commentstart,colors[HC_SUBSET],colors[HC_SUBSET+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,commentstart-line,yycur-commentstart,colors+HC_SUBSET,EPriorityNormal);
     state[0]=PARSER_CLEAR;
     goto colorize_clear;
   }
   DSC
   {
-    if(lColorize) Info.pAddColor(lno,commentstart-line,yycur-commentstart,colors[HC_SUBSET],colors[HC_SUBSET+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,commentstart-line,yycur-commentstart,colors+HC_SUBSET,EPriorityNormal);
     state[0]=PARSER_MARKUP;
     goto colorize_markup;
   }
@@ -453,7 +453,7 @@ colorize_pi:
 /*!re2c
   PIC
   {
-    if(lColorize) Info.pAddColor(lno,commentstart-line,yycur-commentstart,colors[HC_PI],colors[HC_PI+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,commentstart-line,yycur-commentstart,colors+HC_PI,EPriorityNormal);
     state[0]=PARSER_CLEAR;
     goto colorize_clear;
   }
@@ -473,7 +473,7 @@ colorize_values:
   /*work around end*/
   name0token ws
   {
-    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_ATTRVALUE],colors[HC_ATTRVALUE+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_ATTRVALUE,EPriorityNormal);
     state[0]=PARSER_OPENTAG;
     goto colorize_opentag;
   }
@@ -491,25 +491,25 @@ colorize_values:
   }
   (any\[ "\t\n>\000])+ ws
   {
-    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_ERROR],colors[HC_ERROR+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_ERROR,EPriorityNormal);
     state[0]=PARSER_OPENTAG;
     goto colorize_opentag;
   }
   TAGC
   {
-    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_ERROR],colors[HC_ERROR+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_ERROR,EPriorityNormal);
     state[0]=PARSER_CLEAR;
     goto colorize_clear;
   }
   NET
   {
-    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_ERROR],colors[HC_ERROR+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_ERROR,EPriorityNormal);
     state[0]=PARSER_CLEAR;
     goto colorize_clear;
   }
   STAGO
   {
-    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_ERROR],colors[HC_ERROR+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_ERROR,EPriorityNormal);
     state[0]=PARSER_CLEAR;
     goto colorize_clear;
   }
@@ -517,7 +517,7 @@ colorize_values:
   { if(yytok==yyend) goto colorize_end; goto colorize_values; }
   any
   {
-    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_ERROR],colors[HC_ERROR+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_ERROR,EPriorityNormal);
     goto colorize_opentag;
   }
 */
@@ -526,14 +526,14 @@ colorize_string1:
 /*!re2c
   "\"" ws
   {
-    if(lColorize) Info.pAddColor(lno,commentstart-line,yycur-commentstart,colors[HC_ATTRVALUE],colors[HC_ATTRVALUE+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,commentstart-line,yycur-commentstart,colors+HC_ATTRVALUE,EPriorityNormal);
     state[0]=PARSER_OPENTAG;
     goto colorize_opentag;
   }
   /*php*/
   PIO PHP
   {
-    if(lColorize) Info.pAddColor(lno,commentstart-line,yytok-commentstart,colors[HC_ATTRVALUE],colors[HC_ATTRVALUE+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,commentstart-line,yytok-commentstart,colors+HC_ATTRVALUE,EPriorityNormal);
     CALL_PHP
   }
   [\000]
@@ -546,14 +546,14 @@ colorize_string2:
 /*!re2c
   "'" ws
   {
-    if(lColorize) Info.pAddColor(lno,commentstart-line,yycur-commentstart,colors[HC_ATTRVALUE],colors[HC_ATTRVALUE+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,commentstart-line,yycur-commentstart,colors+HC_ATTRVALUE,EPriorityNormal);
     state[0]=PARSER_OPENTAG;
     goto colorize_opentag;
   }
   /*php*/
   PIO PHP
   {
-    if(lColorize) Info.pAddColor(lno,commentstart-line,yytok-commentstart,colors[HC_ATTRVALUE],colors[HC_ATTRVALUE+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,commentstart-line,yytok-commentstart,colors+HC_ATTRVALUE,EPriorityNormal);
     CALL_PHP
   }
   [\000]
@@ -564,13 +564,13 @@ colorize_string2:
 
 colorize_end:
     if(state[0]==PARSER_COMMENT)
-      if(lColorize) Info.pAddColor(lno,commentstart-line,yyend-commentstart,colors[HC_COMMENT],colors[HC_COMMENT+1],EPriorityNormal);
+      if(lColorize) Info.pAddColor(lno,commentstart-line,yyend-commentstart,colors+HC_COMMENT,EPriorityNormal);
     if(state[0]==PARSER_SUBSET)
-      if(lColorize) Info.pAddColor(lno,commentstart-line,yyend-commentstart,colors[HC_SUBSET],colors[HC_SUBSET+1],EPriorityNormal);
+      if(lColorize) Info.pAddColor(lno,commentstart-line,yyend-commentstart,colors+HC_SUBSET,EPriorityNormal);
     if(state[0]==PARSER_PI)
-      if(lColorize) Info.pAddColor(lno,commentstart-line,yyend-commentstart,colors[HC_PI],colors[HC_PI+1],EPriorityNormal);
+      if(lColorize) Info.pAddColor(lno,commentstart-line,yyend-commentstart,colors+HC_PI,EPriorityNormal);
     if((state[0]==PARSER_STRING1)||(state[0]==PARSER_STRING2))
-      if(lColorize) Info.pAddColor(lno,commentstart-line,yyend-commentstart,colors[HC_ATTRVALUE],colors[HC_ATTRVALUE+1],EPriorityNormal);
+      if(lColorize) Info.pAddColor(lno,commentstart-line,yyend-commentstart,colors+HC_ATTRVALUE,EPriorityNormal);
   }
 colorize_exit:
   PairStackClear(params->LocalHeap,&hl_state);

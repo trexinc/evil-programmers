@@ -22,21 +22,21 @@
 #include "abawk.h"
 
 ColorizeInfo Info;
-int colors[]={
-  0x03,-1,              // HC_COMMENT  0
-  0x0f,-1,              // HC_KEYWORD1 2
-  0x0a,-1,              // HC_KEYWORD2 4
-  0x0e,-1,              // HC_STRING   6
-  0x02,-1,              // HC_REGEXPS  8
-  0x06,-1,              // HC_REGEXP   10
-  0x0a,-1,              // HC_NUMBER   12
-  0x0f,-1,              // HC_BUILTIN  14
-  0x0f,-1,              // HC_IO       16
-  0x0a,-1,              // HC_PARAM    18
-  0x0c,-1,              // HC_HIGHLITE 20
-  0x0e,-1,              // HC_SYMBOL   22
-  0x0d,-1,              // HC_PATTERNS 24
-  0x01,0x0c             // HC_HL_ERROR 26
+ABColor colors[]={
+  {0x03,0,false,true,true},              // HC_COMMENT
+  {0x0f,0,false,true,true},              // HC_KEYWORD1
+  {0x0a,0,false,true,true},              // HC_KEYWORD2
+  {0x0e,0,false,true,true},              // HC_STRING
+  {0x02,0,false,true,true},              // HC_REGEXPS
+  {0x06,0,false,true,true},              // HC_REGEXP
+  {0x0a,0,false,true,true},              // HC_NUMBER
+  {0x0f,0,false,true,true},              // HC_BUILTIN
+  {0x0f,0,false,true,true},              // HC_IO
+  {0x0a,0,false,true,true},              // HC_PARAM
+  {0x0c,0,false,true,true},              // HC_HIGHLITE
+  {0x0e,0,false,true,true},              // HC_SYMBOL
+  {0x0d,0,false,true,true},              // HC_PATTERNS
+  {0x01,0x0c,false,false,true}           // HC_HL_ERROR
 };
 const TCHAR* colornames[]={_T("Comment"),_T("Keyword"),_T("Keyword2"),_T("String"),_T("Regexp '/'"),_T("Regexp body"),_T("Number"),_T("Builtin"),_T("IO"),_T("Param"),_T("Pair"),_T("Symbol"),_T("Patterns"),_T("Wrong Pair")};
 
@@ -63,7 +63,7 @@ int WINAPI _export GetParams(int index,int command,const char **param)
       *(int *)param=sizeof(colornames)/sizeof(colornames[0]);
       return true;
     case PAR_GET_COLOR:
-      *(const int **)param=colors;
+      *(const ABColor**)param=colors;
       return true;
     case PAR_GET_COLOR_NAME:
       *param=(const char *)colornames;

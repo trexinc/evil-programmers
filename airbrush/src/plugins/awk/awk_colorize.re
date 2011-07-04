@@ -23,11 +23,7 @@
 #include "../abpairs.h"
 #include "../plugins/awk/abawk.h"
 
-#ifdef UNICODE
 typedef unsigned short UTCHAR;
-#else
-typedef unsigned char UTCHAR;
-#endif
 
 #define YYCTYPE unsigned long
 #define YYCURSOR yycur
@@ -90,39 +86,39 @@ colorize_clear:
   { state[0]=PARSER_STRING; commentstart=yytok; goto colorize_string; }
   [/]
   {
-    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_REGEXPS],colors[HC_REGEXPS+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_REGEXPS,EPriorityNormal);
     state[0]=PARSER_REGEXP;
     commentstart=yycur;
     goto colorize_regexp;
   }
   "BEGIN"|"END"
-  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_PATTERNS],colors[HC_PATTERNS+1],EPriorityNormal); goto colorize_clear; }
+  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_PATTERNS,EPriorityNormal); goto colorize_clear; }
   "ARGC"|"ARGIND"|"ARGV"|"BINMODE"|"CONVFMT"|"ENVIRON"|"ERRNO"|"FIELDWIDTHS"|"FILENAME"|"FNR"|"FS"|"IGNORECASE"|"LINT"|"NF"|"NR"|"OFMT"|"OFS"|"ORS"|"PROCINFO"|"RLENGTH"|"RS"|"RSTART"|"RT"|"SUBSEP"|"TEXTDOMAIN"
-  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_KEYWORD2],colors[HC_KEYWORD2+1],EPriorityNormal); goto colorize_clear; }
+  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_KEYWORD2,EPriorityNormal); goto colorize_clear; }
   "break"|"case"|"continue"|"default"|"delete"|"do"|"else"|"exit"|"for"|"if"|"in"|"switch"|"while"|
   "func"|"function"|"return"
-  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_KEYWORD1],colors[HC_KEYWORD1+1],EPriorityNormal); goto colorize_clear; }
+  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_KEYWORD1,EPriorityNormal); goto colorize_clear; }
   "close"|"fflush"|"getline"|"next"|"nextfile"|"prev"|"print"|"system"|"printf"|
   "atan2"|"cos"|"exp"|"int"|"log"|"rand"|"sin"|"sqrt"|"srand"|
   "asort"|"asorti"|"gsub"|"gensub"|"index"|"length"|"match"|"split"|"sprintf"|"strtonum"|"sub"|"substr"|"tolower"|"toupper"|
   "mktime"|"strftime"|"systime"|
   "and"|"compl"|"lshift"|"or"|"rshift"|"xor"|
   "bindtextdomain"|"dcgettext"|"dcngettext"
-  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_BUILTIN],colors[HC_BUILTIN+1],EPriorityNormal); goto colorize_clear; }
+  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_BUILTIN,EPriorityNormal); goto colorize_clear; }
   (SIGN "0"[xX]H+)|(SIGN "0"O+)|(SIGN D+)|(SIGN D+E)|(SIGN D*"."D+E?)|(SIGN D+"."D*E?)
-  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_NUMBER],colors[HC_NUMBER+1],EPriorityNormal); goto colorize_clear; }
+  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_NUMBER,EPriorityNormal); goto colorize_clear; }
   (SIGN "0"[xX]H*[^a-fA-F0-9 \t\v\f\000()\[\]{};=+-/*&|^,.:!~><%]+)
-  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_HL_ERROR],colors[HC_HL_ERROR+1],EPriorityNormal); goto colorize_clear; }
+  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_HL_ERROR,EPriorityNormal); goto colorize_clear; }
   "$" (L|D)+
-  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_PARAM],colors[HC_PARAM+1],EPriorityNormal); goto colorize_clear; }
+  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_PARAM,EPriorityNormal); goto colorize_clear; }
   "$" (L|D)* [^0-9a-zA-Z_ \t\v\f\000()\[\]{};=+-/*&|^,.:!~><%]*
-  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_HL_ERROR],colors[HC_HL_ERROR+1],EPriorityNormal); goto colorize_clear; }
+  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_HL_ERROR,EPriorityNormal); goto colorize_clear; }
   L(L|D)*
   { goto colorize_clear; }
   ";"|"="|"+"|"-"|"/"|"*"|"&"|"|"|"^"|","|"."|":"|"!"|"~"|">"|"<"|"%"
-  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_SYMBOL],colors[HC_SYMBOL+1],EPriorityNormal); goto colorize_clear; }
+  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_SYMBOL,EPriorityNormal); goto colorize_clear; }
   "\"" ( "/dev/" ("stdin"|"stdout"|"stderr"|"fd/" D|"pid"|"ppid"|"pgrpid"|"user") | "/inet/" ("tcp"|"udp"|"raw") "/" (D|L)+ "/" [0-9a-zA-Z._-]+ "/" (D|L)+ ) "\""
-  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_IO],colors[HC_IO+1],EPriorityNormal); goto colorize_clear; }
+  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_IO,EPriorityNormal); goto colorize_clear; }
   "(" {PUSH_PAIR(0)}
   ")" {POP_PAIR(0,0)}
   "[" {PUSH_PAIR(1)}
@@ -148,7 +144,7 @@ colorize_comment:
   {
     if(yytok==yyend)
     {
-      if(lColorize) Info.pAddColor(lno,commentstart-line,yycur-commentstart,colors[HC_COMMENT],colors[HC_COMMENT+1],EPriorityNormal);
+      if(lColorize) Info.pAddColor(lno,commentstart-line,yycur-commentstart,colors+HC_COMMENT,EPriorityNormal);
       goto colorize_end;
     }
     goto colorize_comment;
@@ -163,7 +159,7 @@ colorize_string:
   { goto colorize_string; }
   ["]
   {
-    if(lColorize) Info.pAddColor(lno,commentstart-line,yycur-commentstart,colors[HC_STRING],colors[HC_STRING+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,commentstart-line,yycur-commentstart,colors+HC_STRING,EPriorityNormal);
     state[0]=PARSER_CLEAR;
     goto colorize_clear;
   }
@@ -181,8 +177,8 @@ colorize_regexp:
   {
     if(lColorize)
     {
-      Info.pAddColor(lno,commentstart-line,yytok-commentstart,colors[HC_REGEXP],colors[HC_REGEXP+1],EPriorityNormal);
-      Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_REGEXPS],colors[HC_REGEXPS+1],EPriorityNormal);
+      Info.pAddColor(lno,commentstart-line,yytok-commentstart,colors+HC_REGEXP,EPriorityNormal);
+      Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_REGEXPS,EPriorityNormal);
     }
     state[0]=PARSER_CLEAR;
     goto colorize_clear;
@@ -194,9 +190,9 @@ colorize_regexp:
 */
 colorize_end:
     if(state[0]==PARSER_STRING)
-      if(lColorize) Info.pAddColor(lno,commentstart-line,yyend-commentstart,colors[HC_STRING],colors[HC_STRING+1],EPriorityNormal);
+      if(lColorize) Info.pAddColor(lno,commentstart-line,yyend-commentstart,colors+HC_STRING,EPriorityNormal);
     if(state[0]==PARSER_REGEXP)
-      if(lColorize) Info.pAddColor(lno,commentstart-line,yyend-commentstart,colors[HC_REGEXP],colors[HC_REGEXP+1],EPriorityNormal);
+      if(lColorize) Info.pAddColor(lno,commentstart-line,yyend-commentstart,colors+HC_REGEXP,EPriorityNormal);
   }
 colorize_exit:
   PairStackClear(params->LocalHeap,&hl_state);

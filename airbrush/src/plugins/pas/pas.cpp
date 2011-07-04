@@ -22,7 +22,7 @@
 #include "abpas.h"
 
 ColorizeInfo Info;
-int colors[]={0x03,-1,0x03,-1,0x09,-1,0x0F,-1,0x0D,-1,0x0E,-1,0x0A,-1,0x0C,-1,0x01,0x0C};
+ABColor colors[]={{0x03,0,false,true,true},{0x03,0,false,true,true},{0x09,0,false,true,true},{0x0F,0,false,true,true},{0x0D,0,false,true,true},{0x0E,0,false,true,true},{0x0A,0,false,true,true},{0x0C,0,false,true,true},{0x01,0x0C,false,false,true}};
 const TCHAR *colornames[]={_T("Comment {}"),_T("Comment (**)"),_T("Assembler"),_T("Keyword"),_T("\";\" Symbol"),_T("String"),_T("Number"),_T("Pair"),_T("Wrong Pair")};
 
 int WINAPI SetColorizeInfo(ColorizeInfo *AInfo)
@@ -45,13 +45,13 @@ int WINAPI _export GetParams(int index,int command,const char **param)
       *param=(const char*)_T("*.pas,*.dpr");
       return true;
     case PAR_GET_COLOR_COUNT:
-      *(int *)param=sizeof(colornames)/sizeof(colornames[0]);
+      *(int*)param=sizeof(colornames)/sizeof(colornames[0]);
       return true;
     case PAR_GET_COLOR:
-      *(const int **)param=colors;
+      *(ABColor**)param=colors;
       return true;
     case PAR_GET_COLOR_NAME:
-      *param=(const char *)colornames;
+      *param=(const char*)colornames;
       return true;
   }
   return false;

@@ -23,8 +23,8 @@
 #include "plugin.hpp"
 #include "farcolor.hpp"
 #include "memory.h"
-#include "ab_main.h"
 #include "abplugin.h"
+#include "ab_main.h"
 #include "abversion.h"
 #include "far_settings.h"
 #include <initguid.h>
@@ -103,6 +103,34 @@ TCHAR* GetCommaWord(TCHAR* Src,TCHAR* Word)
   }
   Word[WordPos]=0;
   return(Src);
+}
+
+void ConvertColor(const ABColor& Color,FarColor& NewColor)
+{
+  FarColor DefColor;
+  Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_EDITORTEXT,&DefColor);
+  NewColor.Flags=0;
+  NewColor.Reserved=NULL;
+  if(Color.ForegroundDefault)
+  {
+    NewColor.ForegroundColor=DefColor.ForegroundColor;
+    NewColor.Flags|=(DefColor.Flags&FCF_FG_4BIT);
+  }
+  else
+  {
+    NewColor.ForegroundColor=Color.ForegroundColor;
+    NewColor.Flags|=(Color.FourBits?FCF_FG_4BIT:0);
+  }
+  if(Color.BackgroundDefault)
+  {
+    NewColor.BackgroundColor=DefColor.BackgroundColor;
+    NewColor.Flags|=(DefColor.Flags&FCF_BG_4BIT);
+  }
+  else
+  {
+    NewColor.BackgroundColor=Color.BackgroundColor;
+    NewColor.Flags|=(Color.FourBits?FCF_BG_4BIT:0);
+  }
 }
 
 void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
@@ -236,7 +264,7 @@ INT_PTR WINAPI Config1DialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
   return Info.DefDlgProc(hDlg,Msg,Param1,Param2);
 }
 
-int WINAPI ConfigureW(const GUID* Guid)
+int WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
 {
   FarMenuItem MenuItems[4];
   memset(MenuItems,0,sizeof(MenuItems));
@@ -516,7 +544,7 @@ int WINAPI ConfigureW(const GUID* Guid)
 
               MenuCode=Info.Menu(&MainGuid,-1,-1,0,FMENU_AUTOHIGHLIGHT|FMENU_WRAPMODE,_T(""),NULL,_T("Config6"),NULL,NULL,SyntaxTypes,ConfCount);
               if(MenuCode==-1) break;
-              int ColorCount; char **ColorNames; int *Colors;
+              int ColorCount; char **ColorNames; ABColor* Colors;
               if(PluginsData[ids[MenuCode]].pGetParams&&PluginsData[ids[MenuCode]].pGetParams(PluginsData[ids[MenuCode]].Index,PAR_GET_COLOR_COUNT,(const char **)&ColorCount)&&PluginsData[ids[MenuCode]].pGetParams(PluginsData[ids[MenuCode]].Index,PAR_GET_COLOR_NAME,(const char **)&ColorNames)&&PluginsData[ids[MenuCode]].pGetParams(PluginsData[ids[MenuCode]].Index,PAR_GET_COLOR,(const char **)&Colors))
               {
                 FarMenuItem *ColorTypes=NULL;
@@ -542,19 +570,23 @@ int WINAPI ConfigureW(const GUID* Guid)
                     ColorTypes[ColorCode].Flags|=MIF_SELECTED;
                     ColorCode=Info.Menu(&MainGuid,-1,-1,0,FMENU_AUTOHIGHLIGHT|FMENU_WRAPMODE,PluginsData[ids[MenuCode]].Name,NULL,_T("Config7"),NULL,NULL,ColorTypes,ColorCount);
                     if(ColorCode==-1) break;
-                    if(Colors[ColorCode*2]==-1)
-                      Colors[ColorCode*2]=Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_EDITORTEXT,NULL)&0x0F;
-                    if(Colors[ColorCode*2+1]==-1)
-                      Colors[ColorCode*2+1]=(Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_EDITORTEXT,NULL)&0xF0)>>4;
-                    if(SelectColor(Colors+ColorCode*2,Colors+ColorCode*2+1))
+                    FarColor color;
+                    ConvertColor(Colors[ColorCode],color);
+                    if(SelectColor(color))
                     {
-                      if(Colors[ColorCode*2]==(Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_EDITORTEXT,NULL)&0x0F))
-                        Colors[ColorCode*2]=-1;
-                      if(Colors[ColorCode*2+1]==(Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_EDITORTEXT,NULL)&0xF0)>>4)
-                        Colors[ColorCode*2+1]=-1;
+                      FarColor defColor;
+                      Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_EDITORTEXT,&defColor);
+                      Colors[ColorCode].FourBits=true;
+                      Colors[ColorCode].ForegroundColor=color.ForegroundColor;
+                      Colors[ColorCode].BackgroundColor=color.BackgroundColor;
+
+                      if(Colors[ColorCode].ForegroundColor==defColor.ForegroundColor)
+                        Colors[ColorCode].ForegroundDefault=true;
+                      if(Colors[ColorCode].BackgroundColor==defColor.BackgroundColor)
+                        Colors[ColorCode].BackgroundDefault=true;
                       CFarSettings settings(MainGuid);
                       settings.Change(PLUGIN_COLOR_KEY);
-                      settings.Set(PluginsData[ids[MenuCode]].Name,(void*)Colors,ColorCount*2*sizeof(int));
+                      settings.Set(PluginsData[ids[MenuCode]].Name,(void*)Colors,ColorCount*sizeof(ABColor));
                     }
                   }
                 }
@@ -570,9 +602,9 @@ int WINAPI ConfigureW(const GUID* Guid)
   return false;
 }
 
-int WINAPI ProcessEditorEventW(int Event,void *Param)
+int WINAPI ProcessEditorEventW(const struct ProcessEditorEventInfo *Info)
 {
-  return OnEditorEvent(Event,Param);;
+  return OnEditorEvent(Info->Event,Info->Param);
 }
 
 int WINAPI ProcessEditorInputW(const ProcessEditorInputInfo *Info)

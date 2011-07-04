@@ -58,7 +58,7 @@ static int WINAPI c_callback(int from,int row,int col,void *param)
       {
         if(!_tcsncmp(line+col,_T("\057\052!re2c"),7))
         {
-          if(((CallbackParam *)param)->topline<=row) Info.pAddColor(row,col,7,colors[HC_RE2C],colors[HC_RE2C+1],EPriorityNormal);
+          if(((CallbackParam *)param)->topline<=row) Info.pAddColor(row,col,7,colors+HC_RE2C,EPriorityNormal);
           ((CallbackParam *)param)->ok=1;
           ((CallbackParam *)param)->row=row;
           ((CallbackParam *)param)->col=col+7;
@@ -193,7 +193,7 @@ colorize_clear:
   { state[0].re2c_state=PARSER_COMMENT; commentstart=yytok; goto colorize_comment; }
   "*/"
   {
-    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_RE2C],colors[HC_RE2C+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_RE2C,EPriorityNormal);
     callback_data.row=lno;
     callback_data.col=yycur-line;
     state[0].c_state=PARSER_CLEAR;
@@ -204,22 +204,22 @@ colorize_clear:
   }
   dstring
   {
-    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_STRING],colors[HC_STRING+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_STRING,EPriorityNormal);
     goto colorize_clear;
   }
   cstring|istring
   {
-    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_STRING],colors[HC_STRING+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_STRING,EPriorityNormal);
     goto colorize_clear;
   }
   [()|=;/\\*+?]
   {
-    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_KEYWORD],colors[HC_KEYWORD+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_KEYWORD,EPriorityNormal);
     goto colorize_clear;
   }
   letter (letter|digit)*
   {
-    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors[HC_RE2C],colors[HC_RE2C+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_RE2C,EPriorityNormal);
     goto colorize_clear;
   }
   [ \t]+
@@ -241,7 +241,7 @@ colorize_comment:
 /*!re2c
   "*/"
   {
-    if(lColorize) Info.pAddColor(lno,commentstart-line,yycur-commentstart,colors[HC_COMMENT],colors[HC_COMMENT+1],EPriorityNormal);
+    if(lColorize) Info.pAddColor(lno,commentstart-line,yycur-commentstart,colors+HC_COMMENT,EPriorityNormal);
     state[0].re2c_state=PARSER_RE2C;
     goto colorize_clear;
   }
@@ -252,7 +252,7 @@ colorize_comment:
 */
 colorize_end:
     if(state[0].re2c_state==PARSER_COMMENT)
-      if(lColorize) Info.pAddColor(lno,commentstart-line,yyend-commentstart,colors[HC_COMMENT],colors[HC_COMMENT+1],EPriorityNormal);
+      if(lColorize) Info.pAddColor(lno,commentstart-line,yyend-commentstart,colors+HC_COMMENT,EPriorityNormal);
   }
 colorize_exit:
   return;

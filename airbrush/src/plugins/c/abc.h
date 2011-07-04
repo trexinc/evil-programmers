@@ -17,19 +17,19 @@
 */
 
 #define HC_COMMENT  0
-#define HC_KEYWORD1 2
-#define HC_KEYWORD3 4
-#define HC_STRING1  6
-#define HC_NUMBER1  8
-#define HC_NUMBER2  10
-#define HC_DEFINE   12
-#define HC_FIXME    14
-#define HC_HIGHLITE 16
-#define HC_HL_ERROR 18
+#define HC_KEYWORD1 1
+#define HC_KEYWORD3 2
+#define HC_STRING1  3
+#define HC_NUMBER1  4
+#define HC_NUMBER2  5
+#define HC_DEFINE   6
+#define HC_FIXME    7
+#define HC_HIGHLITE 8
+#define HC_HL_ERROR 9
 
 #define PARSER_CLEAR    0
 #define PARSER_COMMENT1 1
 #define PARSER_STRING   2
 
-extern int colors[];
+extern ABColor colors[];
 extern struct ColorizeInfo Info;
