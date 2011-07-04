@@ -144,7 +144,8 @@ struct InitDialogItem
 };
 
 extern void InitDialogItems(const InitDialogItem *Init,FarDialogItem *Item,int ItemsNumber);
-extern bool SelectColor(int *fg,int *bg);
+extern bool SelectColor(FarColor& color);
+extern void ConvertColor(const ABColor& Color,FarColor& NewColor);
 
 struct Options
 {

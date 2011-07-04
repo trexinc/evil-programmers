@@ -17,15 +17,15 @@
 */
 
 #define HC_ERROR      0
-#define HC_COMMENT    2
-#define HC_OPENTAG    4
-#define HC_CLOSETAG   6
-#define HC_REFERENCE  8
-#define HC_ATTRNAME  10
-#define HC_ATTRVALUE 12
-#define HC_MARKUP    14
-#define HC_SUBSET    16
-#define HC_PI        18
+#define HC_COMMENT    1
+#define HC_OPENTAG    2
+#define HC_CLOSETAG   3
+#define HC_REFERENCE  4
+#define HC_ATTRNAME   5
+#define HC_ATTRVALUE  6
+#define HC_MARKUP     7
+#define HC_SUBSET     8
+#define HC_PI         9
 
 #define PARSER_CLEAR    0x00
 #define PARSER_COMMENT  0x01
@@ -41,5 +41,5 @@
 
 #define PARSER_PHP      0x10
 
-extern int colors[];
+extern ABColor colors[];
 extern struct ColorizeInfo Info;

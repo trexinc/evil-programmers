@@ -23,7 +23,7 @@
 #include "abre2c.h"
 
 ColorizeInfo Info;
-int colors[]={0x09,-1,0x03,-1,0x0E,-1,0x0F,-1};
+ABColor colors[]={{0x09,0,false,true,true},{0x03,0,false,true,true},{0x0E,0,false,true,true},{0x0F,0,false,true,true}};
 const TCHAR *colornames[]={_T("Re2c"),_T("Comment"),_T("String"),_T("Keyword")};
 
 int WINAPI SetColorizeInfo(ColorizeInfo *AInfo)
@@ -49,7 +49,7 @@ int WINAPI _export GetParams(int index,int command,const char **param)
       *(int *)param=sizeof(colornames)/sizeof(colornames[0]);
       return true;
     case PAR_GET_COLOR:
-      *(const int **)param=colors;
+      *(const ABColor**)param=colors;
       return true;
     case PAR_GET_COLOR_NAME:
       *param=(const char *)colornames;

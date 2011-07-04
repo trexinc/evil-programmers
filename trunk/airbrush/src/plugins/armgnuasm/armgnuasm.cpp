@@ -22,23 +22,23 @@
 #include "abarmgnuasm.h"
 
 ColorizeInfo Info;
-int colors[]=
+ABColor colors[]=
 {
-  0x03,-1,
-  0x0e,-1,
-  0x0a,-1,0x0a,-1,
-  0x02,-1,
-  0x00,0x0a,
-  0x0c,-1,0x01,0x0c,
-  0x0f,-1,
-  0x0f,-1,0x0c,-1,0x08,-1,
-  0x0f,-1,0x08,-1,
-  0x0f,-1,0x08,-1,
-  0x0e,-1,0x08,-1,
-  0x0d,-1,0x0c,-1,0x05,-1,0x0c,-1,
-  0x0f,-1,0x0c,-1,0x08,-1,
-  0x0f,-1,0x08,-1,
-  0x0e,-1,0x0e,-1,0x06,-1
+  {0x03,0,false,true,true},
+  {0x0e,0,false,true,true},
+  {0x0a,0,false,true,true},{0x0a,0,false,true,true},
+  {0x02,0,false,true,true},
+  {0x00,0x0a,false,false,true},
+  {0x0c,0,false,true,true},{0x01,0x0c,false,false,true},
+  {0x0f,0,false,true,true},
+  {0x0f,0,false,true,true},{0x0c,0,false,true,true},{0x08,0,false,true,true},
+  {0x0f,0,false,true,true},{0x08,0,false,true,true},
+  {0x0f,0,false,true,true},{0x08,0,false,true,true},
+  {0x0e,0,false,true,true},{0x08,0,false,true,true},
+  {0x0d,0,false,true,true},{0x0c,0,false,true,true},{0x05,0,false,true,true},{0x0c,0,false,true,true},
+  {0x0f,0,false,true,true},{0x0c,0,false,true,true},{0x08,0,false,true,true},
+  {0x0f,0,false,true,true},{0x08,0,false,true,true},
+  {0x0e,0,false,true,true},{0x0e,0,false,true,true},{0x06,0,false,true,true}
 };
 const TCHAR* colornames[]=
 {
@@ -82,7 +82,7 @@ int WINAPI _export GetParams(int index,int command,const char **param)
       *(int *)param=sizeof(colornames)/sizeof(colornames[0]);
       return true;
     case PAR_GET_COLOR:
-      *(const int **)param=colors;
+      *(const ABColor**)param=colors;
       return true;
     case PAR_GET_COLOR_NAME:
       *param=(const char *)colornames;

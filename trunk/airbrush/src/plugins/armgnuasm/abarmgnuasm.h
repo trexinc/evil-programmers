@@ -17,35 +17,35 @@
 */
 
 #define HC_COMMENT          0
-#define HC_STRING1          2
-#define HC_NUMBER1          4
-#define HC_NUMBER2          6
-#define HC_DEFINE           8
-#define HC_FIXME            10
-#define HC_HIGHLITE         12
-#define HC_HL_ERROR         14
-#define HC_KEYWORD1         16
-#define HC_ARM_ARITHMETIC   18
-#define HC_ARM_ARITHMETIC5  20
-#define HC_THUMB_ARITHMETIC 22
-#define HC_ARM_LOGICAL      24
-#define HC_THUMB_LOGICAL    26
-#define HC_ARM_MOVE         28
-#define HC_THUMB_MOVE       30
-#define HC_ARM_SHIFT        32
-#define HC_THUMB_SHIFT      34
-#define HC_ARM_BRANCH       36
-#define HC_ARM_BRANCH5      38
-#define HC_THUMB_BRANCH     40
-#define HC_THUMB_BRANCH5    42
-#define HC_ARM_MEMORY       44
-#define HC_ARM_MEMORY5      46
-#define HC_THUMB_MEMORY     48
-#define HC_ARM_PSEUDO       50
-#define HC_THUMB_PSEUDO     52
-#define HC_ARM_REGS         54
-#define HC_THUMB_REGS_LO    56
-#define HC_THUMB_REGS_HI    58
+#define HC_STRING1          1
+#define HC_NUMBER1          2
+#define HC_NUMBER2          3
+#define HC_DEFINE           4
+#define HC_FIXME            5
+#define HC_HIGHLITE         6
+#define HC_HL_ERROR         7
+#define HC_KEYWORD1         8
+#define HC_ARM_ARITHMETIC   9
+#define HC_ARM_ARITHMETIC5  10
+#define HC_THUMB_ARITHMETIC 11
+#define HC_ARM_LOGICAL      12
+#define HC_THUMB_LOGICAL    13
+#define HC_ARM_MOVE         14
+#define HC_THUMB_MOVE       15
+#define HC_ARM_SHIFT        16
+#define HC_THUMB_SHIFT      17
+#define HC_ARM_BRANCH       18
+#define HC_ARM_BRANCH5      19
+#define HC_THUMB_BRANCH     20
+#define HC_THUMB_BRANCH5    21
+#define HC_ARM_MEMORY       22
+#define HC_ARM_MEMORY5      23
+#define HC_THUMB_MEMORY     24
+#define HC_ARM_PSEUDO       25
+#define HC_THUMB_PSEUDO     26
+#define HC_ARM_REGS         27
+#define HC_THUMB_REGS_LO    28
+#define HC_THUMB_REGS_HI    29
 
 #define PARSER_CLEAR    0
 #define PARSER_COMMENT1 1
@@ -54,5 +54,5 @@
 #define PARSER_COMMENT3 4
 #define PARSER_STRING2  5
 
-extern int colors[];
+extern ABColor colors[];
 extern struct ColorizeInfo Info;

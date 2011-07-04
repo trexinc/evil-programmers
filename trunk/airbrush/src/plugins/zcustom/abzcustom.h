@@ -20,8 +20,7 @@ struct Keyword
 {
   char *keyword;
   int line_start;
-  int fg;
-  int bg;
+  ABColor color;
   int exclusive;
   int recursive;
   char *whole_chars_left;
@@ -32,8 +31,7 @@ struct Context
 {
   char *left;
   char *right;
-  int fg;
-  int bg;
+  ABColor color;
   int exclusive;
   int exclusive_left;
   int exclusive_right;

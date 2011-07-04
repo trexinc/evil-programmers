@@ -17,9 +17,9 @@
 */
 
 #define HC_RE2C     0
-#define HC_COMMENT  2
-#define HC_STRING   4
-#define HC_KEYWORD  6
+#define HC_COMMENT  1
+#define HC_STRING   2
+#define HC_KEYWORD  3
 
 #define INVALID_C_STATE -1
 #define PARSER_CLEAR     0
@@ -27,5 +27,5 @@
 #define PARSER_RE2C      0
 #define PARSER_COMMENT   1
 
-extern int colors[];
+extern ABColor colors[];
 extern struct ColorizeInfo Info;

@@ -21,8 +21,8 @@
 #include "plugin.hpp"
 #include "farcolor.hpp"
 #include "memory.h"
-#include "ab_main.h"
 #include "abplugin.h"
+#include "ab_main.h"
 #include "abversion.h"
 #include "guid.h"
 #include "far_settings.h"
@@ -32,28 +32,17 @@ int PluginsCount=0;
 
 static TCHAR Unknown[20];
 
-static void ConvertColor(int Color,FarColor& NewColor)
+static void WINAPI addcolor(int lno,int start,int len,const struct ABColor* color,enum ColorizePriority priority)
 {
-  NewColor.Flags=FMSG_FG_4BIT|FMSG_BG_4BIT;
-  NewColor.ForegroundColor=Color&0xf;
-  NewColor.BackgroundColor=(Color>>4)&0xf;
-  NewColor.Reserved=NULL;
-}
-
-static void WINAPI addcolor(int lno,int start,int len,int fg,int bg,enum ColorizePriority priority)
-{
-  if((fg==-1)&&(bg==-1)) return;
+  if((color->ForegroundDefault)&&(color->BackgroundDefault)) return;
   if(len==0) return;
   WaitForSingleObject(Mutex,INFINITE);
-  if(bg==-1) bg=Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_EDITORTEXT,NULL)&0xF0;
-  else bg=bg<<4;
-  if(fg==-1) fg=Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_EDITORTEXT,NULL)&0x0F;
   EditorColor ec;
   ec.StructSize=sizeof(ec);
   ec.StringNumber=lno;
   ec.StartPos=start;
   ec.EndPos=start+len-1;
-  ConvertColor(fg|bg,ec.Color);
+  ConvertColor(*color,ec.Color);
   ec.Owner=MainGuid;
   switch(priority)
   {

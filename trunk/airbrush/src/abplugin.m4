@@ -23,7 +23,7 @@ include(`ab_ver.m4')dnl
 `#define AB_VERSION' eval(MAJOR*1000000+MINOR*10000+BUILD)
 `#define AB_API' API
 
-typedef int (WINAPI *COLORIZECALLBACK)(int from,int row,int col,void *param);
+typedef int (WINAPI *COLORIZECALLBACK)(int from,int row,int col,void* param);
 
 struct ColorizeParams
 {
@@ -34,7 +34,7 @@ struct ColorizeParams
   int endline;
   int topline;
   unsigned long data_size;
-  unsigned char *data;
+  unsigned char* data;
   HANDLE LocalHeap;
   int flags;
   COLORIZECALLBACK callback;
@@ -47,12 +47,21 @@ enum ColorizePriority
   EPriorityBrackets
 };
 
-typedef void (WINAPI *PLUGINADDCOLOR)(int lno,int start,int len,int fg,int bg,enum ColorizePriority priority);
-typedef void (WINAPI *PLUGINDELCOLOR)(int lno);
-typedef const TCHAR *(WINAPI *PLUGINGETLINE)(int lno,int *len);
-typedef bool (WINAPI *PLUGINADDSTATE)(int eid,int pos,unsigned long size,unsigned char *data);
-typedef void (WINAPI *PLUGINGETCURSOR)(int *row,int *col);
-typedef void (WINAPI *PLUGINCALLPARSER)(const TCHAR* parser,struct ColorizeParams *params);
+struct ABColor
+{
+  unsigned int ForegroundColor;
+  unsigned int BackgroundColor;
+  bool ForegroundDefault;
+  bool BackgroundDefault;
+  bool FourBits;
+};
+
+typedef void (WINAPI* PLUGINADDCOLOR)(int lno,int start,int len,const struct ABColor* color,enum ColorizePriority priority);
+typedef void (WINAPI* PLUGINDELCOLOR)(int lno);
+typedef const TCHAR* (WINAPI *PLUGINGETLINE)(int lno,int* len);
+typedef bool (WINAPI* PLUGINADDSTATE)(int eid,int pos,unsigned long size,unsigned char* data);
+typedef void (WINAPI* PLUGINGETCURSOR)(int* row,int* col);
+typedef void (WINAPI* PLUGINCALLPARSER)(const TCHAR* parser,struct ColorizeParams* params);
 
 struct ColorizeInfo
 {
@@ -61,8 +70,7 @@ struct ColorizeInfo
   int api;
   int cachestr;
   TCHAR folder[MAX_PATH];
-  TCHAR regkey[80];
-  void *reserved;
+  void* reserved;
   PLUGINADDCOLOR pAddColor;
   PLUGINDELCOLOR pDelColor;
   PLUGINGETLINE pGetLine;
@@ -74,13 +82,13 @@ struct ColorizeInfo
 #ifdef __cplusplus
 extern "C" {
 #endif
-  unsigned long WINAPI _export LoadSyntaxModule(char *ModuleName,void *Info);
-  int WINAPI _export SetColorizeInfo(struct ColorizeInfo *AInfo);
-  void WINAPI _export Colorize(int index,struct ColorizeParams *params);
-  int WINAPI  _export Input(const INPUT_RECORD *rec);
+  unsigned long WINAPI _export LoadSyntaxModule(char* ModuleName,void* Info);
+  int WINAPI _export SetColorizeInfo(struct ColorizeInfo* AInfo);
+  void WINAPI _export Colorize(int index,struct ColorizeParams* params);
+  int WINAPI  _export Input(const INPUT_RECORD* rec);
   unsigned long WINAPI _export GetSyntaxCount(void);
   void WINAPI _export Exit(void);
-  int WINAPI _export GetParams(int index,int command,const char **param);
+  int WINAPI _export GetParams(int index,int command,const char** param);
 #ifdef __cplusplus
 }
 #endif
@@ -103,15 +111,5 @@ extern "C" {
 #define PAR_COLORS_STORE         16
 #define PAR_COLORS_CACHE         32 //not used
 #define PAR_SHOW_IN_LIST         64
-
-
-//usefull macros
-//#define strcmp(a,b) (CompareString(LOCALE_SYSTEM_DEFAULT,0,a,-1,b,-1)-2)
-//#define stricmp(a,b) (CompareString(LOCALE_SYSTEM_DEFAULT,NORM_IGNORECASE,a,-1,b,-1)-2)
-//#define strncmp(a,b,n) (CompareString(LOCALE_SYSTEM_DEFAULT,0,a,n,b,n)-2)
-//#define strnicmp(a,b,n) (CompareString(LOCALE_SYSTEM_DEFAULT,NORM_IGNORECASE,a,n,b,n)-2)
-//#define strcpy(a,b) lstrcpy(a,b)
-//#define strncpy(a,b,n) lstrcpyn(a,b,n+1)
-//#define strcat(a,b) lstrcat(a,b)
 
 #endif

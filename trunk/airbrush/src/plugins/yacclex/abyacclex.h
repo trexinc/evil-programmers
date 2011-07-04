@@ -19,9 +19,9 @@
 #define STRCMP strncmp
 
 #define HC_COMMENT  0
-#define HC_STRING   2
-#define HC_KEYWORD  4
-#define HC_SET      6
+#define HC_STRING   1
+#define HC_KEYWORD  2
+#define HC_SET      3
 
 #define INVALID_C_STATE -1
 #define PARSER_CLEAR     0
@@ -30,4 +30,4 @@
 #define PARSER_STRING    3
 #define PARSER_SET       4
 
-extern int colors[];
+extern ABColor colors[];
