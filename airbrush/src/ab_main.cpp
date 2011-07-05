@@ -49,28 +49,6 @@ bool fatal;
 #define GetCheck(i) (int)Info.SendDlgMessage(hDlg,DM_GETCHECK,i,0)
 #define GetDataPtr(i) ((const TCHAR *)Info.SendDlgMessage(hDlg,DM_GETCONSTTEXTPTR,i,0))
 
-void InitDialogItems(const InitDialogItem *Init,FarDialogItem *Item,int ItemsNumber)
-{
-  for (int i=0;i<ItemsNumber;i++)
-  {
-    Item[i].Type=Init[i].Type;
-    Item[i].X1=Init[i].X1;
-    Item[i].Y1=Init[i].Y1;
-    Item[i].X2=Init[i].X2;
-    Item[i].Y2=Init[i].Y2;
-    Item[i].Selected=Init[i].Selected;
-    Item[i].Flags=Init[i].Flags;
-    Item[i].MaxLength=0;
-    if((unsigned)Init[i].Data<2000)
-      Item[i].Data=GetMsg((unsigned int)(DWORD_PTR)Init[i].Data);
-    else
-      Item[i].Data=Init[i].Data;
-    Item[i].Mask=NULL;
-    Item[i].History=NULL;
-    Item[i].UserData=NULL;
-  }
-}
-
 static TCHAR hotkeys[]=_T("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
 
 const TCHAR* GetMsg(int MsgId)
@@ -307,18 +285,16 @@ int WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
         0000000000111111111122222222223333333333444444444455555555556666666666777777
         0123456789012345678901234567890123456789012345678901234567890123456789012345
       */
-      static struct InitDialogItem InitItems[]={
-      /*0*/  {DI_DOUBLEBOX,3 ,1,72,7,0,0,(const TCHAR*)mName},
-      /*1*/  {DI_CHECKBOX ,5 ,2,0 ,0,0,DIF_FOCUS,(const TCHAR*)mConfigDialogActive},
-      /*2*/  {DI_CHECKBOX ,5 ,3,0 ,0,0,0,(const TCHAR*)mConfigDialogColorizeAll},
-      /*3*/  {DI_TEXT     ,5 ,4,0 ,0,0,0,(const TCHAR*)mConfigDialogMaxLines},
-      /*4*/  {DI_FIXEDIT  ,64,4,70,0,0,DIF_MASKEDIT,_T("")},
-      /*5*/  {DI_TEXT     ,-1,5,0 ,0,0,DIF_SEPARATOR,_T("")},
-      /*6*/  {DI_BUTTON   ,0 ,6,0 ,0,0,DIF_CENTERGROUP|DIF_DEFAULTBUTTON,(const TCHAR*)mConfigSave},
-      /*7*/  {DI_BUTTON   ,0 ,6,0 ,0,0,DIF_CENTERGROUP,(const TCHAR*)mConfigCancel}
+      struct FarDialogItem DialogItems[]={
+      /*0*/  {DI_DOUBLEBOX,3 ,1,72,7,{0},NULL,NULL,0,                                GetMsg(mName)                   ,0,NULL},
+      /*1*/  {DI_CHECKBOX ,5 ,2,0 ,0,{0},NULL,NULL,DIF_FOCUS,                        GetMsg(mConfigDialogActive)     ,0,NULL},
+      /*2*/  {DI_CHECKBOX ,5 ,3,0 ,0,{0},NULL,NULL,0,                                GetMsg(mConfigDialogColorizeAll),0,NULL},
+      /*3*/  {DI_TEXT     ,5 ,4,0 ,0,{0},NULL,NULL,0,                                GetMsg(mConfigDialogMaxLines)   ,0,NULL},
+      /*4*/  {DI_FIXEDIT  ,64,4,70,0,{0},NULL,NULL,DIF_MASKEDIT,                     _T("")                          ,0,NULL},
+      /*5*/  {DI_TEXT     ,-1,5,0 ,0,{0},NULL,NULL,DIF_SEPARATOR,                    _T("")                          ,0,NULL},
+      /*6*/  {DI_BUTTON   ,0 ,6,0 ,0,{0},NULL,NULL,DIF_CENTERGROUP|DIF_DEFAULTBUTTON,GetMsg(mConfigSave)             ,0,NULL},
+      /*7*/  {DI_BUTTON   ,0 ,6,0 ,0,{0},NULL,NULL,DIF_CENTERGROUP,                  GetMsg(mConfigCancel)           ,0,NULL}
       };
-      struct FarDialogItem DialogItems[sizeof(InitItems)/sizeof(InitItems[0])];
-      InitDialogItems(InitItems,DialogItems,sizeof(InitItems)/sizeof(InitItems[0]));
       DialogItems[1].Selected=Opt.Active;
       DialogItems[2].Selected=Opt.ColorizeAll;
       DialogItems[4].Mask=_T("######9");
@@ -388,15 +364,13 @@ int WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
               lstrcpy(mask,_T(""));
               if(PluginsData[ids[MenuCode]].Mask)
                 lstrcpy(mask,PluginsData[ids[MenuCode]].Mask);
-              static struct InitDialogItem InitItems[]={
-              /*0*/  {DI_DOUBLEBOX,3,1,72,5,0,0,_T("")},
-              /*1*/  {DI_EDIT,5,2,70,0,0,DIF_FOCUS,_T("")},
-              /*2*/  {DI_TEXT,-1,3,0,0,0,DIF_SEPARATOR,_T("")},
-              /*3*/  {DI_BUTTON,0,4,0,0,0,DIF_CENTERGROUP|DIF_DEFAULTBUTTON,(const TCHAR *)mConfigSave},
-              /*4*/  {DI_BUTTON,0,4,0,0,0,DIF_CENTERGROUP,(const TCHAR *)mConfigCancel}
+              struct FarDialogItem DialogItems[]={
+              /*0*/  {DI_DOUBLEBOX, 3,1,72,5,{0},NULL,NULL,0,                                _T("")               ,0,NULL},
+              /*1*/  {DI_EDIT,      5,2,70,0,{0},NULL,NULL,DIF_FOCUS,                        _T("")               ,0,NULL},
+              /*2*/  {DI_TEXT,     -1,3,0 ,0,{0},NULL,NULL,DIF_SEPARATOR,                    _T("")               ,0,NULL},
+              /*3*/  {DI_BUTTON,    0,4,0 ,0,{0},NULL,NULL,DIF_CENTERGROUP|DIF_DEFAULTBUTTON,GetMsg(mConfigSave)  ,0,NULL},
+              /*4*/  {DI_BUTTON,    0,4,0 ,0,{0},NULL,NULL,DIF_CENTERGROUP,                  GetMsg(mConfigCancel),0,NULL}
               };
-              struct FarDialogItem DialogItems[sizeof(InitItems)/sizeof(InitItems[0])];
-              InitDialogItems(InitItems,DialogItems,sizeof(InitItems)/sizeof(InitItems[0]));
               DialogItems[1].MaxLength=sizeof(mask);
               DialogItems[1].Data=mask;
               DialogItems[0].Data=PluginsData[ids[MenuCode]].Name;
@@ -468,15 +442,13 @@ int WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
               lstrcpy(start,_T(""));
               if(PluginsData[ids[MenuCode]].Start)
                 lstrcpy(start,PluginsData[ids[MenuCode]].Start);
-              static struct InitDialogItem InitItems[]={
-              /*0*/  {DI_DOUBLEBOX,3,1,72,5,0,0,_T("")},
-              /*1*/  {DI_EDIT,5,2,70,0,0,DIF_FOCUS,_T("")},
-              /*2*/  {DI_TEXT,-1,3,0,0,0,DIF_SEPARATOR,_T("")},
-              /*3*/  {DI_BUTTON,0,4,0,0,0,DIF_CENTERGROUP|DIF_DEFAULTBUTTON,(const TCHAR*)mConfigSave},
-              /*4*/  {DI_BUTTON,0,4,0,0,0,DIF_CENTERGROUP,(const TCHAR*)mConfigCancel}
+              struct FarDialogItem DialogItems[]={
+              /*0*/  {DI_DOUBLEBOX, 3,1,72,5,{0},NULL,NULL,0,                                _T("")               ,0,NULL},
+              /*1*/  {DI_EDIT,      5,2,70,0,{0},NULL,NULL,DIF_FOCUS,                        _T("")               ,0,NULL},
+              /*2*/  {DI_TEXT,     -1,3,0 ,0,{0},NULL,NULL,DIF_SEPARATOR,                    _T("")               ,0,NULL},
+              /*3*/  {DI_BUTTON,    0,4,0 ,0,{0},NULL,NULL,DIF_CENTERGROUP|DIF_DEFAULTBUTTON,GetMsg(mConfigSave)  ,0,NULL},
+              /*4*/  {DI_BUTTON,    0,4,0 ,0,{0},NULL,NULL,DIF_CENTERGROUP,                  GetMsg(mConfigCancel),0,NULL}
               };
-              struct FarDialogItem DialogItems[sizeof(InitItems)/sizeof(InitItems[0])];
-              InitDialogItems(InitItems,DialogItems,sizeof(InitItems)/sizeof(InitItems[0]));
               DialogItems[1].MaxLength=sizeof(start);
               DialogItems[1].Data=start;
               DialogItems[0].Data=PluginsData[ids[MenuCode]].Name;

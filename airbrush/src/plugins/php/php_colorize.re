@@ -23,11 +23,7 @@
 #include "../abpairs.h"
 #include "../plugins/php/abphp.h"
 
-#ifdef UNICODE
 typedef unsigned short UTCHAR;
-#else
-typedef unsigned char UTCHAR;
-#endif
 
 #define YYCTYPE unsigned long
 #define YYCURSOR yycur

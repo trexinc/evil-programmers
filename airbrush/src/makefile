@@ -8,7 +8,7 @@ endif
 
 COMINC = $(COMMON)
 
-RM=rm -f
+RM=rm -rf
 CC=gcc
 DLLTOOL=dlltool
 MAKE=make
@@ -56,7 +56,7 @@ $(TARGET): $(OBJS)
 	$(RM) $(TARGET).base
 	$(RM) $(TARGET).exp
 
-clear:
+clean:
 	$(RM) ../$(OBJDIR)/*
 	$(RM) ../$(BINDIR)/airbrush.*
 	$(RM) ../$(BINDIR)/Formats/*

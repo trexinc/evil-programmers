@@ -134,16 +134,6 @@ extern int cursor_row,cursor_col;
 extern void LoadPlugs(const TCHAR* ModuleName);
 extern void UnloadPlugs(void);
 
-struct InitDialogItem
-{
-  FARDIALOGITEMTYPES Type;
-  int X1,Y1,X2,Y2;
-  DWORD_PTR Selected;
-  unsigned __int64 Flags;
-  const TCHAR* Data;
-};
-
-extern void InitDialogItems(const InitDialogItem *Init,FarDialogItem *Item,int ItemsNumber);
 extern bool SelectColor(FarColor& color);
 extern void ConvertColor(const ABColor& Color,FarColor& NewColor);
 
