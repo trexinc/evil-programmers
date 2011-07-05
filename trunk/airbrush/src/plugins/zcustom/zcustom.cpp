@@ -372,27 +372,15 @@ static void load_syntax_from_file(char *dirname,char *filename,char *whole_chars
             rules=new_rules;
             rules[rules_count].name=(TCHAR*)malloc((strlen(argv[1])+1)*sizeof(TCHAR));
             if(!rules[rules_count].name) goto line_end;
-#ifdef UNICODE
             MultiByteToWideChar(CP_OEMCP,0,argv[1],-1,rules[rules_count].name,strlen(argv[1])+1);
-#else
-            strcpy(rules[rules_count].name,argv[1]);
-#endif
             rules[rules_count].mask=(TCHAR*)malloc((strlen(argv[2])+1)*sizeof(TCHAR));
             if(!rules[rules_count].mask) goto line_end;
-#ifdef UNICODE
             MultiByteToWideChar(CP_OEMCP,0,argv[2],-1,rules[rules_count].mask,strlen(argv[2])+1);
-#else
-            strcpy(rules[rules_count].mask,argv[2]);
-#endif
             if(argc>3)
             {
               rules[rules_count].start=(TCHAR*)malloc((strlen(argv[3])+1)*sizeof(TCHAR));
               if(!rules[rules_count].start) goto line_end;
-#ifdef UNICODE
               MultiByteToWideChar(CP_OEMCP,0,argv[3],-1,rules[rules_count].start,strlen(argv[3])+1);
-#else
-              strcpy(rules[rules_count].start,argv[3]);
-#endif
             }
             rules[rules_count].contexts=NULL;
             rules[rules_count].contexts_count=0;
@@ -637,13 +625,8 @@ static void load_syntax(void)
   }
   char SyntaxFile[MAX_PATH],SyntaxDir[MAX_PATH];
   char whole_chars_left[WHOLE_SIZE],whole_chars_right[WHOLE_SIZE];
-#ifdef UNICODE
   WideCharToMultiByte(CP_OEMCP,0,Info.folder,-1,SyntaxDir,MAX_PATH,NULL,NULL);
   WideCharToMultiByte(CP_OEMCP,0,Info.folder,-1,SyntaxFile,MAX_PATH,NULL,NULL);
-#else
-  strcpy(SyntaxDir,Info.folder);
-  strcpy(SyntaxFile,Info.folder);
-#endif
   strcat(SyntaxFile,"syntax");
   load_syntax_from_file(SyntaxDir,SyntaxFile,whole_chars_left,whole_chars_right);
   if(rules)
@@ -726,14 +709,10 @@ void WINAPI _export Colorize(int index,struct ColorizeParams *params)
     context_start=0;
     if(lno==params->topline) lColorize=1;
     if(lColorize&&(!startcol)) Info.pDelColor(lno);
-#ifdef UNICODE
     const wchar_t* lineW=Info.pGetLine(lno,&linelen);
     line=(char*)malloc(linelen);
     if(!line) return;
     WideCharToMultiByte(CP_OEMCP,0,lineW,linelen,(char*)line,linelen,NULL,NULL);
-#else
-    line=Info.pGetLine(lno,&linelen);
-#endif
     int pos=startcol,pos_next;
     while(pos<=linelen)
     {
@@ -809,17 +788,13 @@ void WINAPI _export Colorize(int index,struct ColorizeParams *params)
       if(params->callback)
         if(params->callback(0,lno,pos,params->param))
         {
-#ifdef UNICODE
           free((void*)line);
-#endif
           return;
         }
       pos++;
     }
     if(lColorize) Info.pAddColor(lno,context_start,linelen-context_start,&rules[index].contexts[state[0]].color,EPriorityNormal);
-#ifdef UNICODE
     free((void*)line); line=NULL;
-#endif
   }
 }
 

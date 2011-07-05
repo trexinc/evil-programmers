@@ -23,11 +23,7 @@
 #include "../abpairs.h"
 #include "../plugins/re2c/abre2c.h"
 
-#ifdef UNICODE
 typedef unsigned short UTCHAR;
-#else
-typedef unsigned char UTCHAR;
-#endif
 
 struct CacheParam
 {
