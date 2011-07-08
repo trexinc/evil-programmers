@@ -77,8 +77,6 @@
 #define LISTBOXEX_COLOR_DISABLED        5
 #define LISTBOXEX_COLOR_COUNT           6
 
-#define LISTBOXEX_COLOR_DEFAULT    0x0100
-
 #define LISTBOXEX_COLORS_ITEM           0
 #define LISTBOXEX_COLORS_SELECTED       1
 #define LISTBOXEX_COLORS_DISABLED       2
@@ -134,7 +132,7 @@ struct ListBoxExSetColor
   long Index;
   unsigned long TypeIndex;
   unsigned long ColorIndex;
-  FarColor Color;
+  ListBoxExColor Color;
 };
 
 struct ListBoxExSetHotkey
