@@ -443,8 +443,7 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
         ListBoxExSetColor *color=(ListBoxExSetColor *)Param2;
         if(data->ItemCount>color->Index&&color->TypeIndex<LISTBOXEX_COLORS_COUNT&&data->Items[color->Index].Attribute[color->TypeIndex]&&data->Items[color->Index].Length>color->ColorIndex)
         {
-          data->Items[color->Index].Attribute[color->TypeIndex][color->ColorIndex].Default=false;
-          data->Items[color->Index].Attribute[color->TypeIndex][color->ColorIndex].Color=color->Color;
+          data->Items[color->Index].Attribute[color->TypeIndex][color->ColorIndex]=color->Color;
           Info.SendDlgMessage(hDlg,DM_REDRAW,0,0);
           return_result=TRUE;
         }

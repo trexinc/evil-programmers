@@ -135,28 +135,28 @@ static INT_PTR WINAPI MainDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2
       Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(void*)_T("6 bbb"));
       Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(void*)_T("7 bbb"));
       {
-        ListBoxExSetColor color={2,LISTBOXEX_COLORS_ITEM,0,{FCF_FG_4BIT|FCF_BG_4BIT,0xC,0x7,NULL}};
+        ListBoxExSetColor color={2,LISTBOXEX_COLORS_ITEM,0,{{FCF_FG_4BIT|FCF_BG_4BIT,0xC,0x7,NULL},0,false}};
         for(int i=2;i<5;i++)
         {
           color.ColorIndex=i;
           Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETCOLOR,1,&color);
         }
-        color.Color.ForegroundColor=0xA;
-        color.Color.BackgroundColor=0x7;
+        color.Color.Color.ForegroundColor=0xA;
+        color.Color.Color.BackgroundColor=0x7;
         for(int i=7;i<10;i++)
         {
           color.ColorIndex=i;
           Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETCOLOR,1,&color);
         }
-        color.Color.ForegroundColor=0x9;
-        color.Color.BackgroundColor=0x7;
+        color.Color.Color.ForegroundColor=0x9;
+        color.Color.Color.BackgroundColor=0x7;
         for(int i=12;i<15;i++)
         {
           color.ColorIndex=i;
           Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETCOLOR,1,&color);
         }
-        color.Color.ForegroundColor=0x9;
-        color.Color.BackgroundColor=0x0;
+        color.Color.Color.ForegroundColor=0x9;
+        color.Color.Color.BackgroundColor=0x0;
         color.TypeIndex=LISTBOXEX_COLORS_SELECTED;
         for(int i=12;i<15;i++)
         {
