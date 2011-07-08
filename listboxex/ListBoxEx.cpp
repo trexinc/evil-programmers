@@ -640,72 +640,77 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
           {
             bool redraw=false,hotkey=false,direction=true;
             unsigned long delta=0;
-            long key=FSF.FarInputRecordToKey(record);
-            switch(key)
+            WORD vk=record->Event.KeyEvent.wVirtualKeyCode;
+            if(IsNone(record)&&VK_LEFT==vk)
             {
-#if 1
-              case KEY_LEFT:
-                if(data->CurCol) data->CurCol--;
-                redraw=true;
-                break;
-              case KEY_RIGHT:
-                data->CurCol++;
-                redraw=true;
-                break;
-#endif
-              case KEY_UP:
-                if((data->Flags&LBFEX_WRAPMODE)&&!data->CurPos) data->CurPos=data->ItemCount-1;
-                else delta=1;
-                get_nearest_item(data,&(data->CurPos),delta,false);
-                direction=false;
-                redraw=true;
-                break;
-              case KEY_DOWN:
-                if((data->Flags&LBFEX_WRAPMODE)&&data->CurPos==(data->ItemCount-1)) data->CurPos=0;
-                else delta=1;
-                get_nearest_item(data,&(data->CurPos),delta,true);
-                redraw=true;
-                break;
-              case KEY_HOME:
-                data->CurPos=0;
-                get_nearest_item(data,&(data->CurPos),delta,true);
-                redraw=true;
-                break;
-              case KEY_END:
-                data->CurPos=data->ItemCount-1;
-                get_nearest_item(data,&(data->CurPos),delta,false);
-                redraw=true;
-                break;
-              case KEY_PGUP:
-                delta=get_height(hDlg,Param1);
-                get_nearest_item(data,&(data->CurPos),delta,false);
-                direction=false;
-                redraw=true;
-                break;
-              case KEY_PGDN:
-                delta=get_height(hDlg,Param1);
-                get_nearest_item(data,&(data->CurPos),delta,true);
-                redraw=true;
-                break;
-              default:
+              if(data->CurCol) data->CurCol--;
+              redraw=true;
+            }
+            else if(IsNone(record)&&VK_RIGHT==vk)
+            {
+              data->CurCol++;
+              redraw=true;
+            }
+            else if(IsNone(record)&&VK_UP==vk)
+            {
+              if((data->Flags&LBFEX_WRAPMODE)&&!data->CurPos) data->CurPos=data->ItemCount-1;
+              else delta=1;
+              get_nearest_item(data,&(data->CurPos),delta,false);
+              direction=false;
+              redraw=true;
+            }
+            else if(IsNone(record)&&VK_DOWN==vk)
+            {
+              if((data->Flags&LBFEX_WRAPMODE)&&data->CurPos==(data->ItemCount-1)) data->CurPos=0;
+              else delta=1;
+              get_nearest_item(data,&(data->CurPos),delta,true);
+              redraw=true;
+            }
+            else if(IsNone(record)&&VK_HOME==vk)
+            {
+              data->CurPos=0;
+              get_nearest_item(data,&(data->CurPos),delta,true);
+              redraw=true;
+            }
+            else if(IsNone(record)&&VK_END==vk)
+            {
+              data->CurPos=data->ItemCount-1;
+              get_nearest_item(data,&(data->CurPos),delta,false);
+              redraw=true;
+            }
+            else if(IsNone(record)&&VK_PRIOR==vk)
+            {
+              delta=get_height(hDlg,Param1);
+              get_nearest_item(data,&(data->CurPos),delta,false);
+              direction=false;
+              redraw=true;
+            }
+            else if(IsNone(record)&&VK_NEXT==vk)
+            {
+              delta=get_height(hDlg,Param1);
+              get_nearest_item(data,&(data->CurPos),delta,true);
+              redraw=true;
+            }
+            else
+            {
+              long FirstKey=upper_key(record->Event.KeyEvent.uChar.UnicodeChar),SecondKey=FirstKey;
+              if(FirstKey)
+              {
+                if(FSF.LIsAlpha((unsigned long)FirstKey))
                 {
-                  long FirstKey=upper_key(key),SecondKey=FirstKey;
-                  if(FSF.LIsAlpha((unsigned long)FirstKey))
-                  {
-                    TCHAR xlat_str[1]={(unsigned long)FirstKey}; //FIXME
-                    FSF.XLat(xlat_str,0,1,0);
-                    SecondKey=upper_key(xlat_str[0]);
-                  }
-                  for(long i=0;i<data->ItemCount;i++)
-                    if((data->Items[i].Hotkey==FirstKey||data->Items[i].Hotkey==SecondKey)&&!(data->Items[i].Flags&(LIFEX_DISABLE|LIFEX_HIDDEN)))
-                    {
-                      data->CurPos=i;
-                      redraw=true;
-                      hotkey=true;
-                      break;
-                    }
+                  TCHAR xlat_str[1]={(unsigned long)FirstKey}; //FIXME
+                  FSF.XLat(xlat_str,0,1,0);
+                  SecondKey=upper_key(xlat_str[0]);
                 }
-                break;
+                for(long i=0;i<data->ItemCount;i++)
+                  if((data->Items[i].Hotkey==FirstKey||data->Items[i].Hotkey==SecondKey)&&!(data->Items[i].Flags&(LIFEX_DISABLE|LIFEX_HIDDEN)))
+                  {
+                    data->CurPos=i;
+                    redraw=true;
+                    hotkey=true;
+                    break;
+                  }
+              }
             }
             if(redraw)
             {

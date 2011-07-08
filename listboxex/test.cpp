@@ -20,6 +20,7 @@
 #include <tchar.h>
 #include "ListBoxEx.hpp"
 #include <initguid.h>
+
 // {843882E6-3774-4f99-A1E3-65CD195867A0}
 DEFINE_GUID(MainGuid, 0x843882e6, 0x3774, 0x4f99, 0xa1, 0xe3, 0x65, 0xcd, 0x19, 0x58, 0x67, 0xa0);
 // {AFCDCD78-241C-472c-9D0B-F0CDCFDAE52D}
@@ -172,44 +173,67 @@ static INT_PTR WINAPI MainDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2
         const INPUT_RECORD* record=(const INPUT_RECORD *)Param2;
         if(record->EventType==KEY_EVENT)
         {
-          long key=FSF.FarInputRecordToKey(record);
-          if(key==KEY_DEL)
+          WORD vk=record->Event.KeyEvent.wVirtualKeyCode;
+          if(IsNone(record))
           {
-            FarListDelete list={3,4};
-            Info.SendDlgMessage(hDlg,DM_LISTBOXEX_DELETE,1,&list);
+            switch(vk)
+            {
+              case VK_DELETE:
+                {
+                  FarListDelete list={3,4};
+                  Info.SendDlgMessage(hDlg,DM_LISTBOXEX_DELETE,1,&list);
+                }
+                break;
+              case VK_F2:
+                {
+                  ListBoxExSetFlags flags={Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L),LIFEX_DISABLE};
+                  Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETFLAGS,1,&flags);
+                }
+                break;
+              case VK_F3:
+                {
+                  ListBoxExSetFlags flags={Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L)-1,0};
+                  Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETFLAGS,1,&flags);
+                }
+                break;
+              case VK_INSERT:
+                Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_TOGGLE,1,(void*)Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L));
+                break;
+            }
           }
-          else if(key==KEY_F2)
+          else if(IsShift(record))
           {
-            ListBoxExSetFlags flags={Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L),LIFEX_DISABLE};
-            Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETFLAGS,1,&flags);
+            switch(vk)
+            {
+              case VK_DELETE:
+                {
+                  ListBoxExSetFlags flags={Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L),LIFEX_HIDDEN};
+                  Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETFLAGS,1,&flags);
+                }
+                break;
+            }
           }
-          else if(key==KEY_F3)
+          else if(IsCtrl(record))
           {
-            ListBoxExSetFlags flags={Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L)-1,0};
-            Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETFLAGS,1,&flags);
-          }
-          else if(key==KEY_INS)
-          {
-            Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_TOGGLE,1,(void*)Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L));
-          }
-          else if(key==KEY_SHIFTDEL)
-          {
-            ListBoxExSetFlags flags={Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L),LIFEX_HIDDEN};
-            Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETFLAGS,1,&flags);
-          }
-          else if(key==KEY_CTRLUP)
-          {
-            FarListPos pos={Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L),-1};
-            Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_MOVE_UP,1,(void*)pos.SelectPos);
-            pos.SelectPos--;
-            Info.SendDlgMessage(hDlg,DM_LISTBOXEX_SETCURPOS,1,&pos);
-          }
-          else if(key==KEY_CTRLDOWN)
-          {
-            FarListPos pos={Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L),-1};
-            Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_MOVE_DOWN,1,(void*)pos.SelectPos);
-            pos.SelectPos++;
-            Info.SendDlgMessage(hDlg,DM_LISTBOXEX_SETCURPOS,1,&pos);
+            switch(vk)
+            {
+              case VK_UP:
+                {
+                  FarListPos pos={Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L),-1};
+                  Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_MOVE_UP,1,(void*)pos.SelectPos);
+                  pos.SelectPos--;
+                  Info.SendDlgMessage(hDlg,DM_LISTBOXEX_SETCURPOS,1,&pos);
+                }
+                break;
+              case VK_DOWN:
+                {
+                  FarListPos pos={Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L),-1};
+                  Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_MOVE_DOWN,1,(void*)pos.SelectPos);
+                  pos.SelectPos++;
+                  Info.SendDlgMessage(hDlg,DM_LISTBOXEX_SETCURPOS,1,&pos);
+                }
+                break;
+            }
           }
         }
       }
