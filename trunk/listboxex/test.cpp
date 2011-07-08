@@ -171,7 +171,7 @@ static INT_PTR WINAPI MainDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2
     case DN_CONTROLINPUT:
       {
         const INPUT_RECORD* record=(const INPUT_RECORD *)Param2;
-        if(record->EventType==KEY_EVENT)
+        if(record->EventType==KEY_EVENT&&record->Event.KeyEvent.bKeyDown)
         {
           WORD vk=record->Event.KeyEvent.wVirtualKeyCode;
           if(IsNone(record))

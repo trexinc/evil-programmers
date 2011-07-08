@@ -634,7 +634,7 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
             }
           }
         }
-        else if(record->EventType==KEY_EVENT)
+        else if(record->EventType==KEY_EVENT&&record->Event.KeyEvent.bKeyDown)
         {
           if(data)
           {
