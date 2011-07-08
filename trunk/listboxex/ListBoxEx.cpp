@@ -161,7 +161,7 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
 {
   if(DM_LISTBOXEX_ISLBE==Msg) return 0;
   bool return_flag=false; long return_result=FALSE,old_curpos=0L;
-  const unsigned short default_colors[LISTBOXEX_COLORS_COUNT]={LISTBOXEX_COLOR_DEFAULT+LISTBOXEX_COLOR_ITEM,LISTBOXEX_COLOR_DEFAULT+LISTBOXEX_COLOR_SELECTEDITEM,LISTBOXEX_COLOR_DEFAULT+LISTBOXEX_COLOR_DISABLED};
+  const ListBoxExColor default_colors[LISTBOXEX_COLORS_COUNT]={{{0},LISTBOXEX_COLOR_ITEM,true},{{0},LISTBOXEX_COLOR_SELECTEDITEM,true},{{0},LISTBOXEX_COLOR_DISABLED,true}};
   ListBoxExData *data=NULL;
   if(Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ISLBE,Param1,0L))
   {
@@ -186,12 +186,12 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
         {
           if(!Param2)
           {
-            data->Colors[LISTBOXEX_COLOR_BACKGROUND]=Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_DIALOGLISTBOX,NULL);
-            data->Colors[LISTBOXEX_COLOR_ITEM]=Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_DIALOGLISTTEXT,NULL);
-            data->Colors[LISTBOXEX_COLOR_HOTKEY]=Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_DIALOGLISTHIGHLIGHT,NULL);
-            data->Colors[LISTBOXEX_COLOR_SELECTEDITEM]=Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_DIALOGLISTSELECTEDTEXT,NULL);
-            data->Colors[LISTBOXEX_COLOR_SELECTEDHOTKEY]=Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_DIALOGLISTSELECTEDHIGHLIGHT,NULL);
-            data->Colors[LISTBOXEX_COLOR_DISABLED]=Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_DIALOGLISTDISABLED,NULL);
+            Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_DIALOGLISTBOX,data->Colors+LISTBOXEX_COLOR_BACKGROUND);
+            Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_DIALOGLISTTEXT,data->Colors+LISTBOXEX_COLOR_ITEM);
+            Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_DIALOGLISTHIGHLIGHT,data->Colors+LISTBOXEX_COLOR_HOTKEY);
+            Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_DIALOGLISTSELECTEDTEXT,data->Colors+LISTBOXEX_COLOR_SELECTEDITEM);
+            Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_DIALOGLISTSELECTEDHIGHLIGHT,data->Colors+LISTBOXEX_COLOR_SELECTEDHOTKEY);
+            Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_DIALOGLISTDISABLED,data->Colors+LISTBOXEX_COLOR_DISABLED);
             data->Top=-1;
             data->CurPos=-1;
           }
@@ -264,7 +264,7 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
           }
           for(unsigned long i=0;i<sizeofa(data->Items[data->ItemCount].Attribute);i++)
           {
-            data->Items[data->ItemCount].Attribute[i]=(unsigned short *)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,data->Items[data->ItemCount].Length*sizeof(unsigned short));
+            data->Items[data->ItemCount].Attribute[i]=(ListBoxExColor*)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,data->Items[data->ItemCount].Length*sizeof(ListBoxExColor));
             if(data->Items[data->ItemCount].Attribute[i])
             {
               for(unsigned long j=0;j<data->Items[data->ItemCount].Length;j++)
@@ -373,7 +373,7 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
           for(unsigned long i=0;i<sizeofa(data->Items[item->Index].Attribute);i++)
           {
               if(data->Items[item->Index].Attribute[i]) HeapFree(GetProcessHeap(),0,data->Items[item->Index].Attribute[i]);
-              data->Items[item->Index].Attribute[i]=(unsigned short *)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,data->Items[item->Index].Length*sizeof(unsigned short));
+              data->Items[item->Index].Attribute[i]=(ListBoxExColor*)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,data->Items[item->Index].Length*sizeof(ListBoxExColor));
               if(data->Items[item->Index].Attribute[i])
               {
                 for(unsigned long j=0;j<data->Items[item->Index].Length;j++)
@@ -443,7 +443,8 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
         ListBoxExSetColor *color=(ListBoxExSetColor *)Param2;
         if(data->ItemCount>color->Index&&color->TypeIndex<LISTBOXEX_COLORS_COUNT&&data->Items[color->Index].Attribute[color->TypeIndex]&&data->Items[color->Index].Length>color->ColorIndex)
         {
-          data->Items[color->Index].Attribute[color->TypeIndex][color->ColorIndex]=color->Color;
+          data->Items[color->Index].Attribute[color->TypeIndex][color->ColorIndex].Default=false;
+          data->Items[color->Index].Attribute[color->TypeIndex][color->ColorIndex].Color=color->Color;
           Info.SendDlgMessage(hDlg,DM_REDRAW,0,0);
           return_result=TRUE;
         }
@@ -554,7 +555,7 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
           {
             int width=DialogItemInfo.Item->X2-DialogItemInfo.Item->X1+1,height=DialogItemInfo.Item->Y2-DialogItemInfo.Item->Y1+1;
             TCHAR *char_buffer=(TCHAR*)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,width*sizeof(TCHAR));
-            unsigned short *attr_buffer=(unsigned short *)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,width*sizeof(unsigned short));
+            FarColor* attr_buffer=(FarColor*)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,width*sizeof(FarColor));
             if(char_buffer&&attr_buffer)
             {
               for(long i=0,current_item=data->Top;i<height;i++,get_next_item(data,&current_item,1,true))
@@ -578,14 +579,14 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
                         color_type=LISTBOXEX_COLORS_DISABLED;
                       char_buffer[j]=data->Items[current_item].Item[k];
 
-                      if(!data->Items[current_item].Attribute[color_type]||data->Items[current_item].Attribute[color_type][k]>=LISTBOXEX_COLOR_DEFAULT)
+                      if(!data->Items[current_item].Attribute[color_type]||data->Items[current_item].Attribute[color_type][k].Default)
                       {
-                        unsigned short color=data->Items[current_item].Attribute[color_type]?(data->Items[current_item].Attribute[color_type][k]-LISTBOXEX_COLOR_DEFAULT):(default_colors[color_type]-LISTBOXEX_COLOR_DEFAULT);
+                        size_t color=data->Items[current_item].Attribute[color_type]?data->Items[current_item].Attribute[color_type][k].Index:default_colors[color_type].Index;
                         if(color>=LISTBOXEX_COLOR_COUNT) color=LISTBOXEX_COLOR_BACKGROUND;
                         attr_buffer[j]=data->Colors[color];
                       }
                       else
-                        attr_buffer[j]=data->Items[current_item].Attribute[color_type][k];
+                        attr_buffer[j]=data->Items[current_item].Attribute[color_type][k].Color;
                     }
                     else
                     {
@@ -606,7 +607,7 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
                 }
                 for(int j=0;j<width;j++)
                 {
-                  DialogItemInfo.Item->VBuf[i*width+j].Char.UnicodeChar=char_buffer[j];
+                  DialogItemInfo.Item->VBuf[i*width+j].Char=char_buffer[j];
                   DialogItemInfo.Item->VBuf[i*width+j].Attributes=attr_buffer[j];
                 }
               }
