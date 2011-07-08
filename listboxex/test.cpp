@@ -135,25 +135,28 @@ static INT_PTR WINAPI MainDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2
       Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(void*)_T("6 bbb"));
       Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,1,(void*)_T("7 bbb"));
       {
-        ListBoxExSetColor color={2,LISTBOXEX_COLORS_ITEM,0,0x7C};
+        ListBoxExSetColor color={2,LISTBOXEX_COLORS_ITEM,0,{FCF_FG_4BIT|FCF_BG_4BIT,0xC,0x7,NULL}};
         for(int i=2;i<5;i++)
         {
           color.ColorIndex=i;
           Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETCOLOR,1,&color);
         }
-        color.Color=0x7A;
+        color.Color.ForegroundColor=0xA;
+        color.Color.BackgroundColor=0x7;
         for(int i=7;i<10;i++)
         {
           color.ColorIndex=i;
           Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETCOLOR,1,&color);
         }
-        color.Color=0x79;
+        color.Color.ForegroundColor=0x9;
+        color.Color.BackgroundColor=0x7;
         for(int i=12;i<15;i++)
         {
           color.ColorIndex=i;
           Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETCOLOR,1,&color);
         }
-        color.Color=0x09;
+        color.Color.ForegroundColor=0x9;
+        color.Color.BackgroundColor=0x0;
         color.TypeIndex=LISTBOXEX_COLORS_SELECTED;
         for(int i=12;i<15;i++)
         {
@@ -233,7 +236,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo*)
   };
   FarDialogItem DialogItems[sizeof(InitItems)/sizeof(InitItems[0])];
   InitDialogItems(InitItems,DialogItems,sizeof(InitItems)/sizeof(InitItems[0]));
-  CHAR_INFO *VirtualBuffer=(CHAR_INFO *)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,(DialogItems[1].X2-DialogItems[1].X1+1)*(DialogItems[1].Y2-DialogItems[1].Y1+1)*sizeof(CHAR_INFO));
+  FAR_CHAR_INFO *VirtualBuffer=(FAR_CHAR_INFO *)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,(DialogItems[1].X2-DialogItems[1].X1+1)*(DialogItems[1].Y2-DialogItems[1].Y1+1)*sizeof(FAR_CHAR_INFO));
   DialogItems[1].VBuf=VirtualBuffer;
   HANDLE hDlg=Info.DialogInit(&MainGuid,&DialogGuid,-1,-1,71,21,NULL,DialogItems,sizeof(DialogItems)/sizeof(DialogItems[0]),0,0,MainDialogProc,0);
   if(hDlg!=INVALID_HANDLE_VALUE)

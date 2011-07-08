@@ -97,6 +97,13 @@ extern PluginStartupInfo Info;
 extern FARSTANDARDFUNCTIONS FSF;
 EXTERN_C const GUID MainGuid;
 
+struct ListBoxExColor
+{
+  FarColor Color;
+  size_t Index;
+  bool Default;
+};
+
 struct ListBoxExItem
 {
   long Flags;
@@ -104,7 +111,7 @@ struct ListBoxExItem
   TCHAR CheckMark;
   unsigned long Length;
   TCHAR* Item;
-  unsigned short* Attribute[3];
+  ListBoxExColor* Attribute[3];
   void* UserData;
 };
 
@@ -118,7 +125,7 @@ struct ListBoxExData
   long UserData;
   long ItemCount;
   ListBoxExItem* Items;
-  unsigned short Colors[LISTBOXEX_COLOR_COUNT];
+  FarColor Colors[LISTBOXEX_COLOR_COUNT];
 };
 
 //structures for messages
@@ -127,7 +134,7 @@ struct ListBoxExSetColor
   long Index;
   unsigned long TypeIndex;
   unsigned long ColorIndex;
-  unsigned short Color;
+  FarColor Color;
 };
 
 struct ListBoxExSetHotkey
@@ -157,7 +164,7 @@ struct ListBoxExAddItem
 struct ListBoxExColors
 {
   long Count;
-  unsigned short *Colors;
+  FarColor *Colors;
 };
 
 #endif
