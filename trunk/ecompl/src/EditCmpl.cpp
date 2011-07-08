@@ -101,15 +101,15 @@ HANDLE WINAPI OpenW(const struct OpenInfo* Info)
   return INVALID_HANDLE_VALUE;
 }
 
-int WINAPI ConfigureW(const GUID* Guid)
+int WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
 {
   ShowMenu(2);
   return FALSE;
 }
 
-int WINAPI ProcessEditorEventW(int Event,void *Param)
+int WINAPI ProcessEditorEventW(const struct ProcessEditorEventInfo *Info)
 {
-  return ACmpl->ProcessEditorEvent(Event,Param);
+  return ACmpl->ProcessEditorEvent(Info->Event,Info->Param);
 }
 
 int WINAPI ProcessEditorInputW(const ProcessEditorInputInfo* Info)

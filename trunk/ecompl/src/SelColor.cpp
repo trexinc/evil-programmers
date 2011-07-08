@@ -26,55 +26,75 @@
 // {E456CA5B-3A02-445f-A217-3BD52ABC3057}
 DEFINE_GUID(ColorGuid, 0xe456ca5b, 0x3a02, 0x445f, 0xa2, 0x17, 0x3b, 0xd5, 0x2a, 0xbc, 0x30, 0x57);
 
-enum
+static FarColor Colors[]=
 {
-  color_box_fg =  0,
-  color_box_bg = 17,
-  color_set    = 34,
-  color_cancel = 35,
-  color_test1  = 36,
-  color_test2  = 37,
-  color_test3  = 38,
-  color_border = 39,
-  color_sep    = 40,
+  {FCF_FG_4BIT|FCF_BG_4BIT,0x7,0x0,NULL},
+  {FCF_FG_4BIT|FCF_BG_4BIT,0x0,0x4,NULL},
+  {FCF_FG_4BIT|FCF_BG_4BIT,0x7,0x8,NULL},
+  {FCF_FG_4BIT|FCF_BG_4BIT,0x0,0xc,NULL},
+  {FCF_FG_4BIT|FCF_BG_4BIT,0x7,0x1,NULL},
+  {FCF_FG_4BIT|FCF_BG_4BIT,0x0,0x5,NULL},
+  {FCF_FG_4BIT|FCF_BG_4BIT,0x0,0x9,NULL},
+  {FCF_FG_4BIT|FCF_BG_4BIT,0x0,0xd,NULL},
+  {FCF_FG_4BIT|FCF_BG_4BIT,0x0,0x2,NULL},
+  {FCF_FG_4BIT|FCF_BG_4BIT,0x0,0x6,NULL},
+  {FCF_FG_4BIT|FCF_BG_4BIT,0x0,0xa,NULL},
+  {FCF_FG_4BIT|FCF_BG_4BIT,0x0,0xe,NULL},
+  {FCF_FG_4BIT|FCF_BG_4BIT,0x0,0x3,NULL},
+  {FCF_FG_4BIT|FCF_BG_4BIT,0x0,0x7,NULL},
+  {FCF_FG_4BIT|FCF_BG_4BIT,0x0,0xb,NULL},
+  {FCF_FG_4BIT|FCF_BG_4BIT,0x0,0xf,NULL}
 };
 
-static INT_PTR WINAPI ColorDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
+#define GetCheck(i) (int)Info.SendDlgMessage(hDlg,DM_GETCHECK,i,0)
+static inline DWORD GetFlags(int i,HANDLE hDlg)
 {
-  int color=0;
+  DWORD flags=0;
+  FarDialogItem DialogItem;
+  if(Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,i,&DialogItem))
+  {
+    flags=DialogItem.Flags;
+  }
+  return flags;
+}
+
+INT_PTR WINAPI ColorDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
+{
   FarDialogItem DialogItem;
   switch(Msg)
   {
     case DN_INITDIALOG:
     case DN_BTNCLICK:
-      for(int i=1;i<17;i++)
+      break;
+    case DN_CTLCOLORDLGITEM:
       {
-        if(Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,i,&DialogItem))
+        size_t shift=0;
+        if(Param1>0&&Param1<17) shift=1;
+        if(Param1>17&&Param1<34) shift=18;
+        if(Param1>35&&Param1<39)
         {
-          if(DialogItem.Selected)
+          FarColor color={FCF_FG_4BIT|FCF_BG_4BIT,0,0,NULL};
+          for(int i=1;i<17;i++)
           {
-            color|=(DialogItem.Flags&0xF0)>>4;
-            break;
+            if(GetCheck(i))
+            {
+              color.ForegroundColor=Colors[i-1].BackgroundColor;
+              break;
+            }
           }
-        }
-      }
-      for(int i=18;i<34;i++)
-      {
-        if(Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,i,&DialogItem))
-        {
-          if(DialogItem.Selected)
+          for(int i=18;i<34;i++)
           {
-            color|=(DialogItem.Flags&0xF0);
-            break;
+            if(GetCheck(i))
+            {
+              color.BackgroundColor=Colors[i-18].BackgroundColor;
+              break;
+            }
           }
+          static_cast<FarDialogItemColors*>(Param2)->Colors[0]=color;
         }
-      }
-      for(int i=36;i<39;i++)
-      {
-        if(Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,i,&DialogItem))
+        if(shift)
         {
-          DialogItem.Flags=(DialogItem.Flags&0xffffff00)|color;
-          Info.SendDlgMessage(hDlg,DM_SETDLGITEMSHORT,i,&DialogItem);
+          static_cast<FarDialogItemColors*>(Param2)->Colors[0]=Colors[Param1-shift];
         }
       }
       break;
@@ -82,7 +102,7 @@ static INT_PTR WINAPI ColorDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param
   return Info.DefDlgProc(hDlg,Msg,Param1,Param2);
 }
 
-bool SelectColor(int *fg,int *bg)
+bool SelectColor(FarColor& color)
 {
   bool result=false;
   //Show dialog
@@ -107,80 +127,72 @@ bool SelectColor(int *fg,int *bg)
     000000000011111111112222222222333333333
     012345678901234567890123456789012345678
   */
+  FarDialogItem DialogItems[]={
+  /* 0*/  {DI_SINGLEBOX,   5,2 ,18,7 ,{0},NULL,NULL,0,                                GetMsg(MColorForeground)      ,0,NULL},
+  /* 1*/  {DI_RADIOBUTTON, 6,3 ,0 ,0 ,{0},NULL,NULL,DIF_GROUP|DIF_MOVESELECT,         _T("")                        ,0,NULL},
+  /* 2*/  {DI_RADIOBUTTON, 6,4 ,0 ,0 ,{0},NULL,NULL,          DIF_MOVESELECT,         _T("")                        ,0,NULL},
+  /* 3*/  {DI_RADIOBUTTON, 6,5 ,0 ,0 ,{0},NULL,NULL,          DIF_MOVESELECT,         _T("")                        ,0,NULL},
+  /* 4*/  {DI_RADIOBUTTON, 6,6 ,0 ,0 ,{0},NULL,NULL,          DIF_MOVESELECT,         _T("")                        ,0,NULL},
+  /* 5*/  {DI_RADIOBUTTON, 9,3 ,0 ,0 ,{0},NULL,NULL,          DIF_MOVESELECT,         _T("")                        ,0,NULL},
+  /* 6*/  {DI_RADIOBUTTON, 9,4 ,0 ,0 ,{0},NULL,NULL,          DIF_MOVESELECT,         _T("")                        ,0,NULL},
+  /* 7*/  {DI_RADIOBUTTON, 9,5 ,0 ,0 ,{0},NULL,NULL,          DIF_MOVESELECT,         _T("")                        ,0,NULL},
+  /* 8*/  {DI_RADIOBUTTON, 9,6 ,0 ,0 ,{0},NULL,NULL,          DIF_MOVESELECT,         _T("")                        ,0,NULL},
+  /* 9*/  {DI_RADIOBUTTON,12,3 ,0 ,0 ,{0},NULL,NULL,          DIF_MOVESELECT,         _T("")                        ,0,NULL},
+  /*10*/  {DI_RADIOBUTTON,12,4 ,0 ,0 ,{0},NULL,NULL,          DIF_MOVESELECT,         _T("")                        ,0,NULL},
+  /*11*/  {DI_RADIOBUTTON,12,5 ,0 ,0 ,{0},NULL,NULL,          DIF_MOVESELECT,         _T("")                        ,0,NULL},
+  /*12*/  {DI_RADIOBUTTON,12,6 ,0 ,0 ,{0},NULL,NULL,          DIF_MOVESELECT,         _T("")                        ,0,NULL},
+  /*13*/  {DI_RADIOBUTTON,15,3 ,0 ,0 ,{0},NULL,NULL,          DIF_MOVESELECT,         _T("")                        ,0,NULL},
+  /*14*/  {DI_RADIOBUTTON,15,4 ,0 ,0 ,{0},NULL,NULL,          DIF_MOVESELECT,         _T("")                        ,0,NULL},
+  /*15*/  {DI_RADIOBUTTON,15,5 ,0 ,0 ,{0},NULL,NULL,          DIF_MOVESELECT,         _T("")                        ,0,NULL},
+  /*16*/  {DI_RADIOBUTTON,15,6 ,0 ,0 ,{0},NULL,NULL,          DIF_MOVESELECT,         _T("")                        ,0,NULL},
+  /*17*/  {DI_SINGLEBOX,  20,2 ,33,7 ,{0},NULL,NULL,0,                                GetMsg(MColorBackground)      ,0,NULL},
+  /*18*/  {DI_RADIOBUTTON,21,3 ,0 ,0 ,{0},NULL,NULL,DIF_GROUP|DIF_MOVESELECT,         _T("")                        ,0,NULL},
+  /*19*/  {DI_RADIOBUTTON,21,4 ,0 ,0 ,{0},NULL,NULL,          DIF_MOVESELECT,         _T("")                        ,0,NULL},
+  /*20*/  {DI_RADIOBUTTON,21,5 ,0 ,0 ,{0},NULL,NULL,          DIF_MOVESELECT,         _T("")                        ,0,NULL},
+  /*21*/  {DI_RADIOBUTTON,21,6 ,0 ,0 ,{0},NULL,NULL,          DIF_MOVESELECT,         _T("")                        ,0,NULL},
+  /*22*/  {DI_RADIOBUTTON,24,3 ,0 ,0 ,{0},NULL,NULL,          DIF_MOVESELECT,         _T("")                        ,0,NULL},
+  /*23*/  {DI_RADIOBUTTON,24,4 ,0 ,0 ,{0},NULL,NULL,          DIF_MOVESELECT,         _T("")                        ,0,NULL},
+  /*24*/  {DI_RADIOBUTTON,24,5 ,0 ,0 ,{0},NULL,NULL,          DIF_MOVESELECT,         _T("")                        ,0,NULL},
+  /*25*/  {DI_RADIOBUTTON,24,6 ,0 ,0 ,{0},NULL,NULL,          DIF_MOVESELECT,         _T("")                        ,0,NULL},
+  /*26*/  {DI_RADIOBUTTON,27,3 ,0 ,0 ,{0},NULL,NULL,          DIF_MOVESELECT,         _T("")                        ,0,NULL},
+  /*27*/  {DI_RADIOBUTTON,27,4 ,0 ,0 ,{0},NULL,NULL,          DIF_MOVESELECT,         _T("")                        ,0,NULL},
+  /*28*/  {DI_RADIOBUTTON,27,5 ,0 ,0 ,{0},NULL,NULL,          DIF_MOVESELECT,         _T("")                        ,0,NULL},
+  /*29*/  {DI_RADIOBUTTON,27,6 ,0 ,0 ,{0},NULL,NULL,          DIF_MOVESELECT,         _T("")                        ,0,NULL},
+  /*30*/  {DI_RADIOBUTTON,30,3 ,0 ,0 ,{0},NULL,NULL,          DIF_MOVESELECT,         _T("")                        ,0,NULL},
+  /*31*/  {DI_RADIOBUTTON,30,4 ,0 ,0 ,{0},NULL,NULL,          DIF_MOVESELECT,         _T("")                        ,0,NULL},
+  /*32*/  {DI_RADIOBUTTON,30,5 ,0 ,0 ,{0},NULL,NULL,          DIF_MOVESELECT,         _T("")                        ,0,NULL},
+  /*33*/  {DI_RADIOBUTTON,30,6 ,0 ,0 ,{0},NULL,NULL,          DIF_MOVESELECT,         _T("")                        ,0,NULL},
+  /*34*/  {DI_BUTTON,      0,12,0 ,0 ,{0},NULL,NULL,DIF_CENTERGROUP|DIF_DEFAULTBUTTON,GetMsg(MColorSet)             ,0,NULL},
+  /*35*/  {DI_BUTTON,      0,12,0 ,0 ,{0},NULL,NULL,DIF_CENTERGROUP,                  GetMsg(MColorCancel)          ,0,NULL},
+  /*36*/  {DI_TEXT,        5,8 ,0 ,0 ,{0},NULL,NULL,0,                                GetMsg(MColorTest1)           ,0,NULL},
+  /*37*/  {DI_TEXT,        5,9 ,0 ,0 ,{0},NULL,NULL,0,                                GetMsg(MColorTest2)           ,0,NULL},
+  /*38*/  {DI_TEXT,        5,10,0 ,0 ,{0},NULL,NULL,0,                                GetMsg(MColorTest3)           ,0,NULL},
+  /*39*/  {DI_DOUBLEBOX,   3,1 ,35,13,{0},NULL,NULL,0,                                GetMsg(MColorMain)            ,0,NULL},
+  /*40*/  {DI_TEXT,       -1,11,0 ,0 ,{0},NULL,NULL,DIF_SEPARATOR,                    _T("")                        ,0,NULL},
+  };
   const unsigned char color_translate[]={0,4,8,0xc,1,5,9,0xd,2,6,0xa,0xe,3,7,0xb,0xf};
-  const unsigned char colors[]={0x07,0x40,0x87,0xc0,0x17,0x50,0x90,0xd0,0x20,0x60,0xa0,0xe0,0x30,0x70,0xb0,0xf0};
-
-
-  struct FarDialogItem DialogItems[color_sep+1];
-  memset(DialogItems,0,sizeof(DialogItems));
-  DialogItems[color_box_fg].Type=DI_SINGLEBOX;
-  DialogItems[color_box_fg].X1=5;
-  DialogItems[color_box_fg].Y1=2;
-  DialogItems[color_box_fg].X2=18;
-  DialogItems[color_box_fg].Y2=7;
-  INIT_DLG_DATA(DialogItems[color_box_fg],GetMsg(MColorForeground));
-  DialogItems[color_box_bg].Type=DI_SINGLEBOX;
-  DialogItems[color_box_bg].X1=20;
-  DialogItems[color_box_bg].Y1=2;
-  DialogItems[color_box_bg].X2=33;
-  DialogItems[color_box_bg].Y2=7;
-  INIT_DLG_DATA(DialogItems[color_box_bg],GetMsg(MColorBackground));
-  for(int i=0,shift=1;i<2;i++,shift+=color_box_bg-color_box_fg)
-    for(int j=0;j<16;j++)
-    {
-      DialogItems[shift+j].Type=DI_RADIOBUTTON;
-      DialogItems[shift+j].X1=(j/4+2)*3+i*15;
-      DialogItems[shift+j].Y1=j%4+3;
-      DialogItems[shift+j].Flags=DIF_MOVESELECT|DIF_SETCOLOR|colors[j];
-      if(j==0) DialogItems[shift+j].Flags|=DIF_GROUP;
-    }
-  for(int i=0;i<2;i++)
-  {
-    DialogItems[color_set+i].Type=DI_BUTTON;
-    DialogItems[color_set+i].Y1=12;
-    DialogItems[color_set+i].Flags=DIF_CENTERGROUP;
-    DialogItems[color_set+i].Flags|=(!i)?DIF_DEFAULTBUTTON:0;
-    INIT_DLG_DATA(DialogItems[color_set+i],GetMsg(MColorSet+i));
-  }
-  for(int i=0;i<3;i++)
-  {
-    DialogItems[color_test1+i].Type=DI_TEXT;
-    DialogItems[color_test1+i].X1=5;
-    DialogItems[color_test1+i].Y1=i+8;
-    DialogItems[color_test1+i].Flags=DIF_SETCOLOR;
-    INIT_DLG_DATA(DialogItems[color_test1+i],GetMsg(MColorTest1+i));
-  }
-  DialogItems[color_border].Type=DI_DOUBLEBOX;
-  DialogItems[color_border].X1=3;
-  DialogItems[color_border].Y1=1;
-  DialogItems[color_border].X2=35;
-  DialogItems[color_border].Y2=13;
-  INIT_DLG_DATA(DialogItems[color_border],GetMsg(MColorMain));
-  DialogItems[color_sep].Type=DI_TEXT;
-  DialogItems[color_sep].X1=-1;
-  DialogItems[color_sep].Y1=11;
-  DialogItems[color_sep].Flags=DIF_SEPARATOR;
-
-  DialogItems[color_translate[*fg]+1].Flags|=DIF_FOCUS;
-  DialogItems[color_translate[*fg]+1].Selected=true;
-  DialogItems[color_translate[*bg]+18].Selected=true;
-  CFarDialog dialog;
-  int DlgCode=dialog.Execute(MainGuid,ColorGuid,-1,-1,39,15,NULL,DialogItems,(sizeof(DialogItems)/sizeof(DialogItems[0])),0,0,ColorDialogProc,0);
-  if(DlgCode==color_set)
+  DialogItems[color_translate[color.ForegroundColor]+1].Flags|=DIF_FOCUS;
+  DialogItems[color_translate[color.ForegroundColor]+1].Selected=true;
+  DialogItems[color_translate[color.BackgroundColor]+18].Selected=true;
+  int DlgCode=-1;
+  HANDLE hDlg=Info.DialogInit(&MainGuid,&ColorGuid,-1,-1,39,15,_T("Color"),DialogItems,(sizeof(DialogItems)/sizeof(DialogItems[0])),0,0,ColorDialogProc,0);
+  if(hDlg!=INVALID_HANDLE_VALUE) DlgCode=Info.DialogRun(hDlg);
+  if(DlgCode==34)
   {
     for(int i=1;i<17;i++)
-      if(dialog.Check(i))
+      if(GetCheck(i))
       {
-        *fg=(dialog.Flags(i)&0xF0)>>4;
+        color.ForegroundColor=Colors[i-1].BackgroundColor;
         break;
       }
     for(int i=18;i<34;i++)
-      if(dialog.Check(i))
+      if(GetCheck(i))
       {
-        *bg=(dialog.Flags(i)&0xF0)>>4;
+        color.BackgroundColor=Colors[i-18].BackgroundColor;
         break;
       }
     result=true;
   }
+  if(hDlg!=INVALID_HANDLE_VALUE) Info.DialogFree(hDlg);
   return result;
 }

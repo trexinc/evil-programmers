@@ -4,7 +4,7 @@ EXPORTS
    GetPluginInfoW=GetPluginInfoW@4
    OpenW=OpenW@4
    ConfigureW=ConfigureW@4
-   ProcessEditorEventW=ProcessEditorEventW@8
+   ProcessEditorEventW=ProcessEditorEventW@4
    ProcessEditorInputW=ProcessEditorInputW@4
    ExitFARW=ExitFARW@4
    GetGlobalInfoW=GetGlobalInfoW@4

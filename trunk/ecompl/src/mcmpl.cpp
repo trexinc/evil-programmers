@@ -119,9 +119,9 @@ static INT_PTR WINAPI ListMenuProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
         Info.SendDlgMessage(hDlg,DM_LISTBOXEX_SETFLAGS,2,(void*)LBFEX_WRAPMODE);
         {
           int ColorIndex[LISTBOXEX_COLOR_COUNT]={COL_MENUTEXT,COL_MENUTEXT,COL_MENUHIGHLIGHT,COL_MENUSELECTEDTEXT,COL_MENUSELECTEDHIGHLIGHT,COL_MENUDISABLEDTEXT};
-          unsigned short NewColors[LISTBOXEX_COLOR_COUNT];
+          FarColor NewColors[LISTBOXEX_COLOR_COUNT];
           for(unsigned long i=0;i<sizeofa(ColorIndex);i++)
-            NewColors[i]=Info.AdvControl(&MainGuid,ACTL_GETCOLOR,ColorIndex[i],0);
+            Info.AdvControl(&MainGuid,ACTL_GETCOLOR,ColorIndex[i],NewColors+i);
           ListBoxExColors Colors={LISTBOXEX_COLOR_COUNT,NewColors};
           Info.SendDlgMessage(hDlg,DM_LISTBOXEX_SETCOLORS,2,&Colors);
         }
@@ -134,9 +134,9 @@ static INT_PTR WINAPI ListMenuProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
           Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ADDSTR,2,(void*)((const UTCHAR*)item));
           if(i<DlgParams->ShortCutsLen)
           {
-            ListBoxExSetColor color={i,LISTBOXEX_COLORS_ITEM,0,LISTBOXEX_COLOR_DEFAULT+LISTBOXEX_COLOR_HOTKEY};
+            ListBoxExSetColor color={i,LISTBOXEX_COLORS_ITEM,0,{{0},LISTBOXEX_COLOR_HOTKEY,true}};
             Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETCOLOR,2,&color);
-            color.Color=LISTBOXEX_COLOR_DEFAULT+LISTBOXEX_COLOR_SELECTEDHOTKEY;
+            color.Color.Index=LISTBOXEX_COLOR_SELECTEDHOTKEY;
             color.TypeIndex=LISTBOXEX_COLORS_SELECTED;
             Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_SETCOLOR,2,&color);
             ListBoxExSetHotkey hotkey={i,DlgParams->ShortCuts[i]};
@@ -146,14 +146,23 @@ static INT_PTR WINAPI ListMenuProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
       }
       break;
     case DN_CTLCOLORDIALOG:
-      return Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_MENUTEXT,NULL);
+      Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_MENUTEXT,Param2);
+      break;
     case DN_CTLCOLORDLGITEM:
       switch(Param1)
       {
         case 0:
-          return (Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_MENUBOX,NULL)<<16)|(Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_MENUTITLE,NULL)<<8)|(Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_MENUTITLE,NULL));
         case 1:
-          return (Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_MENUBOX,NULL)<<16)|(Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_MENUTITLE,NULL)<<8)|(Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_MENUTITLE,NULL));
+          {
+            FarDialogItemColors* colors=(FarDialogItemColors*)Param2;
+            if(colors->ColorsCount>=3)
+            {
+              Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_MENUTITLE,colors->Colors);
+              Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_MENUTITLE,colors->Colors+1);
+              Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_MENUBOX,colors->Colors+2);
+            }
+          }
+          break;
       }
       break;
     case DN_CONTROLINPUT:
@@ -236,7 +245,7 @@ bool TMenuCompletion::ShowMenu(string &Selected)
     DialogItems[1].X1=(MenuWidth+4-_tcslen(BottomMsg))/2; DialogItems[1].Y1=DialogItems[0].Y2;
     INIT_DLG_DATA(DialogItems[1],BottomMsg);
     DialogItems[2].X1=DialogItems[0].X1+1; DialogItems[2].Y1=DialogItems[0].Y1+1; DialogItems[2].X2=DialogItems[0].X2-1; DialogItems[2].Y2=DialogItems[0].Y2-1;
-    CHAR_INFO *VirtualBuffer=(CHAR_INFO *)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,(DialogItems[2].X2-DialogItems[2].X1+1)*(DialogItems[2].Y2-DialogItems[2].Y1+1)*sizeof(CHAR_INFO));
+    FAR_CHAR_INFO* VirtualBuffer=(FAR_CHAR_INFO*)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,(DialogItems[2].X2-DialogItems[2].X1+1)*(DialogItems[2].Y2-DialogItems[2].Y1+1)*sizeof(FAR_CHAR_INFO));
     if(VirtualBuffer)
     {
       DialogItems[2].VBuf=VirtualBuffer;
