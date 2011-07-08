@@ -81,6 +81,6 @@ enum
   IDeleteKeyCfg,
 };
 
-extern bool SelectColor(int *fg,int *bg);
+extern bool SelectColor(FarColor& color);
 
 #endif
