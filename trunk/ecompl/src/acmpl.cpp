@@ -18,7 +18,6 @@
 */
 
 #include "acmpl.hpp"
-#include "farkeys.hpp"
 #include "EditCmpl.hpp"
 #include "language.hpp"
 #include "guid.hpp"
@@ -36,8 +35,8 @@ TAutoCompletion::TAutoCompletion()
   PartialCompletion=true;
 
   AcceptFromMenu=false;
-  AcceptKey=-1;
-  DeleteKey=-1;
+  memset(&AcceptKey,0,sizeof(AcceptKey));
+  memset(&DeleteKey,0,sizeof(DeleteKey));
   Color=0x2F;
   AcceptChars[0]=0;
   _tcscpy(ConfigHelpTopic,_T("ConfigAuto"));
@@ -61,18 +60,19 @@ int TAutoCompletion::ProcessEditorInput(const INPUT_RECORD *Rec)
       {
         if(Window->Active&&Rec->Event.KeyEvent.wVirtualKeyCode!=0&&Rec->Event.KeyEvent.wVirtualScanCode!=0)
         {
-          int FarKey=FSF.FarInputRecordToKey(Rec);
-          if(FarKey==AcceptKey||(Rec->Event.KeyEvent.uChar.t_KEY_CHAR&&_tcschr(AcceptChars,Rec->Event.KeyEvent.uChar.t_KEY_CHAR)))
+          //int FarKey=FSF.FarInputRecordToKey(Rec);
+          bool accept=(memcmp(Rec,&AcceptKey,sizeof(AcceptKey))==0);
+          if(accept||(Rec->Event.KeyEvent.uChar.UnicodeChar&&_tcschr(AcceptChars,Rec->Event.KeyEvent.uChar.UnicodeChar)))
           {
-            IgnoreThisEvent=AcceptVariant(Window)&&(FarKey==AcceptKey);
+            IgnoreThisEvent=AcceptVariant(Window)&&accept;
           }
           else if(Rec->Event.KeyEvent.wVirtualKeyCode!=VK_CONTROL&&Rec->Event.KeyEvent.wVirtualKeyCode!=VK_SHIFT&&Rec->Event.KeyEvent.wVirtualKeyCode!=VK_MENU)
           {
             DeleteVariant(Window);
-            IgnoreThisEvent=(FarKey==DeleteKey);
+            IgnoreThisEvent=(memcmp(Rec,&DeleteKey,sizeof(DeleteKey))==0);
           }
         }
-        UTCHAR c=Rec->Event.KeyEvent.uChar.t_KEY_CHAR;
+        UTCHAR c=Rec->Event.KeyEvent.uChar.UnicodeChar;
         DWORD control=Rec->Event.KeyEvent.dwControlKeyState&(LEFT_ALT_PRESSED|LEFT_CTRL_PRESSED|RIGHT_ALT_PRESSED|RIGHT_CTRL_PRESSED);
         if(IsAlpha(c)&&(control==0||control==(LEFT_CTRL_PRESSED|RIGHT_ALT_PRESSED)))
         {
@@ -363,8 +363,8 @@ void TAutoCompletion::GetOptions(void)
     int root=Root(settings.Handle);
     Color=GetValue(settings.Handle,root,_T("Color"),Color);
     TCHAR Key[256];
-    AcceptKey=FSF.FarNameToKey(GetValue(settings.Handle,root,_T("AcceptKey"),Key,ArraySize(Key))?Key:_T("CtrlEnd"));
-    DeleteKey=FSF.FarNameToKey(GetValue(settings.Handle,root,_T("DeleteKey"),Key,ArraySize(Key))?Key:_T("Del"));
+    FSF.FarNameToInputRecord(GetValue(settings.Handle,root,_T("AcceptKey"),Key,ArraySize(Key))?Key:_T("CtrlEnd"),&AcceptKey);
+    FSF.FarNameToInputRecord(GetValue(settings.Handle,root,_T("DeleteKey"),Key,ArraySize(Key))?Key:_T("Del"),&DeleteKey);
     AcceptFromMenu=GetValue(settings.Handle,root,_T("AcceptFromMenu"),AcceptFromMenu);
     GetValue(settings.Handle,root,_T("AcceptChars"),AcceptChars,ArraySize(AcceptChars));
     Info.SettingsControl(settings.Handle,SCTL_FREE,0,0);
@@ -383,9 +383,9 @@ void TAutoCompletion::SetOptions(void)
     SetValue(settings.Handle,root,_T("AcceptChars"),AcceptChars);
     {
       TCHAR Key[256];
-      if(!t_FarKeyToName(AcceptKey,Key,ArraySize(Key))) Key[0]=0;
+      if(!FSF.FarInputRecordToName(&AcceptKey,Key,ArraySize(Key))) Key[0]=0;
       SetValue(settings.Handle,root,_T("AcceptKey"),Key);
-      if(!t_FarKeyToName(DeleteKey,Key,ArraySize(Key))) Key[0]=0;
+      if(!FSF.FarInputRecordToName(&DeleteKey,Key,ArraySize(Key))) Key[0]=0;
       SetValue(settings.Handle,root,_T("DeleteKey"),Key);
     }
     Info.SettingsControl(settings.Handle,SCTL_FREE,0,0);
@@ -419,7 +419,7 @@ INT_PTR WINAPI GetKey(HANDLE hDlg,int Msg,int Param1,void* Param2)
     if(record->EventType==KEY_EVENT)
     {
       TCHAR *KeyName=(TCHAR *)Info.SendDlgMessage(hDlg,DM_GETDLGDATA,0,0);
-      t_FarKeyToName(FSF.FarInputRecordToKey(record),KeyName,256);
+      FSF.FarInputRecordToName(record,KeyName,256);
       Info.SendDlgMessage(hDlg,DM_CLOSE,-1,0);
     }
   }
@@ -549,7 +549,7 @@ void TAutoCompletion::StoreItems(CFarDialog& Dialog)
   AcceptFromMenu=Dialog.Check(IAcceptFromMenu);
   MinPreWordLen=FSF.atoi(Dialog.Str(IMinPreWordLen));
   Color=Dialog_Color;
-  AcceptKey=FSF.FarNameToKey(Dialog.Str(IAcceptKey));
-  DeleteKey=FSF.FarNameToKey(Dialog.Str(IDeleteKey));
+  FSF.FarNameToInputRecord(Dialog.Str(IAcceptKey),&AcceptKey);
+  FSF.FarNameToInputRecord(Dialog.Str(IDeleteKey),&DeleteKey);
   _tcscpy(AcceptChars,Dialog.Str(IAcceptChars));
 }

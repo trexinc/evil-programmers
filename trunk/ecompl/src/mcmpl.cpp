@@ -19,7 +19,6 @@
 
 #include "plugin.hpp"
 #include "farcolor.hpp"
-#include "farkeys.hpp"
 #include "mcmpl.hpp"
 #include "EditCmpl.hpp"
 #include "language.hpp"
@@ -168,10 +167,10 @@ static INT_PTR WINAPI ListMenuProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
     case DN_CONTROLINPUT:
       {
         const INPUT_RECORD* record=(const INPUT_RECORD *)Param2;
-        if(record->EventType==KEY_EVENT)
+        if(record->EventType==KEY_EVENT&&record->Event.KeyEvent.bKeyDown)
         {
-          long key=FSF.FarInputRecordToKey(record);
-          if((unsigned)key>=KEY_SPACE&&key<127L&&_tcschr(DlgParams->AcceptChars,key))
+          unsigned long key=record->Event.KeyEvent.uChar.UnicodeChar;
+          if(key&&_tcschr(DlgParams->AcceptChars,key))
           {
             DlgParams->ClosedKey=key;
             Info.SendDlgMessage(hDlg,DM_CLOSE,-1,NULL);
