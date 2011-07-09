@@ -24,12 +24,10 @@ extern PluginStartupInfo Info;
 #define ArraySize(a) (sizeof(a)/sizeof(a[0]))
 
 typedef unsigned short UTCHAR;
-#define t_FarKeyToName(Key,KeyText,Size) FSF.FarKeyToName(Key,KeyText,Size)
-#define t_KEY_CHAR UnicodeChar
 #define INIT_DLG_DATA(item,str) item.Data=str
 #define DLG_DATA(item) item.Data
 #define DLG_DATA_SPRINTF(item,val,mask) FSF.sprintf(val##Text,mask,val); item.Data=val##Text
-#define DLG_DATA_FARKEYTONAME(item,val) t_FarKeyToName(val,val##Text,ArraySize(val##Text)); item.Data=val##Text
+#define DLG_DATA_FARKEYTONAME(item,val) FSF.FarInputRecordToName(&val,val##Text,ArraySize(val##Text)); item.Data=val##Text
 #define DLG_DATA_ITOA(item,val) FSF.itoa(val,val##Text,10); item.Data=val##Text
 class CFarDialog
 {

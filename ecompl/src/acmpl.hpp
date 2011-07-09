@@ -30,8 +30,8 @@ class TAutoCompletion: public TCompletion
     int Dialog_Color;
   protected:
     bool AcceptFromMenu;
-    int AcceptKey;
-    int DeleteKey;
+    INPUT_RECORD AcceptKey;
+    INPUT_RECORD DeleteKey;
     __int64 Color;
     TCHAR AcceptChars[256];
     TCHAR MinPreWordLenText[21];
