@@ -22,6 +22,9 @@
 #include "abplugin.h"
 #include "ab_main.h"
 #include "guid.h"
+#include <initguid.h>
+// {015CCDE2-16D8-4829-BBA2-A7CD548A935C}
+DEFINE_GUID(MessageStopGuid, 0x15ccde2, 0x16d8, 0x4829, 0xbb, 0xa2, 0xa7, 0xcd, 0x54, 0x8a, 0x93, 0x5c);
 
 PEditFile editfiles;
 
@@ -343,7 +346,7 @@ int OnEditorEvent(int event,void *param)
                   WaitForSingleObject(Mutex,INFINITE);
                   const TCHAR* MsgItems[]={GetMsg(mError),GetMsg(mStopQuestion),GetMsg(mButtonYes),GetMsg(mButtonNo)};
                   stop_colorize=true;
-                  bool ContinueThread=Info.Message(&MainGuid,FMSG_WARNING,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),2);
+                  bool ContinueThread=Info.Message(&MainGuid,&MessageStopGuid,FMSG_WARNING,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),2);
                   stop_colorize=false;
                   ReleaseMutex(Mutex);
                   if(!ContinueThread)
