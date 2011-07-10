@@ -60,15 +60,6 @@ enum
 
   MChooseWord,
   MHave,
-
-  MColorMain,
-  MColorForeground,
-  MColorBackground,
-  MColorTest1,
-  MColorTest2,
-  MColorTest3,
-  MColorSet,
-  MColorCancel,
 };
 
 #endif

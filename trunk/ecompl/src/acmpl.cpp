@@ -460,7 +460,7 @@ INT_PTR TAutoCompletion::DialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
       Info.SendDlgMessage(hDlg,DM_SHOWDIALOG,FALSE,0);
       int bg=(Dialog_Color&0xF0)>>4,fg=Dialog_Color&0x0F;
       FarColor color={FCF_FG_4BIT|FCF_BG_4BIT,Dialog_Color&0x0F,(Dialog_Color&0xF0)>>4,NULL};
-      if(SelectColor(color)) Dialog_Color=(color.BackgroundColor<<4)|color.ForegroundColor;
+      if(Info.ColorDialog(&MainGuid,CDF_NONE,&color)) Dialog_Color=(color.BackgroundColor<<4)|color.ForegroundColor;
       Info.SendDlgMessage(hDlg,DM_SHOWDIALOG,TRUE,0);
       return TRUE;
     }
