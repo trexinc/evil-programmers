@@ -25,6 +25,8 @@
 #include "language.hpp"
 #include <initguid.h>
 #include "guid.hpp"
+// {3CED970B-53D5-46e2-8774-510F6BFF5D83}
+DEFINE_GUID(MainMenuGuid, 0x3ced970b, 0x53d5, 0x46e2, 0x87, 0x74, 0x51, 0xf, 0x6b, 0xff, 0x5d, 0x83);
 
 #ifdef __cplusplus
 extern "C"{
@@ -143,7 +145,7 @@ int ShowMenu(int Offset)
   do
   {
     Items[SelectedItem].Flags|=MIF_SELECTED;
-    MenuCode=Info.Menu(&MainGuid,-1,-1,0,FMENU_AUTOHIGHLIGHT|FMENU_WRAPMODE,GetMsg(MEditCmpl),Bottom,_T("Contents"),NULL,NULL,&Items[Offset],sizeof(Msgs)/sizeof(Msgs[0])-Offset);
+    MenuCode=Info.Menu(&MainGuid,&MainMenuGuid,-1,-1,0,FMENU_AUTOHIGHLIGHT|FMENU_WRAPMODE,GetMsg(MEditCmpl),Bottom,_T("Contents"),NULL,NULL,&Items[Offset],sizeof(Msgs)/sizeof(Msgs[0])-Offset);
     Items[SelectedItem].Flags&=~MIF_SELECTED;
     SelectedItem=MenuCode;
     if(MenuCode>=0) MenuCode+=Offset;
