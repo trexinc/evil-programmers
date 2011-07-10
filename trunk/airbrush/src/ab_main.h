@@ -34,14 +34,6 @@ enum {
   mConfigDialogMaxLines,
   mConfigSave,
   mConfigCancel,
-  mColorMain,
-  mColorForeground,
-  mColorBackground,
-  mColorTest1,
-  mColorTest2,
-  mColorTest3,
-  mColorSet,
-  mColorCancel,
   mStopQuestion,
   mFatalLine1,
   mFatalLine2,
@@ -134,7 +126,6 @@ extern int cursor_row,cursor_col;
 extern void LoadPlugs(const TCHAR* ModuleName);
 extern void UnloadPlugs(void);
 
-extern bool SelectColor(FarColor& color);
 extern void ConvertColor(const ABColor& Color,FarColor& NewColor);
 
 struct Options

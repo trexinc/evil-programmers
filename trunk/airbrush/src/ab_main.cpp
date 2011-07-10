@@ -557,11 +557,11 @@ int WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
                     if(ColorCode==-1) break;
                     FarColor color;
                     ConvertColor(Colors[ColorCode],color);
-                    if(SelectColor(color))
+                    if(Info.ColorDialog(&MainGuid,CDF_NONE,&color))
                     {
                       FarColor defColor;
                       Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_EDITORTEXT,&defColor);
-                      Colors[ColorCode].FourBits=true;
+                      Colors[ColorCode].FourBits=(color.Flags&(FCF_FG_4BIT|FCF_BG_4BIT))?true:false;
                       Colors[ColorCode].ForegroundColor=color.ForegroundColor;
                       Colors[ColorCode].BackgroundColor=color.BackgroundColor;
 
