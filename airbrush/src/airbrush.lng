@@ -15,15 +15,6 @@
 "Don't highlite files with line &count greater then"
 "Save"
 "Cancel"
-//Select color dialog
-"Color"
-"&Foreground"
-"&Background"
-"Text Text Text Text Text Text"
-"Text Text Text Text Text Text"
-"Text Text Text Text Text Text"
-"Set"
-"Cancel"
 //Stop dialog
 "Are you want to stop highlite this file?"
 //fatal errors
