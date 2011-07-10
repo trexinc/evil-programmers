@@ -37,6 +37,19 @@ DEFINE_GUID(Config1Guid, 0x91737241, 0x105f, 0x460a, 0xa5, 0xa0, 0xe, 0xc5, 0x6c
 DEFINE_GUID(Config3Guid, 0xa338563b, 0x914d, 0x4cbd, 0x97, 0xc1, 0xdb, 0xdd, 0xae, 0x78, 0xdc, 0x6f);
 // {9F54C244-3CD2-4517-9A47-F82EB8C6C495}
 DEFINE_GUID(Config5Guid, 0x9f54c244, 0x3cd2, 0x4517, 0x9a, 0x47, 0xf8, 0x2e, 0xb8, 0xc6, 0xc4, 0x95);
+// {C6769357-6E93-4fa2-AB77-CB0AA068DAD9}
+DEFINE_GUID(OpenMenuGuid, 0xc6769357, 0x6e93, 0x4fa2, 0xab, 0x77, 0xcb, 0xa, 0xa0, 0x68, 0xda, 0xd9);
+// {D6FC23C7-B1F3-4f19-BAAC-72600282816A}
+DEFINE_GUID(Config1MenuGuid, 0xd6fc23c7, 0xb1f3, 0x4f19, 0xba, 0xac, 0x72, 0x60, 0x2, 0x82, 0x81, 0x6a);
+// {F4501773-3912-4c7e-9F0A-CBA290A60210}
+DEFINE_GUID(Config3MenuGuid, 0xf4501773, 0x3912, 0x4c7e, 0x9f, 0xa, 0xcb, 0xa2, 0x90, 0xa6, 0x2, 0x10);
+// {36B7F4A1-3A5D-48cd-AFB5-F9F3A8BB490E}
+DEFINE_GUID(Config5MenuGuid, 0x36b7f4a1, 0x3a5d, 0x48cd, 0xaf, 0xb5, 0xf9, 0xf3, 0xa8, 0xbb, 0x49, 0xe);
+// {31429939-7646-4459-8315-C05973DC9855}
+DEFINE_GUID(Config6MenuGuid, 0x31429939, 0x7646, 0x4459, 0x83, 0x15, 0xc0, 0x59, 0x73, 0xdc, 0x98, 0x55);
+// {83992D56-B22B-417a-A392-A17FCEF40DEC}
+DEFINE_GUID(Config7MenuGuid, 0x83992d56, 0xb22b, 0x417a, 0xa3, 0x92, 0xa1, 0x7f, 0xce, 0xf4, 0xd, 0xec);
+
 
 PluginStartupInfo Info;
 FARSTANDARDFUNCTIONS FSF;
@@ -216,7 +229,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *Info)
             SyntaxTypes[i].Flags&=~MIF_SELECTED;
           SyntaxTypes[MenuCode].Flags|=MIF_SELECTED;
           BreakCode=-1;
-          MenuCode=::Info.Menu(&MainGuid,-1,-1,0,FMENU_AUTOHIGHLIGHT|FMENU_WRAPMODE,_T(""),NULL,NULL,BreakKeys,&BreakCode,SyntaxTypes,Count+1);
+          MenuCode=::Info.Menu(&MainGuid,&OpenMenuGuid,-1,-1,0,FMENU_AUTOHIGHLIGHT|FMENU_WRAPMODE,_T(""),NULL,NULL,BreakKeys,&BreakCode,SyntaxTypes,Count+1);
           if(BreakCode==-1) break;
           if((BreakCode==0)&&(MenuCode>0))
             if(PluginsData[ids[MenuCode]].pGetParams)
@@ -263,7 +276,7 @@ int WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
       MenuItems[i].Flags&=~MIF_SELECTED;
     MenuItems[MenuCode].Flags|=MIF_SELECTED;
     // Show menu
-    MenuCode=Info.Menu(&MainGuid,-1,-1,0,FMENU_AUTOHIGHLIGHT|FMENU_WRAPMODE,
+    MenuCode=Info.Menu(&MainGuid,&Config1MenuGuid,-1,-1,0,FMENU_AUTOHIGHLIGHT|FMENU_WRAPMODE,
                            NULL,NULL,_T("Config"),NULL,NULL,
                            MenuItems,sizeof(MenuItems)/sizeof(MenuItems[0]));
     if(MenuCode==-1)
@@ -358,7 +371,7 @@ int WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
                 SyntaxTypes[i].Flags&=~MIF_SELECTED;
               SyntaxTypes[MenuCode].Flags|=MIF_SELECTED;
 
-              MenuCode=Info.Menu(&MainGuid,-1,-1,0,FMENU_AUTOHIGHLIGHT|FMENU_WRAPMODE,_T(""),NULL,_T("Config2"),NULL,NULL,SyntaxTypes,ConfCount);
+              MenuCode=Info.Menu(&MainGuid,&Config3MenuGuid,-1,-1,0,FMENU_AUTOHIGHLIGHT|FMENU_WRAPMODE,_T(""),NULL,_T("Config2"),NULL,NULL,SyntaxTypes,ConfCount);
               if(MenuCode==-1) break;
               TCHAR mask[2048];
               lstrcpy(mask,_T(""));
@@ -436,7 +449,7 @@ int WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
                 SyntaxTypes[i].Flags&=~MIF_SELECTED;
               SyntaxTypes[MenuCode].Flags|=MIF_SELECTED;
 
-              MenuCode=Info.Menu(&MainGuid,-1,-1,0,FMENU_AUTOHIGHLIGHT|FMENU_WRAPMODE,_T(""),NULL,_T("Config4"),NULL,NULL,SyntaxTypes,ConfCount);
+              MenuCode=Info.Menu(&MainGuid,&Config5MenuGuid,-1,-1,0,FMENU_AUTOHIGHLIGHT|FMENU_WRAPMODE,_T(""),NULL,_T("Config4"),NULL,NULL,SyntaxTypes,ConfCount);
               if(MenuCode==-1) break;
               TCHAR start[2048];
               lstrcpy(start,_T(""));
@@ -514,7 +527,7 @@ int WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
                 SyntaxTypes[i].Flags&=~MIF_SELECTED;
               SyntaxTypes[MenuCode].Flags|=MIF_SELECTED;
 
-              MenuCode=Info.Menu(&MainGuid,-1,-1,0,FMENU_AUTOHIGHLIGHT|FMENU_WRAPMODE,_T(""),NULL,_T("Config6"),NULL,NULL,SyntaxTypes,ConfCount);
+              MenuCode=Info.Menu(&MainGuid,&Config6MenuGuid,-1,-1,0,FMENU_AUTOHIGHLIGHT|FMENU_WRAPMODE,_T(""),NULL,_T("Config6"),NULL,NULL,SyntaxTypes,ConfCount);
               if(MenuCode==-1) break;
               int ColorCount; char **ColorNames; ABColor* Colors;
               if(PluginsData[ids[MenuCode]].pGetParams&&PluginsData[ids[MenuCode]].pGetParams(PluginsData[ids[MenuCode]].Index,PAR_GET_COLOR_COUNT,(const char **)&ColorCount)&&PluginsData[ids[MenuCode]].pGetParams(PluginsData[ids[MenuCode]].Index,PAR_GET_COLOR_NAME,(const char **)&ColorNames)&&PluginsData[ids[MenuCode]].pGetParams(PluginsData[ids[MenuCode]].Index,PAR_GET_COLOR,(const char **)&Colors))
@@ -540,7 +553,7 @@ int WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
                     for(int i=0;i<ColorCount;i++)
                       ColorTypes[i].Flags&=~MIF_SELECTED;
                     ColorTypes[ColorCode].Flags|=MIF_SELECTED;
-                    ColorCode=Info.Menu(&MainGuid,-1,-1,0,FMENU_AUTOHIGHLIGHT|FMENU_WRAPMODE,PluginsData[ids[MenuCode]].Name,NULL,_T("Config7"),NULL,NULL,ColorTypes,ColorCount);
+                    ColorCode=Info.Menu(&MainGuid,&Config7MenuGuid,-1,-1,0,FMENU_AUTOHIGHLIGHT|FMENU_WRAPMODE,PluginsData[ids[MenuCode]].Name,NULL,_T("Config7"),NULL,NULL,ColorTypes,ColorCount);
                     if(ColorCode==-1) break;
                     FarColor color;
                     ConvertColor(Colors[ColorCode],color);

@@ -25,7 +25,14 @@
 #include "ab_main.h"
 #include "abversion.h"
 #include "guid.h"
+#include <initguid.h>
 #include "far_settings.h"
+// {55828A68-CBF7-4695-B1E3-26C16116C2AF}
+DEFINE_GUID(MessageFatalGuid, 0x55828a68, 0xcbf7, 0x4695, 0xb1, 0xe3, 0x26, 0xc1, 0x61, 0x16, 0xc2, 0xaf);
+// {40B98695-3971-4c4c-88A9-F3E5BAC777EB}
+DEFINE_GUID(MessageLoadingGuid, 0x40b98695, 0x3971, 0x4c4c, 0x88, 0xa9, 0xf3, 0xe5, 0xba, 0xc7, 0x77, 0xeb);
+
+
 
 struct PluginItem *PluginsData=NULL;
 int PluginsCount=0;
@@ -115,7 +122,7 @@ static bool WINAPI addstate(int eid,int pos,unsigned long size,unsigned char *da
       TCHAR buff[256];
       FSF.sprintf(buff,GetMsg(mFatalLine2),fl->cachesize,pos);
       const TCHAR* MsgItems[]={GetMsg(mError),GetMsg(mFatalLine1),buff,GetMsg(mButtonOk)};
-      Info.Message(&MainGuid,FMSG_WARNING,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),1);
+      Info.Message(&MainGuid,&MessageFatalGuid,FMSG_WARNING,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),1);
     }
   }
   if(!res) fatal=true;
@@ -154,7 +161,7 @@ void LoadPlugs(const TCHAR* ModuleName)
   HANDLE hSScr=Info.SaveScreen(0,0,-1,-1);
   {
     const TCHAR* MsgItems[]={GetMsg(mName),GetMsg(mLoading)};
-    Info.Message(&MainGuid,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),0);
+    Info.Message(&MainGuid,&MessageLoadingGuid,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),0);
   }
   TCHAR PluginsFolder[MAX_PATH],PluginsMask[MAX_PATH],*NamePtr;
   lstrcpy(Unknown,GetMsg(mUnknown));
