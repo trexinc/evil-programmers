@@ -22,7 +22,16 @@
 #include "abphp.h"
 
 ColorizeInfo Info;
-ABColor colors[]={{0,0,true,false,true},{0x03,0,false,false,true},{0x0F,0,false,false,true},{0x0D,0,false,false,true},{0x0E,0,false,false,true},{0x0A,0,false,false,true},{0x08,0,false,false,true}};
+ABColor colors[]=
+{
+  {ABCF_4BIT,0,   0,NULL,true, false},
+  {ABCF_4BIT,0x03,0,NULL,false,false},
+  {ABCF_4BIT,0x0F,0,NULL,false,false},
+  {ABCF_4BIT,0x0D,0,NULL,false,false},
+  {ABCF_4BIT,0x0E,0,NULL,false,false},
+  {ABCF_4BIT,0x0A,0,NULL,false,false},
+  {ABCF_4BIT,0x08,0,NULL,false,false}
+};
 const TCHAR* colornames[]={_T("Common"),_T("Comment"),_T("Keyword"),_T("\";\" Symbol"),_T("String"),_T("Number"),_T("Variable")};
 
 int WINAPI SetColorizeInfo(ColorizeInfo *AInfo)

@@ -22,7 +22,13 @@
 #include "abyacclex.h"
 
 ColorizeInfo Info;
-ABColor colors[]={{0x03,0,false,true,true},{0x0E,0,false,true,true},{0x00,0x0C,false,false,true},{0x0F,0,false,true,true}};
+ABColor colors[]=
+{
+  {ABCF_4BIT,0x03,0,   NULL,false,true },
+  {ABCF_4BIT,0x0E,0,   NULL,false,true },
+  {ABCF_4BIT,0x00,0x0C,NULL,false,false},
+  {ABCF_4BIT,0x0F,0,   NULL,false,true }
+};
 const TCHAR *colornames[]={_T("Comment"),_T("String"),_T("Keyword"),_T("Set")};
 
 struct CacheParam

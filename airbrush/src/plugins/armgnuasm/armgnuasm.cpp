@@ -24,21 +24,21 @@
 ColorizeInfo Info;
 ABColor colors[]=
 {
-  {0x03,0,false,true,true},
-  {0x0e,0,false,true,true},
-  {0x0a,0,false,true,true},{0x0a,0,false,true,true},
-  {0x02,0,false,true,true},
-  {0x00,0x0a,false,false,true},
-  {0x0c,0,false,true,true},{0x01,0x0c,false,false,true},
-  {0x0f,0,false,true,true},
-  {0x0f,0,false,true,true},{0x0c,0,false,true,true},{0x08,0,false,true,true},
-  {0x0f,0,false,true,true},{0x08,0,false,true,true},
-  {0x0f,0,false,true,true},{0x08,0,false,true,true},
-  {0x0e,0,false,true,true},{0x08,0,false,true,true},
-  {0x0d,0,false,true,true},{0x0c,0,false,true,true},{0x05,0,false,true,true},{0x0c,0,false,true,true},
-  {0x0f,0,false,true,true},{0x0c,0,false,true,true},{0x08,0,false,true,true},
-  {0x0f,0,false,true,true},{0x08,0,false,true,true},
-  {0x0e,0,false,true,true},{0x0e,0,false,true,true},{0x06,0,false,true,true}
+  {ABCF_4BIT,0x03,0,NULL,false,true},
+  {ABCF_4BIT,0x0e,0,NULL,false,true},
+  {ABCF_4BIT,0x0a,0,NULL,false,true},{ABCF_4BIT,0x0a,0,NULL,false,true},
+  {ABCF_4BIT,0x02,0,NULL,false,true},
+  {ABCF_4BIT,0x00,0x0a,NULL,false,false},
+  {ABCF_4BIT,0x0c,0,NULL,false,true},{ABCF_4BIT,0x01,0x0c,NULL,false,false},
+  {ABCF_4BIT,0x0f,0,NULL,false,true},
+  {ABCF_4BIT,0x0f,0,NULL,false,true},{ABCF_4BIT,0x0c,0,NULL,false,true},{ABCF_4BIT,0x08,0,NULL,false,true},
+  {ABCF_4BIT,0x0f,0,NULL,false,true},{ABCF_4BIT,0x08,0,NULL,false,true},
+  {ABCF_4BIT,0x0f,0,NULL,false,true},{ABCF_4BIT,0x08,0,NULL,false,true},
+  {ABCF_4BIT,0x0e,0,NULL,false,true},{ABCF_4BIT,0x08,0,NULL,false,true},
+  {ABCF_4BIT,0x0d,0,NULL,false,true},{ABCF_4BIT,0x0c,0,NULL,false,true},{ABCF_4BIT,0x05,0,NULL,false,true},{ABCF_4BIT,0x0c,0,NULL,false,true},
+  {ABCF_4BIT,0x0f,0,NULL,false,true},{ABCF_4BIT,0x0c,0,NULL,false,true},{ABCF_4BIT,0x08,0,NULL,false,true},
+  {ABCF_4BIT,0x0f,0,NULL,false,true},{ABCF_4BIT,0x08,0,NULL,false,true},
+  {ABCF_4BIT,0x0e,0,NULL,false,true},{ABCF_4BIT,0x0e,0,NULL,false,true},{ABCF_4BIT,0x06,0,NULL,false,true}
 };
 const TCHAR* colornames[]=
 {

@@ -23,7 +23,13 @@
 #include "abre2c.h"
 
 ColorizeInfo Info;
-ABColor colors[]={{0x09,0,false,true,true},{0x03,0,false,true,true},{0x0E,0,false,true,true},{0x0F,0,false,true,true}};
+ABColor colors[]=
+{
+  {ABCF_4BIT,0x09,0,NULL,false,true},
+  {ABCF_4BIT,0x03,0,NULL,false,true},
+  {ABCF_4BIT,0x0E,0,NULL,false,true},
+  {ABCF_4BIT,0x0F,0,NULL,false,true}
+};
 const TCHAR *colornames[]={_T("Re2c"),_T("Comment"),_T("String"),_T("Keyword")};
 
 int WINAPI SetColorizeInfo(ColorizeInfo *AInfo)
