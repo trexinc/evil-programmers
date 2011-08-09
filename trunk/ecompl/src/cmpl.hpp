@@ -80,8 +80,10 @@ class TCompletion
     static bool GetValue(HANDLE Handle,int Root,const TCHAR* Name,bool Default);
     static __int64 GetValue(HANDLE Handle,int Root,const TCHAR* Name,__int64 Default);
     static bool GetValue(HANDLE Handle,int Root,const TCHAR* Name,TCHAR* Value,size_t Size);
+    static size_t GetValue(HANDLE Handle,int Root,const TCHAR* Name,void* Value,size_t Size);
     static void SetValue(HANDLE Handle,int Root,const TCHAR* Name,__int64 Value);
     static void SetValue(HANDLE Handle,int Root,const TCHAR* Name,TCHAR* Value);
+    static void SetValue(HANDLE Handle,int Root,const TCHAR* Name,const void* Value,size_t Size);
     void GetOptions(void);
     virtual void SetOptions(void);
     virtual int GetItemCount(void)=0;

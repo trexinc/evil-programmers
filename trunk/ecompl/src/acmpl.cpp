@@ -37,7 +37,10 @@ TAutoCompletion::TAutoCompletion()
   AcceptFromMenu=false;
   memset(&AcceptKey,0,sizeof(AcceptKey));
   memset(&DeleteKey,0,sizeof(DeleteKey));
-  Color=0x2F;
+  HighliteColor.Flags=FCF_FG_4BIT|FCF_BG_4BIT;
+  HighliteColor.ForegroundColor=0xf;
+  HighliteColor.BackgroundColor=0x2;
+  HighliteColor.Reserved=NULL;
   AcceptChars[0]=0;
   _tcscpy(ConfigHelpTopic,_T("ConfigAuto"));
   GetOptions();
@@ -131,7 +134,7 @@ int TAutoCompletion::ProcessEditorEvent(int Event,void *Param)
             Info.EditorControl(-1,ECTL_REDRAW,0,0);
           }
         }
-        else if(Window->Active) Colorize(Color,Window);
+        else if(Window->Active) Colorize(HighliteColor,Window);
       }
       else if(Event==EE_SAVE)
       {
@@ -297,22 +300,14 @@ bool TAutoCompletion::PutVariant(avl_window_data *Window)
   return false;
 }
 
-static void ConvertColor(int Color,FarColor& NewColor)
-{
-  NewColor.Flags=FCF_FG_4BIT|FCF_BG_4BIT;
-  NewColor.ForegroundColor=Color&0xf;
-  NewColor.BackgroundColor=(Color>>4)&0xf;
-  NewColor.Reserved=NULL;
-}
-
-void TAutoCompletion::Colorize(int NewColor,avl_window_data *Window)
+void TAutoCompletion::Colorize(FarColor NewColor,avl_window_data *Window)
 {
   EditorColor ec;
   ec.StructSize=sizeof(ec);
   ec.StringNumber=Window->row;
   ec.StartPos=Window->col;
   ec.EndPos=Window->col+Window->AddedLen-1;
-  ConvertColor(NewColor,ec.Color);
+  ec.Color=NewColor;
   ec.Owner=MainGuid;
   ec.Priority=100;
   Info.EditorControl(-1,ECTL_ADDCOLOR,0,&ec);
@@ -361,7 +356,7 @@ void TAutoCompletion::GetOptions(void)
   if(Info.SettingsControl(INVALID_HANDLE_VALUE,SCTL_CREATE,0,&settings))
   {
     int root=Root(settings.Handle);
-    Color=GetValue(settings.Handle,root,_T("Color"),Color);
+    GetValue(settings.Handle,root,_T("Color"),&HighliteColor,sizeof(HighliteColor));
     TCHAR Key[256];
     FSF.FarNameToInputRecord(GetValue(settings.Handle,root,_T("AcceptKey"),Key,ArraySize(Key))?Key:_T("CtrlEnd"),&AcceptKey);
     FSF.FarNameToInputRecord(GetValue(settings.Handle,root,_T("DeleteKey"),Key,ArraySize(Key))?Key:_T("Del"),&DeleteKey);
@@ -378,7 +373,7 @@ void TAutoCompletion::SetOptions(void)
   if(Info.SettingsControl(INVALID_HANDLE_VALUE,SCTL_CREATE,0,&settings))
   {
     int root=Root(settings.Handle);
-    SetValue(settings.Handle,root,_T("Color"),Color);
+    SetValue(settings.Handle,root,_T("Color"),&HighliteColor,sizeof(HighliteColor));
     SetValue(settings.Handle,root,_T("AcceptFromMenu"),AcceptFromMenu);
     SetValue(settings.Handle,root,_T("AcceptChars"),AcceptChars);
     {
@@ -458,9 +453,7 @@ INT_PTR TAutoCompletion::DialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
     if(Param1==IAdditional)
     {
       Info.SendDlgMessage(hDlg,DM_SHOWDIALOG,FALSE,0);
-      int bg=(Dialog_Color&0xF0)>>4,fg=Dialog_Color&0x0F;
-      FarColor color={FCF_FG_4BIT|FCF_BG_4BIT,Dialog_Color&0x0F,(Dialog_Color&0xF0)>>4,NULL};
-      if(Info.ColorDialog(&MainGuid,CDF_NONE,&color)) Dialog_Color=(color.BackgroundColor<<4)|color.ForegroundColor;
+      Info.ColorDialog(&MainGuid,CDF_NONE,&Dialog_Color);
       Info.SendDlgMessage(hDlg,DM_SHOWDIALOG,TRUE,0);
       return TRUE;
     }
@@ -512,7 +505,7 @@ void TAutoCompletion::InitItems(FarDialogItem *DialogItems)
     INIT_DLG_DATA(DialogItems[i+CMPL_DIALOG_ITEMS],GetMsg(Msgs[i])); // Надписи на эл-тах диалога
   }
 
-  Dialog_Color=Color;
+  Dialog_Color=HighliteColor;
 
   DialogItems[IAcceptFromMenu].Selected=AcceptFromMenu;
 
@@ -548,7 +541,7 @@ void TAutoCompletion::StoreItems(CFarDialog& Dialog)
   TCompletion::StoreItems(Dialog);
   AcceptFromMenu=Dialog.Check(IAcceptFromMenu);
   MinPreWordLen=FSF.atoi(Dialog.Str(IMinPreWordLen));
-  Color=Dialog_Color;
+  HighliteColor=Dialog_Color;
   FSF.FarNameToInputRecord(Dialog.Str(IAcceptKey),&AcceptKey);
   FSF.FarNameToInputRecord(Dialog.Str(IDeleteKey),&DeleteKey);
   _tcscpy(AcceptChars,Dialog.Str(IAcceptChars));

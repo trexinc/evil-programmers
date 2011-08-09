@@ -27,12 +27,12 @@ class TAutoCompletion: public TCompletion
 {
   private:
     bool CheckText(int Pos,int Row,avl_window_data *Window);
-    int Dialog_Color;
+    FarColor Dialog_Color;
   protected:
     bool AcceptFromMenu;
     INPUT_RECORD AcceptKey;
     INPUT_RECORD DeleteKey;
-    __int64 Color;
+    FarColor HighliteColor;
     TCHAR AcceptChars[256];
     TCHAR MinPreWordLenText[21];
     TCHAR AcceptKeyText[21];
@@ -43,7 +43,7 @@ class TAutoCompletion: public TCompletion
     void DeleteVariant(avl_window_data *Window);
     bool AcceptVariant(avl_window_data *Window);
     bool PutVariant(avl_window_data *Window);
-    void Colorize(int NewColor,avl_window_data *Window);
+    void Colorize(FarColor NewColor,avl_window_data *Window);
     void DeColorize(avl_window_data *Window);
   protected: //options
     void GetOptions(void);
