@@ -100,27 +100,19 @@ void ConvertColor(const ABColor& Color,FarColor& NewColor)
 {
   FarColor DefColor;
   Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_EDITORTEXT,&DefColor);
-  NewColor.Flags=0;
-  NewColor.Reserved=NULL;
+  NewColor.Flags=Color.Flags;
+  NewColor.ForegroundColor=Color.ForegroundColor;
+  NewColor.BackgroundColor=Color.BackgroundColor;
+  NewColor.Reserved=Color.Reserved;
   if(Color.ForegroundDefault)
   {
     NewColor.ForegroundColor=DefColor.ForegroundColor;
-    NewColor.Flags|=(DefColor.Flags&FCF_FG_4BIT);
-  }
-  else
-  {
-    NewColor.ForegroundColor=Color.ForegroundColor;
-    NewColor.Flags|=(Color.FourBits?FCF_FG_4BIT:0);
+    NewColor.Flags=(NewColor.Flags&BG_MASK)|(DefColor.Flags&FG_MASK);
   }
   if(Color.BackgroundDefault)
   {
     NewColor.BackgroundColor=DefColor.BackgroundColor;
-    NewColor.Flags|=(DefColor.Flags&FCF_BG_4BIT);
-  }
-  else
-  {
-    NewColor.BackgroundColor=Color.BackgroundColor;
-    NewColor.Flags|=(Color.FourBits?FCF_BG_4BIT:0);
+    NewColor.Flags=(NewColor.Flags&FG_MASK)|(DefColor.Flags&BG_MASK);
   }
 }
 
@@ -561,13 +553,15 @@ int WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
                     {
                       FarColor defColor;
                       Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_EDITORTEXT,&defColor);
-                      Colors[ColorCode].FourBits=(color.Flags&(FCF_FG_4BIT|FCF_BG_4BIT))?true:false;
+                      //Colors[ColorCode].FourBits=(color.Flags&(FCF_FG_4BIT|FCF_BG_4BIT))?true:false;
+                      Colors[ColorCode].Flags=color.Flags;
                       Colors[ColorCode].ForegroundColor=color.ForegroundColor;
                       Colors[ColorCode].BackgroundColor=color.BackgroundColor;
+                      Colors[ColorCode].Reserved=color.Reserved;
 
-                      if(Colors[ColorCode].ForegroundColor==defColor.ForegroundColor)
+                      if(Colors[ColorCode].ForegroundColor==defColor.ForegroundColor&&(Colors[ColorCode].Flags&FG_MASK)==(defColor.Flags&FG_MASK))
                         Colors[ColorCode].ForegroundDefault=true;
-                      if(Colors[ColorCode].BackgroundColor==defColor.BackgroundColor)
+                      if(Colors[ColorCode].BackgroundColor==defColor.BackgroundColor&&(Colors[ColorCode].Flags&FG_MASK)==(defColor.Flags&FG_MASK))
                         Colors[ColorCode].BackgroundDefault=true;
                       CFarSettings settings(MainGuid);
                       settings.Change(PLUGIN_COLOR_KEY);

@@ -47,13 +47,16 @@ enum ColorizePriority
   EPriorityBrackets
 };
 
+#define ABCF_4BIT (0x0000000000000003ULL)
+
 struct ABColor
 {
-  unsigned int ForegroundColor;
-  unsigned int BackgroundColor;
+  __int64 Flags;
+  COLORREF ForegroundColor;
+  COLORREF BackgroundColor;
+  void* Reserved;
   bool ForegroundDefault;
   bool BackgroundDefault;
-  bool FourBits;
 };
 
 typedef void (WINAPI* PLUGINADDCOLOR)(int lno,int start,int len,const struct ABColor* color,enum ColorizePriority priority);

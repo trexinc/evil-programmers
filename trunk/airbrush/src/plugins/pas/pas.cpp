@@ -22,7 +22,18 @@
 #include "abpas.h"
 
 ColorizeInfo Info;
-ABColor colors[]={{0x03,0,false,true,true},{0x03,0,false,true,true},{0x09,0,false,true,true},{0x0F,0,false,true,true},{0x0D,0,false,true,true},{0x0E,0,false,true,true},{0x0A,0,false,true,true},{0x0C,0,false,true,true},{0x01,0x0C,false,false,true}};
+ABColor colors[]=
+{
+  {ABCF_4BIT,0x03,0,   NULL,false,true },
+  {ABCF_4BIT,0x03,0,   NULL,false,true },
+  {ABCF_4BIT,0x09,0,   NULL,false,true },
+  {ABCF_4BIT,0x0F,0,   NULL,false,true },
+  {ABCF_4BIT,0x0D,0,   NULL,false,true },
+  {ABCF_4BIT,0x0E,0,   NULL,false,true },
+  {ABCF_4BIT,0x0A,0,   NULL,false,true },
+  {ABCF_4BIT,0x0C,0,   NULL,false,true },
+  {ABCF_4BIT,0x01,0x0C,NULL,false,false}
+};
 const TCHAR *colornames[]={_T("Comment {}"),_T("Comment (**)"),_T("Assembler"),_T("Keyword"),_T("\";\" Symbol"),_T("String"),_T("Number"),_T("Pair"),_T("Wrong Pair")};
 
 int WINAPI SetColorizeInfo(ColorizeInfo *AInfo)

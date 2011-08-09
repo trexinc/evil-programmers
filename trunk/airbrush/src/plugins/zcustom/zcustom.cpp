@@ -406,11 +406,12 @@ static void load_syntax_from_file(char *dirname,char *filename,char *whole_chars
                 rules[rules_count-1].contexts=(Context *)malloc(sizeof(Context));
                 rules[rules_count-1].contexts->left=NULL;
                 rules[rules_count-1].contexts->right=NULL;
+                rules[rules_count-1].contexts->color.Flags=ABCF_4BIT;
                 rules[rules_count-1].contexts->color.ForegroundColor=0;
                 rules[rules_count-1].contexts->color.BackgroundColor=0;
+                rules[rules_count-1].contexts->color.Reserved=NULL;
                 rules[rules_count-1].contexts->color.ForegroundDefault=true;
                 rules[rules_count-1].contexts->color.BackgroundDefault=true;
-                rules[rules_count-1].contexts->color.FourBits=true;
                 rules[rules_count-1].contexts->exclusive=0;
                 rules[rules_count-1].contexts->exclusive_left=-1;
                 rules[rules_count-1].contexts->exclusive_right=-1;

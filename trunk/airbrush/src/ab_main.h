@@ -138,4 +138,7 @@ struct Options
 extern struct Options Opt;
 extern bool fatal;
 
+#define FG_MASK (~FCF_BG_4BIT)
+#define BG_MASK (FCF_BG_4BIT)
+
 #endif
