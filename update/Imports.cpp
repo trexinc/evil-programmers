@@ -6,7 +6,7 @@ ImportedFunctions ifn;
 
 VOID ImportedFunctions::Load()
 {
-	HMODULE hKernel32=GetModuleHandle(TEXT("kernel32.dll"));
+	HMODULE hKernel32=GetModuleHandle(L"kernel32.dll");
 	if(hKernel32)
 	{
 		pAttachConsole=reinterpret_cast<ATTACHCONSOLE>(GetProcAddress(hKernel32,"AttachConsole"));

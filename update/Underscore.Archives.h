@@ -31,11 +31,11 @@ public:
 	unsigned int m_nNumberOfFormats;
 	GUID *m_puids;
 
-	TCHAR *m_lpModuleName;
+	wchar_t *m_lpModuleName;
 
 public:
 
-	bool Initialize (const TCHAR *lpModuleName);
+	bool Initialize (const wchar_t *lpModuleName);
 	void Finalize ();
 };
 
@@ -48,7 +48,7 @@ public:
 	SevenZipModuleManager(LPCTSTR s7zPath);
 	~SevenZipModuleManager();
 
-	bool Extract (const TCHAR *lpFileName, const TCHAR *lpDestDir);
+	bool Extract (const wchar_t *lpFileName, const wchar_t *lpDestDir);
 };
 
 
@@ -64,7 +64,7 @@ public:
 	CInFile ();
 	~CInFile ();
 
-	bool Open (const TCHAR *lpFileName);
+	bool Open (const wchar_t *lpFileName);
 
 	virtual HRESULT __stdcall QueryInterface (REFIID iid, void ** ppvObject);
 	virtual ULONG __stdcall AddRef ();
@@ -84,14 +84,14 @@ private:
 
 	IInArchive *m_pArchive;
 
-	TCHAR *m_lpFolderToExtract;
+	wchar_t *m_lpFolderToExtract;
 
 public:
 
 	CArchiveExtractCallback (IInArchive *pArchive);
 	~CArchiveExtractCallback ();
 
-	void SetExtractFolder (const TCHAR *lpFolder);
+	void SetExtractFolder (const wchar_t *lpFolder);
 
 	virtual HRESULT __stdcall QueryInterface (const IID &iid, void ** ppvObject);
 	virtual ULONG __stdcall AddRef ();
@@ -118,7 +118,7 @@ public:
 	COutFile ();
 	~COutFile ();
 
-	bool Open (const TCHAR *lpFileName);
+	bool Open (const wchar_t *lpFileName);
 
 	virtual HRESULT __stdcall QueryInterface (const IID &iid, void ** ppvObject);
 	virtual ULONG __stdcall AddRef ();

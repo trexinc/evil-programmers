@@ -1,32 +1,20 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "update", "update.vcproj", "{F5BF9BB3-8811-4A1E-984B-D880910DD747}"
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "update", "update.vcxproj", "{F5BF9BB3-8811-4A1E-984B-D880910DD747}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug ANSI|Win32 = Debug ANSI|Win32
-		Debug ANSI|x64 = Debug ANSI|x64
 		Debug|Win32 = Debug|Win32
 		Debug|x64 = Debug|x64
-		Release ANSI|Win32 = Release ANSI|Win32
-		Release ANSI|x64 = Release ANSI|x64
 		Release|Win32 = Release|Win32
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{F5BF9BB3-8811-4A1E-984B-D880910DD747}.Debug ANSI|Win32.ActiveCfg = Debug ANSI|Win32
-		{F5BF9BB3-8811-4A1E-984B-D880910DD747}.Debug ANSI|Win32.Build.0 = Debug ANSI|Win32
-		{F5BF9BB3-8811-4A1E-984B-D880910DD747}.Debug ANSI|x64.ActiveCfg = Debug ANSI|x64
-		{F5BF9BB3-8811-4A1E-984B-D880910DD747}.Debug ANSI|x64.Build.0 = Debug ANSI|x64
 		{F5BF9BB3-8811-4A1E-984B-D880910DD747}.Debug|Win32.ActiveCfg = Debug|Win32
 		{F5BF9BB3-8811-4A1E-984B-D880910DD747}.Debug|Win32.Build.0 = Debug|Win32
 		{F5BF9BB3-8811-4A1E-984B-D880910DD747}.Debug|x64.ActiveCfg = Debug|x64
 		{F5BF9BB3-8811-4A1E-984B-D880910DD747}.Debug|x64.Build.0 = Debug|x64
-		{F5BF9BB3-8811-4A1E-984B-D880910DD747}.Release ANSI|Win32.ActiveCfg = Release ANSI|Win32
-		{F5BF9BB3-8811-4A1E-984B-D880910DD747}.Release ANSI|Win32.Build.0 = Release ANSI|Win32
-		{F5BF9BB3-8811-4A1E-984B-D880910DD747}.Release ANSI|x64.ActiveCfg = Release ANSI|x64
-		{F5BF9BB3-8811-4A1E-984B-D880910DD747}.Release ANSI|x64.Build.0 = Release ANSI|x64
 		{F5BF9BB3-8811-4A1E-984B-D880910DD747}.Release|Win32.ActiveCfg = Release|Win32
 		{F5BF9BB3-8811-4A1E-984B-D880910DD747}.Release|Win32.Build.0 = Release|Win32
 		{F5BF9BB3-8811-4A1E-984B-D880910DD747}.Release|x64.ActiveCfg = Release|x64

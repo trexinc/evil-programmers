@@ -1,28 +1,14 @@
 #include "headers.hpp"
-
+#include "guid.hpp"
 #include "Console.hpp"
 
 Console::Console()
 {
-	Info.Control(
-		INVALID_HANDLE_VALUE,
-		FCTL_GETUSERSCREEN,
-		0
-#ifdef UNICODE		
-		,NULL
-#endif		
-	);
+	Info.PanelControl(INVALID_HANDLE_VALUE, FCTL_GETUSERSCREEN, 0, nullptr);
 }
 
 Console::~Console()
 {
-	Info.Control(
-		INVALID_HANDLE_VALUE,
-		FCTL_SETUSERSCREEN,
-		0
-#ifdef UNICODE		
-		,NULL
-#endif
-	);		
-	Info.AdvControl(Info.ModuleNumber,ACTL_REDRAWALL,0);
+	Info.PanelControl(INVALID_HANDLE_VALUE, FCTL_SETUSERSCREEN, 0, nullptr);
+	Info.AdvControl(&MainGuid,ACTL_REDRAWALL, 0, nullptr);
 }

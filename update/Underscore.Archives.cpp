@@ -11,7 +11,7 @@ MY_DEFINE_GUID(IID_IArchiveExtractCallback, 0x23170F69, 0x40C1, 0x278A, 0x00, 0x
 MY_DEFINE_GUID(IID_ICryptoGetTextPassword, 0x23170F69, 0x40C1, 0x278A, 0x00, 0x00, 0x00, 0x05, 0x00, 0x10, 0x00, 0x00);
 
 
-bool CInFile::Open (const TCHAR *lpFileName)
+bool CInFile::Open (const wchar_t *lpFileName)
 {
 	HANDLE hFile = CreateFile (lpFileName, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
 
@@ -154,11 +154,11 @@ HRESULT CArchiveExtractCallback::SetCompleted (const unsigned __int64* completeV
 	return S_OK;
 }
 
-void CutToSlash (TCHAR *s)
+void CutToSlash (wchar_t *s)
 {
 	for (int i = lstrlen(s) - 1; i >= 0; i--)
 	{
-		if ( s[i] == TEXT('\\'))
+		if ( s[i] == L'\\')
 		{
 			s[i+1] = 0;
 			break;
@@ -166,21 +166,21 @@ void CutToSlash (TCHAR *s)
 	}
 }
 
-void CreateDirectoryEx (const TCHAR *lpFullPath, DWORD dwFileAttributes = INVALID_FILE_ATTRIBUTES) //$ 16.05.2002 AA
+void CreateDirectoryEx (const wchar_t *lpFullPath, DWORD dwFileAttributes = INVALID_FILE_ATTRIBUTES) //$ 16.05.2002 AA
 {
-	TCHAR *lpFullPathCopy = StrDup(lpFullPath);
+	wchar_t *lpFullPathCopy = StrDup(lpFullPath);
 
-	for (TCHAR *c = lpFullPathCopy; *c; c++)
+	for (wchar_t *c = lpFullPathCopy; *c; c++)
 	{
 		if(*c!=' ')
 		{
 			for(; *c; c++)
 			{
-				if(*c == TEXT('\\'))
+				if(*c == L'\\')
 				{
 					*c=0;
 					CreateDirectory (lpFullPathCopy, NULL);
-					*c = TEXT('\\');
+					*c = L'\\';
 				}
 			}
 
@@ -195,9 +195,9 @@ void CreateDirectoryEx (const TCHAR *lpFullPath, DWORD dwFileAttributes = INVALI
 	LocalFree(lpFullPathCopy);
 }
 
-void CreateDirs (const TCHAR *lpFileName)
+void CreateDirs (const wchar_t *lpFileName)
 {
-	TCHAR *lpNameCopy = StrDup (lpFileName);
+	wchar_t *lpNameCopy = StrDup (lpFileName);
 
 	CutToSlash (lpNameCopy);
 
@@ -215,7 +215,7 @@ HRESULT __stdcall CArchiveExtractCallback::GetStream (unsigned int index, ISeque
 
 	if ( value.vt == VT_BSTR )
 	{
-		TCHAR *lpFileName = new TCHAR[MAX_PATH];
+		wchar_t *lpFileName = new wchar_t[MAX_PATH];
 
 #ifndef _UNICODE
 		WideCharToMultiByte (CP_OEMCP, 0, value.bstrVal, -1, lpFileName, 260, NULL, NULL);
@@ -241,7 +241,7 @@ HRESULT __stdcall CArchiveExtractCallback::GetStream (unsigned int index, ISeque
 
    	bIsFolder |= (dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY;
 
-		TCHAR *lpFullName = new TCHAR[MAX_PATH];
+		wchar_t *lpFullName = new wchar_t[MAX_PATH];
 
 		lstrcpy (lpFullName, m_lpFolderToExtract);
 		lstrcat (lpFullName, lpFileName);
@@ -277,7 +277,7 @@ HRESULT __stdcall CArchiveExtractCallback::GetStream (unsigned int index, ISeque
 
 }
 
-void CArchiveExtractCallback::SetExtractFolder (const TCHAR *lpFolder)
+void CArchiveExtractCallback::SetExtractFolder (const wchar_t *lpFolder)
 {
 	if (m_lpFolderToExtract)
 		LocalFree (m_lpFolderToExtract);
@@ -295,7 +295,7 @@ HRESULT __stdcall CArchiveExtractCallback::SetOperationResult (int resultEOperat
 	return S_OK;
 }
 
-bool COutFile::Open (const TCHAR *lpFileName)
+bool COutFile::Open (const wchar_t *lpFileName)
 {
 	DWORD Attr=GetFileAttributes(lpFileName);
 	if(Attr!=INVALID_FILE_ATTRIBUTES)
@@ -379,7 +379,7 @@ HRESULT __stdcall COutFile::Write (const void *data, unsigned int size, unsigned
 	return E_FAIL;
 }
 
-bool SevenZipModule::Initialize (const TCHAR *lpModuleName)
+bool SevenZipModule::Initialize (const wchar_t *lpModuleName)
 {
 	bool bResult = false;
 
@@ -453,7 +453,7 @@ void SevenZipModule::Finalize ()
 		FreeLibrary(m_hModule);
 }
 
-SevenZipModuleManager::SevenZipModuleManager(LPCTSTR s7zPath)
+SevenZipModuleManager::SevenZipModuleManager(LPCWSTR s7zPath)
 {
 	m_module = NULL;
 	SevenZipModule *pModule = new SevenZipModule;
@@ -468,7 +468,7 @@ SevenZipModuleManager::SevenZipModuleManager(LPCTSTR s7zPath)
 	}
 }
 
-bool SevenZipModuleManager::Extract (const TCHAR *lpFileName, const TCHAR *lpDestDir)
+bool SevenZipModuleManager::Extract (const wchar_t *lpFileName, const wchar_t *lpDestDir)
 {
 	bool bResult = false;
 

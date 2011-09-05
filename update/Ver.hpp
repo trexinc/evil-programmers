@@ -2,19 +2,14 @@
 
 #define MAJOR_VER 0
 #define MINOR_VER 0
-#define BUILD 14
+#define BUILD 15
 
 #define _W(arg) L##arg
 #define _STR(arg) _W(#arg)
 #define STR(arg) _STR(arg)
 
-#ifndef UNICODE
-#define SUFFIX L"A"
-#define FARVER L"1.7x"
-#else
 #define SUFFIX L"W"
-#define FARVER L"2"
-#endif
+#define FARVER L"3"
 
 #ifdef _WIN64
 #define PLATFORM L"x64"

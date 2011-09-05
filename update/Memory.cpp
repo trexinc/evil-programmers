@@ -104,7 +104,7 @@ INT WINAPIV memcmp(LPCVOID src,LPCVOID dst,size_t count)
 	{
 		if(static_cast<const BYTE*>(src)[i]!=static_cast<const BYTE*>(dst)[i])
 		{
-			return (static_cast<const BYTE*>(src)[i]>static_cast<const BYTE*>(src)[i])?1:-1;
+			return (static_cast<const BYTE*>(src)[i]>static_cast<const BYTE*>(dst)[i])?1:-1;
 		}
 	}
 	return 0;

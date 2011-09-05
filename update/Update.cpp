@@ -1,11 +1,15 @@
 #include "headers.hpp"
 
+#include "Underscore.Archives.h"
+
+#include <initguid.h>
+#include "guid.hpp"
 #include "Imports.hpp"
 
 #include "update.hpp"
 #include "lng.hpp"
+#include "ver.hpp"
 
-#include "Underscore.Archives.h"
 
 #include "Console.hpp"
 #include "CursorPos.hpp"
@@ -31,61 +35,72 @@ struct EventStruct
 {
 	EVENT Event;
 	LPVOID Data;
+	bool Self;
 	bool *Result;
 };
 
 struct IPC
 {
-	TCHAR FarModule[MAX_PATH];
-	TCHAR FarDirectory[MAX_PATH];
-	TCHAR PluginModule[MAX_PATH];
-	TCHAR PluginDirectory[MAX_PATH];
-	TCHAR FarParams[MAX_PATH*4];
-	TCHAR TempDirectory[MAX_PATH];
-	TCHAR Config[MAX_PATH];
-	TCHAR UpdateList[MAX_PATH];
-	TCHAR SevenZip[MAX_PATH];
+	wchar_t FarModule[MAX_PATH];
+	wchar_t FarDirectory[MAX_PATH];
+	wchar_t PluginModule[MAX_PATH];
+	wchar_t PluginDirectory[MAX_PATH];
+	wchar_t FarParams[MAX_PATH*4];
+	wchar_t TempDirectory[MAX_PATH];
+	wchar_t Config[MAX_PATH];
+	wchar_t SelfUpdateList[MAX_PATH];
+	wchar_t FarUpdateList[MAX_PATH];
+	wchar_t SevenZip[MAX_PATH];
 	bool UseMsi;
+	bool Self;
 } ipc;
 
-LPCTSTR strVer=TEXT("1.0");
-LPCTSTR Directory=TEXT("FUTMP");
-LPCTSTR RemoteSrv=TEXT("www.farmanager.com");
-LPCTSTR RemotePath=TEXT("/nightly");
+LPCWSTR strVer=L"1.0";
+LPCWSTR Directory=L"FUTMP";
 
-LPCTSTR phpFile=
+LPCWSTR SelfRemoteSrv=L"www.idkfa.googlecode.com";
+LPCWSTR SelfRemotePath=L"/files";
 
-#ifndef UNICODE
-                TEXT("update.php");
-#else
-                TEXT("update2.php");
-#endif
+LPCWSTR FarRemoteSrv=L"www.farmanager.com";
+LPCWSTR FarRemotePath=L"/nightly";
 
-LPCTSTR phpRequest=
+LPCWSTR FarUpdateFile=L"update2.php";
+
+LPCWSTR SelfUpdateFile=L"update.txt";
+
+LPCWSTR phpRequest=
 
 #ifdef _WIN64
-                   TEXT("?p=64");
+                   L"?p=64";
 #else
-                   TEXT("?p=32");
+                   L"?p=32";
 #endif
+
+LPCWSTR SelfSection=
+#ifndef _WIN64
+L"UpdateW32"
+#else
+L"UpdateW64"
+#endif
+;
+
+LPCWSTR FarSection=L"far";
 
 bool bUseProxy;
-TCHAR strProxyName[512];
-TCHAR strProxyUser[512];
-TCHAR strProxyPass[512];
+wchar_t strProxyName[512];
+wchar_t strProxyUser[512];
+wchar_t strProxyPass[512];
 
-bool lock=false;
-bool exitfar=false;
-#ifndef UNICODE
-bool wrapper=false;
-#endif
 bool NeedRestart=false;
 
 SYSTEMTIME SavedTime;
 
-HANDLE hThread=NULL;
+HANDLE hThread=nullptr;
 
-HANDLE hRunDll=NULL;
+HANDLE hRunDll=nullptr;
+
+HANDLE StopEvent=nullptr;
+HANDLE UnlockEvent=nullptr;
 
 CRITICAL_SECTION cs;
 
@@ -94,75 +109,59 @@ FarStandardFunctions FSF;
 
 DWORD Mode=0;
 
-INT mprintf(LPCTSTR format,...)
+INT mprintf(LPCWSTR format,...)
 {
 	va_list argptr;
 	va_start(argptr,format);
-	TCHAR buff[1024];
+	wchar_t buff[1024];
 	DWORD n=wvsprintf(buff,format,argptr);
 	va_end(argptr);
-	WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE),buff,n,&n,NULL);
+	WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE),buff,n,&n,nullptr);
 	return n;
 }
 
-template<class T>T StringToNumber(LPCTSTR String, T &Number)
+template<class T>T StringToNumber(LPCWSTR String, T &Number)
 {
 	Number=0;
-	for(LPCTSTR p=String;p&&*p;p++)
-		if(*p>=TEXT('0')&&*p<=TEXT('9'))
-			Number=Number*10+(*p-TEXT('0'));
+	for(LPCWSTR p=String;p&&*p;p++)
+		if(*p>=L'0'&&*p<=L'9')
+			Number=Number*10+(*p-L'0');
 	return Number;
 }
 
-#ifndef UNICODE
-LPSTR * CommandLineToArgvA(LPCSTR lpCmdLineA, __out int* pNumArgs)
+VOID GetNewModuleVersion(bool Self,LPWSTR Str,DWORD& NewMajor,DWORD& NewMinor,DWORD& NewBuild)
 {
-	INT sz=MultiByteToWideChar(CP_ACP,0,lpCmdLineA,-1,NULL,0);
-	LPWSTR CmdLineW=new WCHAR[sz];
-	MultiByteToWideChar(CP_ACP,0,lpCmdLineA,-1,CmdLineW,sz);
-	LPWSTR * argvW=CommandLineToArgvW(CmdLineW,pNumArgs);
-	delete[] CmdLineW;
-	
-	sz=sizeof(LPSTR)**pNumArgs;
-	for(size_t i=0;i<static_cast<size_t>(*pNumArgs);i++)
-		sz+=lstrlenW(argvW[i])+1;
-
-	LPSTR *argvA=static_cast<LPSTR*>(LocalAlloc(LMEM_FIXED,sz));
-	LPSTR ptr=reinterpret_cast<LPSTR>(argvA)+sizeof(LPSTR)**pNumArgs;
-	for(size_t i=0;i<static_cast<size_t>(*pNumArgs);i++)
+	LPCWSTR UpdateList=Self?ipc.SelfUpdateList:ipc.FarUpdateList;
+	LPCWSTR Section=Self?SelfSection:FarSection;
+	NewMajor=GetPrivateProfileInt(Section,L"major",-1,UpdateList);
+	NewMinor=GetPrivateProfileInt(Section,L"minor",-1,UpdateList);
+	NewBuild=GetPrivateProfileInt(Section,L"build",-1,UpdateList);
+	if(Str)
 	{
-		int s=lstrlenW(argvW[i])+1;
-		WideCharToMultiByte(CP_ACP,0,argvW[i],-1,ptr,s,0,0);
-		argvA[i]=ptr;
-		ptr+=s;
+		FSF.sprintf(Str,Self?L"Update (%d.%d build %d)":L"Far Manager (%d.%d build %d)",NewMajor,NewMinor,NewBuild);
 	}
-	LocalFree(argvW);
-	return argvA;
-}
-#define CommandLineToArgv CommandLineToArgvA
-#else
-#define CommandLineToArgv CommandLineToArgvW
-#endif
-
-VOID GetNewModuleVersion(DWORD &NewMajor,DWORD &NewMinor,DWORD &NewBuild)
-{
-	NewMajor=GetPrivateProfileInt(TEXT("far"),TEXT("major"),-1,ipc.UpdateList);
-	NewMinor=GetPrivateProfileInt(TEXT("far"),TEXT("minor"),-1,ipc.UpdateList);
-	NewBuild=GetPrivateProfileInt(TEXT("far"),TEXT("build"),-1,ipc.UpdateList);
 }
 
-bool NeedUpdate()
+bool NeedUpdate(bool Self)
 {
-	DWORD CurVer=static_cast<DWORD>(Info.AdvControl(Info.ModuleNumber,ACTL_GETFARVERSION,NULL));
-	DWORD CurMajor=HIBYTE(LOWORD(CurVer)),NewMajor;
-	DWORD CurMinor=LOBYTE(LOWORD(CurVer)),NewMinor;
-	DWORD CurBuild=HIWORD(CurVer),NewBuild;
-	
-	GetNewModuleVersion(NewMajor,NewMinor,NewBuild);
+	VersionInfo FarVersion={};
+	if(Self)
+	{
+		FarVersion.Major = MAJOR_VER;
+		FarVersion.Minor = MINOR_VER;
+		FarVersion.Build = BUILD;
+	}
+	else
+	{
+		Info.AdvControl(&MainGuid, ACTL_GETFARMANAGERVERSION, 0, &FarVersion);
+	}
 
-	return (NewMajor>CurMajor) || 
-	((NewMajor==CurMajor)&&(NewMinor>CurMinor))||
-	((NewMajor==CurMajor)&&(NewMinor==CurMinor)&&(NewBuild>CurBuild));
+	DWORD NewMajor, NewMinor, NewBuild;
+	GetNewModuleVersion(Self,nullptr,NewMajor,NewMinor,NewBuild);
+
+	return (NewMajor>FarVersion.Major) || 
+	((NewMajor==FarVersion.Major)&&(NewMinor>FarVersion.Minor))||
+	((NewMajor==FarVersion.Major)&&(NewMinor==FarVersion.Minor)&&(NewBuild>FarVersion.Build));
 }
 
 typedef BOOL (CALLBACK* DOWNLOADPROC)(DWORD);
@@ -172,16 +171,16 @@ BOOL CALLBACK DownloadProc(DWORD Percent)
 	CursorPos cp;
 	if(Percent)
 	{
-		mprintf(TEXT("%d%%"),Percent);
+		mprintf(L"%d%%",Percent);
 	}
 	else
 	{
-		mprintf(TEXT("    "));
+		mprintf(L"    ");
 	}
 	return TRUE;
 }
 
-DWORD WINAPI WinInetDownload(LPCTSTR strSrv, LPCTSTR strURL, LPCTSTR strFile,DOWNLOADPROC Proc=NULL)
+DWORD WINAPI WinInetDownload(LPCWSTR strSrv, LPCWSTR strURL, LPCWSTR strFile,DOWNLOADPROC Proc=nullptr)
 {
 	DWORD err=0;
 
@@ -189,14 +188,14 @@ DWORD WINAPI WinInetDownload(LPCTSTR strSrv, LPCTSTR strURL, LPCTSTR strFile,DOW
 	if(bUseProxy)
 		ProxyType=*strProxyName?INTERNET_OPEN_TYPE_PROXY:INTERNET_OPEN_TYPE_PRECONFIG;
 
-	HINTERNET hInternet=InternetOpen(TEXT("Mozilla/5.0 (compatible; FAR Update)"),ProxyType,strProxyName,NULL,0);
+	HINTERNET hInternet=InternetOpen(L"Mozilla/5.0 (compatible; FAR Update)",ProxyType,strProxyName,nullptr,0);
 	if(hInternet) 
 	{
 		BYTE Data[2048];
 		DWORD dwBytesRead;
 		BOOL bRead=FALSE;
 
-		HINTERNET hConnect=InternetConnect(hInternet,strSrv,INTERNET_DEFAULT_HTTP_PORT,NULL,NULL,INTERNET_SERVICE_HTTP,0,1);
+		HINTERNET hConnect=InternetConnect(hInternet,strSrv,INTERNET_DEFAULT_HTTP_PORT,nullptr,nullptr,INTERNET_SERVICE_HTTP,0,1);
 		if(hConnect) 
 		{
 			if(bUseProxy && *strProxyName)
@@ -222,22 +221,22 @@ DWORD WINAPI WinInetDownload(LPCTSTR strSrv, LPCTSTR strURL, LPCTSTR strFile,DOW
 				err=GetLastError();
 			}
 
-			HINTERNET hRequest=HttpOpenRequest(hConnect,TEXT("GET"),strURL,TEXT("HTTP/1.1"),NULL,0,INTERNET_FLAG_KEEP_CONNECTION|INTERNET_FLAG_NO_CACHE_WRITE|INTERNET_FLAG_PRAGMA_NOCACHE|INTERNET_FLAG_RELOAD,1);
+			HINTERNET hRequest=HttpOpenRequest(hConnect,L"GET",strURL,L"HTTP/1.1",nullptr,0,INTERNET_FLAG_KEEP_CONNECTION|INTERNET_FLAG_NO_CACHE_WRITE|INTERNET_FLAG_PRAGMA_NOCACHE|INTERNET_FLAG_RELOAD,1);
 
 			if (hRequest) 
 			{
-				if (HttpSendRequest(hRequest,NULL,0,NULL,0)) 
+				if (HttpSendRequest(hRequest,nullptr,0,nullptr,0)) 
 				{
-					HANDLE hFile=CreateFile(strFile,GENERIC_WRITE,FILE_SHARE_READ,NULL,OPEN_ALWAYS,FILE_ATTRIBUTE_NORMAL,NULL);
+					HANDLE hFile=CreateFile(strFile,GENERIC_WRITE,FILE_SHARE_READ,nullptr,OPEN_ALWAYS,FILE_ATTRIBUTE_NORMAL,nullptr);
 					if(hFile!=INVALID_HANDLE_VALUE)
 					{
 						DWORD Size=0;
 						DWORD sz=sizeof(Size);
-						if (!HttpQueryInfo(hRequest,HTTP_QUERY_CONTENT_LENGTH|HTTP_QUERY_FLAG_NUMBER,&Size,&sz,NULL))
+						if (!HttpQueryInfo(hRequest,HTTP_QUERY_CONTENT_LENGTH|HTTP_QUERY_FLAG_NUMBER,&Size,&sz,nullptr))
 						{
 							err=GetLastError();
 						}
-						if(Size!=GetFileSize(hFile,NULL))
+						if(Size!=GetFileSize(hFile,nullptr))
 						{
 							SetEndOfFile(hFile);
 							UINT BytesDone=0;
@@ -250,7 +249,7 @@ DWORD WINAPI WinInetDownload(LPCTSTR strSrv, LPCTSTR strURL, LPCTSTR strFile,DOW
 									Proc(BytesDone*100/Size);
 								}
 								DWORD dwWritten=0;
-								if (!WriteFile(hFile,Data,dwBytesRead,&dwWritten,NULL))
+								if (!WriteFile(hFile,Data,dwBytesRead,&dwWritten,nullptr))
 								{
 									err=GetLastError();
 									break;
@@ -281,29 +280,41 @@ DWORD WINAPI WinInetDownload(LPCTSTR strSrv, LPCTSTR strURL, LPCTSTR strFile,DOW
 	return err;
 }
 
-bool DownloadFile(LPCTSTR RemoteFile,LPCTSTR LocalName=NULL,bool UseCallBack=false)
+bool DownloadFile(bool Self,LPCWSTR RemoteFile,LPCWSTR LocalName=nullptr,bool UseCallBack=false)
 {
-	TCHAR LocalFile[MAX_PATH];
+	wchar_t LocalFile[MAX_PATH];
 	lstrcpy(LocalFile,ipc.TempDirectory);
 	lstrcat(LocalFile,LocalName?LocalName:FSF.PointToName(RemoteFile));
-	return WinInetDownload(RemoteSrv,RemoteFile,LocalFile,UseCallBack?DownloadProc:NULL)==0;
+	return WinInetDownload(Self?SelfRemoteSrv:FarRemoteSrv,RemoteFile,LocalFile,UseCallBack?DownloadProc:nullptr)==0;
 }
 
-DWORD CheckUpdates()
+DWORD CheckUpdates(bool Self)
 {
 	DWORD Ret=S_UPTODATE;
-	CreateDirectory(ipc.TempDirectory,NULL);
-	TCHAR URL[1024];
-	FSF.sprintf(URL,TEXT("%s/%s%s"),RemotePath,phpFile,phpRequest);
-	if(DownloadFile(URL,phpFile))
+	CreateDirectory(ipc.TempDirectory,nullptr);
+	wchar_t URL[1024];
+	if(Self)
 	{
-		TCHAR sVer[MAX_PATH];
-		GetPrivateProfileString(TEXT("info"),TEXT("version"),TEXT(""),sVer,ARRAYSIZE(sVer),ipc.UpdateList);
+		lstrcpy(URL,SelfRemotePath);
+		lstrcat(URL,L"/");
+		lstrcat(URL,SelfUpdateFile);
+	}
+	else
+	{
+		lstrcpy(URL,FarRemotePath);
+		lstrcat(URL,L"/");
+		lstrcat(URL,FarUpdateFile);
+		lstrcat(URL,phpRequest);
+	}
+	if(DownloadFile(Self,URL,Self?SelfUpdateFile:FarUpdateFile))
+	{
+		wchar_t sVer[MAX_PATH];
+		GetPrivateProfileString(L"info",L"version",L"",sVer,ARRAYSIZE(sVer),Self?ipc.SelfUpdateList:ipc.FarUpdateList);
 		if(lstrcmp(sVer, strVer))
 		{
 			return S_CANTCONNECT;
 		}
-		if(NeedUpdate())
+		if(NeedUpdate(Self))
 		{
 			Ret=S_REQUIRED;
 		}
@@ -315,21 +326,28 @@ DWORD CheckUpdates()
 	return Ret;
 }
 
-bool DownloadUpdates(bool Silent=false)
+bool DownloadUpdates(bool Self,bool Silent)
 {
-	TCHAR URL[1024],arc[MAX_PATH];
-	GetPrivateProfileString(TEXT("far"),ipc.UseMsi?TEXT("msi"):TEXT("arc"),TEXT(""),arc,ARRAYSIZE(arc),ipc.UpdateList);
-	FSF.sprintf(URL,TEXT("%s/%s"),RemotePath,arc);
+	wchar_t URL[1024],arc[MAX_PATH];
+	if(Self)
+	{
+		GetPrivateProfileString(SelfSection,L"arc",L"",arc,ARRAYSIZE(arc),ipc.SelfUpdateList);
+	}
+	else
+	{
+		GetPrivateProfileString(FarSection,ipc.UseMsi?L"msi":L"arc",L"",arc,ARRAYSIZE(arc),ipc.FarUpdateList);
+	}
+	FSF.sprintf(URL,L"%s/%s",Self?SelfRemotePath:FarRemotePath,arc);
 	if(!Silent)
 	{
-		mprintf(TEXT("%s %-50s"),MSG(MLoad),TEXT("Far"));
+		mprintf(L"%s %-50s",MSG(MLoad),Self?L"Update":L"Far");
 	}
-	if(DownloadFile(URL,NULL,!Silent))
+	if(DownloadFile(Self,URL,nullptr,!Silent))
 	{
 		if(!Silent)
 		{
 			TextColor color(FOREGROUND_GREEN|FOREGROUND_INTENSITY);
-			mprintf(TEXT("OK"));
+			mprintf(L"OK");
 		}
 		NeedRestart=true;
 	}
@@ -338,19 +356,20 @@ bool DownloadUpdates(bool Silent=false)
 		if(!Silent)
 		{
 			TextColor color(FOREGROUND_RED|FOREGROUND_INTENSITY);
-			mprintf(TEXT("download error %d"),GetLastError());
+			mprintf(L"download error %d",GetLastError());
 		}
 	}
 	if(!Silent)
 	{
-		mprintf(TEXT("\n"));
+		mprintf(L"\n");
 	}
 	return true;
 }
 
 bool Clean()
 {
-	DeleteFile(ipc.UpdateList);
+	DeleteFile(ipc.SelfUpdateList);
+	DeleteFile(ipc.FarUpdateList);
 	RemoveDirectory(ipc.TempDirectory);
 	return true;
 }
@@ -359,15 +378,20 @@ bool IsTime()
 {
 	SYSTEMTIME st;
 	GetLocalTime(&st);
-	return st.wYear!=SavedTime.wYear||st.wMonth!=SavedTime.wMonth||st.wDay!=SavedTime.wDay;
+	EnterCriticalSection(&cs);
+	bool Result=st.wYear!=SavedTime.wYear||st.wMonth!=SavedTime.wMonth||st.wDay!=SavedTime.wDay;
+	LeaveCriticalSection(&cs);
+	return Result;
 }
 
 VOID SaveTime()
 {
+	EnterCriticalSection(&cs);
 	GetLocalTime(&SavedTime);
+	LeaveCriticalSection(&cs);
 }
 
-VOID StartUpdate(bool Silent=false)
+VOID StartUpdate(bool Self,bool Silent)
 {
 	DWORD RunDllExitCode=0;
 	GetExitCodeProcess(hRunDll,&RunDllExitCode);
@@ -376,36 +400,37 @@ VOID StartUpdate(bool Silent=false)
 		if(!Silent)
 		{
 			TextColor color(FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_INTENSITY);
-			mprintf(TEXT("\n%s\n"),MSG(MExitFAR));
+			mprintf(L"\n%s\n",MSG(MExitFAR));
 		}
 	}
 	else if(NeedRestart)
 	{
 		HANDLE ProcDup;
-		DuplicateHandle(GetCurrentProcess(),GetCurrentProcess(),GetCurrentProcess(),&ProcDup,NULL,TRUE,DUPLICATE_SAME_ACCESS);
+		DuplicateHandle(GetCurrentProcess(),GetCurrentProcess(),GetCurrentProcess(),&ProcDup,0,TRUE,DUPLICATE_SAME_ACCESS);
 
-		TCHAR cmdline[MAX_PATH];
+		wchar_t cmdline[MAX_PATH];
 
-		size_t NumArgs=0;
-		LPTSTR *Argv=CommandLineToArgv(GetCommandLine(),reinterpret_cast<PINT>(&NumArgs));
+		int NumArgs=0;
+		LPWSTR *Argv=CommandLineToArgvW(GetCommandLine(), &NumArgs);
 		*ipc.FarParams=0;
-		for(size_t i=1;i<NumArgs;i++)
+		for(int i=1;i<NumArgs;i++)
 		{
 			lstrcat(ipc.FarParams,Argv[i]);
 			if(i<NumArgs-1)
-				lstrcat(ipc.FarParams,TEXT(" "));
+				lstrcat(ipc.FarParams,L" ");
 		}
 		LocalFree(Argv);
 
-		TCHAR WinDir[MAX_PATH];
+		wchar_t WinDir[MAX_PATH];
 		GetWindowsDirectory(WinDir,ARRAYSIZE(WinDir));
 		BOOL IsWow64=FALSE;
-		FSF.sprintf(cmdline,TEXT("%s\\%s\\rundll32.exe \"%s\", RestartFAR %I64d %I64d"),WinDir,ifn.IsWow64Process(GetCurrentProcess(),&IsWow64)&&IsWow64?TEXT("SysWOW64"):TEXT("System32"),ipc.PluginModule,reinterpret_cast<INT64>(ProcDup),reinterpret_cast<INT64>(&ipc));
+		ipc.Self=Self;
+		FSF.sprintf(cmdline,L"%s\\%s\\rundll32.exe \"%s\", RestartFAR %I64d %I64d",WinDir,ifn.IsWow64Process(GetCurrentProcess(),&IsWow64)&&IsWow64?L"SysWOW64":L"System32",ipc.PluginModule,reinterpret_cast<INT64>(ProcDup),reinterpret_cast<INT64>(&ipc));
 
 		STARTUPINFO si={sizeof(si)};
 		PROCESS_INFORMATION pi;
 
-		BOOL Created=CreateProcess(NULL,cmdline,NULL,NULL,TRUE,0,NULL,NULL,&si,&pi);
+		BOOL Created=CreateProcess(nullptr,cmdline,nullptr,nullptr,TRUE,0,nullptr,nullptr,&si,&pi);
 
 		if(Created)
 		{
@@ -414,38 +439,24 @@ VOID StartUpdate(bool Silent=false)
 			if(!Silent)
 			{
 				TextColor color(FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_INTENSITY);
-				mprintf(TEXT("\n%s\n"),MSG(MExitFAR));
+				mprintf(L"\n%s\n",MSG(MExitFAR));
 			}
 			else
 			{
-#ifndef UNICODE
-				char Title[1024],Msg[1024];
-				lstrcpy(Title,MSG(MName));
-				OemToCharBuff(Title,Title,ARRAYSIZE(Title));
-				lstrcpy(Msg,MSG(MUpdatesDownloaded));
-				lstrcat(Msg,"\n");
-				lstrcat(Msg,MSG(MExitFAR));
-				OemToCharBuff(Msg,Msg,ARRAYSIZE(Msg));
-				MessageBox(NULL,Msg,Title,MB_ICONINFORMATION);
-#else
-				HANDLE hEvent=CreateEvent(NULL,FALSE,FALSE,NULL);
-				EventStruct es={E_DOWNLOADED,hEvent};
-				Info.AdvControl(Info.ModuleNumber,ACTL_SYNCHRO,&es);
+				HANDLE hEvent=CreateEvent(nullptr,FALSE,FALSE,nullptr);
+				EventStruct es={E_DOWNLOADED,hEvent,Self};
+				Info.AdvControl(&MainGuid, ACTL_SYNCHRO, 0, &es);
 				WaitForSingleObject(hEvent,INFINITE);
 				CloseHandle(hEvent);
-#endif
 			}
-			EnterCriticalSection(&cs);
 			SaveTime();
-			exitfar=true;
-			LeaveCriticalSection(&cs);
 		}
 		else
 		{
 			if(!Silent)
 			{
 				TextColor color(FOREGROUND_RED|FOREGROUND_INTENSITY);
-				mprintf(TEXT("%s - error %d"),MSG(MCantCreateProcess),GetLastError());
+				mprintf(L"%s - error %d",MSG(MCantCreateProcess),GetLastError());
 			}
 		}
 
@@ -462,107 +473,68 @@ VOID StartUpdate(bool Silent=false)
 
 DWORD WINAPI ThreadProc(LPVOID /*lpParameter*/)
 {
-	bool End=false;
-
-	while(!End)
+	while(WaitForSingleObject(StopEvent, 0)!=WAIT_OBJECT_0)
 	{
+		WaitForSingleObject(UnlockEvent, INFINITE);
 		bool Time=false;
 
-		EnterCriticalSection(&cs);
-		End=exitfar;
-		Time=(!lock && IsTime());
-		LeaveCriticalSection(&cs);
+		Time=IsTime();
 
 		if(Time)
 		{
-			switch(CheckUpdates())
+			for(int i=0;i<2;i++)
 			{
-			case S_REQUIRED:
+				switch(CheckUpdates(!i))
 				{
-#ifndef UNICODE
-					TCHAR Msg[2048];
-					lstrcpy(Msg,MSG(MAvailableUpdates));
-					OemToCharBuff(Msg,Msg,lstrlen(Msg));
-					lstrcat(Msg,TEXT("\n\n"));
-					DWORD NewMajor,NewMinor,NewBuild;
-					GetNewModuleVersion(NewMajor,NewMinor,NewBuild);
+				case S_REQUIRED:
 					{
-						TCHAR Version[MAX_PATH];
-						wsprintf(Version,TEXT("Far Manager (%d.%d build %d)"),NewMajor,NewMinor,NewBuild);
-						lstrcat(Msg,Version);
+						ResetEvent(UnlockEvent);
+						SaveTime();
+						bool Load=(Mode==2);
+						if(!Load)
+						{
+							HANDLE hEvent=CreateEvent(nullptr,FALSE,FALSE,nullptr);
+							EventStruct es={E_ASKLOAD,hEvent,!i,&Load};
+							Info.AdvControl(&MainGuid, ACTL_SYNCHRO, 0, &es);
+							WaitForSingleObject(hEvent,INFINITE);
+							CloseHandle(hEvent);
+						}
+						if(Load)
+						{
+							if(DownloadUpdates(!i,true))
+							{
+								StartUpdate(!i,true);
+							}
+						}
+						else
+						{
+							Clean();
+						}
+						SetEvent(UnlockEvent);
 					}
-					lstrcat(Msg,TEXT("\n"));
-					TCHAR Tmp[1024];
-					lstrcpy(Tmp,MSG(MAsk));
-					OemToCharBuff(Tmp,Tmp,lstrlen(Tmp));
-					lstrcat(Msg,Tmp);
-#endif
-					EnterCriticalSection(&cs);
-					SaveTime();
-					lock=true;
-					LeaveCriticalSection(&cs);
-					bool Load=(Mode==2);
-					if(!Load)
+					break;
+				case S_CANTCONNECT:
 					{
-#ifndef UNICODE
-						Load=(MessageBox(NULL,Msg,TEXT("FAR Update"),MB_ICONINFORMATION|MB_YESNO)==IDYES);
-#else
-						HANDLE hEvent=CreateEvent(NULL,FALSE,FALSE,NULL);
-						EventStruct es={E_ASKLOAD,hEvent,&Load};
-						Info.AdvControl(Info.ModuleNumber,ACTL_SYNCHRO,&es);
+						HANDLE hEvent=CreateEvent(nullptr,FALSE,FALSE,nullptr);
+						bool Cancel=false;
+						EventStruct es={E_CONNECTFAIL,hEvent,!i,&Cancel};
+						Info.AdvControl(&MainGuid, ACTL_SYNCHRO, 0, &es);
 						WaitForSingleObject(hEvent,INFINITE);
 						CloseHandle(hEvent);
-#endif
-					}
-					if(Load)
-					{
-						if(DownloadUpdates(true))
+						if(Cancel)
 						{
-							StartUpdate(true);
+							SaveTime();
 						}
-					}
-					else
-					{
 						Clean();
 					}
-					EnterCriticalSection(&cs);
-					lock=false;
-					LeaveCriticalSection(&cs);
-					
-				}
-				break;
-			case S_CANTCONNECT:
-				{
-#ifndef UNICODE
-					CHAR Msg[1024];
-					lstrcpy(Msg,MSG(MCantConnect));
-					OemToCharBuff(Msg,Msg,lstrlen(Msg));
-					if(MessageBox(NULL,Msg,TEXT("FAR Update"),MB_ICONERROR|MB_RETRYCANCEL)==IDCANCEL)
-#else
-					HANDLE hEvent=CreateEvent(NULL,FALSE,FALSE,NULL);
-					bool Cancel=false;
-					EventStruct es={E_CONNECTFAIL,hEvent,&Cancel};
-					Info.AdvControl(Info.ModuleNumber,ACTL_SYNCHRO,&es);
-					WaitForSingleObject(hEvent,INFINITE);
-					CloseHandle(hEvent);
-					if(Cancel)
-#endif
+					break;
+				case S_UPTODATE:
 					{
-						EnterCriticalSection(&cs);
 						SaveTime();
-						LeaveCriticalSection(&cs);
+						Clean();
 					}
-					Clean();
+					break;
 				}
-				break;
-			case S_UPTODATE:
-				{
-					EnterCriticalSection(&cs);
-					SaveTime();
-					LeaveCriticalSection(&cs);
-					Clean();
-				}
-				break;
 			}
 		}
 		Sleep(1000);
@@ -572,47 +544,63 @@ DWORD WINAPI ThreadProc(LPVOID /*lpParameter*/)
 
 VOID InitPaths()
 {
-	GetModuleFileName(NULL,ipc.FarModule,ARRAYSIZE(ipc.FarModule));
+	GetModuleFileName(nullptr,ipc.FarModule,ARRAYSIZE(ipc.FarModule));
 
 	lstrcpy(ipc.FarDirectory,ipc.FarModule);
-	*(StrRChr(ipc.FarDirectory,NULL,TEXT('\\'))+1)=0;
+	*(StrRChr(ipc.FarDirectory,nullptr,L'\\')+1)=0;
 
-	lstrcpy(ipc.TempDirectory,ipc.FarDirectory);
-	lstrcat(ipc.TempDirectory,TEXT("FUTMP\\"));
+	GetTempPath(ARRAYSIZE(ipc.TempDirectory),ipc.TempDirectory);
+	lstrcat(ipc.TempDirectory,L"FarUpdate\\");
 
-	lstrcpy(ipc.UpdateList,ipc.TempDirectory);
-	lstrcat(ipc.UpdateList,phpFile);
+	lstrcpy(ipc.FarUpdateList,ipc.TempDirectory);
+	lstrcat(ipc.FarUpdateList,FarUpdateFile);
+
+	lstrcpy(ipc.SelfUpdateList,ipc.TempDirectory);
+	lstrcat(ipc.SelfUpdateList,SelfUpdateFile);
 
 	lstrcpy(ipc.PluginModule,Info.ModuleName);
 
 	lstrcpy(ipc.PluginDirectory,ipc.PluginModule);
-	*(StrRChr(ipc.PluginDirectory,NULL,'\\')+1)=0;
+	*(StrRChr(ipc.PluginDirectory,nullptr,'\\')+1)=0;
 
 	lstrcpy(ipc.Config,ipc.PluginModule);
-	lstrcat(ipc.Config,TEXT(".config"));
+	lstrcat(ipc.Config,L".config");
 
 	lstrcpy(ipc.SevenZip,ipc.PluginDirectory);
-	lstrcat(ipc.SevenZip,TEXT("7zxr.dll"));
+	lstrcat(ipc.SevenZip,L"7zxr.dll");
 
 }
 
 VOID ReadSettings()
 {
-	Mode=GetPrivateProfileInt(TEXT("update"),TEXT("Mode"),2,ipc.Config);
-	ipc.UseMsi=(GetPrivateProfileInt(TEXT("update"),TEXT("Msi"),0,ipc.Config)!=0);
-	bUseProxy=GetPrivateProfileInt(TEXT("connect"),TEXT("proxy"),0,ipc.Config) == 1;
-	GetPrivateProfileString(TEXT("connect"),TEXT("srv"),TEXT(""),strProxyName,ARRAYSIZE(strProxyName),ipc.Config);
-	GetPrivateProfileString(TEXT("connect"),TEXT("user"), TEXT(""),strProxyUser,ARRAYSIZE(strProxyUser),ipc.Config);
-	GetPrivateProfileString(TEXT("connect"),TEXT("pass"), TEXT(""),strProxyPass,ARRAYSIZE(strProxyPass),ipc.Config);
+	Mode=GetPrivateProfileInt(L"update",L"Mode",2,ipc.Config);
+	ipc.UseMsi=(GetPrivateProfileInt(L"update",L"Msi",0,ipc.Config)!=0);
+	bUseProxy=GetPrivateProfileInt(L"connect",L"proxy",0,ipc.Config) == 1;
+	GetPrivateProfileString(L"connect",L"srv",L"",strProxyName,ARRAYSIZE(strProxyName),ipc.Config);
+	GetPrivateProfileString(L"connect",L"user", L"",strProxyUser,ARRAYSIZE(strProxyUser),ipc.Config);
+	GetPrivateProfileString(L"connect",L"pass", L"",strProxyPass,ARRAYSIZE(strProxyPass),ipc.Config);
 }
 
 
-INT WINAPI EXP_NAME(GetMinFarVersion)()
+INT WINAPI GetMinFarVersionW()
 {
+#define MAKEFARVERSION(major,minor,build) ( ((major)<<8) | (minor) | ((build)<<16))
 	return MAKEFARVERSION(MIN_FAR_MAJOR_VER,MIN_FAR_MINOR_VER,MIN_FAR_BUILD);
+#undef MAKEFARVERSION
 }
 
-VOID WINAPI EXP_NAME(SetStartupInfo)(const PluginStartupInfo* psInfo)
+void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
+{
+	Info->StructSize=sizeof(GlobalInfo);
+	Info->MinFarVersion=FARMANAGERVERSION;
+	//Info->Version;
+	Info->Guid=MainGuid;
+	Info->Title=L"Update";
+	Info->Description=L"Automatic updates";
+	Info->Author=L"AA";
+}
+
+VOID WINAPI SetStartupInfoW(const PluginStartupInfo* psInfo)
 {
 	ifn.Load();
 	Info=*psInfo;
@@ -625,136 +613,125 @@ VOID WINAPI EXP_NAME(SetStartupInfo)(const PluginStartupInfo* psInfo)
 	*strProxyPass=0;
 
 	InitPaths();
-#ifndef UNICODE
-	if(HIBYTE(LOWORD(Info.AdvControl(Info.ModuleNumber,ACTL_GETFARVERSION,NULL)))>1)
-	{
-		wrapper=true;
-		return;
-	}
-#endif
 	ReadSettings();
 	InitializeCriticalSection(&cs);
 
+	StopEvent=CreateEvent(nullptr, TRUE, FALSE, nullptr);
+	UnlockEvent=CreateEvent(nullptr, TRUE, TRUE, nullptr);
 	if(Mode)
 	{
-		hThread=CreateThread(NULL,0,ThreadProc,NULL,0,NULL);
+		hThread=CreateThread(nullptr,0,ThreadProc,nullptr,0,nullptr);
 	}
 }
 
-VOID WINAPI EXP_NAME(GetPluginInfo)(PluginInfo* pInfo)
+VOID WINAPI GetPluginInfoW(PluginInfo* pInfo)
 {
-#ifndef UNICODE
-	if(wrapper)
-		return;
-#endif
 	pInfo->StructSize=sizeof(PluginInfo);
-	static LPCTSTR PluginMenuStrings[1],PluginConfigStrings[1];
+	static LPCWSTR PluginMenuStrings[1],PluginConfigStrings[1];
 	PluginMenuStrings[0]=MSG(MName);
+	pInfo->PluginMenu.Guids = &MenuGuid;
+	pInfo->PluginMenu.Strings = PluginMenuStrings;
+	pInfo->PluginMenu.Count=ARRAYSIZE(PluginMenuStrings);
+
 	PluginConfigStrings[0]=MSG(MCfgName);
-	pInfo->PluginMenuStrings=PluginMenuStrings;
-	pInfo->PluginConfigStrings=PluginConfigStrings;
-	pInfo->PluginMenuStringsNumber=ARRAYSIZE(PluginMenuStrings);
-	pInfo->PluginConfigStringsNumber=ARRAYSIZE(PluginConfigStrings);
+	pInfo->PluginConfig.Guids = &MenuGuid;
+	pInfo->PluginConfig.Strings = PluginConfigStrings;
+	pInfo->PluginConfig.Count = ARRAYSIZE(PluginConfigStrings);
+
 	pInfo->Flags=PF_EDITOR|PF_VIEWER|PF_DIALOG|PF_PRELOAD;
-	static LPCTSTR CommandPrefix=TEXT("update");
+	static LPCWSTR CommandPrefix=L"update";
 	pInfo->CommandPrefix=CommandPrefix;
 }
 
-VOID WINAPI EXP_NAME(ExitFAR)()
+VOID WINAPI ExitFARW(ExitInfo* Info)
 {
-#ifndef UNICODE
-	if(wrapper)
-	{
-		return;
-	}
-#endif
-	EnterCriticalSection(&cs);
-	exitfar=true;
-	LeaveCriticalSection(&cs);
+	SetEvent(StopEvent);
 	WaitForSingleObject(hThread,INFINITE);
 	DeleteCriticalSection(&cs);
+	if(hThread)
+	{
+		CloseHandle(hThread);
+	}
+
+	CloseHandle(StopEvent);
+	CloseHandle(UnlockEvent);
+
 	if(hRunDll)
+	{
 		CloseHandle(hRunDll);
+	}
 }
 
-HANDLE WINAPI EXP_NAME(OpenPlugin)(INT /*OpenFrom*/,INT_PTR /*item*/)
+HANDLE WINAPI OpenW(const OpenInfo* oInfo)
 {
-#ifndef UNICODE
-	if(wrapper)
+	if(WaitForSingleObject(UnlockEvent,0)==WAIT_TIMEOUT)
 	{
-		return INVALID_HANDLE_VALUE;
-	}
-#endif
-	EnterCriticalSection(&cs);
-	if(lock)
-	{
-		LeaveCriticalSection(&cs);
 		return INVALID_HANDLE_VALUE;
 	}
 	else
 	{
-		lock=true;
-		LeaveCriticalSection(&cs);
+		ResetEvent(UnlockEvent);
 	}
 	Console console;
 	NeedRestart=false;
-	switch(CheckUpdates())
-	{
-	case S_REQUIRED:
-		{
-			LPCTSTR Items[6];
-			TCHAR Str[128];
-			Items[0]=MSG(MName);
-			Items[1]=MSG(MAvailableUpdates);
-			Items[2]=TEXT("\x1");
-			DWORD NewMajor,NewMinor,NewBuild;
-			GetNewModuleVersion(NewMajor,NewMinor,NewBuild);
-			FSF.sprintf(Str,TEXT("Far Manager (%d.%d build %d)"),NewMajor,NewMinor,NewBuild);
-			Items[3]=Str;
-			Items[4]=TEXT("\x1");
-			Items[5]=MSG(MAsk);
 
-			if(!Info.Message(Info.ModuleNumber,FMSG_MB_YESNO|FMSG_LEFTALIGN,NULL,Items,ARRAYSIZE(Items),2))
+	for(int i=0;i<2;i++)
+	{
+		switch(CheckUpdates(!i))
+		{
+		case S_REQUIRED:
 			{
-				DownloadUpdates();
-				StartUpdate();
+				LPCWSTR Items[6];
+				wchar_t Str[128];
+				Items[0]=MSG(MName);
+				Items[1]=MSG(MAvailableUpdates);
+				Items[2]=L"\x1";
+				DWORD NewMajor,NewMinor,NewBuild;
+				GetNewModuleVersion(!i,Str,NewMajor,NewMinor,NewBuild);
+				Items[3]=Str;
+				Items[4]=L"\x1";
+				Items[5]=MSG(MAsk);
+
+				if(!Info.Message(&MainGuid, nullptr, FMSG_MB_YESNO|FMSG_LEFTALIGN,nullptr,Items,ARRAYSIZE(Items),2))
+				{
+					DownloadUpdates(!i,false);
+					StartUpdate(!i,false);
+				}
+				else
+				{
+					TextColor color(FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_INTENSITY);
+					mprintf(MSG(MCancelled));
+					Clean();
+				}
+				break;
 			}
-			else
+			break;
+
+		case S_UPTODATE:
 			{
-				TextColor color(FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_INTENSITY);
-				mprintf(MSG(MCancelled));
+				TextColor color(FOREGROUND_GREEN|FOREGROUND_INTENSITY);
+				mprintf(L"%s %s",MSG(MSystem),MSG(MUpToDate));
 				Clean();
 			}
 			break;
-		}
-		break;
 
-	case S_UPTODATE:
-		{
-			TextColor color(FOREGROUND_GREEN|FOREGROUND_INTENSITY);
-			mprintf(TEXT("%s %s"),MSG(MSystem),MSG(MUpToDate));
-			Clean();
+		default:
+			{
+				TextColor color(FOREGROUND_RED|FOREGROUND_INTENSITY);
+				mprintf(MSG(MCantConnect));
+			}
+			break;
 		}
-		break;
-
-	default:
-		{
-			TextColor color(FOREGROUND_RED|FOREGROUND_INTENSITY);
-			mprintf(MSG(MCantConnect));
-		}
-		break;
 	}
 
-	EnterCriticalSection(&cs);
-	lock=false;
+	SetEvent(UnlockEvent);
 	SaveTime();
-	LeaveCriticalSection(&cs);
-	mprintf(TEXT("\n\n"));
+	mprintf(L"\n\n");
 
 	return INVALID_HANDLE_VALUE;
 }
 
-bool Extract(LPCTSTR lpArc,LPCTSTR lpPath,LPCTSTR lpDestDir)
+bool Extract(LPCWSTR lpArc,LPCWSTR lpPath,LPCWSTR lpDestDir)
 {
 	bool Result=false;
 	if(!ipc.UseMsi)
@@ -766,9 +743,9 @@ bool Extract(LPCTSTR lpArc,LPCTSTR lpPath,LPCTSTR lpDestDir)
 	{
 		STARTUPINFO si={sizeof(si)};
 		PROCESS_INFORMATION pi;
-		TCHAR cmdline[MAX_PATH];
-		wsprintf(cmdline,TEXT("msiexec.exe /promptrestart /qb /i \"%s\""),lpPath);
-		if(CreateProcess(NULL,cmdline,NULL,NULL,FALSE,0,NULL,NULL,&si,&pi))
+		wchar_t cmdline[MAX_PATH];
+		wsprintf(cmdline,L"msiexec.exe /promptrestart /qb /i \"%s\"",lpPath);
+		if(CreateProcess(nullptr,cmdline,nullptr,nullptr,FALSE,0,nullptr,nullptr,&si,&pi))
 		{
 			WaitForSingleObject(pi.hProcess,INFINITE);
 			DWORD ExitCode=0;
@@ -783,24 +760,22 @@ bool Extract(LPCTSTR lpArc,LPCTSTR lpPath,LPCTSTR lpDestDir)
 	return Result;
 }
 
-#ifdef UNICODE
-INT WINAPI EXP_NAME(ProcessSynchroEvent)(INT Event,LPVOID Param)
+INT WINAPI ProcessSynchroEventW(const ProcessSynchroEventInfo *pInfo)
 {
-	switch(Event)
+	switch(pInfo->Event)
 	{
 	case SE_COMMONSYNCHRO:
 		{
-			EventStruct* es=reinterpret_cast<EventStruct*>(Param);
+			EventStruct* es=reinterpret_cast<EventStruct*>(pInfo->Param);
 			switch(es->Event)
 			{
 			case E_ASKLOAD:
 				{
-					TCHAR Str[128];
+					wchar_t Str[128];
 					DWORD NewMajor,NewMinor,NewBuild;
-					GetNewModuleVersion(NewMajor,NewMinor,NewBuild);
-					FSF.sprintf(Str,TEXT("Far Manager (%d.%d build %d)"),NewMajor,NewMinor,NewBuild);
-					LPCTSTR Items[]={MSG(MName),MSG(MAvailableUpdates),TEXT("\x1"),Str,TEXT("\x1"),MSG(MAsk)};
-					if(!Info.Message(Info.ModuleNumber,FMSG_MB_YESNO|FMSG_LEFTALIGN,NULL,Items,ARRAYSIZE(Items),2))
+					GetNewModuleVersion(es->Self,Str,NewMajor,NewMinor,NewBuild);
+					LPCWSTR Items[]={MSG(MName),MSG(MAvailableUpdates),L"\x1",Str,L"\x1",MSG(MAsk)};
+					if(!Info.Message(&MainGuid, nullptr, FMSG_MB_YESNO|FMSG_LEFTALIGN, nullptr, Items, ARRAYSIZE(Items), 2))
 					{
 						*es->Result=true;
 					}
@@ -809,8 +784,8 @@ INT WINAPI EXP_NAME(ProcessSynchroEvent)(INT Event,LPVOID Param)
 				break;
 			case E_CONNECTFAIL:
 				{
-					LPCTSTR Items[]={MSG(MName),MSG(MCantConnect)};
-					if(Info.Message(Info.ModuleNumber,FMSG_MB_RETRYCANCEL|FMSG_LEFTALIGN|FMSG_WARNING,NULL,Items,ARRAYSIZE(Items),2))
+					LPCWSTR Items[]={MSG(MName),MSG(MCantConnect)};
+					if(Info.Message(&MainGuid, nullptr, FMSG_MB_RETRYCANCEL|FMSG_LEFTALIGN|FMSG_WARNING, nullptr, Items, ARRAYSIZE(Items), 2))
 					{
 						*es->Result=true;
 					}
@@ -820,7 +795,7 @@ INT WINAPI EXP_NAME(ProcessSynchroEvent)(INT Event,LPVOID Param)
 			case E_DOWNLOADED:
 				{
 					LPCWSTR Items[]={MSG(MName),MSG(MUpdatesDownloaded),MSG(MExitFAR)};
-					Info.Message(Info.ModuleNumber,FMSG_MB_OK,NULL,Items,ARRAYSIZE(Items),0);
+					Info.Message(&MainGuid, nullptr, FMSG_MB_OK, nullptr, Items, ARRAYSIZE(Items), 0);
 					SetEvent(reinterpret_cast<HANDLE>(es->Data));
 				}
 				break;
@@ -830,13 +805,12 @@ INT WINAPI EXP_NAME(ProcessSynchroEvent)(INT Event,LPVOID Param)
 	}
 	return 0;
 }
-#endif
 
-EXTERN_C VOID WINAPI EXP_NAME(RestartFAR)(HWND,HINSTANCE,LPCTSTR lpCmd,DWORD)
+EXTERN_C VOID WINAPI RestartFARW(HWND,HINSTANCE,LPCWSTR lpCmd,DWORD)
 {
 	ifn.Load();
 	INT argc=0;
-	LPTSTR *argv=CommandLineToArgv(lpCmd,&argc);
+	LPWSTR *argv=CommandLineToArgvW(lpCmd,&argc);
 	INT n=0;
 	if(argc==2+n)
 	{
@@ -865,7 +839,7 @@ EXTERN_C VOID WINAPI EXP_NAME(RestartFAR)(HWND,HINSTANCE,LPCTSTR lpCmd,DWORD)
 				SetMenuItemInfo(hMenu,Pos,MF_BYPOSITION,&mi);
 			}
 			INT_PTR IPCPtr=StringToNumber(argv[n+1],IPCPtr);
-			if(ReadProcessMemory(hFar,reinterpret_cast<LPCVOID>(IPCPtr),&ipc,sizeof(IPC),NULL))
+			if(ReadProcessMemory(hFar,reinterpret_cast<LPCVOID>(IPCPtr),&ipc,sizeof(IPC),nullptr))
 			{
 				WaitForSingleObject(hFar,INFINITE);
 
@@ -873,20 +847,20 @@ EXTERN_C VOID WINAPI EXP_NAME(RestartFAR)(HWND,HINSTANCE,LPCTSTR lpCmd,DWORD)
 				GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE),&csbi);
 				while(csbi.dwSize.Y--)
 				{
-					mprintf(TEXT("\n"));
+					mprintf(L"\n");
 				}
 				CloseHandle(hFar);
 
-				mprintf(TEXT("\n\n\n"));
+				mprintf(L"\n\n\n");
 
-				TCHAR destpath[MAX_PATH];
+				wchar_t destpath[MAX_PATH];
 				lstrcpy(destpath,ipc.FarDirectory);
 
-				TCHAR arc[MAX_PATH];
-				GetPrivateProfileString(TEXT("far"),ipc.UseMsi?TEXT("msi"):TEXT("arc"),TEXT(""),arc,ARRAYSIZE(arc),ipc.UpdateList);
+				wchar_t arc[MAX_PATH];
+				GetPrivateProfileString(L"far",ipc.UseMsi?L"msi":L"arc",L"",arc,ARRAYSIZE(arc),ipc.Self?ipc.SelfUpdateList:ipc.FarUpdateList);
 				if(*arc)
 				{
-					TCHAR local_arc[MAX_PATH];
+					wchar_t local_arc[MAX_PATH];
 					lstrcpy(local_arc,ipc.TempDirectory);
 					lstrcat(local_arc,arc);
 					if(GetFileAttributes(local_arc)!=INVALID_FILE_ATTRIBUTES)
@@ -894,12 +868,12 @@ EXTERN_C VOID WINAPI EXP_NAME(RestartFAR)(HWND,HINSTANCE,LPCTSTR lpCmd,DWORD)
 						bool Result=false;
 						while(!Result)
 						{
-							mprintf(TEXT("Unpacking %-50s"),arc);
+							mprintf(L"Unpacking %-50s",arc);
 							if(!Extract(ipc.SevenZip,local_arc,destpath))
 							{
 								{
 									TextColor color(FOREGROUND_RED|FOREGROUND_INTENSITY);
-									mprintf(TEXT("\nUnpack error. Retry? (Y/N) "));
+									mprintf(L"\nUnpack error. Retry? (Y/N) ");
 								}
 								INPUT_RECORD ir={0};
 								DWORD n;
@@ -910,10 +884,10 @@ EXTERN_C VOID WINAPI EXP_NAME(RestartFAR)(HWND,HINSTANCE,LPCTSTR lpCmd,DWORD)
 								}
 								if(ir.Event.KeyEvent.wVirtualKeyCode==L'N')
 								{
-									mprintf(TEXT("\n"));
+									mprintf(L"\n");
 									break;
 								}
-								mprintf(TEXT("\n"));
+								mprintf(L"\n");
 							}
 							else
 							{
@@ -923,8 +897,8 @@ EXTERN_C VOID WINAPI EXP_NAME(RestartFAR)(HWND,HINSTANCE,LPCTSTR lpCmd,DWORD)
 						if(Result)
 						{
 							TextColor color(FOREGROUND_GREEN|FOREGROUND_INTENSITY);
-							mprintf(TEXT("OK\n"));
-							if(GetPrivateProfileInt(TEXT("Update"),TEXT("Delete"),1,ipc.Config))
+							mprintf(L"OK\n");
+							if(GetPrivateProfileInt(L"Update",L"Delete",1,ipc.Config))
 							{
 								DeleteFile(local_arc);
 							}
@@ -932,12 +906,12 @@ EXTERN_C VOID WINAPI EXP_NAME(RestartFAR)(HWND,HINSTANCE,LPCTSTR lpCmd,DWORD)
 						else
 						{
 							TextColor color(FOREGROUND_RED|FOREGROUND_INTENSITY);
-							mprintf(TEXT("error\n"));
+							mprintf(L"error\n");
 						}
 					}
 				}
-				TCHAR exec[2048],execExp[4096];
-				GetPrivateProfileString(TEXT("events"),TEXT("PostInstall"),TEXT(""),exec,ARRAYSIZE(exec),ipc.Config);
+				wchar_t exec[2048],execExp[4096];
+				GetPrivateProfileString(L"events",L"PostInstall",L"",exec,ARRAYSIZE(exec),ipc.Config);
 				if(*exec)
 				{
 					ExpandEnvironmentStrings(exec,execExp,ARRAYSIZE(execExp));
@@ -945,22 +919,22 @@ EXTERN_C VOID WINAPI EXP_NAME(RestartFAR)(HWND,HINSTANCE,LPCTSTR lpCmd,DWORD)
 					PROCESS_INFORMATION pi;
 					{
 						TextColor color(FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE|FOREGROUND_INTENSITY);
-						mprintf(TEXT("\nExecuting %-50.50s"),execExp);
+						mprintf(L"\nExecuting %-50.50s",execExp);
 					}
-					if(CreateProcess(NULL,execExp,NULL,NULL,TRUE,NULL,NULL,ipc.PluginDirectory,&si,&pi))
+					if(CreateProcess(nullptr,execExp,nullptr,nullptr,TRUE,0,nullptr,ipc.PluginDirectory,&si,&pi))
 					{
 						{
 							TextColor color(FOREGROUND_GREEN|FOREGROUND_INTENSITY);
-							mprintf(TEXT("OK\n\n"));
+							mprintf(L"OK\n\n");
 						}
 						WaitForSingleObject(pi.hProcess,INFINITE);
 					}
 					else
 					{
 						TextColor color(FOREGROUND_RED|FOREGROUND_INTENSITY);
-						mprintf(TEXT("Error %d"),GetLastError());
+						mprintf(L"Error %d",GetLastError());
 					}
-					mprintf(TEXT("\n"));
+					mprintf(L"\n");
 					CloseHandle(pi.hThread);
 					CloseHandle(pi.hProcess);
 				}
@@ -971,24 +945,24 @@ EXTERN_C VOID WINAPI EXP_NAME(RestartFAR)(HWND,HINSTANCE,LPCTSTR lpCmd,DWORD)
 					DrawMenuBar(GetConsoleWindow());
 				}
 				TextColor color(FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE|FOREGROUND_INTENSITY);
-				mprintf(TEXT("\n%-60s"),TEXT("Starting FAR..."));
+				mprintf(L"\n%-60s",L"Starting FAR...");
 				STARTUPINFO si={sizeof(si)};
 				PROCESS_INFORMATION pi;
-				TCHAR FarCmd[2048];
+				wchar_t FarCmd[2048];
 				lstrcpy(FarCmd,ipc.FarModule);
-				lstrcat(FarCmd,TEXT(" "));
+				lstrcat(FarCmd,L" ");
 				lstrcat(FarCmd,ipc.FarParams);
-				if(CreateProcess(NULL,FarCmd,NULL,NULL,TRUE,NULL,NULL,NULL,&si,&pi))
+				if(CreateProcess(nullptr,FarCmd,nullptr,nullptr,TRUE,0,nullptr,nullptr,&si,&pi))
 				{
 					TextColor color(FOREGROUND_GREEN|FOREGROUND_INTENSITY);
-					mprintf(TEXT("OK"));
+					mprintf(L"OK");
 				}
 				else
 				{
 					TextColor color(FOREGROUND_RED|FOREGROUND_INTENSITY);
-					mprintf(TEXT("Error %d"),GetLastError());
+					mprintf(L"Error %d",GetLastError());
 				}
-				mprintf(TEXT("\n"));
+				mprintf(L"\n");
 
 				CloseHandle(pi.hThread);
 				CloseHandle(pi.hProcess);
