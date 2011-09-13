@@ -64,14 +64,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\Release\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\Release\</IntDir>
-    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">./Release64\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">./Release64\</IntDir>
-    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\Debug\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\Debug\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\Debug64\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\Debug64\</IntDir>
@@ -88,6 +82,9 @@
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">FarCall</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">FarCall64</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">FarCall</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Midl>
@@ -101,22 +98,21 @@
     </Midl>
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;FARCALL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>
       </ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <StructMemberAlignment>1Byte</StructMemberAlignment>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PrecompiledHeaderOutputFile>.\Release/FarCall.pch</PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>.\Release/</AssemblerListingLocation>
-      <ObjectFileName>.\Release/</ObjectFileName>
-      <ProgramDataBaseFileName>.\Release/</ProgramDataBaseFileName>
-      <BrowseInformation>true</BrowseInformation>
-      <WarningLevel>Level4</WarningLevel>
+      <StructMemberAlignment>Default</StructMemberAlignment>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <BrowseInformation>false</BrowseInformation>
+      <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -124,17 +120,15 @@
     </ResourceCompile>
     <Link>
       <AdditionalDependencies>libcmt.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>.\Release/FarCall.dll</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
       <ModuleDefinitionFile>.\FarCall.def</ModuleDefinitionFile>
-      <ProgramDatabaseFile>.\Release/FarCall.pdb</ProgramDatabaseFile>
-      <EntryPointSymbol>DllMain</EntryPointSymbol>
-      <NoEntryPoint>true</NoEntryPoint>
+      <EntryPointSymbol>
+      </EntryPointSymbol>
+      <NoEntryPoint>false</NoEntryPoint>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>
       </DataExecutionPrevention>
-      <ImportLibrary>.\Release/FarCall.lib</ImportLibrary>
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
     <Bscmake>
@@ -154,22 +148,20 @@
     </Midl>
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;FARCALL_EXPORTS;EXCLUDE_ANSI_API;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <PreprocessorDefinitions>_WIN64;NDEBUG;_WINDOWS;_USRDLL;FARCALL_EXPORTS;EXCLUDE_ANSI_API;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>
       </ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <StructMemberAlignment>Default</StructMemberAlignment>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PrecompiledHeaderOutputFile>.\Release64/FarCall.pch</PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>.\Release/</AssemblerListingLocation>
-      <ObjectFileName>.\Release/</ObjectFileName>
-      <ProgramDataBaseFileName>.\Release/</ProgramDataBaseFileName>
-      <BrowseInformation>true</BrowseInformation>
-      <WarningLevel>Level4</WarningLevel>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <BrowseInformation>false</BrowseInformation>
+      <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>false</OmitFramePointers>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -177,17 +169,15 @@
     </ResourceCompile>
     <Link>
       <AdditionalDependencies>libcmt.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>.\Release64/FarCall64.dll</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
-      <ModuleDefinitionFile>.\FarCall64.def</ModuleDefinitionFile>
-      <ProgramDatabaseFile>.\Release/FarCall.pdb</ProgramDatabaseFile>
-      <EntryPointSymbol>DllMain</EntryPointSymbol>
-      <NoEntryPoint>true</NoEntryPoint>
+      <ModuleDefinitionFile>.\FarCall.def</ModuleDefinitionFile>
+      <EntryPointSymbol>
+      </EntryPointSymbol>
+      <NoEntryPoint>false</NoEntryPoint>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>
       </DataExecutionPrevention>
-      <ImportLibrary>.\Release/FarCall.lib</ImportLibrary>
       <TargetMachine>MachineX64</TargetMachine>
     </Link>
     <Bscmake>
@@ -210,13 +200,8 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;FARCALL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
-      <StructMemberAlignment>1Byte</StructMemberAlignment>
-      <PrecompiledHeaderOutputFile>.\Debug/FarCall.pch</PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>.\Debug/</AssemblerListingLocation>
-      <ObjectFileName>.\Debug/</ObjectFileName>
-      <ProgramDataBaseFileName>.\Debug/</ProgramDataBaseFileName>
-      <BrowseInformation>true</BrowseInformation>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <StructMemberAlignment>Default</StructMemberAlignment>
       <WarningLevel>Level4</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
@@ -226,18 +211,18 @@
       <Culture>0x0419</Culture>
     </ResourceCompile>
     <Link>
-      <OutputFile>.\Debug/FarCall.dll</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <ModuleDefinitionFile>.\FarCall.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ProgramDatabaseFile>.\Debug/FarCall.pdb</ProgramDatabaseFile>
-      <EntryPointSymbol>DllMain</EntryPointSymbol>
-      <NoEntryPoint>true</NoEntryPoint>
+      <EntryPointSymbol>
+      </EntryPointSymbol>
+      <NoEntryPoint>false</NoEntryPoint>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>
       </DataExecutionPrevention>
-      <ImportLibrary>.\Debug/FarCall.lib</ImportLibrary>
       <TargetMachine>MachineX86</TargetMachine>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+      <AdditionalDependencies>libcmt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -278,19 +263,21 @@
     <Link>
       <OutputFile>.\debug/FarCall64.dll</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <ModuleDefinitionFile>.\FarCall64.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>.\FarCall.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>.\Debug/FarCall.pdb</ProgramDatabaseFile>
-      <EntryPointSymbol>DllMain</EntryPointSymbol>
-      <NoEntryPoint>true</NoEntryPoint>
+      <EntryPointSymbol>
+      </EntryPointSymbol>
+      <NoEntryPoint>false</NoEntryPoint>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>
       </DataExecutionPrevention>
       <ImportLibrary>.\Debug/FarCall.lib</ImportLibrary>
       <TargetMachine>MachineX64</TargetMachine>
-      <AdditionalDependencies>kernel32.lib;user32.lib</AdditionalDependencies>
+      <AdditionalDependencies>libcmt.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -307,12 +294,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="FarCall.def" />
-    <None Include="FarCall64.def" />
     <None Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="FarCall.h" />
     <ClInclude Include="plugin.hpp" />
-    <ClInclude Include="pluginW.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="FarCall.rc">
