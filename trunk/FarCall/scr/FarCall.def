@@ -1,13 +1,11 @@
 EXPORTS
-    GetPluginInfo   = GetPluginInfo
-    SetStartupInfo  = SetStartupInfo
-    OpenPlugin      = OpenPlugin
-    ClosePlugin     = ClosePlugin
     GetPluginInfoW  = GetPluginInfoW
     SetStartupInfoW = SetStartupInfoW
-    OpenPluginW     = OpenPluginW
+    OpenW     = OpenW
     ClosePluginW    = ClosePluginW
     Export          = Export
+	GetMinFarVersionW = GetMinFarVersionW
+	GetGlobalInfoW  = GetGlobalInfoW
 
 
 

@@ -23,16 +23,13 @@
     <None Include="FarCall.def">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="FarCall64.def">
-      <Filter>Source Files</Filter>
-    </None>
     <None Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="plugin.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="pluginW.hpp">
+    <ClInclude Include="FarCall.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
