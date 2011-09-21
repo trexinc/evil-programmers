@@ -63,7 +63,7 @@ void InitDialogItems(InitDialogItem *Init,FarDialogItem *Item,int ItemsNumber)
       Item[i].Data=Init[i].Data;
     Item[i].Mask=NULL;
     Item[i].History=NULL;
-    Item[i].UserData=NULL;
+    Item[i].UserData=0;
   }
 }
 
