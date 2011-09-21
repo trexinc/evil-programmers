@@ -441,7 +441,7 @@ INT_PTR TAutoCompletion::DialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
       DialogFrame.Flags=DIF_BOXCOLOR;
       DialogFrame.History=NULL;
       DialogFrame.Mask=NULL;
-      DialogFrame.UserData=NULL;
+      DialogFrame.UserData=0;
       DialogFrame.MaxLength=0;
       int width=_tcslen(DLG_DATA(DialogFrame))+6;
       CFarDialog dialog;
