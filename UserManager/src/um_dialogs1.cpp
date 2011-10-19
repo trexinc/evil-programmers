@@ -33,7 +33,7 @@ static INT_PTR WINAPI EditAdvancedAccessDialogProc(HANDLE hDlg,int Msg,int Param
     case DN_CONTROLINPUT:
       {
         const INPUT_RECORD* record=(const INPUT_RECORD*)Param2;
-        if(record->EventType==KEY_EVENT)
+        if(record->EventType==KEY_EVENT&&record->Event.KeyEvent.bKeyDown)
         {
           WORD Key=record->Event.KeyEvent.wVirtualKeyCode;
           if(IsShift(record)&&(Key==VK_ADD||Key==VK_SUBTRACT))
