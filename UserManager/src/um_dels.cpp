@@ -59,7 +59,7 @@ bool DeleteACE(UserManager *panel,bool selection)
       else
         FSF.sprintf(warning,GetMsg(mDelACEN+NumberType(sp.Number())),sp.Number());
       const TCHAR *MsgItems[]={GetMsg(mButtonDelete),warning,GetMsg(mButtonDelete),GetMsg(mButtonCancel)};
-      if(!Info.Message(&MainGuid,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),2))
+      if(!Info.Message(&MainGuid,&DelACEMessageGuid,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),2))
         for(int i=0;i<sp.Number();i++)
         {
           if(sp[i].Flags&PPIF_USERDATA)
@@ -92,7 +92,7 @@ bool DeleteShare(UserManager *panel,bool selection)
     else
       FSF.sprintf(warning,GetMsg(mDelShareN+NumberType(sp.Number())),sp.Number());
     const TCHAR *MsgItems[]={GetMsg(mButtonDelete),warning,GetMsg(mButtonDelete),GetMsg(mButtonCancel)};
-    if(!Info.Message(&MainGuid,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),2))
+    if(!Info.Message(&MainGuid,&DelShareMessageGuid,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),2))
     {
       res=true;
       for(int i=0;i<sp.Number();i++)
@@ -149,7 +149,7 @@ bool DeleteGroup(UserManager *panel,bool selection)
     else
       FSF.sprintf(warning,GetMsg(mDelObjectN+NumberType(sp.Number())),sp.Number());
     const TCHAR *MsgItems[]={GetMsg(mButtonDelete),warning,GetMsg(mButtonDelete),GetMsg(mButtonCancel)};
-    if(!Info.Message(&MainGuid,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),2))
+    if(!Info.Message(&MainGuid,&DelGroupMessageGuid,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),2))
     {
       res=true;
       for(int i=0;i<sp.Number();i++)
@@ -193,7 +193,7 @@ bool RemoveUser(UserManager *panel,bool selection)
     else
       FSF.sprintf(warning,GetMsg(mRemoveUserN+NumberType(sp.Number())),sp.Number());
     const TCHAR *MsgItems[]={GetMsg(mButtonRemove),warning,GetMsg(mButtonRemove),GetMsg(mButtonCancel)};
-    if(!Info.Message(&MainGuid,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),2))
+    if(!Info.Message(&MainGuid,&RemoveUserMessageGuid,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),2))
     {
       res=true;
       for(int i=0;i<sp.Number();i++)
@@ -234,7 +234,7 @@ bool DeleteUser(UserManager *panel,bool selection)
     else
       FSF.sprintf(warning,GetMsg(mDelUserN+NumberType(sp.Number())),sp.Number());
     const TCHAR *MsgItems[]={GetMsg(mButtonDelete),warning,GetMsg(mButtonDelete),GetMsg(mButtonCancel)};
-    if(!Info.Message(&MainGuid,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),2))
+    if(!Info.Message(&MainGuid,&DelUserMessageGuid,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),2))
     {
       res=true;
       for(int i=0;i<sp.Number();i++)
@@ -264,7 +264,7 @@ bool DeleteRightUsers(UserManager *panel,bool selection)
     else
       FSF.sprintf(warning,GetMsg(mDelUserN+NumberType(sp.Number())),sp.Number());
     const TCHAR *MsgItems[]={GetMsg(mButtonDelete),warning,GetMsg(mButtonDelete),GetMsg(mButtonCancel)};
-    if(!Info.Message(&MainGuid,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),2))
+    if(!Info.Message(&MainGuid,&DelUserMessageGuid,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),2))
     {
       res=true;
       LSA_HANDLE PolicyHandle;

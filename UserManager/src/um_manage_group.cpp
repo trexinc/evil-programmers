@@ -20,7 +20,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "far_helper.h"
-#include "farkeys.hpp"
 #include <lm.h>
 #include "umplugin.h"
 #include "memory.h"

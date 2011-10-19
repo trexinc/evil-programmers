@@ -34,13 +34,13 @@ void ShowError(DWORD Error)
 {
   if(!Error) SetLastError(Error);
   const TCHAR *MsgItems[]={GetMsg(mError),GetMsg(mButtonOk)};
-  Info.Message(&MainGuid,FMSG_ERRORTYPE|FMSG_WARNING,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),1);
+  Info.Message(&MainGuid,&ErrorMessageGuid,FMSG_ERRORTYPE|FMSG_WARNING,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),1);
 }
 
 void ShowCustomError(int index)
 {
   const TCHAR *MsgItems[]={GetMsg(mError),GetMsg(index),GetMsg(mButtonOk)};
-  Info.Message(&MainGuid,FMSG_WARNING,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),1);
+  Info.Message(&MainGuid,&CustomErrorMessageGuid,FMSG_WARNING,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),1);
 }
 
 void GetCurrentPath(int level,TCHAR *nonfixed,TCHAR *result)

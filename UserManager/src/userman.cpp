@@ -261,7 +261,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *anInfo)
           }
         };
         MenuItems[0].Flags|=MIF_SELECTED;
-        int MenuCode=Info.Menu(&MainGuid,-1,-1,0,FMENU_AUTOHIGHLIGHT|FMENU_WRAPMODE,NULL,NULL,_T("Contents"),NULL,NULL,MenuItems,sizeof(MenuItems)/sizeof(MenuItems[0]));
+        int MenuCode=Info.Menu(&MainGuid,&MainMenuGuid,-1,-1,0,FMENU_AUTOHIGHLIGHT|FMENU_WRAPMODE,NULL,NULL,_T("Contents"),NULL,NULL,MenuItems,sizeof(MenuItems)/sizeof(MenuItems[0]));
         switch(MenuCode)
         {
           case 0:
@@ -372,9 +372,9 @@ HANDLE WINAPI OpenW(const struct OpenInfo *anInfo)
   return res;
 }
 
-void WINAPI ClosePanelW(HANDLE hPlugin)
+void WINAPI ClosePanelW(const struct ClosePanelInfo *Info)
 {
-  UserManager *panel=(UserManager *)hPlugin;
+  UserManager *panel=(UserManager *)Info->hPanel;
   free(panel);
 }
 
@@ -815,7 +815,7 @@ int WINAPI GetFindDataW(struct GetFindDataInfo *anInfo)
 
 void WINAPI FreeFindDataW(const struct FreeFindDataInfo *anInfo)
 {
-  for(int i=0;i<anInfo->ItemsNumber;i++)
+  for(size_t i=0;i<anInfo->ItemsNumber;i++)
   {
     free((void *)anInfo->PanelItem[i].UserData);
     free((void*)anInfo->PanelItem[i].Description);
@@ -1015,9 +1015,9 @@ void WINAPI GetOpenPanelInfoW(struct OpenPanelInfo *Info)
   }
 }
 
-int WINAPI ProcessPanelInputW(HANDLE hPanel,const struct ProcessPanelInputInfo *anInfo)
+int WINAPI ProcessPanelInputW(const struct ProcessPanelInputInfo *anInfo)
 {
-  UserManager *panel=(UserManager *)hPanel;
+  UserManager *panel=(UserManager *)anInfo->hPanel;
   WORD Key=anInfo->Rec.Event.KeyEvent.wVirtualKeyCode;
   if((panel->error)&&(Key!=VK_RETURN)) return TRUE;
   //F4
@@ -1026,8 +1026,8 @@ int WINAPI ProcessPanelInputW(HANDLE hPanel,const struct ProcessPanelInputInfo *
     if(press_f4[panel->level])
       if(press_f4[panel->level](panel))
       {
-        Info.PanelControl(hPanel,FCTL_UPDATEPANEL,1,0);
-        Info.PanelControl(hPanel,FCTL_REDRAWPANEL,0,0);
+        Info.PanelControl(anInfo->hPanel,FCTL_UPDATEPANEL,1,0);
+        Info.PanelControl(anInfo->hPanel,FCTL_REDRAWPANEL,0,0);
       }
     return TRUE;
   }
@@ -1037,8 +1037,8 @@ int WINAPI ProcessPanelInputW(HANDLE hPanel,const struct ProcessPanelInputInfo *
     if(press_alt_f4[panel->level])
       if(press_alt_f4[panel->level](panel))
       {
-        Info.PanelControl(hPanel,FCTL_UPDATEPANEL,1,0);
-        Info.PanelControl(hPanel,FCTL_REDRAWPANEL,0,0);
+        Info.PanelControl(anInfo->hPanel,FCTL_UPDATEPANEL,1,0);
+        Info.PanelControl(anInfo->hPanel,FCTL_REDRAWPANEL,0,0);
       }
     return TRUE;
   }
@@ -1048,8 +1048,8 @@ int WINAPI ProcessPanelInputW(HANDLE hPanel,const struct ProcessPanelInputInfo *
     if(press_shift_f4[panel->level])
       if(press_shift_f4[panel->level](panel))
       {
-        Info.PanelControl(hPanel,FCTL_UPDATEPANEL,1,0);
-        Info.PanelControl(hPanel,FCTL_REDRAWPANEL,0,0);
+        Info.PanelControl(anInfo->hPanel,FCTL_UPDATEPANEL,1,0);
+        Info.PanelControl(anInfo->hPanel,FCTL_REDRAWPANEL,0,0);
       }
     return TRUE;
   }
@@ -1086,8 +1086,8 @@ int WINAPI ProcessPanelInputW(HANDLE hPanel,const struct ProcessPanelInputInfo *
     if(press_f8[panel->level])
       if(press_f8[panel->level](panel,IsNone(&anInfo->Rec)))
       {
-        Info.PanelControl(hPanel,FCTL_UPDATEPANEL,1,0);
-        Info.PanelControl(hPanel,FCTL_REDRAWPANEL,0,0);
+        Info.PanelControl(anInfo->hPanel,FCTL_UPDATEPANEL,1,0);
+        Info.PanelControl(anInfo->hPanel,FCTL_REDRAWPANEL,0,0);
       }
     return TRUE;
   }
@@ -1097,8 +1097,8 @@ int WINAPI ProcessPanelInputW(HANDLE hPanel,const struct ProcessPanelInputInfo *
     if(press_f7[panel->level])
       if(press_f7[panel->level](panel))
       {
-        Info.PanelControl(hPanel,FCTL_UPDATEPANEL,1,0);
-        Info.PanelControl(hPanel,FCTL_REDRAWPANEL,0,0);
+        Info.PanelControl(anInfo->hPanel,FCTL_UPDATEPANEL,1,0);
+        Info.PanelControl(anInfo->hPanel,FCTL_REDRAWPANEL,0,0);
       }
     return TRUE;
   }
@@ -1108,8 +1108,8 @@ int WINAPI ProcessPanelInputW(HANDLE hPanel,const struct ProcessPanelInputInfo *
     if(press_f6[panel->level])
       if(press_f6[panel->level](panel,IsNone(&anInfo->Rec)))
       {
-        Info.PanelControl(hPanel,FCTL_UPDATEPANEL,1,0);
-        Info.PanelControl(hPanel,FCTL_REDRAWPANEL,0,0);
+        Info.PanelControl(anInfo->hPanel,FCTL_UPDATEPANEL,1,0);
+        Info.PanelControl(anInfo->hPanel,FCTL_REDRAWPANEL,0,0);
       }
     return TRUE;
   }
@@ -1124,7 +1124,7 @@ int WINAPI ProcessPanelInputW(HANDLE hPanel,const struct ProcessPanelInputInfo *
         wchar_t *buffer;
         HANDLE hSScr=Info.SaveScreen(0,0,-1,-1);
         const TCHAR *MsgItems[]={_T(""),GetMsg(mOtherDomainSearch)};
-        Info.Message(&MainGuid,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),0);
+        Info.Message(&MainGuid,&MessageGuid,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),0);
         NET_API_STATUS err=NetGetAnyDCName(panel->computer_ptr,NULL,(LPBYTE *)&buffer);
         if(err==ERROR_NO_SUCH_DOMAIN)
         {
@@ -1143,8 +1143,8 @@ int WINAPI ProcessPanelInputW(HANDLE hPanel,const struct ProcessPanelInputInfo *
       }
       else
         wcscpy(panel->domain,L"");
-      Info.PanelControl(hPanel,FCTL_UPDATEPANEL,0,0);
-      Info.PanelControl(hPanel,FCTL_REDRAWPANEL,0,0);
+      Info.PanelControl(anInfo->hPanel,FCTL_UPDATEPANEL,0,0);
+      Info.PanelControl(anInfo->hPanel,FCTL_REDRAWPANEL,0,0);
     }
     else if(perm_dirs_dir[panel->level]!=PERM_NO)
     {
@@ -1158,8 +1158,8 @@ int WINAPI ProcessPanelInputW(HANDLE hPanel,const struct ProcessPanelInputInfo *
             UpdateAcl(panel,panel->level,GetSidFromUserData(pInfo[pInfo.CurrentItem()].UserData),GetItemTypeFromUserData(pInfo[pInfo.CurrentItem()].UserData),0,actionChangeType);
           }
         }
-        Info.PanelControl(hPanel,FCTL_UPDATEPANEL,0,0);
-        Info.PanelControl(hPanel,FCTL_REDRAWPANEL,0,0);
+        Info.PanelControl(anInfo->hPanel,FCTL_UPDATEPANEL,0,0);
+        Info.PanelControl(anInfo->hPanel,FCTL_REDRAWPANEL,0,0);
       }
     }
     return TRUE;
@@ -1177,15 +1177,15 @@ int WINAPI ProcessPanelInputW(HANDLE hPanel,const struct ProcessPanelInputInfo *
           UpdateAcl(panel,panel->level,GetSidFromUserData(pInfo[pInfo.CurrentItem()].UserData),GetItemTypeFromUserData(pInfo[pInfo.CurrentItem()].UserData),0,(Key==VK_UP)?actionMoveUp:actionMoveDown);
         }
       }
-      Info.PanelControl(hPanel,FCTL_UPDATEPANEL,0,0);
-      Info.PanelControl(hPanel,FCTL_REDRAWPANEL,0,0);
+      Info.PanelControl(anInfo->hPanel,FCTL_UPDATEPANEL,0,0);
+      Info.PanelControl(anInfo->hPanel,FCTL_REDRAWPANEL,0,0);
     }
     return TRUE;
   }
   return FALSE;
 }
 
-int WINAPI ConfigureW(const GUID* Guid)
+int WINAPI ConfigureW(const struct ConfigureInfo* Info)
 {
   return Config();
 }
