@@ -66,7 +66,7 @@ void CIndicator::ShowFinal(void)
           ++ptr;
           ++Counter;
         }
-      FarMessage(&MainGuid, FMSG_LEFTALIGN, NULL, MsgData, Items, 0);
+      FarMessage(&MainGuid, &IndicatorGuid, FMSG_LEFTALIGN, NULL, MsgData, Items, 0);
     }
 }
 
@@ -89,7 +89,7 @@ void CIndicator::ShowProgress(int Cur)
               ++Counter;
             }
           CurPos = Counter;
-          FarMessage(&MainGuid, FMSG_LEFTALIGN, NULL, MsgData, Items,
+          FarMessage(&MainGuid, &IndicatorGuid, FMSG_LEFTALIGN, NULL, MsgData, Items,
                        0);
         }
     }

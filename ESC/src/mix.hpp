@@ -65,5 +65,6 @@ extern "C"
                             const strcon &AddSym_S,
                             const strcon &AddSym_E,
                             wchar_t Symbol, BOOL IncreaseCoordX);
+    DWORD NormalizeControlState(DWORD State);
 }
 #endif // __mix_cpp

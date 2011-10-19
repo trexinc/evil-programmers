@@ -22,6 +22,10 @@
 
 #include "rbtree.cpp"
 #include "KeySequenceStorage.hpp"
+extern "C"
+{
+  DWORD NormalizeControlState(DWORD State);
+}
 
 enum ESC_ButtonState
 {
@@ -44,26 +48,26 @@ enum ESC_ControlState
 class UserMacroID
 {
   public:
-    UserMacroID(DWORD key=0,DWORD selmode=0,DWORD buttonstate=0,
-      DWORD controlstate=0): Key(key), SelectionMode(selmode),
+    UserMacroID(DWORD virtualKeyCode=0,DWORD controlKeyState=0,DWORD selmode=0,DWORD buttonstate=0,
+      DWORD controlstate=0): VirtualKeyCode(virtualKeyCode), ControlKeyState(NormalizeControlState(controlKeyState)), SelectionMode(selmode),
       ButtonState(buttonstate), ControlState(controlstate)
     {}
 
-    DWORD Key, SelectionMode, ButtonState, ControlState;
+    DWORD VirtualKeyCode, ControlKeyState, SelectionMode, ButtonState, ControlState;
     bool operator==(const UserMacroID &rhs) const
      {
-       return Key==rhs.Key && SelectionMode==rhs.SelectionMode &&
+       return VirtualKeyCode==rhs.VirtualKeyCode && ControlKeyState==rhs.ControlKeyState && SelectionMode==rhs.SelectionMode &&
          ButtonState==rhs.ButtonState && ControlState==rhs.ControlState;
      }
     bool operator<(const UserMacroID &rhs) const
      {
-       return (Key==rhs.Key)?
+       return (VirtualKeyCode==rhs.VirtualKeyCode)?((ControlKeyState==rhs.ControlKeyState)?
         (((SelectionMode==rhs.SelectionMode)?
           ((ButtonState==rhs.ButtonState)?
             ControlState<rhs.ControlState:ButtonState<rhs.ButtonState
           ):SelectionMode<rhs.SelectionMode
          )
-        ):(Key<rhs.Key);
+        ):(ControlKeyState<rhs.ControlKeyState)):(VirtualKeyCode<rhs.VirtualKeyCode);
      }
 };
 
