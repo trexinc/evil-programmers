@@ -50,17 +50,17 @@ void DoReplace(HANDLE aDlg)
       }
       static FarDialogItem DialogItems[]=
       {//       Type            X1 Y1 X2 Y2 Se Fl                                     Data */
-       /*00*/ { DI_DOUBLEBOX,   3, 1,55,11, {0},NULL,                       NULL, DIF_BOXCOLOR,                          GetMsg(mReplaceCaption)  ,0,NULL},
-       /*01*/ { DI_TEXT,        5, 2, 0, 2, {0},NULL,                       NULL, 0,                                     GetMsg(mSearch)          ,0,NULL},
-       /*02*/ { DI_EDIT,        5, 3,53, 3, {0},_T("DialogManager.Search"), NULL, DIF_USELASTHISTORY,                    _T("")                   ,0,NULL},
-       /*03*/ { DI_TEXT,        5, 4, 0, 4, {0},NULL,                       NULL, 0,                                     GetMsg(mReplace)         ,0,NULL},
-       /*04*/ { DI_EDIT,        5, 5,53, 5, {0},_T("DialogManager.Replace"),NULL, DIF_USELASTHISTORY,                    _T("")                   ,0,NULL},
-       /*05*/ { DI_TEXT,        0, 6, 0, 6, {0},NULL,                       NULL, DIF_BOXCOLOR|DIF_SEPARATOR,            _T("")                   ,0,NULL},
-       /*06*/ { DI_CHECKBOX,    5, 7, 0, 7, {c},NULL,                       NULL, 0,                                     GetMsg(mCase)            ,0,NULL},
-       /*07*/ { DI_CHECKBOX,    5, 8, 0, 8, {p},NULL,                       NULL, 0,                                     GetMsg(mCurPos)          ,0,NULL},
-       /*08*/ { DI_TEXT,        0, 9, 0, 9, {0},NULL,                       NULL, DIF_BOXCOLOR|DIF_SEPARATOR,            _T("")                   ,0,NULL},
-       /*09*/ { DI_BUTTON,      0,10, 0,10, {0},NULL,                       NULL, DIF_CENTERGROUP|DIF_DEFAULTBUTTON,     GetMsg(mOk)              ,0,NULL},
-       /*10*/ { DI_BUTTON,      0,10, 0,10, {0},NULL,                       NULL, DIF_CENTERGROUP,                       GetMsg(mCancel)          ,0,NULL}
+       /*00*/ { DI_DOUBLEBOX,   3, 1,55,11, {0},NULL,                       NULL, DIF_BOXCOLOR,                          GetMsg(mReplaceCaption)  ,0,0},
+       /*01*/ { DI_TEXT,        5, 2, 0, 2, {0},NULL,                       NULL, 0,                                     GetMsg(mSearch)          ,0,0},
+       /*02*/ { DI_EDIT,        5, 3,53, 3, {0},_T("DialogManager.Search"), NULL, DIF_USELASTHISTORY,                    _T("")                   ,0,0},
+       /*03*/ { DI_TEXT,        5, 4, 0, 4, {0},NULL,                       NULL, 0,                                     GetMsg(mReplace)         ,0,0},
+       /*04*/ { DI_EDIT,        5, 5,53, 5, {0},_T("DialogManager.Replace"),NULL, DIF_USELASTHISTORY,                    _T("")                   ,0,0},
+       /*05*/ { DI_TEXT,        0, 6, 0, 6, {0},NULL,                       NULL, DIF_BOXCOLOR|DIF_SEPARATOR,            _T("")                   ,0,0},
+       /*06*/ { DI_CHECKBOX,    5, 7, 0, 7, {c},NULL,                       NULL, 0,                                     GetMsg(mCase)            ,0,0},
+       /*07*/ { DI_CHECKBOX,    5, 8, 0, 8, {p},NULL,                       NULL, 0,                                     GetMsg(mCurPos)          ,0,0},
+       /*08*/ { DI_TEXT,        0, 9, 0, 9, {0},NULL,                       NULL, DIF_BOXCOLOR|DIF_SEPARATOR,            _T("")                   ,0,0},
+       /*09*/ { DI_BUTTON,      0,10, 0,10, {0},NULL,                       NULL, DIF_CENTERGROUP|DIF_DEFAULTBUTTON,     GetMsg(mOk)              ,0,0},
+       /*10*/ { DI_BUTTON,      0,10, 0,10, {0},NULL,                       NULL, DIF_CENTERGROUP,                       GetMsg(mCancel)          ,0,0}
       };
       CFarDialog dialog;
       int n=dialog.Execute(MainGuid,ReplaceDialogGuid,-1,-1,59,13,NULL,DialogItems,ArraySize(DialogItems),0,0,ReplaceDialogProc,NULL);
