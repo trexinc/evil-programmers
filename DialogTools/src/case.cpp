@@ -75,7 +75,7 @@ void DoCase(HANDLE aDlg)
   MenuItems[6].Flags|=(ProcessWholeLine?MIF_CHECKED:0);
   FarKey BreakKeys[]={{VK_SPACE,0},{0,0}};
   int MenuCode;
-  while (6==(MenuCode=Info.Menu(&MainGuid,-1,-1,0,FMENU_WRAPMODE,GetMsg(mNameCase),NULL,NULL,BreakKeys,NULL,MenuItems,ArraySize(MenuItems))))
+  while (6==(MenuCode=Info.Menu(&MainGuid,&CaseMenuGuid,-1,-1,0,FMENU_WRAPMODE,GetMsg(mNameCase),NULL,NULL,BreakKeys,NULL,MenuItems,ArraySize(MenuItems))))
   {
     if (MenuItems[6].Flags&MIF_CHECKED)
     {

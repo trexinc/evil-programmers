@@ -105,9 +105,9 @@ void FinishUndo(void)
 void DoUndo(HANDLE aDlg)
 {
   LONG_PTR itemID=Info.SendDlgMessage(aDlg,DM_GETFOCUS,0,0);
-  FarMenuItem MenuItems[]={{MIF_SELECTED,_T(""),0,0,0},{0,_T(""),0,0,0}};
+  FarMenuItem MenuItems[]={{MIF_SELECTED,_T(""),{0},0,0},{0,_T(""),{0},0,0}};
   INIT_MENU_TEXT(0,GetMsg(mUndo)); INIT_MENU_TEXT(1,GetMsg(mRedo));
-  int MenuCode=Info.Menu(&MainGuid,-1,-1,0,FMENU_AUTOHIGHLIGHT|FMENU_WRAPMODE,GetMsg(mNameUndo),NULL,NULL,NULL,NULL,MenuItems,ArraySize(MenuItems));
+  int MenuCode=Info.Menu(&MainGuid,&UndoMenuGuid,-1,-1,0,FMENU_AUTOHIGHLIGHT|FMENU_WRAPMODE,GetMsg(mNameUndo),NULL,NULL,NULL,NULL,MenuItems,ArraySize(MenuItems));
   if(MenuCode>=0)
   {
     FarDialogItem DialogItem;

@@ -20,7 +20,6 @@
 #include "dt.hpp"
 #include "open_file_dialog.hpp"
 #include "farcolor.hpp"
-#include "farkeys.hpp"
 #include "guid.hpp"
 #include <initguid.h>
 // {6FF19CDE-E672-4887-81A0-05D49C96E42D}
@@ -141,11 +140,11 @@ static int TryLoadDir(HANDLE hDlg, OFDData *DlgParams, TCHAR *newdir)
     {
       FarListTitles titles;
       titles.Title=DlgParams->curr_dir;
-      titles.TitleLen=lstrlen(titles.Title);
+      titles.TitleSize=lstrlen(titles.Title);
       TCHAR tmp[256];
       _tcscpy(tmp,GetMsg(mBottomTitle));
       titles.Bottom=tmp;
-      titles.BottomLen=lstrlen(titles.Bottom);
+      titles.BottomSize=lstrlen(titles.Bottom);
       Info.SendDlgMessage(hDlg,DM_LISTSETTITLES,0,&titles);
     }
   }
@@ -178,15 +177,16 @@ static INT_PTR WINAPI OFDProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
     case DN_CONTROLINPUT:
       {
         const INPUT_RECORD* record=(const INPUT_RECORD*)Param2;
-        if(record->EventType==KEY_EVENT)
+        if(record->EventType==KEY_EVENT&&record->Event.KeyEvent.bKeyDown)
         {
-          int keyIn=FSF.FarInputRecordToKey(record);
-          if(keyIn==KEY_ENTER||keyIn==KEY_CTRLENTER||keyIn==KEY_CTRLBACKSLASH)
+          WORD Key=record->Event.KeyEvent.wVirtualKeyCode;
+          wchar_t Char=FSF.LUpper(record->Event.KeyEvent.uChar.UnicodeChar);
+          if((IsNone(record)&&Key==VK_RETURN)||(IsCtrl(record)&&Key==VK_RETURN)||(IsCtrl(record)&&Char=='\\'))
           {
-            bool bRoot = keyIn==KEY_CTRLBACKSLASH;
+            bool bRoot=(Char=='\\');
             if(ItemPresent||bRoot)
             {
-              if(bRoot||(item.Item.Flags&LIF_CHECKED&&keyIn==KEY_ENTER))
+              if(bRoot||(item.Item.Flags&LIF_CHECKED&&IsNone(record)))
               {
                 TCHAR *ptr,old_dir[MAX_PATH];//,buffer[MAX_PATH];
                 lstrcpy(old_dir,DlgParams->curr_dir);
@@ -234,7 +234,7 @@ static INT_PTR WINAPI OFDProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
                 }
                 return TRUE;
               }
-              if(keyIn!=KEY_ENTER)
+              if(!(IsNone(record)&&Key==VK_RETURN))
               {
                 Info.SendDlgMessage(hDlg,DM_CLOSE,0,0);
                 return TRUE;
@@ -242,7 +242,7 @@ static INT_PTR WINAPI OFDProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
               return FALSE;
             } else return TRUE;
           }
-          else if(keyIn==KEY_SHIFTENTER)
+          else if(IsShift(record)&&Key==VK_RETURN)
           {
             if(ItemPresent)
             {
@@ -256,9 +256,9 @@ static INT_PTR WINAPI OFDProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
             }
             return TRUE;
           }
-          else if(keyIn>=KEY_ALTA&&keyIn<=KEY_ALTZ)
+          else if(IsAlt(record)&&Char>='A'&&Char<='Z')
           {
-            int Drive=keyIn-KEY_ALTA;
+            int Drive=Char-'A';
             DWORD Disks=GetLogicalDrives();
             if(Disks&(1<<Drive))
             {
@@ -292,17 +292,23 @@ static INT_PTR WINAPI OFDProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
             return TRUE;
           }
 #endif
-          else if(keyIn==KEY_LEFT)
+          else if(IsNone(record)&&Key==VK_LEFT)
           {
-            INPUT_RECORD keyOut;
-            FSF.FarKeyToInputRecord(KEY_HOME,&keyOut);
+            INPUT_RECORD keyOut={0};
+            keyOut.EventType=KEY_EVENT;
+            keyOut.Event.KeyEvent.bKeyDown=1;
+            keyOut.Event.KeyEvent.wRepeatCount=1;
+            keyOut.Event.KeyEvent.wVirtualKeyCode=VK_HOME;
             Info.SendDlgMessage(hDlg,DM_KEY,1,&keyOut);
             return TRUE;
           }
-          else if(keyIn==KEY_RIGHT)
+          else if(IsNone(record)&&Key==VK_RIGHT)
           {
-            INPUT_RECORD keyOut;
-            FSF.FarKeyToInputRecord(KEY_END,&keyOut);
+            INPUT_RECORD keyOut={0};
+            keyOut.EventType=KEY_EVENT;
+            keyOut.Event.KeyEvent.bKeyDown=1;
+            keyOut.Event.KeyEvent.wRepeatCount=1;
+            keyOut.Event.KeyEvent.wVirtualKeyCode=VK_END;
             Info.SendDlgMessage(hDlg,DM_KEY,1,&keyOut);
             return TRUE;
           }

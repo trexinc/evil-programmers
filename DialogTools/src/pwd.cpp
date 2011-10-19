@@ -42,10 +42,10 @@ void DoPwd(HANDLE aDlg)
     {
       static FarDialogItem DialogItems[] =
       {
-        { DI_DOUBLEBOX   ,3  ,1  ,43 ,5 ,{0},NULL,NULL ,0                                 ,GetMsg(mNamePwd)   ,0,NULL},
-        { DI_TEXT        ,5  ,2  ,0  ,0 ,{0},NULL,NULL ,0                                 ,GetMsg(mPwd)       ,0,NULL},
-        { DI_EDIT        ,5  ,3  ,41 ,0 ,{0},NULL,NULL ,DIF_READONLY|DIF_FOCUS            ,buffer             ,0,NULL},
-        { DI_BUTTON      ,0  ,4  ,0  ,0 ,{0},NULL,NULL ,DIF_CENTERGROUP|DIF_DEFAULTBUTTON ,GetMsg(mOk)        ,0,NULL}
+        { DI_DOUBLEBOX   ,3  ,1  ,43 ,5 ,{0},NULL,NULL ,0                                 ,GetMsg(mNamePwd)   ,0,0},
+        { DI_TEXT        ,5  ,2  ,0  ,0 ,{0},NULL,NULL ,0                                 ,GetMsg(mPwd)       ,0,0},
+        { DI_EDIT        ,5  ,3  ,41 ,0 ,{0},NULL,NULL ,DIF_READONLY|DIF_FOCUS            ,buffer             ,0,0},
+        { DI_BUTTON      ,0  ,4  ,0  ,0 ,{0},NULL,NULL ,DIF_CENTERGROUP|DIF_DEFAULTBUTTON ,GetMsg(mOk)        ,0,0}
       };
       Info.SendDlgMessage(aDlg,DM_GETTEXTPTR,itemID,buffer);
       CFarDialog dialog;
