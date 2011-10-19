@@ -82,7 +82,7 @@ bool GetComputer(UserManager *panel,bool selection)
         }
         HANDLE hSScr=Info.SaveScreen(0,0,-1,-1);
         const TCHAR *MsgItems[]={_T(""),GetMsg(mOtherConnect)};
-        Info.Message(&MainGuid,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),0);
+        Info.Message(&MainGuid,&MessageGuid,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),0);
         wchar_t temp_computer_name[MAX_PATH];
         _tcscpy(temp_computer_name,tmp);
         DWORD count;

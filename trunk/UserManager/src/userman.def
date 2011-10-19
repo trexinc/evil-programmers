@@ -8,7 +8,7 @@ EXPORTS
    SetStartupInfoW=SetStartupInfoW@4
    FreeFindDataW=FreeFindDataW@4
    SetDirectoryW=SetDirectoryW@4
-   ProcessPanelInputW=ProcessPanelInputW@8
+   ProcessPanelInputW=ProcessPanelInputW@4
    ConfigureW=ConfigureW@4
    ExitFARW=ExitFARW@4
    CompareW=CompareW@4

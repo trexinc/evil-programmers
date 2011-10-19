@@ -21,7 +21,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "far_helper.h"
-#include "farkeys.hpp"
 #include "umplugin.h"
 #include "memory.h"
 #include "guid.h"
@@ -36,10 +35,10 @@ static INT_PTR WINAPI EditAdvancedAccessDialogProc(HANDLE hDlg,int Msg,int Param
         const INPUT_RECORD* record=(const INPUT_RECORD*)Param2;
         if(record->EventType==KEY_EVENT)
         {
-          int key=FSF.FarInputRecordToKey(record);
-          if((key==KEY_SHIFTADD)||(key==KEY_SHIFTSUBTRACT))
+          WORD Key=record->Event.KeyEvent.wVirtualKeyCode;
+          if(IsShift(record)&&(Key==VK_ADD||Key==VK_SUBTRACT))
           {
-            int state=(key==KEY_SHIFTADD);
+            int state=(Key==VK_ADD);
             FarDialogItem DialogItem;
             for(int i=0;i<DlgParams[1];i++)
             {

@@ -20,7 +20,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "far_helper.h"
-#include "farkeys.hpp"
 #include <lm.h>
 #include "umplugin.h"
 #include "memory.h"
@@ -515,7 +514,7 @@ static INT_PTR WINAPI ManageGroupUserDialogProc(HANDLE hDlg,int Msg,int Param1,v
           if(_tcscmp(pwd1,pwd2))
           {
             const TCHAR *MsgItems[]={GetMsg(mError),GetMsg(mOtherPwdError1),GetMsg(mOtherPwdError2),GetMsg(mOtherPwdError3),GetMsg(mButtonOk)};
-            Info.Message(&MainGuid,FMSG_WARNING,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),1);
+            Info.Message(&MainGuid,&PwdErrorMessageGuid,FMSG_WARNING,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),1);
             return FALSE;
           }
         }
