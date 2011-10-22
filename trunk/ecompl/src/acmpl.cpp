@@ -231,8 +231,6 @@ bool TAutoCompletion::PutVariant(avl_window_data *Window)
         ResumeThread(handles[0]);
         {
           bool poll=true;
-          INPUT_RECORD *AllEvents=NULL,CurEvent;
-          unsigned long AllEventsCount=0,CurEventCount;
           while(poll)
           {
             DWORD wfmo=WaitForMultipleObjects(sizeof(handles)/sizeof(handles[0]),handles,FALSE,INFINITE);
@@ -242,41 +240,11 @@ bool TAutoCompletion::PutVariant(avl_window_data *Window)
                 poll=false;
                 break;
               case WAIT_OBJECT_0+1:
-                ReadConsoleInput(handles[1],&CurEvent,1,&CurEventCount);
-                if(CurEventCount==1)
-                {
-                  if(AllEvents)
-                  {
-                    INPUT_RECORD *NewAllEvents=(INPUT_RECORD *)HeapReAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,AllEvents,(AllEventsCount+1)*sizeof(INPUT_RECORD));
-                    if(NewAllEvents)
-                    {
-                      AllEvents=NewAllEvents;
-                      AllEvents[AllEventsCount++]=CurEvent;
-                    }
-                  }
-                  else
-                  {
-                    AllEvents=(INPUT_RECORD *)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,sizeof(INPUT_RECORD));
-                    if(AllEvents)
-                    {
-                      AllEvents[0]=CurEvent;
-                      AllEventsCount=1;
-                    }
-                  }
-                  if(CurEvent.EventType==KEY_EVENT&&CurEvent.Event.KeyEvent.bKeyDown)
-                  {
-                    InterlockedIncrement((LONG *)&Stop);
-                    WaitForSingleObject(handles[0],INFINITE);
-                    poll=false;
-                  }
-                }
+                InterlockedIncrement((LONG *)&Stop);
+                WaitForSingleObject(handles[0],INFINITE);
+                poll=false;
                 break;
             }
-          }
-          if(AllEvents)
-          {
-            WriteConsoleInput(handles[1],AllEvents,AllEventsCount,&CurEventCount);
-            HeapFree(GetProcessHeap(),0,AllEvents);
           }
         }
         if(!GetExitCodeThread(handles[0],&SearchOk)) SearchOk=FALSE;
