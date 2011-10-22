@@ -188,8 +188,8 @@ static void SetAccessMain(unsigned long param,wchar_t *dir,wchar_t *file,int typ
       }
   if(td->Owner)
   {
-    wchar_t *username; TCHAR *username_oem;
-    GetUserNameEx(NULL,td->sid,true,&username,&username_oem);
+    wchar_t *username;
+    GetUserNameEx(NULL,td->sid,true,&username);
     AddOwnerInternal(&panel,td->sid);
   }
 }
@@ -403,9 +403,8 @@ void ProcessChilds(CFarPanel& pInfo)
                 if(td.Owner&&plain_dirs_owners[panel.level])
                 {
                   wchar_t *owner;
-                  TCHAR *owner_oem;
                   PSID sid;
-                  if(plain_dirs_owners[panel.level](&panel,&sid,&owner,&owner_oem))
+                  if(plain_dirs_owners[panel.level](&panel,&sid,&owner))
                   {
                     td.sid=(PSID)malloc(GetLengthSid(sid));
                     if(td.sid) CopySid(GetLengthSid(sid),td.sid,sid);
@@ -438,9 +437,8 @@ void ProcessChilds(CFarPanel& pInfo)
                 if(td.Owner&&plain_dirs_owners[panel.level])
                 {
                   wchar_t *owner;
-                  TCHAR *owner_oem;
                   PSID sid;
-                  if(plain_dirs_owners[panel.level](&panel,&sid,&owner,&owner_oem))
+                  if(plain_dirs_owners[panel.level](&panel,&sid,&owner))
                   {
                     td.sid=(PSID)malloc(GetLengthSid(sid));
                     if(td.sid) CopySid(GetLengthSid(sid),td.sid,sid);

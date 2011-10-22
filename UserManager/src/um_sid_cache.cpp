@@ -26,8 +26,6 @@ struct CacheRecord
   PSID sid;
   wchar_t *username;
   wchar_t *username_only;
-  TCHAR *username_oem;
-  TCHAR *username_only_oem;
   CacheRecord *next;
 };
 
@@ -46,9 +44,9 @@ void free_sid_cache(void)
   }
 };
 
-static void add_sid_cache(wchar_t *computer,PSID sid,bool full,wchar_t **username,TCHAR **username_oem)
+static void add_sid_cache(wchar_t *computer,PSID sid,bool full,wchar_t **username)
 {
-  *username=(wchar_t*)L"Account Unknown"; *username_oem=(TCHAR*)_T("Account Unknown");
+  *username=(wchar_t*)L"Account Unknown";
   CacheRecord *new_rec=(CacheRecord *)malloc(sizeof(CacheRecord));
   if(new_rec)
   {
@@ -60,10 +58,9 @@ static void add_sid_cache(wchar_t *computer,PSID sid,bool full,wchar_t **usernam
       if(!LookupAccountSidW(computer,sid,NULL,&name_size,NULL,&domain_size,&type))
         if(GetLastError()==ERROR_INSUFFICIENT_BUFFER)
         {
-          new_rec->username=(wchar_t *)malloc((name_size+domain_size)*(sizeof(wchar_t)+sizeof(TCHAR)));
+          new_rec->username=(wchar_t*)malloc((name_size+domain_size)*sizeof(wchar_t));
           if(new_rec->username)
           {
-            new_rec->username_oem=(TCHAR *)(new_rec->username+domain_size+name_size);
             wchar_t *domain_ptr=new_rec->username,*user_ptr=new_rec->username+domain_size;
             if(domain_size==1)
             {
@@ -77,17 +74,13 @@ static void add_sid_cache(wchar_t *computer,PSID sid,bool full,wchar_t **usernam
               new_rec->username_only=user_ptr;
               new_rec->next=sid_cache;
               sid_cache=new_rec;
-              _tcscpy(new_rec->username_oem,new_rec->username);
-              new_rec->username_only_oem=new_rec->username_oem+(new_rec->username_only-new_rec->username);
               if(full)
               {
                 *username=new_rec->username;
-                *username_oem=new_rec->username_oem;
               }
               else
               {
                 *username=new_rec->username_only;
-                *username_oem=new_rec->username_only_oem;
               }
               return;
             }
@@ -100,9 +93,9 @@ static void add_sid_cache(wchar_t *computer,PSID sid,bool full,wchar_t **usernam
   }
 }
 
-static void get_sid_cache(PSID sid,bool full,wchar_t **username,TCHAR **username_oem)
+static void get_sid_cache(PSID sid,bool full,wchar_t **username)
 {
-  *username=NULL; *username_oem=NULL;
+  *username=NULL;
   CacheRecord *tmp_rec=sid_cache;
   while(tmp_rec)
   {
@@ -111,12 +104,10 @@ static void get_sid_cache(PSID sid,bool full,wchar_t **username,TCHAR **username
       if(full)
       {
         *username=tmp_rec->username;
-        *username_oem=tmp_rec->username_oem;
       }
       else
       {
         *username=tmp_rec->username_only;
-        *username_oem=tmp_rec->username_only_oem;
       }
       break;
     }
@@ -124,15 +115,15 @@ static void get_sid_cache(PSID sid,bool full,wchar_t **username,TCHAR **username
   }
 }
 
-void GetUserNameEx(wchar_t *computer,PSID sid,bool full,wchar_t **username,TCHAR **username_oem)
+void GetUserNameEx(wchar_t *computer,PSID sid,bool full,wchar_t **username)
 {
-  *username=(wchar_t*)L"Account Unknown"; *username_oem=(TCHAR*)_T("Account Unknown");
+  *username=(wchar_t*)L"Account Unknown";
   if(IsValidSid(sid))
   {
-    get_sid_cache(sid,full,username,username_oem);
+    get_sid_cache(sid,full,username);
     if(!(*username))
     {
-      add_sid_cache(computer,sid,full,username,username_oem);
+      add_sid_cache(computer,sid,full,username);
     }
   }
 }

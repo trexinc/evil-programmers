@@ -268,7 +268,7 @@ const int *plain_dirs_dir[]=
   NULL,
 };
 
-bool GetFileOwner(UserManager *panel,PSID *sid,wchar_t **owner,TCHAR **owner_oem)
+bool GetFileOwner(UserManager *panel,PSID *sid,wchar_t **owner)
 {
   bool res=false;
   DWORD needed; PSECURITY_DESCRIPTOR SD=NULL;
@@ -283,7 +283,7 @@ bool GetFileOwner(UserManager *panel,PSID *sid,wchar_t **owner,TCHAR **owner_oem
           if(GetSecurityDescriptorOwner(SD,sid,&flag))
           {
             res=true;
-            GetUserNameEx(panel->computer_ptr,*sid,Opt.FullUserNames,owner,owner_oem);
+            GetUserNameEx(panel->computer_ptr,*sid,Opt.FullUserNames,owner);
           }
         }
         free(SD); SD=NULL; //FIXME: SD:sid used later
@@ -291,7 +291,7 @@ bool GetFileOwner(UserManager *panel,PSID *sid,wchar_t **owner,TCHAR **owner_oem
   return res;
 }
 
-bool GetRegOwner(UserManager *panel,PSID *sid,wchar_t **owner,TCHAR **owner_oem)
+bool GetRegOwner(UserManager *panel,PSID *sid,wchar_t **owner)
 {
   bool res=false;
   DWORD needed=0; PSECURITY_DESCRIPTOR SD=NULL;
@@ -309,7 +309,7 @@ bool GetRegOwner(UserManager *panel,PSID *sid,wchar_t **owner,TCHAR **owner_oem)
           if(GetSecurityDescriptorOwner(SD,sid,&flag))
           {
             res=true;
-            GetUserNameEx(panel->computer_ptr,*sid,Opt.FullUserNames,owner,owner_oem);
+            GetUserNameEx(panel->computer_ptr,*sid,Opt.FullUserNames,owner);
           }
         }
         free(SD); SD=NULL; //FIXME: SD:sid used later
@@ -320,7 +320,7 @@ bool GetRegOwner(UserManager *panel,PSID *sid,wchar_t **owner,TCHAR **owner_oem)
   return res;
 }
 
-bool GetPrinterOwner(UserManager *panel,PSID *sid,wchar_t **owner,TCHAR **owner_oem)
+bool GetPrinterOwner(UserManager *panel,PSID *sid,wchar_t **owner)
 {
   bool res=false;
   HANDLE printer; PRINTER_DEFAULTSW defaults; PRINTER_INFO_3 *data=NULL;
@@ -342,7 +342,7 @@ bool GetPrinterOwner(UserManager *panel,PSID *sid,wchar_t **owner,TCHAR **owner_
             if(GetSecurityDescriptorOwner(data->pSecurityDescriptor,sid,&flag))
             {
               res=true;
-              GetUserNameEx(panel->computer_ptr,*sid,Opt.FullUserNames,owner,owner_oem);
+              GetUserNameEx(panel->computer_ptr,*sid,Opt.FullUserNames,owner);
             }
           }
           free(data); data=NULL; //FIXME: SD:sid used later
