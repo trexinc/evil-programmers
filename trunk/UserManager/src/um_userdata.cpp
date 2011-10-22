@@ -30,7 +30,7 @@ struct PluginUserData
   int wide_name_diff;
 };
 
-void AddDefaultUserdata(PluginPanelItem *Item,int level,int sortorder,int itemtype,PSID sid,wchar_t *wide_name,const TCHAR *oem_name,const TCHAR* filename)
+void AddDefaultUserdata(PluginPanelItem* Item,int level,int sortorder,int itemtype,PSID sid,const wchar_t* wide_name,const wchar_t* filename)
 {
   TCHAR* item_filename=(TCHAR*)malloc((_tcslen(filename)+1)*sizeof(TCHAR));
   Item->FileName=item_filename;
@@ -42,9 +42,7 @@ void AddDefaultUserdata(PluginPanelItem *Item,int level,int sortorder,int itemty
   int user_data_size=sizeof(PluginUserData),sid_size=0,name_size=0;
   if(sid&&IsValidSid(sid))
     sid_size=GetLengthSid(sid);
-  if(wide_name) name_size=wcslen(wide_name)+1;
-  else if(oem_name) name_size=_tcslen(oem_name)+1;
-  name_size*=sizeof(wchar_t);
+  name_size=(wcslen(wide_name)+1)*sizeof(wchar_t);
   user_data_size+=sid_size+name_size;
 
   user_data=(PluginUserData *)malloc(user_data_size);
@@ -63,11 +61,7 @@ void AddDefaultUserdata(PluginPanelItem *Item,int level,int sortorder,int itemty
     {
       wchar_t *ptr=(wchar_t *)((char *)(user_data+1)+sid_size);
       user_data->wide_name_diff=sizeof(PluginUserData)+sid_size;
-      if(wide_name) wcscpy(ptr,wide_name);
-      else
-      {
-        _tcscpy(ptr,oem_name);
-      }
+      wcscpy(ptr,wide_name);
     }
     Item->Flags=PPIF_USERDATA;
     Item->UserData=(DWORD)user_data;

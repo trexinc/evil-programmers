@@ -435,16 +435,15 @@ int WINAPI GetFindDataW(struct GetFindDataInfo *anInfo)
         for(int i=0;i<ItemCount;i++)
         {
           (anInfo->PanelItem)[i].FileAttributes=FILE_ATTRIBUTE_DIRECTORY;
-          AddDefaultUserdata((anInfo->PanelItem+i),plain_dirs_dir[panel->level][i*2+3],i,0,NULL,NULL,GetMsg(plain_dirs_dir[panel->level][i*2+2]),GetMsg(plain_dirs_dir[panel->level][i*2+2]));
+          AddDefaultUserdata((anInfo->PanelItem+i),plain_dirs_dir[panel->level][i*2+3],i,0,NULL,GetMsg(plain_dirs_dir[panel->level][i*2+2]),GetMsg(plain_dirs_dir[panel->level][i*2+2]));
         }
         if(OwnerCount)
         {
           wchar_t *owner;
-          TCHAR *owner_oem;
           PSID sid;
-          if(plain_dirs_owners[panel->level](panel,&sid,&owner,&owner_oem))
+          if(plain_dirs_owners[panel->level](panel,&sid,&owner))
           {
-            AddDefaultUserdata((anInfo->PanelItem)+ItemCount,-1,ItemCount,0,sid,owner,owner_oem,owner_oem);
+            AddDefaultUserdata((anInfo->PanelItem)+ItemCount,-1,ItemCount,0,sid,owner,owner);
           }
         }
       }
@@ -469,12 +468,12 @@ int WINAPI GetFindDataW(struct GetFindDataInfo *anInfo)
           anInfo->ItemsNumber=item_count;
           AceData *tmpAce=data->Aces;
           PluginPanelItem *tmpItem=anInfo->PanelItem;
-          wchar_t *username; TCHAR *username_oem;
+          wchar_t *username;
           int cur_sortorder=0;
           while(tmpAce)
           {
             TCHAR new_filename[MAX_PATH];
-            GetUserNameEx(panel->computer_ptr,tmpAce->user,Opt.FullUserNames,&username,&username_oem);
+            GetUserNameEx(panel->computer_ptr,tmpAce->user,Opt.FullUserNames,&username);
             switch(GetAclState(panel->level,tmpAce->ace_type,tmpAce->ace_flags))
             {
               case UM_ITEM_EMPTY:
@@ -492,7 +491,7 @@ int WINAPI GetFindDataW(struct GetFindDataInfo *anInfo)
                 _tcscpy(new_filename,_T("*."));
                 break;
             }
-            _tcscat(new_filename,username_oem);
+            _tcscat(new_filename,username);
             TCHAR** CustomColumnData=(TCHAR**)malloc(sizeof(TCHAR *)*CUSTOM_COLUMN_COUNT);
             tmpItem->CustomColumnData=CustomColumnData;
             if(CustomColumnData)
@@ -503,32 +502,32 @@ int WINAPI GetFindDataW(struct GetFindDataInfo *anInfo)
               CustomColumnData[1]=get_sid_string(tmpAce->user);
               NormalizeCustomColumns(tmpItem);
             }
-            AddDefaultUserdata(tmpItem,tmpAce->ace_mask,cur_sortorder++,GetAclState(panel->level,tmpAce->ace_type,tmpAce->ace_flags),tmpAce->user,username,NULL,new_filename);
+            AddDefaultUserdata(tmpItem,tmpAce->ace_mask,cur_sortorder++,GetAclState(panel->level,tmpAce->ace_type,tmpAce->ace_flags),tmpAce->user,username,new_filename);
             tmpAce=tmpAce->next;
             tmpItem++;
           }
           if(perm_dirs_dir[panel->level]==PERM_KEY)
           {
             tmpItem->FileAttributes=FILE_ATTRIBUTE_DIRECTORY;
-            AddDefaultUserdata(tmpItem,panel->level+1,cur_sortorder++,0,NULL,NULL,GetMsg(mDirNewKey),GetMsg(mDirNewKey));
+            AddDefaultUserdata(tmpItem,panel->level+1,cur_sortorder++,0,NULL,GetMsg(mDirNewKey),GetMsg(mDirNewKey));
             tmpItem++;
           }
           else if((perm_dirs_dir[panel->level]==PERM_FF)&&(panel->flags&FLAG_FOLDER))
           {
             tmpItem->FileAttributes=FILE_ATTRIBUTE_DIRECTORY;
-            AddDefaultUserdata(tmpItem,panel->level+1,cur_sortorder++,0,NULL,NULL,GetMsg(mDirNewFolder),GetMsg(mDirNewFolder));
+            AddDefaultUserdata(tmpItem,panel->level+1,cur_sortorder++,0,NULL,GetMsg(mDirNewFolder),GetMsg(mDirNewFolder));
             tmpItem++;
             tmpItem->FileAttributes=FILE_ATTRIBUTE_DIRECTORY;
-            AddDefaultUserdata(tmpItem,panel->level+2,cur_sortorder++,0,NULL,NULL,GetMsg(mDirNewFile),GetMsg(mDirNewFile));
+            AddDefaultUserdata(tmpItem,panel->level+2,cur_sortorder++,0,NULL,GetMsg(mDirNewFile),GetMsg(mDirNewFile));
             tmpItem++;
           }
           else if(perm_dirs_dir[panel->level]==PERM_PRINT)
           {
             tmpItem->FileAttributes=FILE_ATTRIBUTE_DIRECTORY;
-            AddDefaultUserdata(tmpItem,panel->level+1,cur_sortorder++,0,NULL,NULL,GetMsg(mDirNewContainer),GetMsg(mDirNewContainer));
+            AddDefaultUserdata(tmpItem,panel->level+1,cur_sortorder++,0,NULL,GetMsg(mDirNewContainer),GetMsg(mDirNewContainer));
             tmpItem++;
             tmpItem->FileAttributes=FILE_ATTRIBUTE_DIRECTORY;
-            AddDefaultUserdata(tmpItem,panel->level+2,cur_sortorder++,0,NULL,NULL,GetMsg(mDirNewJob),GetMsg(mDirNewJob));
+            AddDefaultUserdata(tmpItem,panel->level+2,cur_sortorder++,0,NULL,GetMsg(mDirNewJob),GetMsg(mDirNewJob));
             tmpItem++;
           }
         }
@@ -561,11 +560,9 @@ int WINAPI GetFindDataW(struct GetFindDataInfo *anInfo)
             if(j>=(unsigned long)count) break;
             if(!_wcsicmp((wchar_t *)shares[i].shi502_path,(panel->computer_ptr)?panel->domain:panel->hostfile))
             {
-              TCHAR new_filename[MAX_PATH];
-              _tcscpy(new_filename,shares[i].shi502_netname);
               (anInfo->PanelItem)[j].FileAttributes=FILE_ATTRIBUTE_DIRECTORY;
               SetDescription((anInfo->PanelItem)+j,(wchar_t *)shares[i].shi502_remark);
-              AddDefaultUserdata((anInfo->PanelItem+j),levelSharedIn,0,0,NULL,(wchar_t *)shares[i].shi502_netname,NULL,new_filename);
+              AddDefaultUserdata((anInfo->PanelItem+j),levelSharedIn,0,0,NULL,(wchar_t *)shares[i].shi502_netname,(wchar_t *)shares[i].shi502_netname);
               TCHAR** CustomColumnData=(TCHAR**)malloc(sizeof(TCHAR *)*CUSTOM_COLUMN_COUNT);
               (anInfo->PanelItem)[j].CustomColumnData=CustomColumnData;
               if(CustomColumnData)
@@ -644,7 +641,6 @@ int WINAPI GetFindDataW(struct GetFindDataInfo *anInfo)
       err2=NetUserEnum((panel->global)?(panel->domain):(panel->computer_ptr),10,FILTER_NORMAL_ACCOUNT,&users,MAX_PREFERRED_LENGTH,&entriesread2,&totalentries2,&resumehandle2);
       if((err1==NERR_Success)&&(err2==NERR_Success))
       {
-        TCHAR new_filename[MAX_PATH];
         wchar_t *group_name;
         wchar_t *group_comment;
         anInfo->PanelItem=(PluginPanelItem *)malloc(sizeof(PluginPanelItem)*(entriesread1+entriesread2+sizeof(AddSID)/sizeof(AddSID[0])+1));
@@ -663,7 +659,6 @@ int WINAPI GetFindDataW(struct GetFindDataInfo *anInfo)
               group_name=((LOCALGROUP_INFO_1 *)groups)[i].lgrpi1_name;
               group_comment=((LOCALGROUP_INFO_1 *)groups)[i].lgrpi1_comment;
             }
-            _tcscpy(new_filename,group_name);
             (anInfo->PanelItem)[i].FileAttributes=FILE_ATTRIBUTE_DIRECTORY;
             bool sid_ok=false;
             DWORD sid_size=0,domain_size=0; PSID sid=NULL; wchar_t *domain=NULL; SID_NAME_USE type;
@@ -677,13 +672,12 @@ int WINAPI GetFindDataW(struct GetFindDataInfo *anInfo)
                     sid_ok=true;
               }
             if(sid_ok)
-              AddDefaultUserdata((anInfo->PanelItem)+i,levelUsers,0,0,sid,group_name,NULL,new_filename);
+              AddDefaultUserdata((anInfo->PanelItem)+i,levelUsers,0,0,sid,group_name,group_name);
             SetDescription((anInfo->PanelItem)+i,group_comment);
             free(domain);
           }
           for(unsigned long i=0;i<entriesread2;i++)
           {
-            _tcscpy(new_filename,((USER_INFO_10 *)users)[i].usri10_name);
             bool sid_ok=false;
             DWORD sid_size=0,domain_size=0; PSID sid=NULL; wchar_t *domain=NULL; SID_NAME_USE type;
             if(!LookupAccountNameW((panel->global)?(panel->domain):(panel->computer_ptr),((USER_INFO_10 *)users)[i].usri10_name,NULL,&sid_size,NULL,&domain_size,&type))
@@ -697,7 +691,7 @@ int WINAPI GetFindDataW(struct GetFindDataInfo *anInfo)
               }
             if(sid_ok)
             {
-              AddDefaultUserdata((anInfo->PanelItem)+i+entriesread1,levelUsers,0,0,sid,((USER_INFO_10 *)users)[i].usri10_name,NULL,new_filename);
+              AddDefaultUserdata((anInfo->PanelItem)+i+entriesread1,levelUsers,0,0,sid,((USER_INFO_10 *)users)[i].usri10_name,((USER_INFO_10 *)users)[i].usri10_name);
               if(is_current_user(sid)) (anInfo->PanelItem)[i+entriesread1].FileAttributes=FILE_ATTRIBUTE_READONLY;
             }
             SetDescription((anInfo->PanelItem)+i+entriesread1,((USER_INFO_10 *)users)[i].usri10_comment);
@@ -708,9 +702,9 @@ int WINAPI GetFindDataW(struct GetFindDataInfo *anInfo)
             PSID sid=NULL;
             if(AllocateAndInitializeSid(AddSID[i].sid_id,1,AddSID[i].SubAuthority,0,0,0,0,0,0,0,&sid))
             {
-              wchar_t *username; TCHAR *username_oem;
-              GetUserNameEx(panel->computer_ptr,sid,false,&username,&username_oem);
-              AddDefaultUserdata((anInfo->PanelItem)+i+entriesread1+entriesread2,0,0,0,sid,username,NULL,username_oem);
+              wchar_t *username;
+              GetUserNameEx(panel->computer_ptr,sid,false,&username);
+              AddDefaultUserdata((anInfo->PanelItem)+i+entriesread1+entriesread2,0,0,0,sid,username,username);
               if(is_current_user(sid)) (anInfo->PanelItem)[i+entriesread1+entriesread2].FileAttributes=FILE_ATTRIBUTE_READONLY;
             }
           }
@@ -757,19 +751,16 @@ int WINAPI GetFindDataW(struct GetFindDataInfo *anInfo)
         anInfo->PanelItem=(PluginPanelItem *)malloc(sizeof(PluginPanelItem)*(entriesread+1));
         if(anInfo->PanelItem)
         {
-          TCHAR new_filename[MAX_PATH];
           anInfo->ItemsNumber=entriesread+1;
           for(unsigned long i=0;i<entriesread;i++)
           {
             if(panel->global)
             {
-              _tcscpy(new_filename,globalMembers[i].grui0_name);
-              AddDefaultUserdata((anInfo->PanelItem)+i,-1,0,0,NULL,globalMembers[i].grui0_name,NULL,new_filename);
+              AddDefaultUserdata((anInfo->PanelItem)+i,-1,0,0,NULL,globalMembers[i].grui0_name,globalMembers[i].grui0_name);
             }
             else
             {
-              _tcscpy(new_filename,localMembers[i].lgrmi1_name);
-              AddDefaultUserdata((anInfo->PanelItem)+i,-1,0,0,localMembers[i].lgrmi1_sid,localMembers[i].lgrmi1_name,NULL,new_filename);
+              AddDefaultUserdata((anInfo->PanelItem)+i,-1,0,0,localMembers[i].lgrmi1_sid,localMembers[i].lgrmi1_name,localMembers[i].lgrmi1_name);
               if(is_current_user(localMembers[i].lgrmi1_sid)) (anInfo->PanelItem)[i].FileAttributes=FILE_ATTRIBUTE_READONLY;
               TCHAR** CustomColumnData=(TCHAR**)malloc(sizeof(TCHAR *)*CUSTOM_COLUMN_COUNT);
               (anInfo->PanelItem)[i].CustomColumnData=CustomColumnData;
@@ -796,7 +787,7 @@ int WINAPI GetFindDataW(struct GetFindDataInfo *anInfo)
         for(unsigned int i=0;i<sizeof(AddPriveleges)/sizeof(AddPriveleges[0]);i++)
         {
           (anInfo->PanelItem)[i].FileAttributes=FILE_ATTRIBUTE_DIRECTORY;
-          AddDefaultUserdata((anInfo->PanelItem)+(anInfo->ItemsNumber),levelRightUsers,0,0,NULL,(wchar_t*)AddPriveleges[i],NULL,AddPrivelegeNames[i]);
+          AddDefaultUserdata((anInfo->PanelItem)+(anInfo->ItemsNumber),levelRightUsers,0,0,NULL,(wchar_t*)AddPriveleges[i],AddPrivelegeNames[i]);
           (anInfo->ItemsNumber)++;
         }
     }
@@ -816,13 +807,13 @@ int WINAPI GetFindDataW(struct GetFindDataInfo *anInfo)
           anInfo->PanelItem=(PluginPanelItem *)malloc(sizeof(PluginPanelItem)*count);
           if(anInfo->PanelItem)
           {
-            wchar_t *username; TCHAR *username_oem;
+            wchar_t *username;
             PluginPanelItem *tmpItem=anInfo->PanelItem;
             (anInfo->ItemsNumber)=count;
             for(unsigned long i=0;i<count;i++,tmpItem++)
             {
-              GetUserNameEx(panel->computer_ptr,info[i].Sid,Opt.FullUserNames,&username,&username_oem);
-              AddDefaultUserdata(tmpItem,-1,0,0,info[i].Sid,username,NULL,username_oem);
+              GetUserNameEx(panel->computer_ptr,info[i].Sid,Opt.FullUserNames,&username);
+              AddDefaultUserdata(tmpItem,-1,0,0,info[i].Sid,username,username);
             }
           }
           LsaFreeMemory((PVOID)info);

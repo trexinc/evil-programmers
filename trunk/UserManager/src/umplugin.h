@@ -560,7 +560,7 @@ typedef bool (*PressButton)(UserManager *panel);
 typedef bool (*PressButton2)(UserManager *panel,bool selection);
 typedef bool (*PressButton3)(UserManager *panel,UserManager *anotherpanel,bool selection);
 typedef TCHAR * (*ParseColumns)(const TCHAR *columns);
-typedef bool (*GetOwner)(UserManager *panel,PSID *sid,wchar_t **owner,TCHAR **owner_oem);
+typedef bool (*GetOwner)(UserManager *panel,PSID *sid,wchar_t **owner);
 
 #define PERM_NO    0
 #define PERM_YES   1
@@ -630,7 +630,7 @@ extern DWORD generic_mask_to_job_mask(DWORD mask);
 extern void EnablePrivilege(const TCHAR *name);
 extern bool IsPrivilegeEnabled(const TCHAR *name);
 extern bool CheckChDir(HANDLE hPlugin,const TCHAR *NewDir,TCHAR *RealDir,wchar_t *RealDirW,int *level);
-extern void AddDefaultUserdata(PluginPanelItem *Item,int level,int sortorder,int itemtype,PSID sid,wchar_t *wide_name,const TCHAR *oem_name,const TCHAR* filename);
+extern void AddDefaultUserdata(PluginPanelItem* Item,int level,int sortorder,int itemtype,PSID sid,const wchar_t* wide_name,const wchar_t* filename);
 extern int GetLevelFromUserData(DWORD UserData);
 extern int GetSortOrderFromUserData(DWORD UserData);
 extern int GetItemTypeFromUserData(DWORD UserData);
@@ -682,7 +682,7 @@ extern bool GetAcl(UserManager *panel,int level,AclData **data);
 extern void FreeAcl(AclData *data);
 extern bool UpdateAcl(UserManager *panel,int level,PSID user,int type,DWORD mask,int action);
 
-extern void GetUserNameEx(wchar_t *computer,PSID sid,bool full,wchar_t **username,TCHAR **username_oem);
+extern void GetUserNameEx(wchar_t *computer,PSID sid,bool full,wchar_t **username);
 extern void free_sid_cache(void);
 
 extern void ProcessChilds(CFarPanel& pInfo);
