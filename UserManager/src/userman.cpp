@@ -144,6 +144,9 @@ const TCHAR *AddPrivelegeNames[]=
 
 static const TCHAR *default_column_data=_T("");
 
+static const TCHAR* groups_shortcut=_T(":Groups");
+static const TCHAR* rights_shortcut=_T(":Rights");
+
 extern LSA_HANDLE GetPolicyHandle(wchar_t *computer);
 
 void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
@@ -314,6 +317,17 @@ HANDLE WINAPI OpenW(const struct OpenInfo *anInfo)
           panel->level=parse_dir(name,NULL,NULL,pathtypeUnknown,&(panel->param),panel->hostfile,panel->hostfile_oem);
         }
         else panel->level=levelGroups;
+      }
+      else if(anInfo->OpenFrom==OPEN_SHORTCUT)
+      {
+        if(0==_tcscmp(groups_shortcut,(const wchar_t*)anInfo->Data))
+        {
+          panel->level=levelGroups;
+        }
+        else if(0==_tcscmp(rights_shortcut,(const wchar_t*)anInfo->Data))
+        {
+          panel->level=levelRights;
+        }
       }
       if(panel->level>-1)
       {
@@ -1020,6 +1034,15 @@ void WINAPI GetOpenPanelInfoW(struct OpenPanelInfo *Info)
     Labels[17].Text=_T("");
     Labels[18].Text=_T("");
     Info->KeyBar=&KeyBar;
+
+    if(panel->level==levelGroups||panel->level==levelUsers)
+    {
+      Info->ShortcutData=groups_shortcut;
+    }
+    else if(panel->level==levelRights||panel->level==levelRightUsers)
+    {
+      Info->ShortcutData=rights_shortcut;
+    }
   }
 }
 
