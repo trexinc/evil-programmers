@@ -359,6 +359,7 @@ const RegRoot RegRoots[]=
 static bool check_for_registry(wchar_t *path,HKEY *hKey,wchar_t *rest_path)
 {
   bool res=false;
+  if('\\'==path[0]) ++path;
   for(unsigned int ii=0;ii<(sizeof(RegRoots)/sizeof(RegRoots[0]));ii++)
   {
     if(!_wcsnicmp(path,RegRoots[ii].root,wcslen(RegRoots[ii].root)))
