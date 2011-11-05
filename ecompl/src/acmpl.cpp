@@ -25,6 +25,11 @@
 // {A28F2DC4-C362-4a82-AB2C-0081161171DD}
 DEFINE_GUID(ACmplGuid, 0xa28f2dc4, 0xc362, 0x4a82, 0xab, 0x2c, 0x0, 0x81, 0x16, 0x11, 0x71, 0xdd);
 
+bool CompareKeys(const INPUT_RECORD* One,const INPUT_RECORD* Two)
+{
+  return (One->EventType==KEY_EVENT&&Two->EventType==KEY_EVENT&&One->Event.KeyEvent.bKeyDown==Two->Event.KeyEvent.bKeyDown&&One->Event.KeyEvent.wVirtualKeyCode==Two->Event.KeyEvent.wVirtualKeyCode&&One->Event.KeyEvent.uChar.UnicodeChar==Two->Event.KeyEvent.uChar.UnicodeChar&&One->Event.KeyEvent.dwControlKeyState==Two->Event.KeyEvent.dwControlKeyState);
+}
+
 TAutoCompletion::TAutoCompletion()
 {
   WorkInsideWord=false;
@@ -64,7 +69,7 @@ int TAutoCompletion::ProcessEditorInput(const INPUT_RECORD *Rec)
         if(Window->Active&&Rec->Event.KeyEvent.wVirtualKeyCode!=0&&Rec->Event.KeyEvent.wVirtualScanCode!=0)
         {
           //int FarKey=FSF.FarInputRecordToKey(Rec);
-          bool accept=(memcmp(Rec,&AcceptKey,sizeof(AcceptKey))==0);
+          bool accept=CompareKeys(Rec,&AcceptKey);
           if(accept||(Rec->Event.KeyEvent.uChar.UnicodeChar&&_tcschr(AcceptChars,Rec->Event.KeyEvent.uChar.UnicodeChar)))
           {
             IgnoreThisEvent=AcceptVariant(Window)&&accept;
@@ -72,7 +77,7 @@ int TAutoCompletion::ProcessEditorInput(const INPUT_RECORD *Rec)
           else if(Rec->Event.KeyEvent.wVirtualKeyCode!=VK_CONTROL&&Rec->Event.KeyEvent.wVirtualKeyCode!=VK_SHIFT&&Rec->Event.KeyEvent.wVirtualKeyCode!=VK_MENU)
           {
             DeleteVariant(Window);
-            IgnoreThisEvent=(memcmp(Rec,&DeleteKey,sizeof(DeleteKey))==0);
+            IgnoreThisEvent=CompareKeys(Rec,&DeleteKey);
           }
         }
         UTCHAR c=Rec->Event.KeyEvent.uChar.UnicodeChar;
