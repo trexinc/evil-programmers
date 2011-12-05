@@ -559,10 +559,8 @@ int WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
                       Colors[ColorCode].BackgroundColor=color.BackgroundColor;
                       Colors[ColorCode].Reserved=color.Reserved;
 
-                      if(Colors[ColorCode].ForegroundColor==defColor.ForegroundColor&&(Colors[ColorCode].Flags&FG_MASK)==(defColor.Flags&FG_MASK))
-                        Colors[ColorCode].ForegroundDefault=true;
-                      if(Colors[ColorCode].BackgroundColor==defColor.BackgroundColor&&(Colors[ColorCode].Flags&FG_MASK)==(defColor.Flags&FG_MASK))
-                        Colors[ColorCode].BackgroundDefault=true;
+                      Colors[ColorCode].ForegroundDefault=(Colors[ColorCode].ForegroundColor==defColor.ForegroundColor&&(Colors[ColorCode].Flags&FG_MASK)==(defColor.Flags&FG_MASK));
+                      Colors[ColorCode].BackgroundDefault=(Colors[ColorCode].BackgroundColor==defColor.BackgroundColor&&(Colors[ColorCode].Flags&FG_MASK)==(defColor.Flags&FG_MASK));
                       CFarSettings settings(MainGuid);
                       settings.Change(PLUGIN_COLOR_KEY);
                       settings.Set(PluginsData[ids[MenuCode]].Name,(void*)Colors,ColorCount*sizeof(ABColor));
