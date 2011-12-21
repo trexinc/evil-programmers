@@ -6,7 +6,7 @@
 Read http://mingw.org/wiki/Getting_Started and download *mingw-get*.
 
 Then run:
-`mingw-get install gcc g++ mingw32-make mingw32-utils msys-core msys-m4 msys-bison msys-coreutils msys-diffutils`
+`mingw-get install gcc g++ mingw32-make mingw32-utils msys-core msys-m4 msys-bison msys-coreutils msys-diffutils msys-make`
 
 Don't forget to run *msys.bat* and from there:
 `/postinstall/pi.sh`
