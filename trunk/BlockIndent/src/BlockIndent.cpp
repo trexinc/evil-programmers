@@ -37,6 +37,14 @@ BOOL WINAPI DllMainCRTStartup(HANDLE hDll,DWORD dwReason,LPVOID lpReserved)
 }
 #endif
 
+// {D7302F8C-C73D-4143-9B39-B439CF2E7ACC}
+static const GUID MainGuid =
+{ 0xd7302f8c, 0xc73d, 0x4143, { 0x9b, 0x39, 0xb4, 0x39, 0xcf, 0x2e, 0x7a, 0xcc } };
+
+// {764D3DB5-0DF3-4E51-8694-7B0DCBADE07D}
+static const GUID MenuGuid =
+{ 0x764d3db5, 0xdf3, 0x4e51, { 0x86, 0x94, 0x7b, 0xd, 0xcb, 0xad, 0xe0, 0x7d } };
+
 
 static struct PluginStartupInfo Info;
 
@@ -49,51 +57,60 @@ enum
   MIndentSpaceRight,
 };
 
-void WINAPI EXP_NAME(SetStartupInfo)(const struct PluginStartupInfo *psi)
+void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
 {
-  Info=*psi;
+  Info->StructSize=sizeof(GlobalInfo);
+  Info->MinFarVersion=FARMANAGERVERSION;
+  Info->Version=MAKEFARVERSION(2,3,0,0,VS_RELEASE);
+  Info->Guid=MainGuid;
+  Info->Title=L"BlockIndent";
+  Info->Description=L"Indent selected block";
+  Info->Author=L"Alex Yaroslavsky";
 }
 
-void WINAPI EXP_NAME(GetPluginInfo)(struct PluginInfo *pi)
+void WINAPI SetStartupInfoW(const struct PluginStartupInfo *Info)
 {
-  static const TCHAR *PluginMenuStrings[1];
-
-  pi->StructSize=sizeof(struct PluginInfo);
-  pi->Flags=PF_EDITOR|PF_DISABLEPANELS;
-  PluginMenuStrings[0]=Info.GetMsg(Info.ModuleNumber,MTitle);
-  pi->PluginMenuStrings=PluginMenuStrings;
-  pi->PluginMenuStringsNumber=1;
+  ::Info=*Info;
 }
 
-HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom, int Item)
+const wchar_t *GetMsg(int MsgId)
 {
-  struct FarMenuItem MenuItems[4];
+  return Info.GetMsg(&MainGuid,MsgId);
+}
+
+void WINAPI GetPluginInfoW(struct PluginInfo *Info)
+{
+  Info->StructSize=sizeof(*Info);
+  Info->Flags=PF_EDITOR|PF_DISABLEPANELS;
+  static const wchar_t *PluginMenuStrings[1];
+  PluginMenuStrings[0]=GetMsg(MTitle);
+  Info->PluginMenu.Guids=&MenuGuid;
+  Info->PluginMenu.Strings=PluginMenuStrings;
+  Info->PluginMenu.Count=ARRAYSIZE(PluginMenuStrings);
+}
+
+HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
+{
+  struct FarMenuItem MenuItems[4] = {};
   {
     for (int i=0; i<4; i++)
     {
-      MenuItems[i].Checked = 0;
-      MenuItems[i].Separator = 0;
-      MenuItems[i].Selected = 0;
-#ifndef UNICODE
-      strcpy(MenuItems[i].Text,Info.GetMsg(Info.ModuleNumber,MIndentTabLeft+i));
-#else
-      MenuItems[i].Text = Info.GetMsg(Info.ModuleNumber,MIndentTabLeft+i);
-#endif
+      MenuItems[i].Text = GetMsg(MIndentTabLeft+i);
     }
-    MenuItems[0].Selected = 1;
+    MenuItems[0].Flags = MIF_SELECTED;
   }
 
   int menu;
-  if ((menu = Info.Menu(Info.ModuleNumber,-1,-1,0,FMENU_WRAPMODE,Info.GetMsg(Info.ModuleNumber,MTitle),
+  if ((menu = Info.Menu(&MainGuid,NULL,-1,-1,0,FMENU_WRAPMODE,GetMsg(MTitle),
       NULL,NULL,NULL,NULL,MenuItems,sizeof(MenuItems)/sizeof(MenuItems[0]))) == -1)
     return INVALID_HANDLE_VALUE;
 
   struct EditorInfo ei;
-  Info.EditorControl(ECTL_GETINFO,&ei);
+  Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
 
-  TCHAR IndentStr[2];
-  IndentStr[0] = menu<2?_T('\t'):_T(' ');
-  IndentStr[1] = _T('\0');
+  wchar_t IndentStr[2];
+  IndentStr[0] = menu<2?'\t':' ';
+  IndentStr[1] = '\0';
   int IndentSize = menu<2?ei.TabSize:1;
 
   int line = ei.CurLine;
@@ -102,7 +119,7 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom, int Item)
   {
     struct EditorGetString egs;
     egs.StringNumber = -1;
-    Info.EditorControl(ECTL_GETSTRING,&egs);
+    Info.EditorControl(-1,ECTL_GETSTRING,0,&egs);
     if (egs.SelStart != -1)
     {
       loop = TRUE;
@@ -110,11 +127,9 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom, int Item)
     }
   }
 
-#ifdef UNICODE
-  struct EditorUndoRedo eur={0};
+  struct EditorUndoRedo eur={};
   eur.Command=EUR_BEGIN;
-  Info.EditorControl(ECTL_UNDOREDO,&eur);
-#endif
+  Info.EditorControl(-1,ECTL_UNDOREDO,0,&eur);
 
   do
   {
@@ -125,9 +140,9 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom, int Item)
       esp.CurLine = line++;
       esp.CurPos = esp.Overtype = 0;
       esp.CurTabPos = esp.TopScreenLine = esp.LeftPos = -1;
-      Info.EditorControl(ECTL_SETPOSITION,&esp);
+      Info.EditorControl(-1,ECTL_SETPOSITION,0,&esp);
       egs.StringNumber = -1;
-      Info.EditorControl(ECTL_GETSTRING,&egs);
+      Info.EditorControl(-1,ECTL_GETSTRING,0,&egs);
       if (loop && ((egs.SelStart == -1) || (egs.SelStart == egs.SelEnd)))
         break;
     }
@@ -143,7 +158,7 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom, int Item)
         struct EditorConvertPos ecp;
         ecp.StringNumber = -1;
         ecp.SrcPos = j+1;
-        Info.EditorControl(ECTL_REALTOTAB,&ecp);
+        Info.EditorControl(-1,ECTL_REALTOTAB,0,&ecp);
         x = (--ecp.DestPos)/IndentSize;
         if (!(ecp.DestPos%IndentSize) && !(menu%2))
           x--;
@@ -153,15 +168,15 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom, int Item)
       {
         struct EditorSetString ess;
         ess.StringNumber = -1;
-        ess.StringText = (TCHAR *)&egs.StringText[j];
-        ess.StringEOL = (TCHAR *)egs.StringEOL;
+        ess.StringText = (wchar_t *)&egs.StringText[j];
+        ess.StringEOL = (wchar_t *)egs.StringEOL;
         ess.StringLength = egs.StringLength - j;
-        Info.EditorControl(ECTL_SETSTRING,&ess);
+        Info.EditorControl(-1,ECTL_SETSTRING,0,&ess);
       }
       if (x)
       {
         for (int i=0; i<x; i++)
-          Info.EditorControl(ECTL_INSERTTEXT,IndentStr);
+          Info.EditorControl(-1,ECTL_INSERTTEXT,0,IndentStr);
       }
     }
   } while (loop);
@@ -174,13 +189,11 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom, int Item)
     esp.LeftPos = ei.LeftPos;
     esp.Overtype = ei.Overtype;
     esp.CurTabPos = -1;
-    Info.EditorControl(ECTL_SETPOSITION,&esp);
+    Info.EditorControl(-1,ECTL_SETPOSITION,0,&esp);
   }
 
-#ifdef UNICODE
   eur.Command=EUR_END;
-  Info.EditorControl(ECTL_UNDOREDO,&eur);
-#endif
+  Info.EditorControl(-1,ECTL_UNDOREDO,0,&eur);
 
   return INVALID_HANDLE_VALUE;
 }

@@ -1,4 +1,4 @@
-Block Indent plugin for FAR Manager
+Block Indent plugin for Far Manager
 Copyright (C) 2001 Alex Yaroslavsky
 
 -------------------------------------------------------------------------------
@@ -41,6 +41,3 @@ Ivan Sintyurin at mail.ru / spinoza - For all his plugins and  some  help  with
                                       this one.
 
 -------------------------------------------------------------------------------
-P.S. In FAR v1.7 beta 3 build 591 this plugin  works  incorrectly  when  called
-with overtype mode on (but who uses that anyway), this is corrected in the next
-FAR release.
