@@ -1,5 +1,0 @@
-EXPORTS 
-   GetPluginInfoW
-   OpenPluginW
-   SetStartupInfoW
-   ProcessEditorEventW

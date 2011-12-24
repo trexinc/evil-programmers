@@ -1,6 +1,10 @@
 History:
 --------
 
+v1.0
+----
+ + Far 3.0 support.
+
 v0.9
 ----
  from Maximus5:
