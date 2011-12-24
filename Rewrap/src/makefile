@@ -23,8 +23,8 @@ CP = cp -f
 M4 = m4 -P
 MV = mv -f
 MKDIR = mkdir -p
-CCFLAGS = -mno-cygwin -Os -I $(COMMON) -I $(COMINC) -Wall -funsigned-char -fomit-frame-pointer -fstrict-aliasing $(ADDDEFINES)
-LNKFLAGS = -mno-cygwin -mdll -s -nostartfiles -lgcc $(COMMONLIB)
+CCFLAGS = -Os -I $(COMMON) -I $(COMINC) -Wall -funsigned-char -fomit-frame-pointer -fstrict-aliasing $(ADDDEFINES)
+LNKFLAGS = -mdll -s -nostartfiles -lgcc $(COMMONLIB)
 
 OBJS = $(patsubst %.c,$(OBJDIR)/%.o,$(filter %.c,$(SRCS)))
 DEPS = $(patsubst %.c,$(OBJDIR)/%.d,$(filter %.c,$(SRCS)))

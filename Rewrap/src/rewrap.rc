@@ -2,8 +2,8 @@
 #include <winver.h>
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION     2,0,0,0
-PRODUCTVERSION  2,0,0,0
+FILEVERSION     2,0,1,0
+PRODUCTVERSION  2,0,1,0
 FILEFLAGSMASK   VS_FFI_FILEFLAGSMASK
 FILEFLAGS       0
 FILEOS          VOS__WINDOWS32
@@ -16,12 +16,12 @@ BEGIN
         BLOCK "040904B0"   /* LANG_ENGLISH/SUBLANG_ENGLISH_US, Unicode CP */
         BEGIN
             VALUE "FileDescription",  "Rewrap plugin for FAR manager\0"
-            VALUE "FileVersion",      "2.9\0"
+            VALUE "FileVersion",      "2.1\0"
             VALUE "InternalName",     "Rewrap\0"
             VALUE "LegalCopyright",   "Copyright (C) 2001, Stanislav V. Mekhanoshin\0"
             VALUE "Original Filename","REWRAP\0"
             VALUE "ProductName",      "Rewrap plugin\0"
-            VALUE "ProductVersion",   "2.0\0"
+            VALUE "ProductVersion",   "2.1\0"
             VALUE "LegalTrademarks",  "FAR (File and archive manager) is copyright (C) 1996-99 Eugene Roshal, ESC is copyright (c) Ivan Sintyurin AKA Spinoza\0"
         END
     END

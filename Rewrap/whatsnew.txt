@@ -1,3 +1,7 @@
+v2.1
+----
+- Far 3.0 and ESC 2.7
+
 v2.0
 ----
 - Far 2.0 build 953 and ESC 2.5
