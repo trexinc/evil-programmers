@@ -1,6 +1,14 @@
 #include <plugin.hpp>
 #include <CRT/crt.hpp>
 
+// {F6E77027-05BA-4ECF-A8D3-7D57B2D80C53}
+static const GUID MainGuid =
+{ 0xf6e77027, 0x5ba, 0x4ecf, { 0xa8, 0xd3, 0x7d, 0x57, 0xb2, 0xd8, 0xc, 0x53 } };
+
+// {34040B7C-FE0D-401B-8862-E328BD85D857}
+static const GUID MenuGuid =
+{ 0x34040b7c, 0xfe0d, 0x401b, { 0x88, 0x62, 0xe3, 0x28, 0xbd, 0x85, 0xd8, 0x57 } };
+
 enum{
     IDS_Rewrap,
     IDS_Cancel,
@@ -12,7 +20,6 @@ enum{
 
 static const wchar_t szEsc[]=L"ESC";
 
-int ModuleNumber;
 FARAPIEDITORCONTROL EditorControl;
 FARAPIGETMSG        GetMsg;
 FARAPIMESSAGE       Message;
@@ -22,24 +29,34 @@ int nWrapPos=0;            // 0 for no wrap
 int isJustifyEnabled=0;
 int isWrapQuote=0;         // process quotes
 
+void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
+{
+	Info->StructSize=sizeof(struct GlobalInfo);
+	Info->MinFarVersion=FARMANAGERVERSION;
+	Info->Version=MAKEFARVERSION(2,1,0,0,VS_RELEASE);
+	Info->Guid=MainGuid;
+	Info->Title=L"Rewrap";
+	Info->Description=L"Reformat paragraph based on ESC plugin settings";
+	Info->Author=L"Stanislav V. Mekhanoshin & Alex Yaroslavsky";
+}
+
 void WINAPI SetStartupInfoW(const struct PluginStartupInfo *Info)
 {
-    ModuleNumber=Info->ModuleNumber;
-    EditorControl=Info->EditorControl;
-    GetMsg=Info->GetMsg;
-    Message=Info->Message;
+	EditorControl=Info->EditorControl;
+	GetMsg=Info->GetMsg;
+	Message=Info->Message;
 }
 
 void WINAPI GetPluginInfoW(struct PluginInfo *Info)
 {
-    static const wchar_t* PluginMenuStrings;
+	static const wchar_t *PluginMenuStrings[1];
 
-    PluginMenuStrings=GetMsg(ModuleNumber,IDS_ReformatParagraph);
-
-    Info->StructSize=sizeof(*Info);
-    Info->Flags=PF_DISABLEPANELS|PF_EDITOR;
-    Info->PluginMenuStrings=&PluginMenuStrings;
-    Info->PluginMenuStringsNumber=1;
+	Info->StructSize=sizeof(*Info);
+	Info->Flags=PF_EDITOR|PF_DISABLEPANELS;
+	PluginMenuStrings[0]=GetMsg(&MainGuid,IDS_ReformatParagraph);
+	Info->PluginMenu.Guids=&MenuGuid;
+	Info->PluginMenu.Strings=PluginMenuStrings;
+	Info->PluginMenu.Count=ARRAYSIZE(PluginMenuStrings);
 }
 
 struct EditorInfo ei;
@@ -76,7 +93,7 @@ static int IsSameQuote(const wchar_t* pszQuote1, size_t nLen1, const wchar_t* ps
     return nLen1==nLen2 && memcmp(pszQuote1,pszQuote2,nLen1*sizeof(wchar_t))==0;
 }
 
-HANDLE WINAPI OpenPluginW(int OpenFrom,INT_PTR Item)
+HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
 {
     struct EditorSetPosition esp;
     struct EditorGetString egs;
@@ -99,41 +116,40 @@ HANDLE WINAPI OpenPluginW(int OpenFrom,INT_PTR Item)
     wchar_t* szQuote;
     HANDLE hHeap;
 
-    (void)OpenFrom;
-    (void)Item;
+    (void)OInfo;
 
     if( !hEsc ){
         hEsc=GetModuleHandle(L"esc.dll");
         if( !hEsc ){
-            szText[0]=GetMsg(ModuleNumber,IDS_Rewrap);
-            szText[1]=GetMsg(ModuleNumber,IDS_NoEsc);
-            szText[2]=GetMsg(ModuleNumber,IDS_Cancel);
-            Message(ModuleNumber,FMSG_ERRORTYPE|FMSG_WARNING,szEsc,szText,3,1);
+            szText[0]=GetMsg(&MainGuid,IDS_Rewrap);
+            szText[1]=GetMsg(&MainGuid,IDS_NoEsc);
+            szText[2]=GetMsg(&MainGuid,IDS_Cancel);
+            Message(&MainGuid,NULL,FMSG_ERRORTYPE|FMSG_WARNING,szEsc,szText,3,1);
             return INVALID_HANDLE_VALUE;
         }
     }
     if( !GetEditorSettings ){
         GetEditorSettings=(int (WINAPI*)(int, const wchar_t*, void*))GetProcAddress(hEsc,"GetEditorSettingsW");
         if( !GetEditorSettings ){
-            szText[0]=GetMsg(ModuleNumber,IDS_Rewrap);
-            szText[1]=GetMsg(ModuleNumber,IDS_OldEsc);
-            szText[2]=GetMsg(ModuleNumber,IDS_Cancel);
-            Message(ModuleNumber,FMSG_ERRORTYPE|FMSG_WARNING,szEsc,szText,3,1);
+            szText[0]=GetMsg(&MainGuid,IDS_Rewrap);
+            szText[1]=GetMsg(&MainGuid,IDS_OldEsc);
+            szText[2]=GetMsg(&MainGuid,IDS_Cancel);
+            Message(&MainGuid,NULL,FMSG_ERRORTYPE|FMSG_WARNING,szEsc,szText,3,1);
             return INVALID_HANDLE_VALUE;
         }
     }
 
-    EditorControl(ECTL_GETINFO,&ei);
+    EditorControl(-1,ECTL_GETINFO,0,&ei);
 
     GetEditorSettings(ei.EditorID,L"wrap",&nWrapPos);
     GetEditorSettings(ei.EditorID,L"justify",&isJustifyEnabled);
     GetEditorSettings(ei.EditorID,L"p_quote",&isWrapQuote);
 
     if( nWrapPos<1 || nWrapPos>512 ){
-        szText[0]=GetMsg(ModuleNumber,IDS_Rewrap);
-        szText[1]=GetMsg(ModuleNumber,IDS_NoWrap);
-        szText[2]=GetMsg(ModuleNumber,IDS_Cancel);
-        Message(ModuleNumber,FMSG_WARNING,szEsc,szText,3,1);
+        szText[0]=GetMsg(&MainGuid,IDS_Rewrap);
+        szText[1]=GetMsg(&MainGuid,IDS_NoWrap);
+        szText[2]=GetMsg(&MainGuid,IDS_Cancel);
+        Message(&MainGuid,NULL,FMSG_WARNING,szEsc,szText,3,1);
         return INVALID_HANDLE_VALUE;
     }
 
@@ -145,7 +161,7 @@ HANDLE WINAPI OpenPluginW(int OpenFrom,INT_PTR Item)
 
     if( ei.BlockType!=BTYPE_NONE ){
         esp.CurLine=ei.BlockStartLine;
-        EditorControl(ECTL_SETPOSITION,&esp);
+        EditorControl(-1,ECTL_SETPOSITION,0,&esp);
     }
 
     nlsSpace=L' ';
@@ -161,15 +177,15 @@ HANDLE WINAPI OpenPluginW(int OpenFrom,INT_PTR Item)
     hHeap=GetProcessHeap();
 
     eur.Command=EUR_BEGIN;
-    EditorControl(ECTL_UNDOREDO,&eur);
+    EditorControl(-1,ECTL_UNDOREDO,0,&eur);
 
     do{
 
         i=-1;
-        EditorControl(ECTL_EXPANDTABS,&i);
+        EditorControl(-1,ECTL_EXPANDTABS,0,&i);
 
         egs.StringNumber=-1;
-        EditorControl(ECTL_GETSTRING,&egs);
+        EditorControl(-1,ECTL_GETSTRING,0,&egs);
 
         if( !pMem ){
             if( isWrapQuote ){
@@ -192,9 +208,9 @@ HANDLE WINAPI OpenPluginW(int OpenFrom,INT_PTR Item)
                 if( ei.BlockType==BTYPE_NONE && nIndent1==egs.StringLength ){
                     esp.CurLine=ei.CurLine+1;
                     esp.CurPos=0;
-                    EditorControl(ECTL_SETPOSITION,&esp);
+                    EditorControl(-1,ECTL_SETPOSITION,0,&esp);
                     eur.Command=EUR_END;
-                    EditorControl(ECTL_UNDOREDO,&eur);
+                    EditorControl(-1,ECTL_UNDOREDO,0,&eur);
                     return INVALID_HANDLE_VALUE;
                 }
             }else if( nIndent2==-1 ){
@@ -242,11 +258,11 @@ HANDLE WINAPI OpenPluginW(int OpenFrom,INT_PTR Item)
             pMem[nLen++]=egs.StringText[i];
         }
 
-        EditorControl(ECTL_DELETESTRING,NULL);
+        EditorControl(-1,ECTL_DELETESTRING,0,NULL);
 
         if( ei.BlockType!=BTYPE_NONE ){
             egs.StringNumber=-1;
-            EditorControl(ECTL_GETSTRING,&egs);
+            EditorControl(-1,ECTL_GETSTRING,0,&egs);
         }
 
     }while( (egs.SelStart>=0 && egs.SelStart!=egs.SelEnd) ||
@@ -256,9 +272,9 @@ HANDLE WINAPI OpenPluginW(int OpenFrom,INT_PTR Item)
     if( nLen && IsCSpace(pMem[nLen-1]) ) nLen--;
 
     if( nLen==0 ){
-        EditorControl(ECTL_INSERTSTRING,0);
+        EditorControl(-1,ECTL_INSERTSTRING,0,0);
         eur.Command=EUR_END;
-        EditorControl(ECTL_UNDOREDO,&eur);
+        EditorControl(-1,ECTL_UNDOREDO,0,&eur);
         return INVALID_HANDLE_VALUE;
     }
 
@@ -268,7 +284,7 @@ HANDLE WINAPI OpenPluginW(int OpenFrom,INT_PTR Item)
     ess.StringText=(wchar_t*)HeapAlloc(hHeap,HEAP_GENERATE_EXCEPTIONS,(nWrapPos+2)*sizeof(wchar_t));
     nStart=0;
 
-    EditorControl(ECTL_GETINFO,&ei);
+    EditorControl(-1,ECTL_GETINFO,0,&ei);
 
     while( nStart<nLen ){
 
@@ -325,21 +341,21 @@ HANDLE WINAPI OpenPluginW(int OpenFrom,INT_PTR Item)
 
         if( ei.CurLine==-1 ){
             egs.StringNumber=-1;
-            EditorControl(ECTL_GETSTRING,&egs);
+            EditorControl(-1,ECTL_GETSTRING,0,&egs);
             esp.CurLine=-1;
             esp.CurPos=egs.StringLength;
-            EditorControl(ECTL_SETPOSITION,&esp);
+            EditorControl(-1,ECTL_SETPOSITION,0,&esp);
         }
-        EditorControl(ECTL_INSERTSTRING,0);
+        EditorControl(-1,ECTL_INSERTSTRING,0,0);
         if( ei.CurLine!=-1 ){
             esp.CurLine=ei.CurLine;
-            EditorControl(ECTL_SETPOSITION,&esp);
+            EditorControl(-1,ECTL_SETPOSITION,0,&esp);
             ei.CurLine=-1;
         }
 
         ess.StringNumber=-1;
         ess.StringEOL=egs.StringEOL;
-        EditorControl(ECTL_SETSTRING,&ess);
+        EditorControl(-1,ECTL_SETSTRING,0,&ess);
 
     }
 
@@ -348,18 +364,18 @@ HANDLE WINAPI OpenPluginW(int OpenFrom,INT_PTR Item)
     HeapFree(hHeap,0,pMem);
 
     es.BlockType=BTYPE_NONE;
-    EditorControl(ECTL_SELECT,&es);
+    EditorControl(-1,ECTL_SELECT,0,&es);
 
-    EditorControl(ECTL_GETINFO,&ei);
+    EditorControl(-1,ECTL_GETINFO,0,&ei);
 
     esp.CurLine=ei.CurLine+1+nAddLine;
     esp.CurPos=0;
-    EditorControl(ECTL_SETPOSITION,&esp);
+    EditorControl(-1,ECTL_SETPOSITION,0,&esp);
 
     eur.Command=EUR_END;
-    EditorControl(ECTL_UNDOREDO,&eur);
+    EditorControl(-1,ECTL_UNDOREDO,0,&eur);
 
-    EditorControl(ECTL_REDRAW,NULL);
+    EditorControl(-1,ECTL_REDRAW,0,NULL);
 
     return INVALID_HANDLE_VALUE;
 }

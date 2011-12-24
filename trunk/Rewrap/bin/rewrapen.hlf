@@ -22,7 +22,7 @@ $^#About plugin
 $^#ReWrap FAR plugin#
 $^#Esc plugin#
 
- To function rewrap needs #Esc# plugin (Editor's settings changer), (c) Ivan Sintyurin, version #2.5# or higher. Esc.dll should not be renamed!
+ To function rewrap needs #Esc# plugin (Editor's settings changer), (c) Ivan Sintyurin, version #2.7# or higher. Esc.dll should not be renamed!
 
  In the Esc configuration wrapping setting (#wrap#) must be enabled for this file type.
 
