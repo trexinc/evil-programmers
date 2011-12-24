@@ -1,4 +1,4 @@
-.Language=English,English
+ï»¿.Language=English,English
 
 "ESC-TSC Minimalistic"
 //max 11 chars
@@ -8,11 +8,11 @@
 "&Update"
 "&Check"
 //all should be 28 chars of length
-"ÄÄÄÄÄÄÄÄÄÄÄStatusÄÄÄÄÄÄÄÄÄÄÄ"
+"â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€Statusâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€"
 "Check failed!               "
 "Check successfull!          "
 "Update failed!              "
 "Update successfull!         "
 "Waiting...                  "
 
-"You must have ESC 1.0 or above to run this plugin!"
+"You must have ESC 2.7 or above to run this plugin!"
