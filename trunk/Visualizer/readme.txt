@@ -10,7 +10,7 @@ About
 -----
 
 This plugin is used to "visualize" otherwise not so easily  noticed  things  in
-FAR's internal editor - things like right border, tabs,  end  of  line,  cross,
+Far's internal editor - things like right border, tabs,  end  of  line,  cross,
 etc.
 To decide where the right border is this plugin uses another plugin called ESC.
 ESC is an excellent creation by Ivan Sintyurin <spinoza@mail.ru>.
@@ -20,7 +20,7 @@ http://code.google.com/p/evil-programmers/
 License
 -------
 
-Visualizer plugin for FAR Manager
+Visualizer plugin for Far Manager
 Copyright (C) 2006 Alex Yaroslavsky
 
 This program is free software; you can redistribute it and/or modify
