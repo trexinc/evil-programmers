@@ -1,4 +1,4 @@
-ESC-TSC-Mini v1.2
+ESC-TSC-Mini v1.3
 or
 ESC's Temporary Settings Changer - Minimalistic
 or
@@ -17,8 +17,8 @@ About
 -----
 
 What this plugin does, it lets you change the settings of ESC for  the  current
-editor session. To use this plugin you'll need FAR version 1.70 build  2087  or
-newer and the ESC plugin version 1.0 or newer. ESC is an excellent creation  by
+editor session. To use this plugin you'll need Far version 3.0 or newer and ESC
+plugin version 2.7 or newer. ESC is an excellent creation  by
 Ivan Sintyurin <spinoza@mail.ru> which is currently maintained by me.
 To get hold of your own copy of ESC visit:
 http://plugring.farmanager.com/ - The PlugRinG

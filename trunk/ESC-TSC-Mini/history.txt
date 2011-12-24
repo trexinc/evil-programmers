@@ -1,6 +1,10 @@
 History:
 --------
 
+v1.3 (24/12/11)
+---------------
+ + Far 3.0 and [ESC] 2.7 support.
+
 v1.2 (21/12/08)
 ---------------
  + Far 2.0 build 677 and [ESC] 2.5 support.
