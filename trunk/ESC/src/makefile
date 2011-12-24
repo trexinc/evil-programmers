@@ -3,15 +3,14 @@ ifndef COMMON
 COMMON = ../../../FAR/fardev/plugins/common
 endif
 
-SUFFIX=W
 ADDDEFINES=-D UNICODE -D _UNICODE
 COMINC = $(COMMON)/unicode
 
 #COMMONLIB = -L $(COMMON) -lCRT
 
-OBJDIR = ../o$(SUFFIX)
-REOBJDIR = \.\.\/o$(SUFFIX)\/
-DLLDIR = ../bin$(SUFFIX)
+OBJDIR = ../o
+REOBJDIR = \.\.\/o\/
+DLLDIR = ../bin
 DLLNAME = esc.dll
 DLLFULLNAME = $(DLLDIR)/$(DLLNAME)
 SRCS = hash.c \
@@ -32,7 +31,7 @@ strcon.cpp \
 syslog.cpp \
 TArray.cpp \
 XMLite2.cpp
-DEF = esc$(SUFFIX).gcc.def
+DEF = esc.gcc.def
 
 CC = gcc
 CXX = g++
@@ -43,9 +42,9 @@ M4 = m4 -P
 MV = mv -f
 MKDIR = mkdir -p
 WINDRES = windres
-CCFLAGS = -mno-cygwin -Os -I $(COMMON) -I $(COMINC) -Wall -funsigned-char -fomit-frame-pointer -fstrict-aliasing -fno-exceptions $(ADDDEFINES)
-CXXFLAGS = -mno-cygwin -Os -I $(COMMON) -I $(COMINC) -Wall -funsigned-char -fomit-frame-pointer -fstrict-aliasing -fno-rtti -fno-exceptions -fno-threadsafe-statics $(ADDDEFINES)
-LNKFLAGS = -mno-cygwin -mdll -s -nostartfiles
+CCFLAGS = -Os -I $(COMMON) -I $(COMINC) -Wall -funsigned-char -fomit-frame-pointer -fstrict-aliasing -fno-exceptions $(ADDDEFINES)
+CXXFLAGS = -Os -I $(COMMON) -I $(COMINC) -Wall -funsigned-char -fomit-frame-pointer -fstrict-aliasing -fno-rtti -fno-exceptions -fno-threadsafe-statics $(ADDDEFINES)
+LNKFLAGS = -mdll -s -nostartfiles
 #-lgcc $(COMMONLIB)
 
 OBJS = $(patsubst %.cpp,$(OBJDIR)/%.o,$(filter %.cpp,$(SRCS))) $(patsubst %.c,$(OBJDIR)/%.o,$(filter %.c,$(SRCS))) $(OBJDIR)/esc.res.o
