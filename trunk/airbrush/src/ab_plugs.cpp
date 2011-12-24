@@ -60,6 +60,7 @@ static void WINAPI addcolor(int lno,int start,int len,const struct ABColor* colo
       ec.Priority=100;
       break;
   }
+  ec.Flags=0;
   Info.EditorControl(-1,ECTL_ADDCOLOR,0,&ec);
   ReleaseMutex(Mutex);
 }
