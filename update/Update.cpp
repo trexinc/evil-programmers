@@ -64,7 +64,7 @@ LPCWSTR SelfRemotePath=L"/files";
 LPCWSTR FarRemoteSrv=L"www.farmanager.com";
 LPCWSTR FarRemotePath=L"/nightly";
 
-LPCWSTR FarUpdateFile=L"update2.php";
+LPCWSTR FarUpdateFile=L"update3.php";
 
 LPCWSTR SelfUpdateFile=L"update.txt";
 
@@ -482,7 +482,8 @@ DWORD WINAPI ThreadProc(LPVOID /*lpParameter*/)
 
 		if(Time)
 		{
-			for(int i=0;i<2;i++)
+			//for(int i=0;i<2;i++)
+			int i = 1;
 			{
 				switch(CheckUpdates(!i))
 				{
@@ -592,12 +593,11 @@ INT WINAPI GetMinFarVersionW()
 void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
 {
 	Info->StructSize=sizeof(GlobalInfo);
-	Info->MinFarVersion=FARMANAGERVERSION;
-	//Info->Version;
+	Info->MinFarVersion=MAKEFARVERSION(3, 0, 0, 2305, VS_RELEASE);
 	Info->Guid=MainGuid;
 	Info->Title=L"Update";
 	Info->Description=L"Automatic updates";
-	Info->Author=L"AA";
+	Info->Author=L"Alex Alabuzhev";
 }
 
 VOID WINAPI SetStartupInfoW(const PluginStartupInfo* psInfo)
@@ -675,7 +675,8 @@ HANDLE WINAPI OpenW(const OpenInfo* oInfo)
 	Console console;
 	NeedRestart=false;
 
-	for(int i=0;i<2;i++)
+	//for(int i=0;i<2;i++)
+	int i = 1;
 	{
 		switch(CheckUpdates(!i))
 		{
