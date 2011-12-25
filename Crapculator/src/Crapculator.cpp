@@ -24,6 +24,30 @@
 struct PluginStartupInfo Info;
 FARSTANDARDFUNCTIONS FSF;
 
+// {FD5F213D-6832-44BE-BD92-72177F9EAA9D}
+static const GUID MainGuid =
+{ 0xfd5f213d, 0x6832, 0x44be, { 0xbd, 0x92, 0x72, 0x17, 0x7f, 0x9e, 0xaa, 0x9d } };
+
+// {A7D97129-920B-4056-9B0C-E747927C13E8}
+static const GUID CrapculatorGuid =
+{ 0xa7d97129, 0x920b, 0x4056, { 0x9b, 0xc, 0xe7, 0x47, 0x92, 0x7c, 0x13, 0xe8 } };
+
+// {408F5D15-144B-4022-9CA8-28AF8AA4E20E}
+static const GUID HackulatorGuid =
+{ 0x408f5d15, 0x144b, 0x4022, { 0x9c, 0xa8, 0x28, 0xaf, 0x8a, 0xa4, 0xe2, 0xe } };
+
+
+void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
+{
+  Info->StructSize=sizeof(GlobalInfo);
+  Info->MinFarVersion=FARMANAGERVERSION;
+  Info->Version=MAKEFARVERSION(0,8,0,0,VS_RELEASE);
+  Info->Guid=MainGuid;
+  Info->Title=L"Crapculator & Hackulator";
+  Info->Description=L"Crapculates current line in editor";
+  Info->Author=L"Alex Yaroslavsky";
+}
+
 void WINAPI SetStartupInfoW(const struct PluginStartupInfo *psi)
 {
   Info=*psi;
@@ -34,24 +58,26 @@ void WINAPI SetStartupInfoW(const struct PluginStartupInfo *psi)
 void WINAPI GetPluginInfoW(struct PluginInfo *pi)
 {
   static const wchar_t *MenuStrings[2] = {L"Crapculator", L"Hackulator"};
+  static const GUID MenuGuids[2] = {CrapculatorGuid, HackulatorGuid};
 
   pi->StructSize=sizeof(struct PluginInfo);
   pi->Flags=PF_EDITOR|PF_DISABLEPANELS;
-  pi->PluginMenuStrings=MenuStrings;
-  pi->PluginMenuStringsNumber=2;
+  pi->PluginMenu.Guids=MenuGuids;
+  pi->PluginMenu.Strings=MenuStrings;
+  pi->PluginMenu.Count=ARRAYSIZE(MenuStrings);
 }
 
-HANDLE WINAPI OpenPluginW(int OpenFrom, INT_PTR Item)
+HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
 {
   wchar_t result[200];
   wchar_t error[] = L"Crap";
   wchar_t *r=error;
 
-  struct EditorGetString egs = {-1, NULL, NULL, 0, 0, 0};
+  struct EditorGetString egs = {-1, 0, NULL, NULL, 0, 0};
 
-  if (Info.EditorControl(ECTL_GETSTRING,(void *)&egs) && egs.StringText)
+  if (Info.EditorControl(-1,ECTL_GETSTRING,0,&egs) && egs.StringText)
   {
-    if (Item == 0)
+    if (IsEqualGUID(*OInfo->Guid,CrapculatorGuid))
     {
       double d=0;
       NumericalExpression ne;
@@ -93,7 +119,7 @@ HANDLE WINAPI OpenPluginW(int OpenFrom, INT_PTR Item)
         r=result;
       }
     }
-    Info.EditorControl(ECTL_INSERTTEXT,(void *)r);
+    Info.EditorControl(-1,ECTL_INSERTTEXT,0,r);
   }
 
   return INVALID_HANDLE_VALUE;
