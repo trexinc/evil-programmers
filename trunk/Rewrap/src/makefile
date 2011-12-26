@@ -24,7 +24,7 @@ M4 = m4 -P
 MV = mv -f
 MKDIR = mkdir -p
 CCFLAGS = -Os -I $(COMMON) -I $(COMINC) -Wall -funsigned-char -fomit-frame-pointer -fstrict-aliasing $(ADDDEFINES)
-LNKFLAGS = -mdll -s -nostartfiles -lgcc $(COMMONLIB)
+LNKFLAGS = -mdll -s -nostartfiles -static-libgcc -static $(COMMONLIB)
 
 OBJS = $(patsubst %.c,$(OBJDIR)/%.o,$(filter %.c,$(SRCS)))
 DEPS = $(patsubst %.c,$(OBJDIR)/%.d,$(filter %.c,$(SRCS)))

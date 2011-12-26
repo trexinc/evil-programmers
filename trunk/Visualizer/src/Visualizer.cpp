@@ -1201,3 +1201,17 @@ int WINAPI ProcessEditorEventW(const struct ProcessEditorEventInfo *EInfo)
   }
   return 0;
 }
+
+#if defined(__GNUC__)
+#ifdef __cplusplus
+extern "C"{
+#endif
+void __cxa_pure_virtual(void);
+#ifdef __cplusplus
+};
+#endif
+
+void __cxa_pure_virtual(void)
+{
+}
+#endif

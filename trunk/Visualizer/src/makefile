@@ -23,8 +23,8 @@ CP = cp -f
 M4 = m4 -P
 MV = mv -f
 MKDIR = mkdir -p
-CXXFLAGS = -Os -I $(COMMON) -I $(COMINC) -Wall -std=c++0x -funsigned-char -fomit-frame-pointer -fstrict-aliasing -fno-rtti -fno-exceptions $(ADDDEFINES)
-LNKFLAGS = -mdll -s -nostartfiles -lgcc $(COMMONLIB)
+CXXFLAGS = -Os -I $(COMMON) -I $(COMINC) -Wall -std=c++0x -fno-threadsafe-statics -funsigned-char -fomit-frame-pointer -fstrict-aliasing -fno-rtti -fno-exceptions $(ADDDEFINES)
+LNKFLAGS = -mdll -s -nostartfiles -static-libgcc -static $(COMMONLIB)
 
 OBJS = $(patsubst %.cpp,$(OBJDIR)/%.o,$(filter %.cpp,$(SRCS)))
 DEPS = $(patsubst %.cpp,$(OBJDIR)/%.d,$(filter %.cpp,$(SRCS)))
