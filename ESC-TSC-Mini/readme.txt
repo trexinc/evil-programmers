@@ -1,4 +1,4 @@
-ESC-TSC-Mini v1.3
+ESC-TSC-Mini
 or
 ESC's Temporary Settings Changer - Minimalistic
 or
