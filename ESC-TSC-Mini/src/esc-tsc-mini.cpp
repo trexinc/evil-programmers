@@ -18,6 +18,7 @@
 */
 #include <CRT/crt.hpp>
 #include "plugin.hpp"
+#include "version.hpp"
 #include "esc-tsc-lang.hpp"
 
 #if defined(__GNUC__)
@@ -106,11 +107,11 @@ void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
 {
   Info->StructSize=sizeof(GlobalInfo);
   Info->MinFarVersion=FARMANAGERVERSION;
-  Info->Version=MAKEFARVERSION(1,3,0,0,VS_RELEASE);
+  Info->Version=PLUGIN_VERSION;
   Info->Guid=MainGuid;
-  Info->Title=L"ESC-TSC-Mini";
-  Info->Description=L"ESC's Temporary Settings Changer - Minimalistic";
-  Info->Author=L"Alex Yaroslavsky";
+  Info->Title=PLUGIN_NAME;
+  Info->Description=PLUGIN_DESC;
+  Info->Author=PLUGIN_AUTHOR;
 }
 
 void WINAPI SetStartupInfoW(const struct PluginStartupInfo *psi)
