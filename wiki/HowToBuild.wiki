@@ -17,7 +17,13 @@ From http://sourceforge.net/projects/re2c download: *re2c-0.13.5-bin.zip*
 <br>re2c-0.13.5-bin.zip needs to be extracted to *mingw/bin*
 
 Now, to compile the plugins you need to use the following command:
-  `mingw32-make -f makefile WIDE=1 COMMON=../path_to_common/from_far_svn`
+  `mingw32-make -f makefile COMMON=../path_to_common_from_far_svn`
+some plugins might need:
+  `mingw32-make -f makefile COMMON=../path_to_common_from_far_svn/unicode`
+and some plugins might need:
+  `mingw32-make -f makefile_gcc FARDEV=../path_to_far_svn_root`
 
 Some plugins might require the CRT (*common/CRT*) lib from Far repository, it can be built as follows:
   `mingw32-make -f makefile_lib_gcc`
+
+For x64 builds (not all plugins support it) use MingW64 from http://tdm-gcc.tdragon.net (and msys from above) and add *DIRBIT=64* to all make commands.
