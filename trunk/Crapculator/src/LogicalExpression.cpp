@@ -1,5 +1,5 @@
 /*
-    Crapculator plugin for FAR Manager
+    Crapculator plugin for Far Manager
     Copyright (C) 2009 Alex Yaroslavsky
 
     This program is free software; you can redistribute it and/or modify
