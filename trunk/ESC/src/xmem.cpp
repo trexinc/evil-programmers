@@ -48,7 +48,7 @@ void* xmemNewPool(int iPageSize)
   PMemPool pl;
   PMemPoolPage pg;
   char *m;
-  m=malloc(iPageSize+sizeof(*pg)+sizeof(*pl));
+  m=(char *)malloc(iPageSize+sizeof(*pg)+sizeof(*pl));
   pg=(PMemPoolPage)m;
   pl=(PMemPool)(m+sizeof(*pg));
   pl->iPageSize=iPageSize;
@@ -64,7 +64,7 @@ void* xmemNewPool(int iPageSize)
 
 void xmemFreePool(void* Pool)
 {
-  PMemPool pl=Pool;
+  PMemPool pl=(PMemPool)Pool;
   PMemPoolPage q,p=pl->pFirst;
   while(p)
   {
@@ -93,7 +93,7 @@ static void newMemPoolPage(PMemPool pl,int minsize)
   char *m;
   if(size<minsize)size=minsize;
   size+=sizeof(SMemPoolPage);
-  m=malloc(size);
+  m=(char *)malloc(size);
   p=(PMemPoolPage)m;
   p->pMem=m;
   p->iSize=size;
@@ -107,7 +107,7 @@ static void newMemPoolPage(PMemPool pl,int minsize)
 void* xalloc(void *Pool,int size)
 {
   char *p;
-  PMemPool pl=Pool;
+  PMemPool pl=(PMemPool)Pool;
   PMemPoolPage l=pl->pLast;
   if(l->iAlloc+size<l->iSize)
   {
@@ -144,7 +144,7 @@ wchar_t *xstrdup(void* Pool,const wchar_t *s)
 {
   wchar_t *d;
   if(s==NULL)return NULL;
-  d=xalloc(Pool,(xstrlen(s)+1)*sizeof(wchar_t));
+  d=(wchar_t *)xalloc(Pool,(xstrlen(s)+1)*sizeof(wchar_t));
   wstrcpy(d,s);
   return d;
 }
@@ -153,7 +153,7 @@ wchar_t *xstrndup(void* Pool,const wchar_t *s,int n)
 {
   wchar_t *d;
   if(s==NULL || n<0)return NULL;
-  d=xalloc(Pool,(n+1)*sizeof(wchar_t));
+  d=(wchar_t *)xalloc(Pool,(n+1)*sizeof(wchar_t));
   wstrncpy(d,s,n);
   d[n]=0;
   return d;

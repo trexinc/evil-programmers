@@ -57,7 +57,7 @@ static unsigned hHashFuncEx(const wchar_t *Key,int keylen)
 
 static PHashLink hlnkNew(void* Pool,const wchar_t *Key,const void* Value)
 {
-  PHashLink p=xalloc(Pool,sizeof(SHashLink));
+  PHashLink p=(PHashLink)xalloc(Pool,sizeof(SHashLink));
 
 #ifdef HASH_FLAG_ALLOCKEY
   p->szKey=xstrdup(Pool,Key);
@@ -201,9 +201,9 @@ PHash hashNew(void* Pool)
 
 PHash hashNewEx(void* Pool,int cnt)
 {
-  PHash h=xcalloc(Pool,sizeof(SHash));
+  PHash h=(PHash)xcalloc(Pool,sizeof(SHash));
   h->iBucketsNum=cnt;
-  h->pBuckets=xcalloc(Pool,sizeof(SHashList)*h->iBucketsNum);
+  h->pBuckets=(PHashList)xcalloc(Pool,sizeof(SHashList)*h->iBucketsNum);
   h->iCount=0;
   h->pPool=Pool;
   return h;
@@ -302,7 +302,7 @@ static void hashResize(PHash h)
   PHashLink l1,l2;
   int n,i;
   n=h->iCount*2;
-  nb=xcalloc(h->pPool,n*sizeof(SHashList));
+  nb=(PHashList)xcalloc(h->pPool,n*sizeof(SHashList));
   for(i=0;i<h->iBucketsNum;i++)
   {
     l1=h->pBuckets[i].pHead;

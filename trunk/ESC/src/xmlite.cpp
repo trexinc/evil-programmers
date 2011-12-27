@@ -36,7 +36,7 @@ extern struct FarStandardFunctions FSF;
 PXMLNode xmlNew(void* Pool)
 {
   PXMLNode x;
-  x=xcalloc(Pool,sizeof(SXMLNode));
+  x=(PXMLNode)xcalloc(Pool,sizeof(SXMLNode));
   x->eType=xmlRoot;
   return x;
 }
@@ -44,7 +44,7 @@ PXMLNode xmlNew(void* Pool)
 static PXMLNode xmlNewChild(void* Pool,PXMLNode p,xmlNodeType e)
 {
   PXMLNode x;
-  x=xcalloc(Pool,sizeof(SXMLNode));
+  x=(PXMLNode)xcalloc(Pool,sizeof(SXMLNode));
   x->eType=e;
   x->pParent=p;
   return x;
@@ -387,9 +387,9 @@ PXMLNode xmlGetItem(PXMLNode x,const wchar_t *szPath)
   for(;;)
   {
     s=xstrchr(szPath,L'/');
-    if(!s)return hashGet(x->hChildren,szPath);
+    if(!s)return (PXMLNode)hashGet(x->hChildren,szPath);
     //*s=0;
-    x=hashGetEx(x->hChildren,szPath,s-szPath);
+    x=(PXMLNode)hashGetEx(x->hChildren,szPath,s-szPath);
     //*s='/';
     if(!x)return NULL;
     szPath=s+1;
@@ -413,7 +413,7 @@ const wchar_t *xmlGetItemValue(PXMLNode x,const wchar_t *szPath,const wchar_t *s
 PHashLink xmlEnumNode(PXMLNode x,const wchar_t *Key,PHashLink lnk,PXMLNode *val)
 {
   if(!x)return NULL;
-  return hashEnumKey(x->hChildren,Key,lnk,(void*)val);
+  return hashEnumKey(x->hChildren,Key,lnk,(void**)val);
 }
 
 const wchar_t *xmlGetItemAttr(PXMLNode x, const wchar_t *Name)
@@ -639,7 +639,7 @@ static PXMLNode xmlCreateChild(void* Pool,PXMLNode x,const wchar_t *Name)
   PHashLink l;
   if(x->hChildren)
   {
-    c=hashGet(x->hChildren,Name);
+    c=(PXMLNode)hashGet(x->hChildren,Name);
     if(c)return c;
   }
   c=xmlNewChild(Pool,x,xmlEmpty);
