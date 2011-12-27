@@ -27,7 +27,7 @@
 //  bool operator<(const Object &) const
 //  const Object& operator=(const Object &)
 
-typedef int __cdecl (*TARRAYCMPFUNC)(const void *el1,const void *el2);
+typedef int (__cdecl *TARRAYCMPFUNC)(const void *el1,const void *el2);
 
 template <class Object>
 class TArray

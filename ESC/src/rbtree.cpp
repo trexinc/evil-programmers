@@ -20,7 +20,7 @@
 #ifndef __rbtree_cpp
 #define __rbtree_cpp
 
-#include "myrtl.hpp"
+#include <CRT/crt.hpp>
 #include "rbtree.hpp"
 #include "syslog.hpp"
 

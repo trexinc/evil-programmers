@@ -23,11 +23,12 @@
 
 */
 
+#include <CRT/crt.hpp>
 #include "xmem.h"
 #include "xmlite.h"
-#include "myrtl.hpp"
 #include "syslog.hpp"
 #include "plugin.hpp"
+
 extern struct FarStandardFunctions FSF;
 
 #define CHK if(i==-1)return 0
@@ -125,10 +126,10 @@ static wchar_t* xmlSubst(wchar_t* str)
         int symb;
         if(str[2]==L'x')
         {
-          symb=wstrtol(str+3,&str,16);
+          symb=wcstol(str+3,&str,16);
         }else
         {
-          symb=wstrtol(str+2,&str,10);
+          symb=wcstol(str+2,&str,10);
         }
         *dst=(wchar_t)symb;
         continue;
@@ -346,7 +347,7 @@ int xmlParse(void* Pool,PXMLNode x,wchar_t *src,int flags)
             {
               if(p[1]==L']' && p[2]==L'>')break;
             }
-            if(p)i=p-src+2;
+            if(p)i=(int)(p-src+2);
           }else i=xmlSkipTill(src,i,L'>');
         }else
         {
@@ -389,7 +390,7 @@ PXMLNode xmlGetItem(PXMLNode x,const wchar_t *szPath)
     s=xstrchr(szPath,L'/');
     if(!s)return (PXMLNode)hashGet(x->hChildren,szPath);
     //*s=0;
-    x=(PXMLNode)hashGetEx(x->hChildren,szPath,s-szPath);
+    x=(PXMLNode)hashGetEx(x->hChildren,szPath,(int)(s-szPath));
     //*s='/';
     if(!x)return NULL;
     szPath=s+1;
@@ -504,7 +505,7 @@ static int xmlSaveLevel(PXMLNode x,xmlOutStream out,void* data,int level,int lev
   shift=level*levelshift;
   if(shift)
   {
-    wwmemset(space,' ',shift);
+    wmemset(space,' ',shift);
   }
   for(;x;x=x->pNext)
   {
@@ -696,7 +697,7 @@ int xmlDeleteItem(PXMLNode x,const wchar_t *szPath)
   const wchar_t *name;
   int ok=0;
   if(!p)return 0;
-  name=wstrrchr(szPath,L'/');
+  name=wcsrchr(szPath,L'/');
   if(!name)name=szPath;
   else name++;
   p=p->pParent;
@@ -705,7 +706,7 @@ int xmlDeleteItem(PXMLNode x,const wchar_t *szPath)
   t=NULL;
   while(q)
   {
-    if(!wstrcmp(q->szName,name))
+    if(!lstrcmp(q->szName,name))
     {
       if(t)
       {
@@ -729,12 +730,12 @@ void xmlNewQuery(const wchar_t *queryString,PXMLQuery query)
 {
   int i,cnt=1;
   const wchar_t *q;
-  const wchar_t *p=wstrchr(queryString,L'.');
+  const wchar_t *p=wcschr(queryString,L'.');
   while(p)
   {
     cnt++;
   p++;
-    p=wstrchr(p,L'.');
+    p=wcschr(p,L'.');
   }
   query->query=(wchar_t**)malloc(sizeof(wchar_t*)*cnt);
   query->nodes=(PXMLNode*)malloc(sizeof(PXMLNode)*cnt);
@@ -742,10 +743,10 @@ void xmlNewQuery(const wchar_t *queryString,PXMLQuery query)
   for(i=0;i<cnt;i++)
   {
     query->nodes[i]=0;
-    q=wstrchr(p,L'.');
+    q=wcschr(p,L'.');
     if(!q)
     {
-      query->query[i]=wstrdup(p);
+      query->query[i]=wcsdup(p);
     }else
     {
       query->query[i]=(wchar_t*)malloc((q-p+1)*sizeof(wchar_t));

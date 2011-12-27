@@ -20,7 +20,7 @@
 #ifndef __KeySequenceStorage_cpp
 #define __KeySequenceStorage_cpp
 
-#include "myrtl.hpp"
+#include <CRT/crt.hpp>
 #include "KeySequenceStorage.hpp"
 #include "kserror.hpp"
 #include "syslog.hpp"
@@ -105,7 +105,7 @@ bool KeySequenceStorage::compile(const wchar_t *BufPtr, bool silent, DWORD total
   if(silent) Sequence.Flags=KMFLAGS_DISABLEOUTPUT;
   Stop=stop;
 
-  DWORD tmpSize=wstrlen(BufPtr);
+  DWORD tmpSize=lstrlen(BufPtr);
   Sequence.Count=0;
   Sequence.Sequence=static_cast<wchar_t*>(malloc(((tmpSize+1)*total+1)*sizeof(wchar_t)));
   _D(SysLog(L"compile: new size=%d", (tmpSize+1)*total+1));

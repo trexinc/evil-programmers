@@ -20,8 +20,8 @@
 #ifndef __SaveAndLoadConfig
 #define __SaveAndLoadConfig
 
+#include <CRT/crt.hpp>
 #include <windows.h>
-#include "myrtl.hpp"
 #include "SaveAndLoadConfig.hpp"
 #include "options.hpp"
 #include "plugin.hpp"

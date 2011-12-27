@@ -20,6 +20,8 @@
 #ifndef __rbtree_hpp
 #define __rbtree_hpp
 
+#include <windows.h>
+
 /* Red-Black tree description */
 typedef enum
 { BLACK, RED }

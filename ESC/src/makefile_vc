@@ -11,10 +11,6 @@ LINK_OBJS = $(OBJDIR)\esc.obj $(OBJDIR)\CEditorOptions.obj $(OBJDIR)\CIndicator.
             $(OBJDIR)\syslog.obj $(OBJDIR)\table.obj $(OBJDIR)\TArray.obj $(OBJDIR)\xmem.obj \
             $(OBJDIR)\xmlite.obj $(OBJDIR)\XMLite2.obj
 
-#NEEDDEFLIB = 1
-#NEEDENTRY = 1
-#EXCLUDECRT = 1
-
 !include $(FARDEV)\plugins\makefile_vc_def_inc
 
 !include $(FARDEV)\plugins\makefile_vc_target_inc

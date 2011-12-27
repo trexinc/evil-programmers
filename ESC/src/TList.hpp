@@ -26,6 +26,8 @@
       const Object& operator=(const Object &)
 */
 
+#include <windows.h>
+
 template <class Object>
 class TList
 {

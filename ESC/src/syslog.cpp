@@ -20,8 +20,8 @@
 #ifndef __syslog_cpp
 #define __syslog_cpp
 
+#include <CRT/crt.hpp>
 #include "syslog.hpp"
-#include "myrtl.hpp"
 
 #ifdef _DEBUG
 #include <windows.h>

@@ -26,18 +26,8 @@
 #ifndef __XMEM_H__
 #define __XMEM_H__
 
-#include "myrtl.hpp"
-
 #ifdef __cplusplus
 extern "C" {
-#endif
-
-#ifndef NULL
-#ifdef __cplusplus
-#define NULL    0
-#else
-#define NULL    ((void *)0)
-#endif
 #endif
 
 void* xmemNewPool(int iPageSize);

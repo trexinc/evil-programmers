@@ -23,9 +23,8 @@
   and realy fast large structures freeing.
 */
 
-// #include <stdlib.h>
-// #include <string.h>
-#include "myrtl.hpp"
+#include <CRT/crt.hpp>
+#include <windows.h>
 #include "xmem.h"
 
 //#define MEMDEBUG
@@ -137,7 +136,7 @@ void xfree(void* p)
 int xstrlen(const wchar_t *str)
 {
   if(!str)return 0;
-  return wstrlen(str);
+  return lstrlen(str);
 }
 
 wchar_t *xstrdup(void* Pool,const wchar_t *s)
@@ -145,7 +144,7 @@ wchar_t *xstrdup(void* Pool,const wchar_t *s)
   wchar_t *d;
   if(s==NULL)return NULL;
   d=(wchar_t *)xalloc(Pool,(xstrlen(s)+1)*sizeof(wchar_t));
-  wstrcpy(d,s);
+  wcscpy(d,s);
   return d;
 }
 
@@ -154,7 +153,7 @@ wchar_t *xstrndup(void* Pool,const wchar_t *s,int n)
   wchar_t *d;
   if(s==NULL || n<0)return NULL;
   d=(wchar_t *)xalloc(Pool,(n+1)*sizeof(wchar_t));
-  wstrncpy(d,s,n);
+  wcsncpy(d,s,n);
   d[n]=0;
   return d;
 }
@@ -162,13 +161,13 @@ wchar_t *xstrndup(void* Pool,const wchar_t *s,int n)
 int xstrcmp(const wchar_t *a,const wchar_t *b)
 {
   if(!a || !b)return 0;
-  return !wstrcmp(a,b);
+  return !lstrcmp(a,b);
 }
 
 int xstrncmp(const wchar_t *a,const wchar_t *b,int n)
 {
   if(!a || !b || n<=0)return 0;
-  return !wstrncmp(a,b,n);
+  return !wcsncmp(a,b,n);
 }
 
 wchar_t *xstrncpy(wchar_t *dst,const wchar_t *src,int n)
@@ -178,7 +177,7 @@ wchar_t *xstrncpy(wchar_t *dst,const wchar_t *src,int n)
     dst[0]=0;
     return dst;
   }
-  wstrncpy(dst,src,n);
+  wcsncpy(dst,src,n);
   dst[n]=0;
   return dst;
 }
@@ -190,12 +189,12 @@ wchar_t *xstrcpy(wchar_t *dst,const wchar_t *src)
     dst[0]=0;
     return dst;
   }
-  wstrcpy(dst,src);
+  wcscpy(dst,src);
   return dst;
 }
 
 const wchar_t *xstrchr(const wchar_t *str,wchar_t c)
 {
   if(!str)return NULL;
-  return wstrchr(str,c);
+  return wcschr(str,c);
 }

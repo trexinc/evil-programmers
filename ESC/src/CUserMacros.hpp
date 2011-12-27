@@ -22,6 +22,7 @@
 
 #include "rbtree.cpp"
 #include "KeySequenceStorage.hpp"
+
 extern "C"
 {
   DWORD NormalizeControlState(DWORD State);
@@ -112,7 +113,7 @@ class CUserMacros
     bool DeleteMacro(const UserMacroID &ID);
     const KeySequence *GetMacro(const UserMacroID &ID, BOOL &Stop);
     void Empty() { Tree->Empty(); }
-    bool IsEmpty() const { return Tree->IsEmpty(); }
+    bool IsEmpty() const { return Tree->IsEmpty()!=FALSE; }
 
   private:
     CRedBlackTree<OneUserMacro> *Tree;

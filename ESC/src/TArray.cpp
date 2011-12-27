@@ -20,7 +20,11 @@
 #ifndef __TArray_cpp
 #define __TArray_cpp
 
+#include <CRT/crt.hpp>
+#include "plugin.hpp"
 #include "TArray.hpp"
+
+extern struct FarStandardFunctions FSF;
 
 template <class Object>
 TArray<Object>::TArray(unsigned int delta):
@@ -208,7 +212,7 @@ void TArray<Object>::Sort(TARRAYCMPFUNC user_cmp_func)
   {
     if(!user_cmp_func)
       user_cmp_func=reinterpret_cast<TARRAYCMPFUNC>(CmpItems);
-    qsort(reinterpret_cast<wchar_t*>(items),Count,
+      FSF.qsort(reinterpret_cast<wchar_t*>(items),Count,
       sizeof(Object*),user_cmp_func);
   }
 }

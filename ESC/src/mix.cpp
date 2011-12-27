@@ -20,7 +20,7 @@
 #ifndef __mix_cpp
 #define __mix_cpp
 
-#include "myrtl.hpp"
+#include <CRT/crt.hpp>
 #include "plugin.hpp"
 #include "mix.hpp"
 #include "XMLStrings.hpp"
@@ -49,7 +49,7 @@ extern EditorSetString ess;
 extern EditorInfo ei;
 extern strcon *nlsStopChars;
 
-extern "C" const int maxTabSize=512;
+extern const int maxTabSize=512;
 
 void InitNLS(const EditorInfo &ei, NODEDATA &nodedata)
 {
@@ -122,7 +122,7 @@ int FARPostMacro(const KeySequence *KS)
   _D(SysLog(L"FARPostMacro: [%s] Flags=%p, ExitCode=%d",
       KeyMacro.Param.PlainText.SequenceText, KS->Flags, res));
   _D(return res);
-  return Info.MacroControl(0,MCTL_SENDSTRING,MSSC_POST,&KeyMacro);
+  return (int)Info.MacroControl(0,MCTL_SENDSTRING,MSSC_POST,&KeyMacro);
 }
 
 BOOL EditorPostMacro(CUserMacros &macros,UserMacroID &id,const EditorInfo &ei, BOOL &Stop)
@@ -170,7 +170,7 @@ int IsQuote(const wchar_t* pszStr, size_t nLength)
     {
       while(i<nLength && (pszStr[i]==nlsQuoteSym || IsCSpaceOrTab(pszStr[i])))
         i++;
-      return i;
+      return (int)i;
     }
   }
   return 0;
@@ -239,9 +239,9 @@ BOOL UnpackEOL(DWORD EOL, wchar_t *Dest)
 {
    if(!Dest) return FALSE;
    *Dest=EOL & 0xFF;
-   Dest[1]=(EOL & 0xFF00)/256;
-   Dest[2]=(EOL & 0xFF0000)/65536;
-   Dest[3]=(EOL & 0xFF000000)/16777216;
+   Dest[1]=(wchar_t)((EOL & 0xFF00)/256);
+   Dest[2]=(wchar_t)((EOL & 0xFF0000)/65536);
+   Dest[3]=(wchar_t)((EOL & 0xFF000000)/16777216);
    Dest[4]=0;
    _D(SysLog(L"UnpackEOL: EOL=%u, Dest=[%s]", EOL, Dest));
    return TRUE;
@@ -317,7 +317,7 @@ void SetMarginOpt(CXMLNode &n, NODEDATA &node,
     if(Inherit)
       node.Options&=~E_AutoWrap_On;
 
-    if(!wstricmp(Attr, XMLStr.On))
+    if(!FSF.LStricmp(Attr, XMLStr.On))
       node.Options|=E_AutoWrap_On;
   }
   else if(!Inherit)
@@ -332,7 +332,7 @@ void SetMarginOpt(CXMLNode &n, NODEDATA &node,
       node.Options2&=~E_Wrap_Percent;
     }
 
-    int len=wstrlen(Attr)-1, newAttr;
+    int len=lstrlen(Attr)-1, newAttr;
     if(Attr[len]==L'%')
     {
       newAttr=0;
@@ -359,7 +359,7 @@ void SetMarginOpt(CXMLNode &n, NODEDATA &node,
       if(Inherit)
         node.Options2&=~E_Wrap_Justify;
 
-      if(!wstricmp(Attr, XMLStr.On))
+      if(!FSF.LStricmp(Attr, XMLStr.On))
         node.Options2|=E_Wrap_Justify;
     }
   }
@@ -375,7 +375,7 @@ void SetOption(const wchar_t *Attr,DWORD &Options,DWORD Value,
     if(Inherit)
       Options&=~Value;
 
-    if(!wstricmp(Attr, XMLStr.On))
+    if(!FSF.LStricmp(Attr, XMLStr.On))
       Options|=Value;
   }
   else if(!Inherit && OnByDefault)
@@ -394,9 +394,9 @@ void SetOption(const wchar_t *Attr,DWORD &Options,
       Options&=~ValueOff;
     }
 
-    if(!wstricmp(Attr, XMLStr.On))
+    if(!FSF.LStricmp(Attr, XMLStr.On))
       Options|=ValueOn;
-    else if(!wstricmp(Attr, XMLStr.Off))
+    else if(!FSF.LStricmp(Attr, XMLStr.Off))
       Options|=ValueOff;
   }
 }
@@ -460,11 +460,11 @@ void SetTabOpt(CXMLNode &n, NODEDATA &node, const int &Inherit)
       node.Options&=~E_ExpandTabs_OnlyNew;
     }
 
-    if(!wstricmp(Attr, XMLStr.On))
+    if(!FSF.LStricmp(Attr, XMLStr.On))
       node.Options|=E_ExpandTabs_On;
-    else if(!wstricmp(Attr, XMLStr.Off))
+    else if(!FSF.LStricmp(Attr, XMLStr.Off))
       node.Options|=E_ExpandTabs_Off;
-    else if(!wstricmp(Attr, XMLStr.OnlyNew))
+    else if(!FSF.LStricmp(Attr, XMLStr.OnlyNew))
       node.Options|=E_ExpandTabs_OnlyNew;
 
     _D(SysLog(L"XML EXPANDTABS: Name:[%s] mask:[%s] Attr:[%s] Options:[%x]", node.Name.str, node.mask.str, Attr, node.Options));
@@ -479,20 +479,20 @@ bool InsertMacro(CXMLNode &n,CUserMacros &Macro,
   if(!Flags)
   {
     Attr=n.Attr(XMLStr.Selection);
-    if(!wstricmp(Attr,XMLStr.On))
+    if(!FSF.LStricmp(Attr,XMLStr.On))
       Flags|=KSSF_SELECTION_ON;
-    else if(!wstricmp(Attr,XMLStr.Off))
+    else if(!FSF.LStricmp(Attr,XMLStr.Off))
       Flags|=KSSF_SELECTION_OFF;
-    else if(!wstricmp(Attr,XMLStr.Stream))
+    else if(!FSF.LStricmp(Attr,XMLStr.Stream))
       Flags|=KSSF_SELECTION_ON|KSSF_SELECTION_STREAM;
-    else if(!wstricmp(Attr,XMLStr.Column))
+    else if(!FSF.LStricmp(Attr,XMLStr.Column))
       Flags|=KSSF_SELECTION_ON|KSSF_SELECTION_COLUMN;
     else
       Flags|=KSSF_SELECTION_ON|KSSF_SELECTION_OFF;
   }
   Attr=n.Attr(XMLStr.Sequence);
   UserMacroID id(VirtualKeyCode,ControlKeyState,Flags,ButtonState,ControlState);
-  return Macro.InsertMacro(id,Attr,silent,Stop,Error,unknownKey);
+  return Macro.InsertMacro(id,Attr,silent,Stop!=FALSE,Error,unknownKey);
 }
 
 bool AddMacro(CXMLNode &n,NODEDATA &node,int &Error,strcon &unknownKey)
@@ -501,22 +501,22 @@ bool AddMacro(CXMLNode &n,NODEDATA &node,int &Error,strcon &unknownKey)
   DWORD ButtonState=0, Flags=0;
   const wchar_t *Attr;
 
-  if(!wstricmp(n.Attr(XMLStr.Stop),XMLStr.On))
+  if(!FSF.LStricmp(n.Attr(XMLStr.Stop),XMLStr.On))
     Stop=true;
 
   Attr=n.Attr(XMLStr.Silent);
-  if(*Attr && 0!=wstricmp(Attr,XMLStr.On))
+  if(*Attr && 0!=FSF.LStricmp(Attr,XMLStr.On))
     silent=false;
 
   // проверим автостартующие макросы
   TList<KeySequenceStorage> *Macros=NULL;
   Attr=n.Attr(XMLStr.Auto);
-  if(!wstricmp(Attr,XMLStr.onCreate))
+  if(!FSF.LStricmp(Attr,XMLStr.onCreate))
   {
     _D(SysLog(L"AddMacro: OnCreateMacros"));
     Macros=&node.OnCreateMacros;
   }
-  else if(!wstricmp(Attr,XMLStr.onLoad))
+  else if(!FSF.LStricmp(Attr,XMLStr.onLoad))
   {
     _D(SysLog(L"AddMacro: OnLoadMacros"));
     Macros=&node.OnLoadMacros;
@@ -539,26 +539,26 @@ bool AddMacro(CXMLNode &n,NODEDATA &node,int &Error,strcon &unknownKey)
 
   if(res)
   {
-    if(!wstricmp(n.Attr(XMLStr.LClick),XMLStr.On))
+    if(!FSF.LStricmp(n.Attr(XMLStr.LClick),XMLStr.On))
       ButtonState|=EBS_LClick_On;
-    if(!wstricmp(n.Attr(XMLStr.RClick),XMLStr.On))
+    if(!FSF.LStricmp(n.Attr(XMLStr.RClick),XMLStr.On))
       ButtonState|=EBS_RClick_On;
-    if(!wstricmp(n.Attr(XMLStr.MClick),XMLStr.On))
+    if(!FSF.LStricmp(n.Attr(XMLStr.MClick),XMLStr.On))
       ButtonState|=EBS_MClick_On;
 
     if(0!=ButtonState) // есть мышиный макрос
     {
       _D(SysLog(L"AddMacro: mouse macro exists"));
       DWORD ControlState=0;
-      if(!wstricmp(n.Attr(XMLStr.RCtrl),XMLStr.On))
+      if(!FSF.LStricmp(n.Attr(XMLStr.RCtrl),XMLStr.On))
         ControlState|=ECS_RCtrl_On;
-      if(!wstricmp(n.Attr(XMLStr.LCtrl),XMLStr.On))
+      if(!FSF.LStricmp(n.Attr(XMLStr.LCtrl),XMLStr.On))
         ControlState|=ECS_LCtrl_On;
-      if(!wstricmp(n.Attr(XMLStr.RAlt),XMLStr.On))
+      if(!FSF.LStricmp(n.Attr(XMLStr.RAlt),XMLStr.On))
         ControlState|=ECS_RAlt_On;
-      if(!wstricmp(n.Attr(XMLStr.LAlt),XMLStr.On))
+      if(!FSF.LStricmp(n.Attr(XMLStr.LAlt),XMLStr.On))
         ControlState|=ECS_LAlt_On;
-      if(!wstricmp(n.Attr(XMLStr.Shift),XMLStr.On))
+      if(!FSF.LStricmp(n.Attr(XMLStr.Shift),XMLStr.On))
         ControlState|=ECS_Shift_On;
       res=InsertMacro(n,node.MouseMacros,0,0,ButtonState,ControlState,Flags,
            silent,Stop,Error,unknownKey);
@@ -593,11 +593,11 @@ void SetCharCodeBaseOpt(const wchar_t *Attr, DWORD &Options, const int &Inherit)
       Options&=~E_CharCodeBase_Hex;
     }
 
-    if(!wstricmp(Attr, XMLStr.Oct))
+    if(!FSF.LStricmp(Attr, XMLStr.Oct))
       Options|=E_CharCodeBase_Oct;
-    else if(!wstricmp(Attr, XMLStr.Dec))
+    else if(!FSF.LStricmp(Attr, XMLStr.Dec))
       Options|=E_CharCodeBase_Dec;
-    else if(!wstricmp(Attr, XMLStr.Hex))
+    else if(!FSF.LStricmp(Attr, XMLStr.Hex))
       Options|=E_CharCodeBase_Hex;
   }
 }
@@ -699,8 +699,8 @@ int ParseFile(const wchar_t *filename,CRedBlackTree<ESCFileInfo>&FITree,
             newName=Attr;
           else
           {
-            const wchar_t *slash=wstrrchr(FileName,L'\\');
-            int l=slash?slash-FileName+1:0;
+            const wchar_t *slash=wcsrchr(FileName,L'\\');
+            int l=slash?(int)(slash-FileName+1):0;
             newName.setStr(FileName,l);
             newName.AddStr(Attr);
           }
@@ -762,7 +762,7 @@ int ParseFile(const wchar_t *filename,CRedBlackTree<ESCFileInfo>&FITree,
               {
                 node.Options&=~E_SkipPath_On;
                 Attr=n.Attr(XMLStr.SkipPath);
-                if(!*Attr || !wstricmp(Attr, XMLStr.On))
+                if(!*Attr || !FSF.LStricmp(Attr, XMLStr.On))
                   node.Options|=E_SkipPath_On;
               }
 
@@ -840,7 +840,7 @@ int ParseFile(const wchar_t *filename,CRedBlackTree<ESCFileInfo>&FITree,
                 while(NULL!=(macroI=N.EnumName(XMLStr.Macro, macroI, macroN)))
                 {
                   Attr=macroN.Attr(XMLStr.Enable);
-                  if(!*Attr || !wstricmp(Attr, XMLStr.On))
+                  if(!*Attr || !FSF.LStricmp(Attr, XMLStr.On))
                   {
                     if(!AddMacro(macroN,node,macro_err,unknownKey))
                       {
@@ -1033,7 +1033,7 @@ void KillSpacesAndChangeEOL()
    else
      Size=0;
 
-   if(*egs.StringEOL && 0!=wstrcmp(GLOBAL_EOL,egs.StringEOL))
+   if(*egs.StringEOL && 0!=lstrcmp(GLOBAL_EOL,egs.StringEOL))
    {
      _D(SysLog(L"ksceol: 1. esp.CurLine=%d", esp.CurLine));
      ess.StringNumber=-1;
@@ -1059,7 +1059,7 @@ void ChangeEOL()
    EditorControl(-1, ECTL_SETPOSITION, 0, &esp);
    EditorControl(-1, ECTL_GETSTRING, 0, &egs);
    _D(SysLog(L"ceol: 0. myeol=[%s], original_eol=[%s]", GLOBAL_EOL, egs.StringEOL));
-   if(*egs.StringEOL && 0!=wstrcmp(GLOBAL_EOL,egs.StringEOL))
+   if(*egs.StringEOL && 0!=lstrcmp(GLOBAL_EOL,egs.StringEOL))
    {
      _D(SysLog(L"ceol: 1. esp.CurLine=%d", esp.CurLine));
      ess.StringNumber=-1;
@@ -1073,12 +1073,12 @@ void ChangeEOL()
 
 wchar_t *TruncFromRigth(wchar_t *Str, unsigned int maxsize, BOOL AddSpaces)
 {
-  unsigned int len=wstrlen(Str);
+  unsigned int len=lstrlen(Str);
   if (maxsize < 5) maxsize = 5;
-  if (len > maxsize) wstrcpy(Str+maxsize-3, L"...");
+  if (len > maxsize) wcscpy(Str+maxsize-3, L"...");
   else if(AddSpaces)
   {
-     wwmemset(Str+len, 0x20, (maxsize-len));
+     wmemset(Str+len, 0x20, (maxsize-len));
      Str[maxsize]=0;
   }
   return Str;
@@ -1172,10 +1172,10 @@ int GetNextCoordX(const EditorInfo &EI, int Lines, const wchar_t *StopChars)
             {
               for(; tmpX<egs.StringLength &&
                   !IsCSpaceOrTab(egs.StringText[tmpX]); ++tmpX)
-                if(NULL!=wstrchr(StopChars, egs.StringText[tmpX]))
+                if(NULL!=wcschr(StopChars, egs.StringText[tmpX]))
                 {
                   Ret=tmpX+1;
-                  while(NULL!=wstrchr(StopChars, egs.StringText[Ret]))
+                  while(NULL!=wcschr(StopChars, egs.StringText[Ret]))
                     ++Ret;
                   break;
                 }
@@ -1285,7 +1285,7 @@ BOOL CmpWithFileMask(const wchar_t *Mask, const wchar_t *Name, bool SkipPath)
    DWORD Flags=PN_CMPNAMELIST;
    if(SkipPath)
      Flags|=PN_SKIPPATH;
-   return FSF.ProcessName(Mask, const_cast<wchar_t*>(Name), 0, Flags);
+   return (BOOL)FSF.ProcessName(Mask, const_cast<wchar_t*>(Name), 0, Flags);
 }
 
 void ApplyEditorOptions(NODEDATA &Settings, const wchar_t *FileName)
@@ -1379,13 +1379,13 @@ BOOL InsertAdditionalSymbol(const EditorInfo &ei,
                             wchar_t Symbol, BOOL IncreaseCoordX)
 {
   BOOL RetCode=FALSE;
-  wchar_t *AddSym_Pos=wstrchr(AddSym_S.str, Symbol);
+  wchar_t *AddSym_Pos=wcschr(AddSym_S.str, Symbol);
   if(AddSym_Pos)
   {
     InitESPandEGS(esp, egs);
     EditorControl(-1, ECTL_GETSTRING, 0, &egs);
     if(ei.CurPos>=egs.StringLength || IsCSpaceOrTab(egs.StringText[ei.CurPos])
-       || (!IncreaseCoordX && wstrchr(AddSym_E.str,egs.StringText[ei.CurPos]))
+       || (!IncreaseCoordX && wcschr(AddSym_E.str,egs.StringText[ei.CurPos]))
       )
     {
       ess.StringNumber=-1;
@@ -1406,7 +1406,7 @@ BOOL InsertAdditionalSymbol(const EditorInfo &ei,
         else
         {
           memcpy((wchar_t*)ess.StringText, egs.StringText, egs.StringLength*sizeof(wchar_t));
-          wwmemset((wchar_t*)ess.StringText+egs.StringLength, nlsSpace,
+          wmemset((wchar_t*)ess.StringText+egs.StringLength, nlsSpace,
                   ei.CurPos-egs.StringLength);
         }
 

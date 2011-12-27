@@ -20,7 +20,7 @@
 #ifndef __CEditorOptions_cpp
 #define __CEditorOptions_cpp
 
-#include "myrtl.hpp"
+#include <CRT/crt.hpp>
 #include "plugin.hpp"
 #include "CEditorOptions.hpp"
 #include "syslog.hpp"
@@ -128,7 +128,7 @@ int CEditorOptions::ApplyOption(EDITOR_SETPARAMETER_TYPES type)
           static wchar_t WordDiv[256];
           if(Data.Options2&E_WordSym_On)
           {
-            MakeWordDiv(Data.Options2&E_AlphaNum_On,Data.AdditionalLetters.str,WordDiv);
+            MakeWordDiv((Data.Options2&E_AlphaNum_On)!=0,Data.AdditionalLetters.str,WordDiv);
             ESPar.wszParam=WordDiv;
             _D(SysLog(L"ESPT_SETWORDDIV: ON [%s]", WordDiv));
           }
@@ -175,7 +175,7 @@ void CEditorOptions::MakeWordDiv(bool alphanum, const wchar_t *additional, wchar
   const wchar_t *other=additional?additional:L"";
   for(unsigned int i=1; i<256; ++i)
   {
-    if(!alphafunc(i) && NULL==wstrchr(other, i)
+    if(!alphafunc(i) && NULL==wcschr(other, i)
        && i!=0x20) // если убрать 0x20, т.е. разрешить пробелу быть символом-
                    // разделителем слов, то стандартные CtrlT, CtrlBS и CtrlDel
                    // не будут удалять сразу все пробелы, а только по одному
