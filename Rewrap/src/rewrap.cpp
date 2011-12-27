@@ -1,5 +1,6 @@
-#include <plugin.hpp>
 #include <CRT/crt.hpp>
+#include <plugin.hpp>
+#include "version.hpp"
 
 // {F6E77027-05BA-4ECF-A8D3-7D57B2D80C53}
 static const GUID MainGuid =
@@ -33,11 +34,11 @@ void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
 {
 	Info->StructSize=sizeof(struct GlobalInfo);
 	Info->MinFarVersion=FARMANAGERVERSION;
-	Info->Version=MAKEFARVERSION(2,1,0,0,VS_RELEASE);
+	Info->Version=PLUGIN_VERSION;
 	Info->Guid=MainGuid;
-	Info->Title=L"Rewrap";
-	Info->Description=L"Reformat paragraph based on ESC plugin settings";
-	Info->Author=L"Stanislav V. Mekhanoshin & Alex Yaroslavsky";
+	Info->Title=PLUGIN_NAME;
+	Info->Description=PLUGIN_DESC;
+	Info->Author=PLUGIN_AUTHOR;
 }
 
 void WINAPI SetStartupInfoW(const struct PluginStartupInfo *Info)
@@ -99,7 +100,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
     struct EditorGetString egs;
     struct EditorSetString ess;
     struct EditorSelect es;
-    struct EditorUndoRedo eur={0};
+    struct EditorUndoRedo eur={};
     int i,j;
     int nIndent1, nIndent2;
     wchar_t* pMem;
