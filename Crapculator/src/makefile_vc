@@ -1,0 +1,24 @@
+#path to the Far Manager SVN trunk
+!ifndef FARDEV
+FARDEV = ..\..\..\FAR\fardev
+!endif
+COMMON = $(FARDEV)\plugins\common
+
+NAME = BlockIndent
+LINK_OBJS = $(OBJDIR)\Crapculator.obj $(OBJDIR)\LogicalExpression.obj $(OBJDIR)\NumericalExpression.obj
+NAME = Crapculator
+SRCS = Crapculator.cpp LogicalExpression.cpp NumericalExpression.cpp
+
+NEEDDEFLIB = 1
+NEEDENTRY = 1
+EXCLUDECRT = 1
+
+!include $(FARDEV)\plugins\makefile_vc_def_inc
+
+!include $(FARDEV)\plugins\makefile_vc_target_inc
+
+$(OBJDIR)\Crapculator.obj: Crapculator.cpp version.hpp LogicalExpression.hpp NumericalExpression.hpp $(COMINC)\plugin.hpp
+$(OBJDIR)\LogicalExpression.obj: LogicalExpression.cpp LogicalExpression.hpp 
+$(OBJDIR)\NumericalExpression.obj: NumericalExpression.cpp NumericalExpression.hpp 
+NumericalExpression.hpp: BasicExpression.hpp
+LogicalExpression.hpp: BasicExpression.hpp

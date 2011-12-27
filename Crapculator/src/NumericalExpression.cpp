@@ -1,5 +1,5 @@
 /*
-    Crapculator plugin for FAR Manager
+    Crapculator plugin for Far Manager
     Copyright (C) 2009 Alex Yaroslavsky
 
     This program is free software; you can redistribute it and/or modify
@@ -17,6 +17,7 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 #include "NumericalExpression.hpp"
+#define _USE_MATH_DEFINES
 #include <math.h>
 #include <errno.h>
 
@@ -258,7 +259,7 @@ bool NumericalExpression::UnaryAction(double *r, int a)
     case L'+': break;
     case L'-': *r=*r*-1.0; break;
 
-    case L'!': if (*r < 0) return false; *r=factorial(*r); break;
+    case L'!': if (*r < 0) return false; *r=(double)factorial((unsigned long long)*r); break;
 
     case L's': errno=0; *r=sqrt(*r); if (errno) return false; break;
 

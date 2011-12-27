@@ -1,0 +1,15 @@
+#path to the Far Manager SVN trunk
+FARDEV ?= ../../../FAR/fardev
+COMMON = $(FARDEV)/plugins/common
+
+NAME = Crapculator
+SRCS = Crapculator.cpp LogicalExpression.cpp NumericalExpression.cpp
+
+USERCPP = -fno-threadsafe-statics
+NEEDDEFLIB = 1
+
+include $(FARDEV)/unicode_far/makefile_gcc_common
+
+include $(FARDEV)/plugins/makefile_gcc_def_inc
+
+include $(FARDEV)/plugins/makefile_gcc_target_inc

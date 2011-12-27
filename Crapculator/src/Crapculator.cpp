@@ -1,5 +1,5 @@
 /*
-    Crapculator plugin for FAR Manager
+    Crapculator plugin for Far Manager
     Copyright (C) 2009 Alex Yaroslavsky
 
     This program is free software; you can redistribute it and/or modify
@@ -16,10 +16,11 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+#include <CRT/crt.hpp>
 #include "plugin.hpp"
+#include "version.hpp"
 #include "LogicalExpression.hpp"
 #include "NumericalExpression.hpp"
-#include <CRT/crt.hpp>
 
 struct PluginStartupInfo Info;
 FARSTANDARDFUNCTIONS FSF;
@@ -41,11 +42,11 @@ void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
 {
   Info->StructSize=sizeof(GlobalInfo);
   Info->MinFarVersion=FARMANAGERVERSION;
-  Info->Version=MAKEFARVERSION(0,8,0,0,VS_RELEASE);
+  Info->Version=PLUGIN_VERSION;
   Info->Guid=MainGuid;
-  Info->Title=L"Crapculator & Hackulator";
-  Info->Description=L"Crapculates current line in editor";
-  Info->Author=L"Alex Yaroslavsky";
+  Info->Title=PLUGIN_NAME;
+  Info->Description=PLUGIN_DESC;
+  Info->Author=PLUGIN_AUTHOR;
 }
 
 void WINAPI SetStartupInfoW(const struct PluginStartupInfo *psi)
