@@ -23,6 +23,7 @@ struct FarStandardFunctions FSF;
 wchar_t XMLFilePath[MAX_PATH];
 
 BOOL IsOldFar=TRUE, XMLLoadedOK=FALSE;
+
 #include "e_options.hpp"
 #include "XMLStrings.hpp"
 #include "lang.hpp"

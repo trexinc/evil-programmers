@@ -21,6 +21,8 @@
   Can be used to read/write config files stored in XML format.
   Very fast. Very memory effecient.
 */
+
+#include <CRT/crt.hpp>
 #include "XMLite.hpp"
 
 bool CXMLQuery::Next(CXMLNode& res)

@@ -20,7 +20,10 @@
 #ifndef __e_options_cpp
 #define __e_options_cpp
 
+#include <CRT/crt.hpp>
 #include "e_options.hpp"
+
+extern struct FarStandardFunctions FSF;
 
 NODEDATA::NODEDATA():
      AddSym_S(L""), AddSym_E(L""), AddSym_S_B(L""), AddSym_E_B(L""),
@@ -42,7 +45,7 @@ bool NODEDATA::operator==(const NODEDATA &rhs) const
 
 bool NODEDATA::operator<(const NODEDATA &rhs) const
 {
-  return wstricmp(Name.str, rhs.Name.str)<0;
+  return FSF.LStricmp(Name.str, rhs.Name.str)<0;
 }
 
 NODEDATA& NODEDATA::operator=(const NODEDATA &rhs)

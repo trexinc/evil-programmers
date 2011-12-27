@@ -20,6 +20,7 @@
 #ifndef __CUserMacros_cpp
 #define __CUserMacros_cpp
 
+#include <CRT/crt.hpp>
 #include "CUserMacros.hpp"
 
 CUserMacros::CUserMacros()

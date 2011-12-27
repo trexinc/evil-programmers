@@ -17,8 +17,7 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-#define STRICT
-#include "myrtl.hpp"
+#include <CRT/crt.hpp>
 #include "plugin.hpp"
 #include <initguid.h>
 #include "guid.h"
@@ -39,10 +38,6 @@ BOOL WINAPI DllMainCRTStartup(HANDLE hDll,DWORD dwReason,LPVOID lpReserved)
 }
 #endif
 
-#ifndef FARMACRO_KEY_EVENT
-  #define FARMACRO_KEY_EVENT (KEY_EVENT|0x8000)
-#endif
-
 #include "KeySequenceStorage.hpp"
 #include "rbtree.cpp"
 #include "TArray.cpp"
@@ -52,6 +47,7 @@ BOOL WINAPI DllMainCRTStartup(HANDLE hDll,DWORD dwReason,LPVOID lpReserved)
 #include "SaveAndLoadConfig.hpp"
 #include "CIndicator.hpp"
 #include "syslog.hpp"
+
 #ifdef _DEBUG
 extern wchar_t SysLogName[MAX_PATH*2];
 #endif
@@ -60,37 +56,7 @@ extern wchar_t SysLogName[MAX_PATH*2];
 
 extern bool prc_Minuses;
 
-#ifdef _check_mem
-extern DWORD _check_mem_DAT;
-#endif
-
 extern wchar_t GLOBAL_EOL[10];
-extern HANDLE heapNew_ESC;
-
-#ifdef __cplusplus
-void *operator new(size_t size)
-{
-  size = size ? size : 1;
-  return malloc(size);
-}
-
-void *operator new[] (size_t size)
-{
-  return::operator new(size);
-}
-void *operator new(size_t /*size */ , void *p)
-{
-  return p;
-}
-void operator delete(void *p)
-{
-  free(p);
-}
-void operator delete[] (void *ptr)
-{
-  ::operator delete(ptr);
-}
-#endif // __cplusplus
 
 BOOL WINAPI CompLT(const EditorSettingsStorage &a,const EditorSettingsStorage &b)
 {
@@ -104,7 +70,7 @@ BOOL WINAPI CompEQ(const EditorSettingsStorage &a,const EditorSettingsStorage &b
 
 BOOL WINAPI ESCFICompLT(const ESCFileInfo &a,const ESCFileInfo &b)
 {
-  return (a.Name.str && b.Name.str)?wstricmp(a.Name.str, b.Name.str)<0:0;
+  return (a.Name.str && b.Name.str)?FSF.LStricmp(a.Name.str, b.Name.str)<0:0;
 }
 
 BOOL WINAPI ESCFICompEQ(const ESCFileInfo &a,const ESCFileInfo &b)
@@ -125,7 +91,7 @@ BOOL InitSetsTree(const EditorInfo &EI, const wchar_t *editorfilename)
    for(int i=TotalNodes-1;i>=0;--i)
    {
      nd=NodeData->getItem(i);
-     if(CmpWithFileMask(nd->mask.str, editorfilename, nd->Options&E_SkipPath_On))
+     if(CmpWithFileMask(nd->mask.str, editorfilename, (nd->Options&E_SkipPath_On)!=0))
      {
        LastAcceptableType=i;
        if(nd->Options&E_OverLoad_On)
@@ -186,18 +152,14 @@ void WINAPI SetStartupInfoW(const struct PluginStartupInfo *Info)
   NodeData=NULL;
   _D(wsprintf(SysLogName, L"%s.LOG", ::Info.ModuleName););
   _D(SysLog(L"SetStartupInfo - start"));
-  heapNew_ESC = HeapCreate(0, 0, 0);
-#ifdef _check_mem
-  _check_mem_DAT = 0;
-#endif
-  if(Info->StructSize >= (int)sizeof(struct PluginStartupInfo) && heapNew_ESC)
+  if(Info->StructSize >= (int)sizeof(struct PluginStartupInfo))
   {
     ::FSF=*Info->FSF;
     ::Info.FSF=&::FSF;
     TruncPathStr=FSF.TruncPathStr;
-    wstrcpy(XMLFilePath, ::Info.ModuleName);
-    int offset=wstrlen(XMLFilePath)-3;
-    wstrcpy(XMLFilePath+offset, L"XML");
+    wcscpy(XMLFilePath, ::Info.ModuleName);
+    int offset=lstrlen(XMLFilePath)-3;
+    wcscpy(XMLFilePath+offset, L"XML");
 
     IsOldFar=FALSE;
     LoadGlobalConfig();
@@ -239,7 +201,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo*)
             for(int f=TotalNodes-1;f>=0;--f)
             {
               nd=NodeData->getItem(f);
-              if(RealPos==-1 && CmpWithFileMask(nd->mask.str, editorfilename, nd->Options&E_SkipPath_On))
+              if(RealPos==-1 && CmpWithFileMask(nd->mask.str, editorfilename, (nd->Options&E_SkipPath_On)!=0))
               {
                 LastAcceptableType=f;
                 if(nd->Options&E_OverLoad_On)
@@ -253,13 +215,13 @@ HANDLE WINAPI OpenW(const struct OpenInfo*)
 
             if(Opt.ShowFileMaskInMenu)
             {
-               wstrcpy(fmt1, L"&%c. %*s \x2502 %s");
-               wstrcpy(fmt2, L"   %*s \x2502 %s");
+               wcscpy(fmt1, L"&%c. %*s \x2502 %s");
+               wcscpy(fmt2, L"   %*s \x2502 %s");
             }
             else
             {
-               wstrcpy(fmt1, L"&%c. %s");
-               wstrcpy(fmt2, L"   %s");
+               wcscpy(fmt1, L"&%c. %s");
+               wcscpy(fmt2, L"   %s");
             }
 
             if(Opt.ShowFileMaskInMenu)
@@ -345,11 +307,6 @@ void WINAPI ExitFARW(const struct ExitInfo*)
   FileInfoTree=NULL;
   delete nlsStopChars;
   nlsStopChars=NULL;
-#ifdef _check_mem
-  _D(SysLog(L"_check_mem_DAT=%d", _check_mem_DAT));
-#endif //_check_mem
-  if (heapNew_ESC)
-    HeapDestroy(heapNew_ESC);
 }
 
 INT_PTR WINAPI ConfigDlgProc (HANDLE hDlg, int Msg, int Param1, void* Param2)
@@ -508,13 +465,13 @@ static int ProcessEditorEventInternal(int Event, void *Param)
         NODEDATA &nodedata=Item->data.Data;
         if(Event==EE_SAVE)
         {
-          bool RestorePos=FALSE, IsLocked=ei.CurState&ECSTATE_LOCKED;
+          bool RestorePos=FALSE, IsLocked=(ei.CurState&ECSTATE_LOCKED)!=0;
 
-          if(!IsLocked && (nodedata.Options&E_KillSpaces_On || nodedata.EOL))
+          if(!IsLocked && ((nodedata.Options&E_KillSpaces_On)!=0 || nodedata.EOL))
           {
              _D(SysLog(L"PEE: 0. TotalLines=%d", ei.TotalLines));
 
-             prc_Minuses=nodedata.Options&E_Process_Minuses_On;
+             prc_Minuses=(nodedata.Options&E_Process_Minuses_On)!=0;
 
              CIndicator Indicator(NULL);
              Indicator.StartTimer(1000);
@@ -824,7 +781,7 @@ static int ProcessEditorInputInternal(const INPUT_RECORD *Rec)
     }
 
     int isWrapQuote=(nodedata.Options&E_ProcessQuote_On)?1:0;
-    bool IsLocked=ei.CurState&ECSTATE_LOCKED;
+    bool IsLocked=(ei.CurState&ECSTATE_LOCKED)!=0;
 
     // wVirtualKeyCode, обработка которых не зависит от IsLocked
     if(KeyEvent.wVirtualKeyCode==VK_HOME)
@@ -891,10 +848,10 @@ static int ProcessEditorInputInternal(const INPUT_RECORD *Rec)
               else
               {
                  memcpy((wchar_t *)ess.StringText, egs.StringText, egs.StringLength*sizeof(wchar_t));
-                 wwmemset((wchar_t *)ess.StringText+egs.StringLength, nlsSpace,
+                 wmemset((wchar_t *)ess.StringText+egs.StringLength, nlsSpace,
                          ei.CurPos-egs.StringLength);
               }
-              wwmemset((wchar_t *)ess.StringText+ei.CurPos, nlsSpace, CoordX);
+              wmemset((wchar_t *)ess.StringText+ei.CurPos, nlsSpace, CoordX);
               if(egs.StringLength>ei.CurPos)
                  memcpy((wchar_t *)ess.StringText+ei.CurPos+CoordX,
                         egs.StringText+ei.CurPos, (egs.StringLength-ei.CurPos)*sizeof(wchar_t));
@@ -932,7 +889,7 @@ static int ProcessEditorInputInternal(const INPUT_RECORD *Rec)
         isReenter=1;
         InitNLS(ei, nodedata);
         InitESPandEGS(esp, egs);
-        prc_Minuses=nodedata.Options&E_Process_Minuses_On;
+        prc_Minuses=(nodedata.Options&E_Process_Minuses_On)!=0;
         KillSpaces();
         isReenter=0;
       }
@@ -1017,7 +974,7 @@ static int ProcessEditorInputInternal(const INPUT_RECORD *Rec)
         EditorControl(-1, ECTL_GETSTRING, 0, &egs);
         RetCode=ProcessKeyEnter(ei, esp, egs,
                 IsQuote(egs.StringText,egs.StringLength),
-                nodedata.Options&E_QuoteEOL_On);
+                (nodedata.Options&E_QuoteEOL_On)!=0);
         if(RetCode)
           EditorControl(-1, ECTL_TURNOFFMARKINGBLOCK, 0, 0);
       }
@@ -1200,7 +1157,8 @@ static int ProcessEditorInputInternal(const INPUT_RECORD *Rec)
 
                     }else{
 
-                        SpaceCount=div(nWrapPos-nbCount-buff2TextLength,--Blank);
+                        SpaceCount.quot=(nWrapPos-nbCount-buff2TextLength)/--Blank;
+                        SpaceCount.rem=nWrapPos-nbCount-buff2TextLength-SpaceCount.quot*Blank;
                         SpaceCount.rem=Blank-SpaceCount.rem;
 
                         // now we have minimum space length in SpaceCount.quot
@@ -1208,7 +1166,7 @@ static int ProcessEditorInputInternal(const INPUT_RECORD *Rec)
 
                         for( i=buff2TextLength; i<ess.StringLength; ){
                             if( buff[i]==nlsSpace ){
-                                wwmemset( buff2+buff2TextLength, nlsSpace, SpaceCount.quot );
+                                wmemset( buff2+buff2TextLength, nlsSpace, SpaceCount.quot );
                                 buff2TextLength+=SpaceCount.quot;
                                 if( SpaceCount.rem ) SpaceCount.rem--;
                                 else buff2[buff2TextLength++]=nlsSpace;
@@ -1221,7 +1179,7 @@ static int ProcessEditorInputInternal(const INPUT_RECORD *Rec)
 
                         // fill up to nWrapPos with the initial part of the resting string...
                         if( Blank ){
-                            wwmemset( buff2+buff2TextLength, nlsSpace, SpaceCount.quot);
+                            wmemset( buff2+buff2TextLength, nlsSpace, SpaceCount.quot);
                             buff2TextLength+=SpaceCount.quot;
                             if( SpaceCount.rem ) SpaceCount.rem--;
                             else buff2[buff2TextLength++]=nlsSpace;
@@ -1229,7 +1187,7 @@ static int ProcessEditorInputInternal(const INPUT_RECORD *Rec)
                             for( i=0; i<egs.StringLength; ){
                                 if( buff1[i]==nlsSpace ){
                                     if( Blank ){
-                                        wwmemset( buff2+buff2TextLength, nlsSpace, SpaceCount.quot );
+                                        wmemset( buff2+buff2TextLength, nlsSpace, SpaceCount.quot );
                                         buff2TextLength+=SpaceCount.quot;
                                         if( SpaceCount.rem ) SpaceCount.rem--;
                                         else buff2[buff2TextLength++]=nlsSpace;
@@ -1274,7 +1232,7 @@ static int ProcessEditorInputInternal(const INPUT_RECORD *Rec)
                             ess.StringLength=egs.StringLength;
                             ess.StringText=buff1;
                         }else{
-                            wwmemset((wchar_t *)ess.StringText,nlsSpace,i);
+                            wmemset((wchar_t *)ess.StringText,nlsSpace,i);
                             memcpy((wchar_t *)ess.StringText+i,buff1,egs.StringLength*sizeof(wchar_t));
                         }
                     }else{
@@ -1346,11 +1304,11 @@ int WINAPI GetEditorSettingsW(int EditorID, const wchar_t *szName, void *Param)
   const NODEDATA &Data=Item->data.Data;
   BOOL RetCode=TRUE;
 
-  if(!wstrcmp(szName, XMLStr.TabSize))
+  if(!lstrcmp(szName, XMLStr.TabSize))
   {
      *static_cast<int *>(Param)=Data.TabSize;
   }
-  else if(!wstrcmp(szName, XMLStr.ExpandTabs))
+  else if(!lstrcmp(szName, XMLStr.ExpandTabs))
   {
      if(Data.Options&E_ExpandTabs_On)
        *static_cast<int *>(Param)=1;
@@ -1361,127 +1319,127 @@ int WINAPI GetEditorSettingsW(int EditorID, const wchar_t *szName, void *Param)
      else
        *static_cast<int *>(Param)=2;
   }
-  else if(!wstrcmp(szName, XMLStr.CursorBEOL))
+  else if(!lstrcmp(szName, XMLStr.CursorBEOL))
   {
      *static_cast<int *>(Param)=(Data.Options&E_CursorBeyondEOL_On)?1:
        ((Data.Options&E_CursorBeyondEOL_Off)?0:2);
   }
-  else if(!wstrcmp(szName, XMLStr.AutoIndent))
+  else if(!lstrcmp(szName, XMLStr.AutoIndent))
   {
      *static_cast<int *>(Param)=(Data.Options&E_AutoIndent_On)?1:
        ((Data.Options&E_AutoIndent_On)?0:2);
   }
-  else if(!wstrcmp(szName, XMLStr.CharCodeBase))
+  else if(!lstrcmp(szName, XMLStr.CharCodeBase))
   {
      *static_cast<int *>(Param)=(Data.Options&E_CharCodeBase_Oct)?8:
        ((Data.Options&E_CharCodeBase_Dec)?10:
         ((Data.Options&E_CharCodeBase_Hex)?16:0));
   }
-  else if(!wstrcmp(szName, XMLStr.KillSpaces))
+  else if(!lstrcmp(szName, XMLStr.KillSpaces))
   {
      *static_cast<int *>(Param)=(Data.Options&E_KillSpaces_On)?1:0;
   }
-  else if(!wstrcmp(szName, XMLStr.p_Minuses))
+  else if(!lstrcmp(szName, XMLStr.p_Minuses))
   {
      *static_cast<int *>(Param)=(Data.Options&E_Process_Minuses_On)?1:0;
   }
-  else if(!wstrcmp(szName, XMLStr.KillEmptyLines))
+  else if(!lstrcmp(szName, XMLStr.KillEmptyLines))
   {
      *static_cast<int *>(Param)=(Data.Options&E_KillEmptyLines_On)?1:0;
   }
-  else if(!wstrcmp(szName, XMLStr.ForceKillEmptyLines))
+  else if(!lstrcmp(szName, XMLStr.ForceKillEmptyLines))
   {
      *static_cast<int *>(Param)=(Data.Options&E_ForceKillEL_On)?1:0;
   }
-  else if(!wstrcmp(szName, XMLStr.AutoWrap))
+  else if(!lstrcmp(szName, XMLStr.AutoWrap))
   {
      *static_cast<int *>(Param)=(Data.Options&E_AutoWrap_On)?1:0;
   }
-  else if(!wstrcmp(szName, XMLStr.Wrap))
+  else if(!lstrcmp(szName, XMLStr.Wrap))
   {
      EditorControl(-1, ECTL_GETINFO, 0, &ei);
      *static_cast<int *>(Param)=CalcWrapPos(Data, ei);
   }
-  else if(!wstrcmp(szName, XMLStr.Justify))
+  else if(!lstrcmp(szName, XMLStr.Justify))
   {
      *static_cast<int *>(Param)=(Data.Options2&E_Wrap_Justify)?1:0;
   }
-  else if(!wstrcmp(szName, XMLStr.eol))
+  else if(!lstrcmp(szName, XMLStr.eol))
   {
      *static_cast<DWORD *>(Param)=Data.EOL;
   }
-  else if(!wstrcmp(szName, XMLStr.Table))
+  else if(!lstrcmp(szName, XMLStr.Table))
   {
      *static_cast<DWORD *>(Param)=Data.Table;
   }
-  else if(!wstrcmp(szName, XMLStr.ProcessKeyEnd))
+  else if(!lstrcmp(szName, XMLStr.ProcessKeyEnd))
   {
      *static_cast<int *>(Param)=(Data.Options&E_ProcessKeyEnd_On)?1:0;
   }
-  else if(!wstrcmp(szName, XMLStr.SmartTab))
+  else if(!lstrcmp(szName, XMLStr.SmartTab))
   {
      *static_cast<int *>(Param)=(Data.Options&E_SmartTab_On)?1:0;
   }
-  else if(!wstrcmp(szName, XMLStr.SmartBackSpace))
+  else if(!lstrcmp(szName, XMLStr.SmartBackSpace))
   {
      *static_cast<int *>(Param)=(Data.Options&E_SmartBackSpace_On)?1:0;
   }
-  else if(!wstrcmp(szName, XMLStr.Lines))
+  else if(!lstrcmp(szName, XMLStr.Lines))
   {
      *static_cast<int *>(Param)=Data.Lines;
   }
-  else if(!wstrcmp(szName, XMLStr.SmartHome))
+  else if(!lstrcmp(szName, XMLStr.SmartHome))
   {
      *static_cast<int *>(Param)=(Data.Options&E_SmartHome_On)?1:0;
   }
-  else if(!wstrcmp(szName, XMLStr.ProcessQuote))
+  else if(!lstrcmp(szName, XMLStr.ProcessQuote))
   {
      *static_cast<int *>(Param)=(Data.Options&E_ProcessQuote_On)?1:0;
   }
-  else if(!wstrcmp(szName, XMLStr.QuoteEOL))
+  else if(!lstrcmp(szName, XMLStr.QuoteEOL))
   {
      *static_cast<int *>(Param)=(Data.Options&E_QuoteEOL_On)?1:0;
   }
-  else if(!wstrcmp(szName, XMLStr.SaveFilePos))
+  else if(!lstrcmp(szName, XMLStr.SaveFilePos))
   {
      *static_cast<int *>(Param)=(Data.Options&E_SaveFilePos_On)?1:
        ((Data.Options&E_SaveFilePos_Off)?0:2);
   }
-  else if(!wstrcmp(szName, XMLStr.LockMode))
+  else if(!lstrcmp(szName, XMLStr.LockMode))
   {
      *static_cast<int *>(Param)=(Data.Options&E_LockMode_On)?1:
        ((Data.Options&E_LockMode_Off)?0:2);
   }
-  else if(!wstrcmp(szName, XMLStr.MinLinesNum))
+  else if(!lstrcmp(szName, XMLStr.MinLinesNum))
   {
      *static_cast<int *>(Param)=Data.MinLinesNum;
   }
-  else if(!wstrcmp(szName, XMLStr.AddSymbol))
+  else if(!lstrcmp(szName, XMLStr.AddSymbol))
   {
     *static_cast<int *>(Param)=(Data.Options&E_AddSymbol_On)?1:0;
   }
-  else if(!wstrcmp(szName, XMLStr.LockFile))
+  else if(!lstrcmp(szName, XMLStr.LockFile))
   {
     *static_cast<int *>(Param)=Data.LockFile.IsOn()?1:0;
   }
-  else if(!wstrcmp(szName, XMLStr.WordSym))
+  else if(!lstrcmp(szName, XMLStr.WordSym))
   {
     *static_cast<int *>(Param)=(Data.Options2&E_WordSym_On)?1:0;
   }
-  else if(!wstrcmp(szName, XMLStr.AlphaNum))
+  else if(!lstrcmp(szName, XMLStr.AlphaNum))
   {
     *static_cast<int *>(Param)=(Data.Options2&E_AlphaNum_On)?1:0;
   }
-  else if(!wstrcmp(szName, XMLStr.Additional) && Param!=NULL)
+  else if(!lstrcmp(szName, XMLStr.Additional) && Param!=NULL)
   {
-    wstrcpy(static_cast<wchar_t *>(Param), Data.AdditionalLetters.str);
+    wcscpy(static_cast<wchar_t *>(Param), Data.AdditionalLetters.str);
   }
-  else if(!wstrcmp(szName, XMLStr.ShowWhiteSpace))
+  else if(!lstrcmp(szName, XMLStr.ShowWhiteSpace))
   {
      *static_cast<int *>(Param)=(Data.Options2&E_Show_White_Space_On)?1:
        ((Data.Options2&E_Show_White_Space_Off)?0:2);
   }
-  else if(!wstrcmp(szName, XMLStr.Bom))
+  else if(!lstrcmp(szName, XMLStr.Bom))
   {
      *static_cast<int *>(Param)=(Data.Options2&E_Bom_On)?1:
        ((Data.Options2&E_Bom_Off)?0:2);
@@ -1506,12 +1464,12 @@ int WINAPI SetEditorOptionW(int EditorID, const wchar_t *szName, void *Param)
   int RetCode=TRUE, RCisFALSEbutApplyIs=FALSE, param=*static_cast<int *>(Param);
   DWORD Type(-1); //EDITOR_SETPARAMETER_TYPES
 
-  if(!wstrcmp(szName, XMLStr.TabSize))
+  if(!lstrcmp(szName, XMLStr.TabSize))
   {
     Data.TabSize=param;
     Type=ESPT_TABSIZE;
   }
-  else if(!wstrcmp(szName, XMLStr.ExpandTabs))
+  else if(!lstrcmp(szName, XMLStr.ExpandTabs))
   {
     Data.Options&=~E_ExpandTabs_On;
     Data.Options&=~E_ExpandTabs_Off;
@@ -1524,7 +1482,7 @@ int WINAPI SetEditorOptionW(int EditorID, const wchar_t *szName, void *Param)
       Data.Options|=E_ExpandTabs_OnlyNew;
     Type=ESPT_EXPANDTABS;
   }
-  else if(!wstrcmp(szName, XMLStr.CursorBEOL))
+  else if(!lstrcmp(szName, XMLStr.CursorBEOL))
   {
     Data.Options&=~E_CursorBeyondEOL_On;
     Data.Options&=~E_CursorBeyondEOL_Off;
@@ -1532,7 +1490,7 @@ int WINAPI SetEditorOptionW(int EditorID, const wchar_t *szName, void *Param)
                   ((param==0)?E_CursorBeyondEOL_Off:0);
     Type=ESPT_CURSORBEYONDEOL;
   }
-  else if(!wstrcmp(szName, XMLStr.AutoIndent))
+  else if(!lstrcmp(szName, XMLStr.AutoIndent))
   {
     Data.Options&=~E_AutoIndent_On;
     Data.Options&=~E_AutoIndent_Off;
@@ -1540,7 +1498,7 @@ int WINAPI SetEditorOptionW(int EditorID, const wchar_t *szName, void *Param)
                   ((param==0)?E_AutoIndent_Off:0);
     Type=ESPT_AUTOINDENT;
   }
-  else if(!wstrcmp(szName, XMLStr.CharCodeBase))
+  else if(!lstrcmp(szName, XMLStr.CharCodeBase))
   {
     Data.Options&=~E_CharCodeBase_Dec;
     Data.Options&=~E_CharCodeBase_Oct;
@@ -1551,7 +1509,7 @@ int WINAPI SetEditorOptionW(int EditorID, const wchar_t *szName, void *Param)
                    );
     Type=ESPT_CHARCODEBASE;
   }
-  else if(!wstrcmp(szName, XMLStr.KillSpaces))
+  else if(!lstrcmp(szName, XMLStr.KillSpaces))
   {
     if(param)
       Data.Options|=E_KillSpaces_On;
@@ -1561,45 +1519,45 @@ int WINAPI SetEditorOptionW(int EditorID, const wchar_t *szName, void *Param)
       Data.Options&=~E_ProcessKeyEnd_On;
     }
   }
-  else if(!wstrcmp(szName, XMLStr.p_Minuses))
+  else if(!lstrcmp(szName, XMLStr.p_Minuses))
   {
     if(param) Data.Options|=E_Process_Minuses_On;
     else      Data.Options&=~E_Process_Minuses_On;
   }
-  else if(!wstrcmp(szName, XMLStr.KillEmptyLines))
+  else if(!lstrcmp(szName, XMLStr.KillEmptyLines))
   {
     if(param) Data.Options|=E_KillEmptyLines_On;
     else      Data.Options&=~E_KillEmptyLines_On;
   }
-  else if(!wstrcmp(szName, XMLStr.ForceKillEmptyLines))
+  else if(!lstrcmp(szName, XMLStr.ForceKillEmptyLines))
   {
     if(param) Data.Options|=E_ForceKillEL_On;
     else      Data.Options&=~E_ForceKillEL_On;
   }
-  else if(!wstrcmp(szName, XMLStr.AutoWrap))
+  else if(!lstrcmp(szName, XMLStr.AutoWrap))
   {
     if(param) Data.Options|=E_AutoWrap_On;
     else      Data.Options&=~E_AutoWrap_On;
   }
-  else if(!wstrcmp(szName, XMLStr.Wrap))
+  else if(!lstrcmp(szName, XMLStr.Wrap))
   {
     Data.Options2&=~E_Wrap_Percent;
     Data.WrapPos=param;
   }
-  else if(!wstrcmp(szName, XMLStr.Justify))
+  else if(!lstrcmp(szName, XMLStr.Justify))
   {
     if(param) Data.Options2|=E_Wrap_Justify;
     else      Data.Options2&=~E_Wrap_Justify;
   }
-  else if(!wstrcmp(szName, XMLStr.eol))
+  else if(!lstrcmp(szName, XMLStr.eol))
   {
     Data.EOL=*static_cast<DWORD*>(Param);
   }
-  else if(!wstrcmp(szName, XMLStr.Table))
+  else if(!lstrcmp(szName, XMLStr.Table))
   {
     Data.Table=*static_cast<DWORD *>(Param);
   }
-  else if(!wstrcmp(szName, XMLStr.ProcessKeyEnd))
+  else if(!lstrcmp(szName, XMLStr.ProcessKeyEnd))
   {
     if(param)
     {
@@ -1616,36 +1574,36 @@ int WINAPI SetEditorOptionW(int EditorID, const wchar_t *szName, void *Param)
     else
       Data.Options&=~E_ProcessKeyEnd_On;
   }
-  else if(!wstrcmp(szName, XMLStr.SmartTab))
+  else if(!lstrcmp(szName, XMLStr.SmartTab))
   {
     if(param) Data.Options|=E_SmartTab_On;
     else      Data.Options&=~E_SmartTab_On;
   }
-  else if(!wstrcmp(szName, XMLStr.SmartBackSpace))
+  else if(!lstrcmp(szName, XMLStr.SmartBackSpace))
   {
     if(param) Data.Options|=E_SmartBackSpace_On;
     else      Data.Options&=~E_SmartBackSpace_On;
   }
-  else if(!wstrcmp(szName, XMLStr.Lines))
+  else if(!lstrcmp(szName, XMLStr.Lines))
   {
     Data.Lines=param;
   }
-  else if(!wstrcmp(szName, XMLStr.SmartHome))
+  else if(!lstrcmp(szName, XMLStr.SmartHome))
   {
     if(param) Data.Options|=E_SmartHome_On;
     else      Data.Options&=~E_SmartHome_On;
   }
-  else if(!wstrcmp(szName, XMLStr.ProcessQuote))
+  else if(!lstrcmp(szName, XMLStr.ProcessQuote))
   {
     if(param) Data.Options|=E_ProcessQuote_On;
     else      Data.Options&=~E_ProcessQuote_On;
   }
-  else if(!wstrcmp(szName, XMLStr.QuoteEOL))
+  else if(!lstrcmp(szName, XMLStr.QuoteEOL))
   {
     if(param) Data.Options|=E_QuoteEOL_On;
     else      Data.Options&=~E_QuoteEOL_On;
   }
-  else if(!wstrcmp(szName, XMLStr.SaveFilePos))
+  else if(!lstrcmp(szName, XMLStr.SaveFilePos))
   {
     Data.Options&=~E_SaveFilePos_On;
     Data.Options&=~E_SaveFilePos_Off;
@@ -1653,7 +1611,7 @@ int WINAPI SetEditorOptionW(int EditorID, const wchar_t *szName, void *Param)
                   ((param==0)?E_SaveFilePos_Off:0);
     Type=ESPT_SAVEFILEPOSITION;
   }
-  else if(!wstrcmp(szName, XMLStr.LockMode))
+  else if(!lstrcmp(szName, XMLStr.LockMode))
   {
     Data.Options&=~E_LockMode_On;
     Data.Options&=~E_LockMode_Off;
@@ -1661,17 +1619,17 @@ int WINAPI SetEditorOptionW(int EditorID, const wchar_t *szName, void *Param)
                   ((param==0)?E_LockMode_Off:0);
     Type=ESPT_LOCKMODE;
   }
-  else if(!wstrcmp(szName, XMLStr.MinLinesNum))
+  else if(!lstrcmp(szName, XMLStr.MinLinesNum))
   {
     Data.MinLinesNum=param;
     Type=ESPT_SAVEFILEPOSITION;
   }
-  else if(!wstrcmp(szName, XMLStr.AddSymbol))
+  else if(!lstrcmp(szName, XMLStr.AddSymbol))
   {
     if(param) Data.Options|=E_AddSymbol_On;
     else      Data.Options&=~E_AddSymbol_On;
   }
-  else if(!wstrcmp(szName, XMLStr.LockFile))
+  else if(!lstrcmp(szName, XMLStr.LockFile))
   {
     if(param)
     {
@@ -1684,24 +1642,24 @@ int WINAPI SetEditorOptionW(int EditorID, const wchar_t *szName, void *Param)
       Data.LockFile.Off();
     }
   }
-  else if(!wstrcmp(szName, XMLStr.WordSym))
+  else if(!lstrcmp(szName, XMLStr.WordSym))
   {
     if(param) Data.Options2|=E_WordSym_On;
     else      Data.Options2&=~E_WordSym_On;
     Type=ESPT_SETWORDDIV;
   }
-  else if(!wstrcmp(szName, XMLStr.AlphaNum))
+  else if(!lstrcmp(szName, XMLStr.AlphaNum))
   {
     if(param) Data.Options2|=E_AlphaNum_On;
     else      Data.Options2&=~E_AlphaNum_On;
     Type=ESPT_SETWORDDIV;
   }
-  else if(!wstrcmp(szName, XMLStr.Additional))
+  else if(!lstrcmp(szName, XMLStr.Additional))
   {
     Data.AdditionalLetters=Param?static_cast<wchar_t*>(Param):L"";
     Type=ESPT_SETWORDDIV;
   }
-  else if(!wstrcmp(szName, XMLStr.ShowWhiteSpace))
+  else if(!lstrcmp(szName, XMLStr.ShowWhiteSpace))
   {
     Data.Options2&=~E_Show_White_Space_On;
     Data.Options2&=~E_Show_White_Space_Off;
@@ -1709,7 +1667,7 @@ int WINAPI SetEditorOptionW(int EditorID, const wchar_t *szName, void *Param)
                   ((param==0)?E_Show_White_Space_Off:0);
     Type=ESPT_SHOWWHITESPACE;
   }
-  else if(!wstrcmp(szName, XMLStr.Bom))
+  else if(!lstrcmp(szName, XMLStr.Bom))
   {
     Data.Options2&=~E_Bom_On;
     Data.Options2&=~E_Bom_Off;

@@ -24,11 +24,10 @@
 
 */
 
+#include <CRT/crt.hpp>
+#include <windows.h>
 #include "xmem.h"
 #include "hash.h"
-#ifndef __myrtl_hpp
- #include <string.h>
-#endif
 
 static unsigned hHashFunc(const wchar_t *Key)
 {
@@ -179,7 +178,7 @@ static int hlRemove(PHashList l,const wchar_t *Key)
 
 static PHashLink hFindLink(PHash h,const wchar_t *Key)
 {
-  return hlFind(&h->pBuckets[hHashFunc(Key) % h->iBucketsNum],Key,wstrlen(Key));
+  return hlFind(&h->pBuckets[hHashFunc(Key) % h->iBucketsNum],Key,lstrlen(Key));
 }
 
 static PHashLink hFindLinkEx(PHash h,const wchar_t *Key,int keylen,unsigned *Index)
@@ -321,7 +320,7 @@ static void hashResize(PHash h)
 PHashLink hashSet(PHash h,const wchar_t *Key,const void* Value)
 {
   unsigned Index;
-  PHashLink link=hFindLinkEx(h,Key,wstrlen(Key),&Index);
+  PHashLink link=hFindLinkEx(h,Key,lstrlen(Key),&Index);
   if(link)
   {
     link->pValue=(void*)Value;

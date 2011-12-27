@@ -20,7 +20,6 @@
 #ifndef __e_options_hpp
 #define __e_options_hpp
 
-#include "myrtl.hpp"
 #include "TList.hpp"
 #include "strcon.hpp"
 #include "CUserMacros.hpp"

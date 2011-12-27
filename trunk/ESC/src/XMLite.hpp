@@ -26,13 +26,10 @@
 #define __XMLITE_HPP__
 #include "xmem.h"
 #include "xmlite.h"
-// #include <string.h>
-// #include <stdio.h>
-// #include <stdlib.h>
-#include "myrtl.hpp"
 #include "mix.hpp"
 #include "syslog.hpp"
 #include "plugin.hpp"
+#include "myrtl.hpp"
 
 extern struct FarStandardFunctions FSF;
 
@@ -83,7 +80,7 @@ protected:
   }
 static inline int __savetofile(void *f,const wchar_t *data,int length)
 {
-  return fwrite(data,length*sizeof(wchar_t),1,(FILE*)f);
+  return (int)fwrite(data,length*sizeof(wchar_t),1,(FILE*)f);
 }
 public:
   typedef PHashLink Iterator;
@@ -133,7 +130,7 @@ public:
 
   int Parse(wchar_t *src)
   {
-    int l=wstrlen(src);
+    int l=lstrlen(src);
     pPool=xmemNewPool((32+l*4)*sizeof(wchar_t));
     pNode=xmlNew(pPool);
     return xmlParse(pPool,pNode,src,0);
@@ -306,7 +303,7 @@ public:
     xmlNewQuery(queryString,&query.query);
     query.node=this;
   }
-  friend class CXMLQuery;
+  friend struct CXMLQuery;
 };
 
 #undef __ATTRCANRETURN_NULL

@@ -20,7 +20,9 @@
 #ifndef __strcon_cpp
 #define __strcon_cpp
 
-#include "myrtl.hpp"
+#include <CRT/crt.hpp>
+#include <stdarg.h>
+#include <windows.h>
 #include "strcon.hpp"
 
 strcon::strcon(const wchar_t *ptr,int size):str(NULL)
@@ -45,12 +47,12 @@ strcon::~strcon()
 
 bool strcon::operator==(const strcon &ptr) const
 {
-  return (str && ptr.str)?!wstrcmp(str,ptr.str):0;
+  return (str && ptr.str)?!lstrcmp(str,ptr.str):0;
 }
 
 bool strcon::operator==(const wchar_t * ptr) const
 {
-  return (str && ptr)?!wstrcmp(str,ptr):0;
+  return (str && ptr)?!lstrcmp(str,ptr):0;
 }
 
 strcon& strcon::operator=(const wchar_t *rhs)
@@ -88,7 +90,7 @@ const strcon& strcon::AddStr(const wchar_t *s, int size)
   if(s)
   {
     if(size<0)
-      size=wstrlen(s);
+      size=lstrlen(s);
 
     if(s>str && s<(str+Len))
     {
@@ -131,7 +133,7 @@ wchar_t *strcon::setStr(const wchar_t *s,int size)
 {
   if(s)
   {
-    unsigned int newLen=wstrlen(s);
+    unsigned int newLen=lstrlen(s);
     if(size>-1 && static_cast<unsigned int>(size)<newLen)
       newLen=size;
     wchar_t *newstr=static_cast<wchar_t*>(malloc((1+newLen)*sizeof(wchar_t)));

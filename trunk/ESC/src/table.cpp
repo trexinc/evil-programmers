@@ -22,10 +22,9 @@
   Only effecient when amount of items it hold is small enough.
 */
 
+#include <CRT/crt.hpp>
 #include "xmem.h"
 #include "table.h"
-// #include <string.h>
-#include "myrtl.hpp"
 
 static PTablePage tpNew(void* Pool,int size)
 {
