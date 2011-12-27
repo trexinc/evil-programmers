@@ -4,10 +4,8 @@ FARDEV = ..\..\..\FAR\fardev
 !endif
 COMMON = $(FARDEV)\plugins\common
 
-NAME = BlockIndent
-LINK_OBJS = $(OBJDIR)\Crapculator.obj $(OBJDIR)\LogicalExpression.obj $(OBJDIR)\NumericalExpression.obj
 NAME = Crapculator
-SRCS = Crapculator.cpp LogicalExpression.cpp NumericalExpression.cpp
+LINK_OBJS = $(OBJDIR)\Crapculator.obj $(OBJDIR)\LogicalExpression.obj $(OBJDIR)\NumericalExpression.obj
 
 NEEDDEFLIB = 1
 NEEDENTRY = 1
