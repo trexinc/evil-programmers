@@ -1,6 +1,10 @@
 History:
 --------
 
+v1.1
+----
+ - Remove scrollbar as it exists in Far 3.0
+
 v1.0
 ----
  + Far 3.0 support.

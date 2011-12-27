@@ -1,0 +1,15 @@
+#path to the Far Manager SVN trunk
+!ifndef FARDEV
+FARDEV = ..\..\..\FAR\fardev
+!endif
+COMMON = $(FARDEV)\plugins\common
+
+NAME = Visualizer
+LINK_OBJS = $(OBJDIR)\Visualizer.obj
+DOCS = Visualizer.lng
+
+!include $(FARDEV)\plugins\makefile_vc_def_inc
+
+!include $(FARDEV)\plugins\makefile_vc_target_inc
+
+$(OBJDIR)\Visualizer.obj: Visualizer.cpp Visualizer.hpp version.hpp $(COMINC)\PluginSettings.hpp $(COMINC)\plugin.hpp

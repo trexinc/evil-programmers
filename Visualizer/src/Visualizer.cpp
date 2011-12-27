@@ -18,6 +18,7 @@
 */
 #include "Visualizer.hpp"
 #include <PluginSettings.hpp>
+#include "version.hpp"
 
 #if defined(__GNUC__)
 #ifdef __cplusplus
@@ -69,7 +70,6 @@ struct Options
   int ShowCrossOn;
   int ShowCursorOn;
   int ShowLineNumbersOn;
-  int ShowScrollbarOn;
   int ShowRightBorder;
   int ShowEOL;
   //int ShowEOF;
@@ -77,7 +77,6 @@ struct Options
   int ShowCross;
   //int ShowCursor;
   //int ShowLineNumbers;
-  int ShowScrollbar;
   int ShowCrossOnTop;
   int ShowTabSymbol;
   int TabSymbol;
@@ -94,8 +93,6 @@ struct Options
   FarColor ColorOfCrossVertical;
   FarColor ColorOfCrossHorizontal;
   FarColor ColorOfCursor;
-  FarColor ColorOfScrollbar;
-  FarColor ColorOfScrollbarPositionMarker;
   FarColor ColorOfBookmarks;
   FarColor ColorOfStackBookmarks;
   //int HotkeyOfCross;
@@ -166,18 +163,6 @@ enum ENUMLineNumbers
 };
 */
 
-enum ENUMScrollbar
-{
-  SCROLLBAR_ON,
-  SCROLLBAR_VARIABLE,
-  SCROLLBAR_FILLBAR,
-  SCROLLBAR_NOBACK,
-  SCROLLBAR_VARIABLENOBACK,
-  SCROLLBAR_FILLBARNOBACK,
-
-  SCROLLBAR_MAX,
-};
-
 const wchar_t *GetMsg(int MsgId)
 {
   return Info.GetMsg(&MainGuid,MsgId);
@@ -232,7 +217,6 @@ void ReadSettings()
   Opt.ShowCrossOn = settings.Get(0,L"ShowCrossOn",1);
   Opt.ShowCursorOn = settings.Get(0,L"ShowCursorOn",1);
   Opt.ShowLineNumbersOn = settings.Get(0,L"ShowLineNumbersOn",1);
-  Opt.ShowScrollbarOn = settings.Get(0,L"ShowScrollbarOn",1);
 
   Opt.ShowRightBorder = settings.Get(0,L"ShowRightBorder",RB_ON);
   Opt.ShowRightBorder%=RB_MAX;
@@ -248,8 +232,6 @@ void ReadSettings()
   //Opt.ShowCursor%=CURSOR_MAX;
   //Opt.ShowLineNumbers = settings.Get(0,L"ShowLineNumbers",LINENUMBERS_ON);
   //Opt.ShowLineNumbers%=LINENUMBERS_MAX;
-  Opt.ShowScrollbar = settings.Get(0,L"ShowScrollbar",SCROLLBAR_ON);
-  Opt.ShowScrollbar%=SCROLLBAR_MAX;
 
   Opt.ShowCrossOnTop = settings.Get(0,L"ShowCrossOnTop",0);
   Opt.ShowTabSymbol = settings.Get(0,L"ShowTabSymbol",0);
@@ -301,14 +283,6 @@ void ReadSettings()
   {
     ConvertColor(&Opt.ColorOfCursor,12);
   }
-  if (settings.Get(0,L"ColorOfScrollbar",&Opt.ColorOfScrollbar,sizeof(Opt.ColorOfScrollbar)) != sizeof(Opt.ColorOfScrollbar))
-  {
-    ConvertColor(&Opt.ColorOfScrollbar,11);
-  }
-  if (settings.Get(0,L"ColorOfScrollbarPositionMarker",&Opt.ColorOfScrollbarPositionMarker,sizeof(Opt.ColorOfScrollbarPositionMarker)) != sizeof(Opt.ColorOfScrollbarPositionMarker))
-  {
-    ConvertColor(&Opt.ColorOfScrollbarPositionMarker,9);
-  }
   if (settings.Get(0,L"ColorOfBookmarks",&Opt.ColorOfBookmarks,sizeof(Opt.ColorOfBookmarks)) != sizeof(Opt.ColorOfBookmarks))
   {
     ConvertColor(&Opt.ColorOfBookmarks,2);
@@ -333,7 +307,6 @@ void WriteSettings()
   settings.Set(0,L"ShowCrossOn",Opt.ShowCrossOn);
   settings.Set(0,L"ShowCursorOn",Opt.ShowCursorOn);
   settings.Set(0,L"ShowLineNumbersOn",Opt.ShowLineNumbersOn);
-  settings.Set(0,L"ShowScrollbarOn",Opt.ShowScrollbarOn);
 
   settings.Set(0,L"ShowRightBorder",Opt.ShowRightBorder);
   settings.Set(0,L"ShowEOL",Opt.ShowEOL);
@@ -342,7 +315,6 @@ void WriteSettings()
   settings.Set(0,L"ShowCross",Opt.ShowCross);
   //settings.Set(0,L"ShowCursor",Opt.ShowCursor);
   //settings.Set(0,L"ShowLineNumbers",Opt.ShowLineNumbers);
-  settings.Set(0,L"ShowScrollbar",Opt.ShowScrollbar);
 
   settings.Set(0,L"ShowCrossOnTop",Opt.ShowCrossOnTop);
   settings.Set(0,L"ShowTabSymbol",Opt.ShowTabSymbol);
@@ -361,8 +333,6 @@ void WriteSettings()
   settings.Set(0,L"ColorOfCrossVertical",&Opt.ColorOfCrossVertical,sizeof(Opt.ColorOfCrossVertical));
   settings.Set(0,L"ColorOfCrossHorizontal",&Opt.ColorOfCrossHorizontal,sizeof(Opt.ColorOfCrossHorizontal));
   settings.Set(0,L"ColorOfCursor",&Opt.ColorOfCursor,sizeof(Opt.ColorOfCursor));
-  settings.Set(0,L"ColorOfScrollbar",&Opt.ColorOfScrollbar,sizeof(Opt.ColorOfScrollbar));
-  settings.Set(0,L"ColorOfScrollbarPositionMarker",&Opt.ColorOfScrollbarPositionMarker,sizeof(Opt.ColorOfScrollbarPositionMarker));
   settings.Set(0,L"ColorOfBookmarks",&Opt.ColorOfBookmarks,sizeof(Opt.ColorOfBookmarks));
   settings.Set(0,L"ColorOfStackBookmarks",&Opt.ColorOfStackBookmarks,sizeof(Opt.ColorOfStackBookmarks));
 }
@@ -371,11 +341,11 @@ void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
 {
   Info->StructSize=sizeof(GlobalInfo);
   Info->MinFarVersion=FARMANAGERVERSION;
-  Info->Version=MAKEFARVERSION(1,0,0,0,VS_RELEASE);
+  Info->Version=PLUGIN_VERSION;
   Info->Guid=MainGuid;
-  Info->Title=L"Visualizer";
-  Info->Description=L"\"Visualize\" otherwise not so easily noticed things in Far's internal editor";
-  Info->Author=L"Alex Yaroslavsky";
+  Info->Title=PLUGIN_NAME;
+  Info->Description=PLUGIN_DESC;
+  Info->Author=PLUGIN_AUTHOR;
 }
 
 void WINAPI SetStartupInfoW(const struct PluginStartupInfo *psi)
@@ -409,8 +379,6 @@ void ConfigColor(struct Options *Opt)
     DLG_CROSSVERTICALCOLOR,
     DLG_CROSSHORIZONTALCOLOR,
     DLG_CURSORCOLOR,
-    DLG_SCROLLBARCOLOR,
-    DLG_SCROLLBARMARKERCOLOR,
     DLG_BOOKMARKSCOLOR,
     DLG_STACKBOOKMARKSCOLOR,
 
@@ -422,7 +390,7 @@ void ConfigColor(struct Options *Opt)
 
   static const struct InitDialogItem PreDialogItems[] =
   {
-    {DI_DOUBLEBOX   ,3  ,1  ,40 ,19 ,0               ,MColorTitle},
+    {DI_DOUBLEBOX   ,3  ,1  ,40 ,17 ,0               ,MColorTitle},
 
     {DI_BUTTON      ,0  ,2  ,0  ,0  ,DIF_CENTERGROUP ,MRightBorderColor},
     {DI_BUTTON      ,0  ,3  ,0  ,0  ,DIF_CENTERGROUP ,MEOLNormalColor},
@@ -435,15 +403,13 @@ void ConfigColor(struct Options *Opt)
     {DI_BUTTON      ,0  ,10 ,0  ,0  ,DIF_CENTERGROUP ,MCrossVerticalColor},
     {DI_BUTTON      ,0  ,11 ,0  ,0  ,DIF_CENTERGROUP ,MCrossHorizontalColor},
     {DI_BUTTON      ,0  ,12 ,0  ,0  ,DIF_CENTERGROUP ,MCursorColor},
-    {DI_BUTTON      ,0  ,13 ,0  ,0  ,DIF_CENTERGROUP ,MScrollbarColor},
-    {DI_BUTTON      ,0  ,14 ,0  ,0  ,DIF_CENTERGROUP ,MScrollbarPositionMarkerColor},
-    {DI_BUTTON      ,0  ,15 ,0  ,0  ,DIF_CENTERGROUP ,MBookmarksColor},
-    {DI_BUTTON      ,0  ,16 ,0  ,0  ,DIF_CENTERGROUP ,MStackBookmarksColor},
+    {DI_BUTTON      ,0  ,13 ,0  ,0  ,DIF_CENTERGROUP ,MBookmarksColor},
+    {DI_BUTTON      ,0  ,14 ,0  ,0  ,DIF_CENTERGROUP ,MStackBookmarksColor},
 
-    {DI_TEXT        ,-1 ,17 ,0  ,0  ,DIF_SEPARATOR   ,-1},
+    {DI_TEXT        ,-1 ,15 ,0  ,0  ,DIF_SEPARATOR   ,-1},
 
-    {DI_BUTTON      ,0  ,18 ,0  ,0  ,DIF_CENTERGROUP ,MOk},
-    {DI_BUTTON      ,0  ,18 ,0  ,0  ,DIF_CENTERGROUP ,MCancel},
+    {DI_BUTTON      ,0  ,16 ,0  ,0  ,DIF_CENTERGROUP ,MOk},
+    {DI_BUTTON      ,0  ,16 ,0  ,0  ,DIF_CENTERGROUP ,MCancel},
   };
   struct FarDialogItem DialogItems[ARRAYSIZE(PreDialogItems)];
 
@@ -458,7 +424,7 @@ void ConfigColor(struct Options *Opt)
 
   while (1)
   {
-    HANDLE hDlg = Info.DialogInit(&MainGuid,&ConfigCologDialogGuid,-1,-1,44,21,NULL,DialogItems,ARRAYSIZE(DialogItems),0,0,NULL,0);
+    HANDLE hDlg = Info.DialogInit(&MainGuid,&ConfigCologDialogGuid,-1,-1,44,19,NULL,DialogItems,ARRAYSIZE(DialogItems),0,0,NULL,0);
     if (hDlg == INVALID_HANDLE_VALUE)
       break;
 
@@ -505,12 +471,6 @@ void ConfigColor(struct Options *Opt)
       case DLG_CURSORCOLOR:
         Info.ColorDialog(&MainGuid,CDF_NONE,&TmpOpt.ColorOfCursor);
         break;
-      case DLG_SCROLLBARCOLOR:
-        Info.ColorDialog(&MainGuid,CDF_NONE,&TmpOpt.ColorOfScrollbar);
-        break;
-      case DLG_SCROLLBARMARKERCOLOR:
-        Info.ColorDialog(&MainGuid,CDF_NONE,&TmpOpt.ColorOfScrollbarPositionMarker);
-        break;
       case DLG_BOOKMARKSCOLOR:
         Info.ColorDialog(&MainGuid,CDF_NONE,&TmpOpt.ColorOfBookmarks);
         break;
@@ -535,7 +495,7 @@ void InitList(struct FarList *List, int Lng, size_t Sel)
   {
     if (Sel == i)
       List->Items[i].Flags = LIF_SELECTED;
-    List->Items[i].Text = GetMsg(Lng+i);
+    List->Items[i].Text = GetMsg(Lng+(int)i);
   }
 }
 
@@ -573,9 +533,6 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
     DLG_LINENUMBERSCHK,
     //DLG_LINENUMBERSCMB,
 
-    DLG_SCROLLBARCHK,
-    DLG_SCROLLBARCMB,
-
     DLG_BOOKMARKSCHK,
     DLG_STACKBOOKMARKSCHK,
 
@@ -588,7 +545,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
 
   static const struct InitDialogItem PreDialogItems[] =
   {
-    {DI_DOUBLEBOX   ,3  ,1  ,62 ,23 ,0          ,MTitle},
+    {DI_DOUBLEBOX   ,3  ,1  ,62 ,21 ,0          ,MTitle},
 
     {DI_CHECKBOX    ,5  ,2  ,0  ,0  ,0          ,MOnOffSwitch},
 
@@ -618,17 +575,14 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
     {DI_CHECKBOX    ,5  ,16 ,0  ,0  ,0          ,MLineNumbers},
     //{DI_COMBOBOX    ,8  ,17 ,60 ,0  ,DIF_DROPDOWNLIST|DIF_LISTAUTOHIGHLIGHT|DIF_LISTNOAMPERSAND, -1},
 
-    {DI_CHECKBOX    ,5  ,17 ,0  ,0  ,0          ,MScrollbar},
-    {DI_COMBOBOX    ,8  ,18 ,60 ,0  ,DIF_DROPDOWNLIST|DIF_LISTAUTOHIGHLIGHT|DIF_LISTNOAMPERSAND, -1},
+    {DI_CHECKBOX    ,5  ,17 ,0  ,0  ,0          ,MBookmarks},
+    {DI_CHECKBOX    ,5  ,18 ,0  ,0  ,0          ,MStackBookmarks},
 
-    {DI_CHECKBOX    ,5  ,19 ,0  ,0  ,0          ,MBookmarks},
-    {DI_CHECKBOX    ,5  ,20 ,0  ,0  ,0          ,MStackBookmarks},
+    {DI_TEXT        ,-1 ,19 ,0  ,0  ,DIF_SEPARATOR   ,-1},
 
-    {DI_TEXT        ,-1 ,21 ,0  ,0  ,DIF_SEPARATOR   ,-1},
-
-    {DI_BUTTON      ,0  ,22 ,0  ,0  ,DIF_CENTERGROUP ,MOk},
-    {DI_BUTTON      ,0  ,22 ,0  ,0  ,DIF_CENTERGROUP ,MCancel},
-    {DI_BUTTON      ,0  ,22 ,0  ,0  ,DIF_CENTERGROUP ,MSetColor},
+    {DI_BUTTON      ,0  ,20 ,0  ,0  ,DIF_CENTERGROUP ,MOk},
+    {DI_BUTTON      ,0  ,20 ,0  ,0  ,DIF_CENTERGROUP ,MCancel},
+    {DI_BUTTON      ,0  ,20 ,0  ,0  ,DIF_CENTERGROUP ,MSetColor},
   };
   struct FarDialogItem DialogItems[ARRAYSIZE(PreDialogItems)];
 
@@ -646,7 +600,6 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
   DialogItems[DLG_CROSSCHK].Selected       = Opt.ShowCrossOn;
   DialogItems[DLG_CURSORCHK].Selected      = Opt.ShowCursorOn;
   DialogItems[DLG_LINENUMBERSCHK].Selected = Opt.ShowLineNumbersOn;
-  DialogItems[DLG_SCROLLBARCHK].Selected   = Opt.ShowScrollbarOn;
 
   DialogItems[DLG_CROSSONTOPCHK].Selected    = Opt.ShowCrossOnTop;
   DialogItems[DLG_TABSHOWSYMBOLCHK].Selected = Opt.ShowTabSymbol;
@@ -670,9 +623,6 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
   struct FarListItem CrossListItems[CROSS_MAX];
   struct FarList CrossList = {ARRAYSIZE(CrossListItems),CrossListItems};
 
-  struct FarListItem ScrollbarListItems[SCROLLBAR_MAX];
-  struct FarList ScrollbarList = {ARRAYSIZE(ScrollbarListItems),ScrollbarListItems};
-
   DialogItems[DLG_OK].Flags |= DIF_DEFAULTBUTTON;
 
   struct Options TmpOpt;
@@ -694,10 +644,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
     InitList(&CrossList,MCrossOn,TmpOpt.ShowCross);
     DialogItems[DLG_CROSSCMB].ListItems=&CrossList;
 
-    InitList(&ScrollbarList,MScrollbarOn,TmpOpt.ShowScrollbar);
-    DialogItems[DLG_SCROLLBARCMB].ListItems=&ScrollbarList;
-
-    HANDLE hDlg = Info.DialogInit(&MainGuid,&ConfigDialogGuid,-1,-1,66,25,NULL,DialogItems,ARRAYSIZE(DialogItems),0,0,NULL,0);
+    HANDLE hDlg = Info.DialogInit(&MainGuid,&ConfigDialogGuid,-1,-1,66,23,NULL,DialogItems,ARRAYSIZE(DialogItems),0,0,NULL,0);
     if (hDlg == INVALID_HANDLE_VALUE)
       break;
 
@@ -716,7 +663,6 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
     TmpOpt.ShowEOL=GetListPos(DLG_EOLCMB);
     TmpOpt.ShowTabs=GetListPos(DLG_TABCMB);
     TmpOpt.ShowCross=GetListPos(DLG_CROSSCMB);
-    TmpOpt.ShowScrollbar=GetListPos(DLG_SCROLLBARCMB);
 
     if (ExitCode==DLG_OK)
     {
@@ -743,8 +689,6 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
       Opt.ShowCursorOn=GetCheck(DLG_CURSORCHK);
 
       Opt.ShowLineNumbersOn=GetCheck(DLG_LINENUMBERSCHK);
-
-      Opt.ShowScrollbarOn=GetCheck(DLG_SCROLLBARCHK);
 
       Opt.ShowBookmarks=GetCheck(DLG_BOOKMARKSCHK);
 
@@ -969,41 +913,12 @@ void VisualizeCursor(int CurLine, int Line, int Column)
   }
 }
 
-void VisualizeScrollbar(int ShowScrollbar, int MarkerPosition, int MarkerPosition2, int MarkerSize, int Line, int LeftPos, int WindowSizeX)
-{
-  static struct EditorConvertPos ecp = {-1, 0, 0};
-  static struct EditorColor ec = __DEF_EDITORCOLOR__;
-  ecp.SrcPos = LeftPos+WindowSizeX-1;
-  Info.EditorControl(-1,ECTL_TABTOREAL,0,&ecp);
-  ec.StartPos = ec.EndPos = ecp.DestPos;
-  if (ShowScrollbar==SCROLLBAR_ON || ShowScrollbar==SCROLLBAR_VARIABLE || ShowScrollbar==SCROLLBAR_FILLBAR)
-  {
-    ec.Color = Opt.ColorOfScrollbar;
-    Info.EditorControl(-1,ECTL_ADDCOLOR,0,&ec);
-  }
-  ec.Color = Opt.ColorOfScrollbarPositionMarker;
-  if (ShowScrollbar==SCROLLBAR_FILLBAR || ShowScrollbar==SCROLLBAR_FILLBARNOBACK)
-  {
-    if (Line <= MarkerPosition)
-      Info.EditorControl(-1,ECTL_ADDCOLOR,0,&ec);
-  }
-  else if (ShowScrollbar==SCROLLBAR_VARIABLE || ShowScrollbar==SCROLLBAR_VARIABLENOBACK)
-  {
-    if (Line >= MarkerPosition2 && Line < MarkerPosition2+MarkerSize)
-      Info.EditorControl(-1,ECTL_ADDCOLOR,0,&ec);
-  }
-  else if (MarkerPosition == Line)
-  {
-    Info.EditorControl(-1,ECTL_ADDCOLOR,0,&ec);
-  }
-}
-
 void VisualizeBookmarks(bool bStack)
 {
   int iBookmarkCount=0;
   if (bStack)
   {
-    iBookmarkCount=Info.EditorControl(-1,ECTL_GETSTACKBOOKMARKS,0,0);
+    iBookmarkCount=(int)Info.EditorControl(-1,ECTL_GETSTACKBOOKMARKS,0,0);
   }
   else
   {
@@ -1037,14 +952,11 @@ int WINAPI ProcessEditorEventW(const struct ProcessEditorEventInfo *EInfo)
 {
   int RightBorder=0;
   int AutoWrap=0;
-  int VisualizerOn=Opt.OnOffSwitch&&(Opt.ShowRightBorderOn||Opt.ShowEOLOn||Opt.ShowEOFOn||Opt.ShowTabsOn||Opt.ShowCrossOn||Opt.ShowCursorOn||Opt.ShowLineNumbersOn||Opt.ShowScrollbarOn);
+  int VisualizerOn=Opt.OnOffSwitch&&(Opt.ShowRightBorderOn||Opt.ShowEOLOn||Opt.ShowEOFOn||Opt.ShowTabsOn||Opt.ShowCrossOn||Opt.ShowCursorOn||Opt.ShowLineNumbersOn);
   struct EditorInfo ei;
   static struct EditorSetPosition esp = {-1, -1, -1, -1, -1, -1};
   static struct EditorGetString egs = {-1, 0, NULL, NULL, 0, 0};
   static struct EditorDeleteColor edc = {sizeof(EditorDeleteColor), MainGuid, -1, -1};
-  int MarkerPosition;
-  int MarkerPosition2;
-  int MarkerSize;
 
   if (EInfo->Event==EE_REDRAW && VisualizerOn)
   {
@@ -1055,41 +967,6 @@ int WINAPI ProcessEditorEventW(const struct ProcessEditorEventInfo *EInfo)
     }
 
     Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
-
-    if (ei.TopScreenLine+ei.WindowSizeY-1<=ei.TotalLines)
-      MarkerPosition = (int)((float)ei.CurLine/(float)ei.TotalLines*(float)ei.WindowSizeY)+ei.TopScreenLine;
-    else
-      MarkerPosition = (int)((float)ei.CurLine/(float)ei.TotalLines*(float)(ei.TotalLines-ei.TopScreenLine+1))+ei.TopScreenLine;
-
-    if (ei.WindowSizeY>=ei.TotalLines)
-    {
-      MarkerSize = ei.TotalLines;
-      MarkerPosition2 = 0;
-    }
-    else
-    {
-      MarkerSize = (int)((float)ei.WindowSizeY/(float)ei.TotalLines*(float)ei.WindowSizeY);
-      if (MarkerSize > ei.WindowSizeY)
-        MarkerSize = ei.WindowSizeY;
-      if (MarkerSize >= ei.WindowSizeY-1 && ei.TotalLines > ei.WindowSizeY)
-        MarkerSize=ei.WindowSizeY-2;
-      if (MarkerSize<=0)
-        MarkerSize=1;
-
-      MarkerPosition2 = MarkerPosition-MarkerSize/2;
-      if (MarkerPosition2<0)
-        MarkerPosition2 = 0;
-      if (MarkerPosition2 < ei.TopScreenLine)
-        MarkerPosition2 = ei.TopScreenLine;
-      if (MarkerPosition2 == ei.TopScreenLine && ei.TopScreenLine != 0)
-        MarkerPosition2 = ei.TopScreenLine+1;
-      if (MarkerPosition2+MarkerSize>=ei.TopScreenLine+ei.WindowSizeY)
-      {
-        MarkerPosition2 = ei.TopScreenLine+ei.WindowSizeY - MarkerSize;
-        if (ei.TopScreenLine+ei.WindowSizeY<ei.TotalLines)
-          MarkerPosition2--;
-      }
-    }
 
     if (GetEditorSettings)
     {
@@ -1123,9 +1000,6 @@ int WINAPI ProcessEditorEventW(const struct ProcessEditorEventInfo *EInfo)
       if (Opt.ShowCrossOn && Opt.ShowCrossOnTop)
         VisualizeCross(Opt.ShowCross,ei.CurLine,ei.CurLine,ei.CurTabPos,ei.LeftPos,ei.WindowSizeX);
 
-      if (Opt.ShowScrollbarOn)
-        VisualizeScrollbar(MarkerPosition,ei.CurLine,ei.LeftPos,ei.WindowSizeX);
-
       if (Opt.ShowCursorOn)
         VisualizeCursor(ei.CurLine,ei.CurLine,ei.CurTabPos);
     }
@@ -1138,7 +1012,7 @@ int WINAPI ProcessEditorEventW(const struct ProcessEditorEventInfo *EInfo)
       {
         nXShift = rcFar.Left; nYShift = rcFar.Top;
       }
-      int limit = min(ei.TopScreenLine+ei.WindowSizeY,ei.TotalLines);
+      int limit = Min(ei.TopScreenLine+ei.WindowSizeY,ei.TotalLines);
       for (int i=ei.TopScreenLine; i<limit; i++)
       {
         //move to next line (this is needed to speed up the editor)
@@ -1173,9 +1047,6 @@ int WINAPI ProcessEditorEventW(const struct ProcessEditorEventInfo *EInfo)
 
         if (Opt.ShowCrossOn && Opt.ShowCrossOnTop)
           VisualizeCross(Opt.ShowCross,i,ei.CurLine,ei.CurTabPos,ei.LeftPos,ei.WindowSizeX);
-
-        if (Opt.ShowScrollbarOn)
-          VisualizeScrollbar(Opt.ShowScrollbar,MarkerPosition,MarkerPosition2,MarkerSize,i,ei.LeftPos,ei.WindowSizeX);
 
         if (Opt.ShowCursorOn)
           VisualizeCursor(i,ei.CurLine,ei.CurTabPos);
