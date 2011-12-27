@@ -1,0 +1,15 @@
+#path to the Far Manager SVN trunk
+!ifndef FARDEV
+FARDEV = ..\..\..\FAR\fardev
+!endif
+COMMON = $(FARDEV)\plugins\common
+
+NAME = esc-tsc-mini
+LINK_OBJS = $(OBJDIR)\esc-tsc-mini.obj
+DOCS = esc-tsc-mini.lng
+
+!include $(FARDEV)\plugins\makefile_vc_def_inc
+
+!include $(FARDEV)\plugins\makefile_vc_target_inc
+
+$(OBJDIR)\esc-tsc-mini.obj: esc-tsc-mini.cpp esc-tsc-lang.hpp version.hpp $(COMINC)\plugin.hpp
