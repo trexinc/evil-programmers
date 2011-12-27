@@ -1,0 +1,15 @@
+#path to the Far Manager SVN trunk
+!ifndef FARDEV
+FARDEV = ..\..\..\FAR\fardev
+!endif
+COMMON = $(FARDEV)\plugins\common
+
+NAME = rewrap
+LINK_OBJS = $(OBJDIR)\rewrap.obj
+DOCS = rewrapen.hlf rewrapru.hlf wrapeng.lng wraprus.lng
+
+!include $(FARDEV)\plugins\makefile_vc_def_inc
+
+!include $(FARDEV)\plugins\makefile_vc_target_inc
+
+$(OBJDIR)\rewrap.obj: rewrap.cpp version.hpp $(COMINC)\plugin.hpp
