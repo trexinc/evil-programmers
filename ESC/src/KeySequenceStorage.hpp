@@ -58,7 +58,7 @@ class KeySequenceStorage
     }
     bool compile(const wchar_t *str, bool silent,DWORD total,BOOL stop,
                  int &Error, strcon &unknownKey);
-    bool IsOK() const { return Sequence.Sequence; }
+    bool IsOK() const { return Sequence.Sequence!=NULL; }
     void Free();
     KeySequenceStorage& operator=(const KeySequenceStorage& Value);
 };

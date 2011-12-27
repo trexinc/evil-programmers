@@ -100,8 +100,6 @@ XMLStrings XMLStr=
   L"margin",L"quote",L"tab",L"value",L"smartkey",L"backspace",L"home",L"kill",L"showwhitespace",L"bom",
 };
 
-#include "InitDialogItem.hpp"
-
 FARAPIEDITORCONTROL EditorControl;
 FARAPIMESSAGE       FarMessage;
 FARSTDTRUNCPATHSTR  TruncPathStr;

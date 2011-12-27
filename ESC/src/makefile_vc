@@ -1,0 +1,39 @@
+#path to the Far Manager SVN trunk
+!ifndef FARDEV
+FARDEV = ..\..\..\FAR\fardev
+!endif
+COMMON = $(FARDEV)\plugins\common
+
+NAME = esc
+LINK_OBJS = $(OBJDIR)\esc.obj $(OBJDIR)\CEditorOptions.obj $(OBJDIR)\CIndicator.obj $(OBJDIR)\CUserMacros.obj \
+            $(OBJDIR)\e_options.obj $(OBJDIR)\hash.obj $(OBJDIR)\KeySequenceStorage.obj $(OBJDIR)\mix.obj \
+            $(OBJDIR)\myrtl.obj $(OBJDIR)\rbtree.obj $(OBJDIR)\SaveAndLoadConfig.obj $(OBJDIR)\strcon.obj \
+            $(OBJDIR)\syslog.obj $(OBJDIR)\table.obj $(OBJDIR)\TArray.obj $(OBJDIR)\xmem.obj \
+            $(OBJDIR)\xmlite.obj $(OBJDIR)\XMLite2.obj
+
+#NEEDDEFLIB = 1
+#NEEDENTRY = 1
+#EXCLUDECRT = 1
+
+!include $(FARDEV)\plugins\makefile_vc_def_inc
+
+!include $(FARDEV)\plugins\makefile_vc_target_inc
+
+$(OBJDIR)\esc.obj: esc.cpp $(COMINC)\plugin.hpp
+$(OBJDIR)\CEditorOptions.obj: CEditorOptions.cpp $(COMINC)\plugin.hpp
+$(OBJDIR)\CIndicator.obj: CIndicator.cpp
+$(OBJDIR)\CUserMacros.obj: CUserMacros.cpp
+$(OBJDIR)\e_options.obj: e_options.cpp
+$(OBJDIR)\hash.obj: hash.cpp
+$(OBJDIR)\KeySequenceStorage.obj: KeySequenceStorage.cpp
+$(OBJDIR)\mix.obj: mix.cpp $(COMINC)\plugin.hpp
+$(OBJDIR)\myrtl.obj: myrtl.cpp $(COMINC)\plugin.hpp
+$(OBJDIR)\rbtree.obj: rbtree.cpp
+$(OBJDIR)\SaveAndLoadConfig.obj: SaveAndLoadConfig.cpp $(COMINC)\plugin.hpp
+$(OBJDIR)\strcon.obj: strcon.cpp
+$(OBJDIR)\syslog.obj: syslog.cpp
+$(OBJDIR)\table.obj: table.cpp
+$(OBJDIR)\TArray.obj: TArray.cpp
+$(OBJDIR)\xmem.obj: xmem.cpp
+$(OBJDIR)\xmlite.obj: xmlite.cpp $(COMINC)\plugin.hpp
+$(OBJDIR)\XMLite2.obj: XMLite2.cpp

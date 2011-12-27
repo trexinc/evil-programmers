@@ -268,11 +268,12 @@ public:
     return *this;
   }
 
+  /*
   Iterator EnumAttrs(Iterator iter,wchar_t *& name,wchar_t *& value)
   {
     if(!iter)tableFirst(pNode->tAttrs);
     return (Iterator)tableNext(pNode->tAttrs,&name,&value);
-  }
+  }*/
 
   void SetContent(const wchar_t *cont)
   {

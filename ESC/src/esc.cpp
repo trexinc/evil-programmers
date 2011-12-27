@@ -22,6 +22,7 @@
 #include "plugin.hpp"
 #include <initguid.h>
 #include "guid.h"
+#include "version.hpp"
 
 #if defined(__GNUC__)
 extern "C"
@@ -168,14 +169,14 @@ void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
 {
   Info->StructSize=sizeof(GlobalInfo);
   Info->MinFarVersion=FARMANAGERVERSION;
-  Info->Version=MAKEFARVERSION(2,6,0,0,VS_RELEASE);
+  Info->Version=PLUGIN_VERSION;
   Info->Guid=MainGuid;
-  Info->Title=L"[ESC]";
-  Info->Description=L"Editor's settings changer";
-  Info->Author=L"Alex Yaroslavsky";
+  Info->Title=PLUGIN_NAME;
+  Info->Description=PLUGIN_DESC;
+  Info->Author=PLUGIN_AUTHOR;
 }
 
-void WINAPI _export SetStartupInfoW(const struct PluginStartupInfo *Info)
+void WINAPI SetStartupInfoW(const struct PluginStartupInfo *Info)
 {
   ::Info=*Info;
   EditorControl=::Info.EditorControl;
@@ -215,7 +216,7 @@ void WINAPI _export SetStartupInfoW(const struct PluginStartupInfo *Info)
   _D(SysLog(L"SetStartupInfo - end (%d)", IsOldFar));
 }
 
-HANDLE WINAPI _export OpenW(const struct OpenInfo*)
+HANDLE WINAPI OpenW(const struct OpenInfo*)
 {
     ReloadSettings(FALSE);
     if(!IsOldFar)
@@ -335,7 +336,7 @@ HANDLE WINAPI _export OpenW(const struct OpenInfo*)
     return INVALID_HANDLE_VALUE;
 }
 
-void WINAPI _export ExitFARW(const struct ExitInfo*)
+void WINAPI ExitFARW(const struct ExitInfo*)
 {
   FreeMem();
   delete ESETStorage;
@@ -377,7 +378,7 @@ INT_PTR WINAPI ConfigDlgProc (HANDLE hDlg, int Msg, int Param1, void* Param2)
              }
              return TRUE;
            case 2:
-             Info.SendDlgMessage(hDlg,DM_ENABLE,6,(void*)(Param2?FALSE:TRUE));
+             Info.SendDlgMessage(hDlg,DM_ENABLE,6,(Param2?(void*)FALSE:(void*)TRUE));
            case 3:
              return TRUE;
            default:
@@ -464,7 +465,7 @@ int WINAPI ConfigureW(const struct ConfigureInfo*)
   return TRUE;
 }
 
-void WINAPI _export GetPluginInfoW(struct PluginInfo *Info)
+void WINAPI GetPluginInfoW(struct PluginInfo *Info)
 {
   if(IsOldFar) return;
   Info->StructSize=sizeof(*Info);
@@ -686,7 +687,7 @@ static int ProcessEditorEventInternal(int Event, void *Param)
   return 0;
 }
 
-int WINAPI _export ProcessEditorEventW(const struct ProcessEditorEventInfo* Info)
+int WINAPI ProcessEditorEventW(const struct ProcessEditorEventInfo* Info)
 {
   return ProcessEditorEventInternal(Info->Event,Info->Param);
 }
@@ -1324,7 +1325,7 @@ EXIT:
     return 0;
 }
 
-int WINAPI _export ProcessEditorInputW(const ProcessEditorInputInfo* Info)
+int WINAPI ProcessEditorInputW(const ProcessEditorInputInfo* Info)
 {
   return ProcessEditorInputInternal(&Info->Rec);
 }
@@ -1333,8 +1334,7 @@ int WINAPI _export ProcessEditorInputW(const ProcessEditorInputInfo* Info)
 extern "C"
 {
 #endif
-int WINAPI _export
-GetEditorSettingsW(int EditorID, const wchar_t *szName, void *Param)
+int WINAPI GetEditorSettingsW(int EditorID, const wchar_t *szName, void *Param)
 {
   if(!szName || !Param || *szName==0 || !NodeData || !ESETStorage)
     return FALSE;
@@ -1492,8 +1492,7 @@ GetEditorSettingsW(int EditorID, const wchar_t *szName, void *Param)
   return RetCode;
 }
 
-int WINAPI _export
-SetEditorOptionW(int EditorID, const wchar_t *szName, void *Param)
+int WINAPI SetEditorOptionW(int EditorID, const wchar_t *szName, void *Param)
 {
   if(!szName || !Param || *szName==0 || !NodeData || !ESETStorage)
     return FALSE;
@@ -1735,7 +1734,7 @@ SetEditorOptionW(int EditorID, const wchar_t *szName, void *Param)
   return RetCode;
 }
 
-BOOL WINAPI _export CreateMultiMacroW(HANDLE *Macro, const wchar_t *Sequence, DWORD total)
+BOOL WINAPI CreateMultiMacroW(HANDLE *Macro, const wchar_t *Sequence, DWORD total)
 {
   if(Macro)
   {
@@ -1752,12 +1751,12 @@ BOOL WINAPI _export CreateMultiMacroW(HANDLE *Macro, const wchar_t *Sequence, DW
   return FALSE;
 }
 
-BOOL WINAPI _export CreateMacroW(HANDLE *Macro, const wchar_t *Sequence)
+BOOL WINAPI CreateMacroW(HANDLE *Macro, const wchar_t *Sequence)
 {
   return CreateMultiMacroW(Macro,Sequence,1);
 }
 
-BOOL WINAPI _export CloneMacroW(const HANDLE Src, HANDLE *Dest)
+BOOL WINAPI CloneMacroW(const HANDLE Src, HANDLE *Dest)
 {
   if(Dest && Src)
   {
@@ -1773,13 +1772,13 @@ BOOL WINAPI _export CloneMacroW(const HANDLE Src, HANDLE *Dest)
   return FALSE;
 }
 
-BOOL WINAPI _export IsMacroOKW(const HANDLE Macro)
+BOOL WINAPI IsMacroOKW(const HANDLE Macro)
 {
   return Macro?
     static_cast<const KeySequenceStorage*>(Macro)->IsOK():FALSE;
 }
 
-void WINAPI _export DeleteMacroW(HANDLE *Macro)
+void WINAPI DeleteMacroW(HANDLE *Macro)
 {
   if(Macro)
   {
@@ -1788,7 +1787,7 @@ void WINAPI _export DeleteMacroW(HANDLE *Macro)
   }
 }
 
-BOOL WINAPI _export PostMacroW(const HANDLE Macro, BOOL silent)
+BOOL WINAPI PostMacroW(const HANDLE Macro, BOOL silent)
 {
    const KeySequenceStorage *Cmd=static_cast<const KeySequenceStorage*>(Macro);
    if(Cmd && Cmd->IsOK())

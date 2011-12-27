@@ -27,7 +27,6 @@
 #include "options.hpp"
 #include "xmlite.hpp"
 #include "lang.hpp"
-#include "InitDialogItem.hpp"
 #include "strcon.hpp"
 #include "TArray.cpp"
 #include "kserror.hpp"

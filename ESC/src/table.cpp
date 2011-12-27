@@ -30,8 +30,8 @@
 static PTablePage tpNew(void* Pool,int size)
 {
   PTablePage p;
-  p=xalloc(Pool,sizeof(*p));
-  p->Values=xalloc(Pool,sizeof(SAttr)*size);
+  p=(PTablePage)xalloc(Pool,sizeof(*p));
+  p->Values=(PAttr)xalloc(Pool,sizeof(SAttr)*size);
   p->iSize=size;
   p->iCount=0;
   p->pNext=0;
@@ -47,7 +47,7 @@ static void tpFree(PTablePage p)
 PTable tableNew(void* Pool,int Flags)
 {
   PTable t;
-  t=xcalloc(Pool,sizeof(*t));
+  t=(PTable)xcalloc(Pool,sizeof(*t));
   t->pFirst=&t->sFirst;
   t->pFirst->iSize=TABLE_PREALLOC;
   t->pFirst->Values=&t->aPreAlloc[0];

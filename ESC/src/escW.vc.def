@@ -1,0 +1,16 @@
+EXPORTS 
+   ConfigureW
+   GetPluginInfoW
+   OpenW
+   SetStartupInfoW
+   ExitFARW
+   ProcessEditorEventW
+   ProcessEditorInputW
+   GetEditorSettingsW
+   SetEditorOptionW
+   CreateMacroW
+   CloneMacroW
+   IsMacroOKW
+   DeleteMacroW
+   PostMacroW
+   GetGlobalInfoW
