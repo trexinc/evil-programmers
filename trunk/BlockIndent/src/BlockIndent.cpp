@@ -16,8 +16,9 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-#include "plugin.hpp"
 #include <CRT/crt.hpp>
+#include "plugin.hpp"
+#include "version.hpp"
 
 #if defined(__GNUC__)
 #ifdef __cplusplus
@@ -61,11 +62,11 @@ void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
 {
   Info->StructSize=sizeof(GlobalInfo);
   Info->MinFarVersion=FARMANAGERVERSION;
-  Info->Version=MAKEFARVERSION(2,3,0,0,VS_RELEASE);
+  Info->Version=PLUGIN_VERSION;
   Info->Guid=MainGuid;
-  Info->Title=L"BlockIndent";
-  Info->Description=L"Indent selected block";
-  Info->Author=L"Alex Yaroslavsky";
+  Info->Title=PLUGIN_NAME;
+  Info->Description=PLUGIN_DESC;
+  Info->Author=PLUGIN_AUTHOR;
 }
 
 void WINAPI SetStartupInfoW(const struct PluginStartupInfo *Info)
