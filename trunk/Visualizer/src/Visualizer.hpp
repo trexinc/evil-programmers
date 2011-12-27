@@ -16,8 +16,8 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-#include "plugin.hpp"
 #include <CRT/crt.hpp>
+#include "plugin.hpp"
 
 extern struct PluginStartupInfo Info;
 extern FARSTANDARDFUNCTIONS FSF;
