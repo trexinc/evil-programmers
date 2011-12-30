@@ -51,17 +51,30 @@ void DoOpenFile(HANDLE aDlg)
   Info.SendDlgMessage(aDlg,DM_GETDLGITEMSHORT,itemID,&DialogItem);
   if(DialogItem.Type==DI_EDIT)
   {
-    TCHAR path[MAX_PATH],filename[MAX_PATH];
-    path[0]=0;
-    if(Info.PanelControl(PANEL_ACTIVE,FCTL_GETPANELDIR,ArraySize(path),path))
-      FSF.AddEndSlash(path);
-    if(open_file_dialog(path,filename))
+    TCHAR filename[MAX_PATH];
+    size_t dirSize=Info.PanelControl(PANEL_ACTIVE,FCTL_GETPANELDIRECTORY,0,NULL);
+    FarPanelDirectory* dirInfo=(FarPanelDirectory*)malloc(dirSize);
+    if(dirInfo)
     {
-      Info.SendDlgMessage(aDlg,DM_SETTEXTPTR,itemID,filename);
-      COORD Pos={0,0};
-      Info.SendDlgMessage(aDlg,DM_SETCURSORPOS,itemID,&Pos);
-      Pos.X=(short)lstrlen(filename);
-      Info.SendDlgMessage(aDlg,DM_SETCURSORPOS,itemID,&Pos);
+      dirInfo->StructSize=sizeof(FarPanelDirectory);
+      Info.PanelControl(PANEL_ACTIVE,FCTL_GETPANELDIRECTORY,dirSize,dirInfo);
+      size_t dirNameSize=(_tcslen(dirInfo->Name)+1);
+      TCHAR* path=(TCHAR*)malloc((dirNameSize+1)*sizeof(TCHAR));
+      if(path)
+      {
+        memcpy(path,dirInfo->Name,dirNameSize*sizeof(TCHAR));
+        FSF.AddEndSlash(path);
+        if(open_file_dialog(path,filename))
+        {
+          Info.SendDlgMessage(aDlg,DM_SETTEXTPTR,itemID,filename);
+          COORD Pos={0,0};
+          Info.SendDlgMessage(aDlg,DM_SETCURSORPOS,itemID,&Pos);
+          Pos.X=(short)lstrlen(filename);
+          Info.SendDlgMessage(aDlg,DM_SETCURSORPOS,itemID,&Pos);
+        }
+        free(path);
+      }
+      free(dirInfo);
     }
   }
 }
