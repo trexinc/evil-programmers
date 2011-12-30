@@ -25,10 +25,6 @@
 // {6FF19CDE-E672-4887-81A0-05D49C96E42D}
 DEFINE_GUID(FileDialogGuid, 0x6ff19cde, 0xe672, 0x4887, 0x81, 0xa0, 0x5, 0xd4, 0x9c, 0x96, 0xe4, 0x2d);
 
-#define malloc(size) HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,size)
-#define free(ptr) ((ptr)?HeapFree(GetProcessHeap(),0,ptr):0)
-#define realloc(ptr,size) ((size)?((ptr)?HeapReAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,ptr,size):HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,size)):(HeapFree(GetProcessHeap(),0,ptr),(void *)0))
-
 typedef struct NMNames
 {
   TCHAR Text[MAX_PATH];
