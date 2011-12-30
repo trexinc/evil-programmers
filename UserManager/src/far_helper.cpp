@@ -85,8 +85,14 @@ CFarPanel::~CFarPanel()
 
 TCHAR* CFarPanel::CurDir(void)
 {
-  Realloc(iCurDir,iCurDirSize,Info.PanelControl(iPlugin,FCTL_GETPANELDIR,0,0));
-  Info.PanelControl(iPlugin,FCTL_GETPANELDIR,iCurDirSize,iCurDir);
+  size_t dirSize=Info.PanelControl(iPlugin,FCTL_GETPANELDIRECTORY,0,NULL);
+  FarPanelDirectory* dirInfo=(FarPanelDirectory*)malloc(dirSize);
+  dirInfo->StructSize=sizeof(FarPanelDirectory);
+  Info.PanelControl(iPlugin,FCTL_GETPANELDIRECTORY,dirSize,dirInfo);
+  size_t dirNameSize=(wcslen(dirInfo->Name)+1)*sizeof(wchar_t);
+  Realloc(iCurDir,iCurDirSize,dirNameSize);
+  memcpy(iCurDir,dirInfo->Name,dirNameSize);
+  free(dirInfo);
   return iCurDir;
 }
 
