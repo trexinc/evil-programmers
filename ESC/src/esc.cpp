@@ -1034,7 +1034,7 @@ static int ProcessEditorInputInternal(const INPUT_RECORD *Rec)
       }
     }
 
-    wchar_t* buff, *buff1, *buff2=NULL, *buff3=NULL;
+    wchar_t* buff, *buff1, *buff1org, *buff2=NULL, *buff3=NULL;
     int buff2TextLength=0;
     int Blank;
     int i;
@@ -1068,7 +1068,7 @@ static int ProcessEditorInputInternal(const INPUT_RECORD *Rec)
         _D(SysLog(L"PEI: ei.CurTabPos=%d, nWrapPos=%d, egs.StringLength=%d",
            ei.CurPos, nWrapPos, egs.StringLength));
         if( ei.CurTabPos>nWrapPos && ei.CurTabPos==egs.StringLength ){ // must be at the end of string
-          buff1=(wchar_t*)malloc(egs.StringLength*sizeof(wchar_t));
+          buff1org=buff1=(wchar_t*)malloc(egs.StringLength*sizeof(wchar_t));
           buff=(wchar_t*)malloc(nWrapPos*sizeof(wchar_t));
           if(buff1 && buff){
             memcpy(buff1,egs.StringText,egs.StringLength*sizeof(wchar_t));
@@ -1273,7 +1273,7 @@ EXIT:
           if(buff3) free(buff3);
           if(buff2 && buff2 != buff) free(buff2);
           if(buff)  free(buff);
-          if(buff1) free(buff1);
+          if(buff1org) free(buff1org);
         }
         // may be here we need to pack the tabs back, if tabs are enabled...
         _D(SysLog(L"PEI: 18 return"));
