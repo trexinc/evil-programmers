@@ -32,6 +32,11 @@ extern void AddStrings(void*,DWORD);
 int
 pipesrv(const char* command)
 {
+	DWORD InMode=0, OutMode=0, ErrMode=0;
+	GetConsoleMode(GetStdHandle(STD_OUTPUT_HANDLE), &OutMode);
+	GetConsoleMode(GetStdHandle(STD_ERROR_HANDLE), &ErrMode);
+	GetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), &InMode);
+
     SECURITY_ATTRIBUTES attr;
     attr.nLength = sizeof(SECURITY_ATTRIBUTES);
     attr.bInheritHandle = TRUE;
@@ -52,6 +57,10 @@ pipesrv(const char* command)
     ReadFromPipe();
 
     CloseHandle(hChildStdoutRd);
+
+	SetConsoleMode(GetStdHandle(STD_OUTPUT_HANDLE), OutMode);
+	SetConsoleMode(GetStdHandle(STD_ERROR_HANDLE), ErrMode);
+	SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), InMode);
 
     return 0;
 }
