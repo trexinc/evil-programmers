@@ -239,7 +239,7 @@ public:
   }
   ~HideCur()
   {
-    SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE),&ci);
+    Restore();
   }
 };
 
@@ -734,7 +734,7 @@ void AddStrings(void* buf, DWORD len)
 {
   char*s = (char*)buf;
   int l=strlen(linebuf);
-  for(int i=0;i<len;i++)
+  for(DWORD i=0;i<len;i++)
   {
     if(s[i]==0x0d || s[i]==0x0a || l>=linebufwidth)
     {
