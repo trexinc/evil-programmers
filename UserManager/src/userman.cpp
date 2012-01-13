@@ -1082,6 +1082,7 @@ int WINAPI ProcessPanelInputW(const struct ProcessPanelInputInfo *anInfo)
     {
       UserManager *anotherpanel=NULL;
       PanelInfo PInfo;
+      PInfo.StructSize=sizeof(PanelInfo);
       if(Info.PanelControl(PANEL_PASSIVE,FCTL_GETPANELINFO,0,&PInfo))
       {
         if(IsEqualGUID(PInfo.OwnerGuid,MainGuid))
