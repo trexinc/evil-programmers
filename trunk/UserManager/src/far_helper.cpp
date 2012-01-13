@@ -74,6 +74,7 @@ DWORD CFarDialog::Type(int index)
 
 CFarPanel::CFarPanel(HANDLE aPlugin,FILE_CONTROL_COMMANDS aCommand): iPlugin(aPlugin),iCurDir(NULL),iCurDirSize(0),iItem(NULL),iItemSize(0)
 {
+  iInfo.StructSize=sizeof(iInfo);
   iResult=Info.PanelControl(aPlugin,aCommand,0,&iInfo);
 }
 
@@ -121,6 +122,7 @@ PluginPanelItem& CFarPanel::Selected(size_t index)
 
 CFarPanelSelection::CFarPanelSelection(HANDLE aPlugin,bool aSelection): iPlugin(aPlugin),iSelection(aSelection),iItem(NULL),iItemSize(0)
 {
+  iInfo.StructSize=sizeof(iInfo);
   iInfo.CurrentItem=0;
   iInfo.SelectedItemsNumber=0;
   Info.PanelControl(aPlugin,FCTL_GETPANELINFO,0,&iInfo);
