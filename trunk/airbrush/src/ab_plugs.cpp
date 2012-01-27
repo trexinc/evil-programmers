@@ -37,7 +37,7 @@ DEFINE_GUID(MessageLoadingGuid, 0x40b98695, 0x3971, 0x4c4c, 0x88, 0xa9, 0xf3, 0x
 struct PluginItem *PluginsData=NULL;
 int PluginsCount=0;
 
-static TCHAR Unknown[20];
+static TCHAR UnknownPluginName[20];
 
 static void WINAPI addcolor(int lno,int start,int len,const struct ABColor* color,enum ColorizePriority priority)
 {
@@ -165,7 +165,7 @@ void LoadPlugs(const TCHAR* ModuleName)
     Info.Message(&MainGuid,&MessageLoadingGuid,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),0);
   }
   TCHAR PluginsFolder[MAX_PATH],PluginsMask[MAX_PATH],*NamePtr;
-  lstrcpy(Unknown,GetMsg(mUnknown));
+  lstrcpy(UnknownPluginName,GetMsg(mUnknown));
   lstrcpy(PluginsFolder,ModuleName);
   NamePtr=(TCHAR*)FSF.PointToName(PluginsFolder);
   lstrcpy(NamePtr,_T("\\Formats\\"));
@@ -265,7 +265,7 @@ void LoadPlugs(const TCHAR* ModuleName)
               }
             }
             if(name) CurPlugin.Name=name;
-            else CurPlugin.Name=Unknown;
+            else CurPlugin.Name=UnknownPluginName;
             if(lstrlen(buff_mask))
               CurPlugin.Mask=(TCHAR*)malloc((lstrlen(buff_mask)+1)*sizeof(TCHAR));
             if(CurPlugin.Mask)

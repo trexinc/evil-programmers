@@ -38,7 +38,7 @@ L = [a-zA-Z_];
 L2 = [_$a-zA-Z0-9];
 */
 
-void WINAPI _export Colorize(int index,struct ColorizeParams *params)
+void WINAPI Colorize(int index,struct ColorizeParams *params)
 {
   const UTCHAR *commentstart;
   const UTCHAR *line;
