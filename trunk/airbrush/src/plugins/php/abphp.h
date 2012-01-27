@@ -24,10 +24,11 @@
 #define HC_NUMBER   5
 #define HC_VAR      6
 
-#define PARSER_CLEAR   0x10
-#define PARSER_COMMENT 0x20
-#define PARSER_STRING1 0x30
-#define PARSER_STRING2 0x40
+#define PARSER_CLEAR    0x10
+#define PARSER_COMMENT1 0x20
+#define PARSER_COMMENT2 0x20
+#define PARSER_STRING1  0x40
+#define PARSER_STRING2  0x50
 
 #define PARSER_PHP     0xf0
 
