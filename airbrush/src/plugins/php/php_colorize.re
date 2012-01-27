@@ -41,7 +41,7 @@ H = [a-fA-F0-9];
 E = [Ee] [+-]? D+;
 ESC1 = [\\] ["\\];
 ESC2 = [\\] ['\\];
-comment = ((("//")|("#")) (((any\"?")*)|(("?" (any\">"))*)));
+comment =("//")|("#");
 */
 
 #define CURR_STATE (state[0]&PARSER_PHP)
@@ -80,16 +80,19 @@ colorize_clear:
     if(yytok) if(params->callback) if(params->callback(0,lno,yytok-line,params->param)) goto colorize_exit;
     yytok=yycur;
     if(params->callback) if(params->callback(1,lno,yytok-line,params->param)) goto colorize_exit;
-    if(CURR_STATE==PARSER_COMMENT) goto colorize_comment;
+    if(CURR_STATE==PARSER_COMMENT1) goto colorize_comment1;
+    if(CURR_STATE==PARSER_COMMENT2) goto colorize_comment2;
     if(CURR_STATE==PARSER_STRING1) goto colorize_string1;
     if(CURR_STATE==PARSER_STRING2) goto colorize_string2;
 /*!re2c
   "/*"
-  { SET_CURR_STATE(PARSER_COMMENT); commentstart=yytok; goto colorize_comment; }
-  comment/(("?>")|([\000] [\U00000000-\U0000ffff]))
+  { SET_CURR_STATE(PARSER_COMMENT1); commentstart=yytok; goto colorize_comment1; }
+  comment/"?>"
   {
     if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_COMMENT,EPriorityNormal); goto colorize_clear;
   }
+  comment
+  { SET_CURR_STATE(PARSER_COMMENT2); commentstart=yytok; goto colorize_comment2; }
   ["]
   { SET_CURR_STATE(PARSER_STRING1); commentstart=yytok; goto colorize_string1; }
   [']
@@ -126,7 +129,7 @@ colorize_clear:
   }
 */
 
-colorize_comment:
+colorize_comment1:
     yytok=yycur;
 /*!re2c
   "*/"
@@ -136,9 +139,23 @@ colorize_comment:
     goto colorize_clear;
   }
   [\000]
-  { if(yytok==yyend) goto colorize_end; goto colorize_comment; }
+  { if(yytok==yyend) goto colorize_end; goto colorize_comment1; }
   any
-  { goto colorize_comment; }
+  { goto colorize_comment1; }
+*/
+colorize_comment2:
+    yytok=yycur;
+/*!re2c
+  any/("?>")
+  {
+    if(lColorize) Info.pAddColor(lno,commentstart-line,yycur-commentstart,colors+HC_COMMENT,EPriorityNormal);
+    SET_CURR_STATE(PARSER_CLEAR);
+    goto colorize_clear;
+  }
+  [\000]
+  { if(yytok==yyend) goto colorize_end; goto colorize_comment2; }
+  any
+  { goto colorize_comment2; }
 */
 colorize_string1:
     yytok=yycur;
@@ -173,10 +190,11 @@ colorize_string2:
   { goto colorize_string2; }
 */
 colorize_end:
-    if(CURR_STATE==PARSER_COMMENT)
+    if(CURR_STATE==PARSER_COMMENT1||CURR_STATE==PARSER_COMMENT2)
       if(lColorize) Info.pAddColor(lno,commentstart-line,yyend-commentstart,colors+HC_COMMENT,EPriorityNormal);
     if((CURR_STATE==PARSER_STRING1)||(CURR_STATE==PARSER_STRING2))
       if(lColorize) Info.pAddColor(lno,commentstart-line,yyend-commentstart,colors+HC_STRING,EPriorityNormal);
+    if(CURR_STATE==PARSER_COMMENT2) SET_CURR_STATE(PARSER_CLEAR);
   }
 colorize_exit:
   PairStackClear(params->LocalHeap,&hl_state);
