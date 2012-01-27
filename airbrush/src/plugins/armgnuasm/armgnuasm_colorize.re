@@ -49,7 +49,7 @@ ARMREGS = ARMREGSCOMMON|'cpsr' ('_'[cfsx])?;
 ARMMEMORY = 'ia'|'ib'|'da'|'db'|'fd'|'ed'|'fa'|'ea';
 */
 
-void WINAPI _export Colorize(int index,struct ColorizeParams *params)
+void WINAPI Colorize(int index,struct ColorizeParams *params)
 {
   const UTCHAR *commentstart;
   const UTCHAR *line;

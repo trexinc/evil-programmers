@@ -133,7 +133,7 @@ static void CallParser(ColorizeParams *params,CallbackParam *data)
   }
 }
 
-void WINAPI _export Colorize(int index,struct ColorizeParams *params)
+void WINAPI Colorize(int index,struct ColorizeParams *params)
 {
   int commentstart,stringstart;
   const TCHAR *line;
@@ -306,7 +306,7 @@ colorize_exit:
   return;
 }
 
-int WINAPI _export GetParams(int index,int command,const char **param)
+int WINAPI GetParams(int index,int command,const char **param)
 {
   switch(command)
   {

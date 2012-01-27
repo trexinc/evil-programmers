@@ -47,7 +47,7 @@ comment =("//")|("#");
 #define CURR_STATE (state[0]&PARSER_PHP)
 #define SET_CURR_STATE(new_state) (state[0]=(state[0]&(~PARSER_PHP))|new_state)
 
-void WINAPI _export Colorize(int index,struct ColorizeParams *params)
+void WINAPI Colorize(int index,struct ColorizeParams *params)
 {
   const UTCHAR *commentstart;
   const UTCHAR *line;

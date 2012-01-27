@@ -686,7 +686,7 @@ int WINAPI SetColorizeInfo(ColorizeInfo *AInfo)
   return true;
 };
 
-void WINAPI _export Colorize(int index,struct ColorizeParams *params)
+void WINAPI Colorize(int index,struct ColorizeParams *params)
 {
   if((index>=rules_count)||(index<0)) return;
   if(!rules[index].contexts_count) return;
@@ -799,17 +799,17 @@ void WINAPI _export Colorize(int index,struct ColorizeParams *params)
   }
 }
 
-unsigned long WINAPI _export GetSyntaxCount(void)
+unsigned long WINAPI GetSyntaxCount(void)
 {
   return rules_count;
 }
 
-void WINAPI _export Exit(void)
+void WINAPI Exit(void)
 {
   free_syntax();
 }
 
-int WINAPI _export GetParams(int index,int command,const char **param)
+int WINAPI GetParams(int index,int command,const char **param)
 {
   switch(command)
   {

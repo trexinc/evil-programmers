@@ -154,7 +154,7 @@ int OnEditorEvent(int event,void *param)
   // ignores
   if(event!=EE_REDRAW) return 0;
 
-  if((int)param)
+  if((INT_PTR)param)
   {
     Info.EditorControl(-1,ECTL_REDRAW,0,0);
     return 0;
@@ -356,7 +356,12 @@ int OnEditorEvent(int event,void *param)
                     SuspendThread(handles[0]);
                     c.ContextFlags=CONTEXT_CONTROL;
                     GetThreadContext(handles[0],&c);
-                    c.Eip=(DWORD)ColorizeThreadExit;
+#ifdef _AMD64_
+                    c.Rip
+#else
+                    c.Eip
+#endif
+                    =(DWORD_PTR)ColorizeThreadExit;
                     SetThreadContext(handles[0],&c);
                     ResumeThread(handles[0]);
                     ReleaseMutex(Mutex);
