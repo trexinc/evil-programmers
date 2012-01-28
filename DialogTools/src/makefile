@@ -16,7 +16,7 @@ SRCS=dt.cpp case.cpp pwd.cpp open_file_dialog.cpp openfiledialog.cpp undo.cpp pa
 DEF=dt$(DIRSURF).def
 OBJS=$(patsubst %.cpp,../$(OBJDIR)/%.o,$(filter %.cpp,$(SRCS)))
 DEPS=$(patsubst %.cpp,../$(OBJDIR)/%.d,$(filter %.cpp,$(SRCS)))
-LIBS=-lcrtdll
+LIBS=-lmsvcrt
 DOCTARGET=../$(BINDIR)/dtEng.lng
 
 all: dirs $(TARGET) $(DOCTARGET)
