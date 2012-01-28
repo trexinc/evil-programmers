@@ -27,7 +27,9 @@ DEFINE_GUID(ACmplGuid, 0xa28f2dc4, 0xc362, 0x4a82, 0xab, 0x2c, 0x0, 0x81, 0x16, 
 
 bool CompareKeys(const INPUT_RECORD* One,const INPUT_RECORD* Two)
 {
-  return (One->EventType==KEY_EVENT&&Two->EventType==KEY_EVENT&&One->Event.KeyEvent.bKeyDown==Two->Event.KeyEvent.bKeyDown&&One->Event.KeyEvent.wVirtualKeyCode==Two->Event.KeyEvent.wVirtualKeyCode&&One->Event.KeyEvent.uChar.UnicodeChar==Two->Event.KeyEvent.uChar.UnicodeChar&&One->Event.KeyEvent.dwControlKeyState==Two->Event.KeyEvent.dwControlKeyState);
+  const DWORD mask=~(CAPSLOCK_ON|NUMLOCK_ON|SCROLLLOCK_ON);
+  DWORD oneControl=One->Event.KeyEvent.dwControlKeyState&mask,twoControl=Two->Event.KeyEvent.dwControlKeyState&mask;
+  return (One->EventType==KEY_EVENT&&Two->EventType==KEY_EVENT&&One->Event.KeyEvent.bKeyDown==Two->Event.KeyEvent.bKeyDown&&One->Event.KeyEvent.wVirtualKeyCode==Two->Event.KeyEvent.wVirtualKeyCode&&One->Event.KeyEvent.uChar.UnicodeChar==Two->Event.KeyEvent.uChar.UnicodeChar&&oneControl==twoControl);
 }
 
 TAutoCompletion::TAutoCompletion()
@@ -129,7 +131,7 @@ int TAutoCompletion::ProcessEditorEvent(int Event,void *Param)
         {
           if(Window->BlockDeleted)
           {
-            if((int)Param==1) Window->BlockDeleted=false;
+            if((INT_PTR)Param==1) Window->BlockDeleted=false;
           }
           else
           {
