@@ -93,7 +93,7 @@ static void restore_state(UndoItem *Data,HANDLE hDlg,int item)
   inside_undo++;
   Info.SendDlgMessage(hDlg,DM_SETTEXTPTR,item,Data->data);
   Info.SendDlgMessage(hDlg,DM_SETCURSORPOS,item,&Data->pos);
-  Info.SendDlgMessage(hDlg,DM_EDITUNCHANGEDFLAG,item,(void*)Data->unchanged);
+  Info.SendDlgMessage(hDlg,DM_EDITUNCHANGEDFLAG,item,(void*)(LONG_PTR)Data->unchanged);
   inside_undo--;
 }
 

@@ -20,6 +20,7 @@
 
 #include "dt.hpp"
 #include <limits.h>
+#include <ntdef.h>
 #include "guid.hpp"
 
 #define t_memchr wmemchr
