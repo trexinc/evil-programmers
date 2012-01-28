@@ -316,11 +316,12 @@ bool UpdateAcl(UserManager *panel,int level,PSID user,int type,DWORD mask,int ac
                   ASD_full=(char *)malloc(ASD_size+dacl_size+sacl_size+owner_size+group_size);
                   if(ASD_full)
                   {
-                    ASD=(PSECURITY_DESCRIPTOR)ASD_full; ASD_full+=ASD_size;
-                    dacl=(PACL)ASD_full; ASD_full+=dacl_size;
-                    sacl=(PACL)ASD_full; ASD_full+=sacl_size;
-                    owner=(PSID)ASD_full; ASD_full+=owner_size;
-                    group=(PSID)ASD_full;
+                    char *ASD_ptr=ASD_full;
+                    ASD=(PSECURITY_DESCRIPTOR)ASD_ptr; ASD_ptr+=ASD_size;
+                    dacl=(PACL)ASD_ptr; ASD_ptr+=dacl_size;
+                    sacl=(PACL)ASD_ptr; ASD_ptr+=sacl_size;
+                    owner=(PSID)ASD_ptr; ASD_ptr+=owner_size;
+                    group=(PSID)ASD_ptr;
                     if(MakeAbsoluteSD(SD,ASD,&ASD_size,dacl,&dacl_size,sacl,&sacl_size,owner,&owner_size,group,&group_size))
                       RealSD=ASD;
                   } //ASD_full
