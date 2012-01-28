@@ -223,7 +223,7 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
     case DM_LISTBOXEX_SETFLAGS:
       if(data)
       {
-        data->Flags=(long)Param2;
+        data->Flags=(LONG_PTR)Param2;
         return_result=TRUE;
       }
       break;
@@ -431,7 +431,7 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
       if(data)
       {
         return_result=data->UserData;
-        data->UserData=(long)Param2;
+        data->UserData=(LONG_PTR)Param2;
       }
       break;
     /*
@@ -461,9 +461,9 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
       }
       break;
     case DM_LISTBOXEX_ITEM_GETFLAGS:
-      if(data&&(long)Param2<data->ItemCount&&(long)Param2>=0)
+      if(data&&(LONG_PTR)Param2<data->ItemCount&&(LONG_PTR)Param2>=0)
       {
-        return_result=data->Items[(long)Param2].Flags;
+        return_result=data->Items[(LONG_PTR)Param2].Flags;
       }
       break;
     case DM_LISTBOXEX_ITEM_SETFLAGS:
@@ -480,30 +480,30 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
       }
       break;
     case DM_LISTBOXEX_ITEM_TOGGLE:
-      if(data&&(long)Param2<data->ItemCount&&(long)Param2>=0)
+      if(data&&(LONG_PTR)Param2<data->ItemCount&&(LONG_PTR)Param2>=0)
       {
-        if(data->Items[(long)Param2].Flags&LIFEX_CHECKED) data->Items[(long)Param2].Flags&=~LIFEX_CHECKED;
-        else data->Items[(long)Param2].Flags|=LIFEX_CHECKED;
+        if(data->Items[(LONG_PTR)Param2].Flags&LIFEX_CHECKED) data->Items[(LONG_PTR)Param2].Flags&=~LIFEX_CHECKED;
+        else data->Items[(LONG_PTR)Param2].Flags|=LIFEX_CHECKED;
         Info.SendDlgMessage(hDlg,DM_REDRAW,0,0);
         return_result=TRUE;
       }
       break;
     case DM_LISTBOXEX_ITEM_MOVE_UP:
-      if(data&&(long)Param2<data->ItemCount&&(long)Param2>0)
+      if(data&&(LONG_PTR)Param2<data->ItemCount&&(LONG_PTR)Param2>0)
       {
-        ListBoxExItem temp_item=data->Items[(long)Param2-1];
-        data->Items[(long)Param2-1]=data->Items[(long)Param2];
-        data->Items[(long)Param2]=temp_item;
+        ListBoxExItem temp_item=data->Items[(LONG_PTR)Param2-1];
+        data->Items[(LONG_PTR)Param2-1]=data->Items[(LONG_PTR)Param2];
+        data->Items[(LONG_PTR)Param2]=temp_item;
         Info.SendDlgMessage(hDlg,DM_REDRAW,0,0);
         return_result=TRUE;
       }
       break;
     case DM_LISTBOXEX_ITEM_MOVE_DOWN:
-      if(data&&(long)Param2<(data->ItemCount-1)&&(long)Param2>=0)
+      if(data&&(LONG_PTR)Param2<(data->ItemCount-1)&&(LONG_PTR)Param2>=0)
       {
-        ListBoxExItem temp_item=data->Items[(long)Param2+1];
-        data->Items[(long)Param2+1]=data->Items[(long)Param2];
-        data->Items[(long)Param2]=temp_item;
+        ListBoxExItem temp_item=data->Items[(LONG_PTR)Param2+1];
+        data->Items[(LONG_PTR)Param2+1]=data->Items[(LONG_PTR)Param2];
+        data->Items[(LONG_PTR)Param2]=temp_item;
         Info.SendDlgMessage(hDlg,DM_REDRAW,0,0);
         return_result=TRUE;
       }
@@ -717,7 +717,7 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
               normalize_curpos(data,direction);
               normalize_top(data,hDlg,Param1);
               Info.SendDlgMessage(hDlg,DM_REDRAW,0,0);
-              if(hotkey) Info.SendDlgMessage(hDlg,DN_LISTBOXEX_HOTKEY,Param1,(void*)data->CurPos);
+              if(hotkey) Info.SendDlgMessage(hDlg,DN_LISTBOXEX_HOTKEY,Param1,(void*)(LONG_PTR)data->CurPos);
               return_flag=true;
               return_result=TRUE;
             }
@@ -754,7 +754,7 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
       return_flag=false;
       break;
   }
-  if(data&&old_curpos!=data->CurPos) Info.SendDlgMessage(hDlg,DN_LISTBOXEX_POSCHANGED,Param1,(void*)data->CurPos);
+  if(data&&old_curpos!=data->CurPos) Info.SendDlgMessage(hDlg,DN_LISTBOXEX_POSCHANGED,Param1,(void*)(LONG_PTR)data->CurPos);
   if(return_flag) return return_result;
   return Info.DefDlgProc(hDlg,Msg,Param1,Param2);
 }
