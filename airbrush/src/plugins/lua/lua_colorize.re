@@ -124,7 +124,9 @@ colorize_clear:
   { state[0].State=PARSER_STRING2; state[0].Level=0; commentstart=yytok; goto colorize_string2; }
   [']
   { state[0].State=PARSER_STRING3; state[0].Level=0; commentstart=yytok; goto colorize_string3; }
-  "+"|"*"|"/"|"%"|"^"|"<"|"#"|"=="|"~="|"<="|">="|"<"|">"|"="|"]>"|";"|":"|","|"."|".."|"..."
+  "+"|"-"|"*"|"/"|"%"|"^"|"#"|
+  "=="|"~="|"<="|">="|"<"|">"|"="|
+  ";"|":"|","|"."|".."|"..."
   {
     if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_KEYWORD1,EPriorityNormal);
     goto colorize_clear;
