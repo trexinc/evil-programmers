@@ -57,7 +57,7 @@ void InitDialogItems(InitDialogItem *Init,FarDialogItem *Item,int ItemsNumber)
     Item[i].Selected=Init[i].Selected;
     Item[i].Flags=Init[i].Flags;
     Item[i].MaxLength=0;
-    if((unsigned)Init[i].Data<2000)
+    if((UINT_PTR)Init[i].Data<2000)
       Item[i].Data=GetMsg((unsigned int)(DWORD_PTR)Init[i].Data);
     else
       Item[i].Data=Init[i].Data;
@@ -220,7 +220,7 @@ static INT_PTR WINAPI MainDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2
               case VK_UP:
                 {
                   FarListPos pos={Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L),-1};
-                  Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_MOVE_UP,1,(void*)pos.SelectPos);
+                  Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_MOVE_UP,1,(void*)(INT_PTR)pos.SelectPos);
                   pos.SelectPos--;
                   Info.SendDlgMessage(hDlg,DM_LISTBOXEX_SETCURPOS,1,&pos);
                 }
@@ -228,7 +228,7 @@ static INT_PTR WINAPI MainDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2
               case VK_DOWN:
                 {
                   FarListPos pos={Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L),-1};
-                  Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_MOVE_DOWN,1,(void*)pos.SelectPos);
+                  Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_MOVE_DOWN,1,(void*)(INT_PTR)pos.SelectPos);
                   pos.SelectPos++;
                   Info.SendDlgMessage(hDlg,DM_LISTBOXEX_SETCURPOS,1,&pos);
                 }

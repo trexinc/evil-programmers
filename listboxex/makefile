@@ -6,7 +6,7 @@ endif
 
 COMINC = $(COMMON)
 
-CFLAGS=-c -march=pentium4 -Os -Wall -I $(COMINC) $(CCWIDE)
+CFLAGS=-c -march=core2 -Os -Wall -I $(COMINC) $(CCWIDE)
 LFLAGS=-s
 LIBS=
 
