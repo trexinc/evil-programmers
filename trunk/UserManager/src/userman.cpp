@@ -631,7 +631,7 @@ int WINAPI GetFindDataW(struct GetFindDataInfo *anInfo)
     else if(panel->level==levelGroups)
     {
       LPBYTE groups=NULL,users=NULL;
-      DWORD entriesread1,totalentries1,resumehandle1=0; //groups
+      DWORD entriesread1,totalentries1; DWORD_PTR resumehandle1=0; //groups
       DWORD entriesread2,totalentries2,resumehandle2=0; //users
       NET_API_STATUS err1,err2;
       if(panel->global)
@@ -734,7 +734,7 @@ int WINAPI GetFindDataW(struct GetFindDataInfo *anInfo)
       LPBYTE members;
       LOCALGROUP_MEMBERS_INFO_1* localMembers=NULL;
       GROUP_USERS_INFO_0* globalMembers=NULL;
-      DWORD entriesread,totalentries,resumehandle=0;
+      DWORD entriesread,totalentries; DWORD_PTR resumehandle=0;
       NET_API_STATUS err;
       if(panel->global)
       {

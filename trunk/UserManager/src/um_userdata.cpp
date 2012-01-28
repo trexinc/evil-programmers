@@ -64,36 +64,36 @@ void AddDefaultUserdata(PluginPanelItem* Item,int level,int sortorder,int itemty
       wcscpy(ptr,wide_name);
     }
     Item->Flags=PPIF_USERDATA;
-    Item->UserData=(DWORD)user_data;
+    Item->UserData=(DWORD_PTR)user_data;
   }
 }
 
-int GetLevelFromUserData(DWORD UserData)
+int GetLevelFromUserData(DWORD_PTR UserData)
 {
   PluginUserData *user_data=(PluginUserData *)UserData;
   return user_data->level;
 }
 
-int GetSortOrderFromUserData(DWORD UserData)
+int GetSortOrderFromUserData(DWORD_PTR UserData)
 {
   PluginUserData *user_data=(PluginUserData *)UserData;
   return user_data->sortorder;
 }
 
-int GetItemTypeFromUserData(DWORD UserData)
+int GetItemTypeFromUserData(DWORD_PTR UserData)
 {
   PluginUserData *user_data=(PluginUserData *)UserData;
   return user_data->itemtype;
 }
 
-PSID GetSidFromUserData(DWORD UserData)
+PSID GetSidFromUserData(DWORD_PTR UserData)
 {
   char *ptr=(char *)UserData;
   PluginUserData *user_data=(PluginUserData *)UserData;
   return (PSID)(ptr+user_data->user_diff);
 }
 
-wchar_t *GetWideNameFromUserData(DWORD UserData)
+wchar_t *GetWideNameFromUserData(DWORD_PTR UserData)
 {
   char *ptr=(char *)UserData;
   PluginUserData *user_data=(PluginUserData *)UserData;

@@ -194,7 +194,7 @@ static void SetAccessMain(unsigned long param,wchar_t *dir,wchar_t *file,int typ
   }
 }
 
-static void RecurceRegAcl(unsigned long param,wchar_t *dir,A2CData *td)
+static void RecurceRegAcl(ULONG_PTR param,wchar_t *dir,A2CData *td)
 {
   HKEY hKey=NULL;
   if(RegOpenBackupKeyExW((HKEY)param,dir,KEY_READ,&hKey)==ERROR_SUCCESS)
@@ -274,7 +274,7 @@ void ProcessChilds(CFarPanel& pInfo)
     //detect registry
     if(pInfo.Plugin())
     {
-      unsigned long param; wchar_t path[MAX_PATH];
+      ULONG_PTR param; wchar_t path[MAX_PATH];
       int level=parse_dir(pInfo.CurDir(),pInfo.Selected(0).FileName,NULL,pathtypePlugin,&param,path,NULL);
       if(level==levelRegRoot)
         registry=true;

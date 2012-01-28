@@ -504,7 +504,7 @@ struct UserManager
   wchar_t *computer_ptr;
   wchar_t computer[MAX_PATH];
   wchar_t domain[MAX_PATH]; //domain server or local path for network files
-  unsigned long param;
+  ULONG_PTR param;
   bool global;
   int level;
   bool error;
@@ -631,18 +631,18 @@ extern void EnablePrivilege(const TCHAR *name);
 extern bool IsPrivilegeEnabled(const TCHAR *name);
 extern bool CheckChDir(HANDLE hPlugin,const TCHAR *NewDir,TCHAR *RealDir,wchar_t *RealDirW,int *level);
 extern void AddDefaultUserdata(PluginPanelItem* Item,int level,int sortorder,int itemtype,PSID sid,const wchar_t* wide_name,const wchar_t* filename);
-extern int GetLevelFromUserData(DWORD UserData);
-extern int GetSortOrderFromUserData(DWORD UserData);
-extern int GetItemTypeFromUserData(DWORD UserData);
-extern PSID GetSidFromUserData(DWORD UserData);
-extern wchar_t *GetWideNameFromUserData(DWORD UserData);
+extern int GetLevelFromUserData(DWORD_PTR UserData);
+extern int GetSortOrderFromUserData(DWORD_PTR UserData);
+extern int GetItemTypeFromUserData(DWORD_PTR UserData);
+extern PSID GetSidFromUserData(DWORD_PTR UserData);
+extern wchar_t *GetWideNameFromUserData(DWORD_PTR UserData);
 extern int NumberType(int num);
 extern PSECURITY_DESCRIPTOR CreateDefaultSD(void);
 extern PACL CreateDefaultAcl(int level);
 extern TCHAR *get_access_string(int level,int mask);
 extern TCHAR *get_sid_string(PSID sid);
 extern void wcsaddendslash(wchar_t *string);
-extern int parse_dir(TCHAR *root_oem,const TCHAR *obj_oem,const wchar_t *obj,int obj_type,unsigned long *param,wchar_t *host,TCHAR *host_oem);
+extern int parse_dir(TCHAR *root_oem,const TCHAR *obj_oem,const wchar_t *obj,int obj_type,ULONG_PTR *param,wchar_t *host,TCHAR *host_oem);
 
 extern LONG RegOpenBackupKeyExW(HKEY hKey,LPCWSTR lpSubKey,REGSAM samDesired,PHKEY phkResult);
 
@@ -701,4 +701,8 @@ extern void free_current_user(void);
 #define IsAlt(rec) static_cast<bool>(((rec)->Event.KeyEvent.dwControlKeyState&ControlKeyAltMask)&&!((rec)->Event.KeyEvent.dwControlKeyState&ControlKeyNonAltMask))
 #define IsNone(rec) static_cast<bool>(((rec)->Event.KeyEvent.dwControlKeyState&ControlKeyAllMask)==0)
 
+#ifdef _AMD64_
+#include <ntstatus.h>
+#else
 #include <ddk/ntifs.h>
+#endif
