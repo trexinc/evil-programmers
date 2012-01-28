@@ -1039,6 +1039,7 @@ void WINAPI GetOpenPanelInfoW(struct OpenPanelInfo *Info)
 
 int WINAPI ProcessPanelInputW(const struct ProcessPanelInputInfo *anInfo)
 {
+  if(anInfo->Rec.EventType!=KEY_EVENT||!anInfo->Rec.Event.KeyEvent.bKeyDown) return FALSE;
   UserManager *panel=(UserManager *)anInfo->hPanel;
   WORD Key=anInfo->Rec.Event.KeyEvent.wVirtualKeyCode;
   if((panel->error)&&(Key!=VK_RETURN)) return TRUE;
