@@ -17,6 +17,7 @@
 */
 
 #include "far_helper.h"
+#include "memory.h"
 
 void Realloc(TCHAR*& aData,int& aLength,int aNewLength)
 {

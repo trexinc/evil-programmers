@@ -12,7 +12,7 @@ BOOTSTRAPDIR=bootstrap$(DIRSURF)
 
 WFLAGS=-ffor-scope -Wall -W -Wno-unused -Wpointer-arith -Winline
 #-Wbad-function-cast
-CFLAGS=-c -mtune=pentium4 -Os $(WFLAGS) -fomit-frame-pointer -fstrict-aliasing -fno-exceptions -fno-rtti -fno-threadsafe-statics $(CCWIDE) -I $(COMINC)
+CFLAGS=-c -mtune=core2 -Os $(WFLAGS) -fomit-frame-pointer -fstrict-aliasing -fno-exceptions -fno-rtti -fno-threadsafe-statics $(CCWIDE) -I $(COMINC)
 LFLAGS=-s
 LIBS=-lnetapi32 -lntdll -lwinspool
 
@@ -25,7 +25,7 @@ MKDIR=mkdir -p
 
 DEF=userman$(DIRSURF).def
 OBJS0=../$(OBJDIR)/far_helper.o
-OBJS1=../$(OBJDIR)/userman.o ../$(OBJDIR)/um_utils.o ../$(OBJDIR)/um_dialogs0.o ../$(OBJDIR)/um_dialogs1.o ../$(OBJDIR)/um_dialogs2.o ../$(OBJDIR)/um_computer.o ../$(OBJDIR)/um_adds.o ../$(OBJDIR)/um_adds_internal.o ../$(OBJDIR)/um_dels.o ../$(OBJDIR)/um_manage_user.o ../$(OBJDIR)/um_manage_group.o ../$(OBJDIR)/um_acl.o ../$(OBJDIR)/um_childs.o ../$(OBJDIR)/um_arrays.o ../$(OBJDIR)/um_config.o
+OBJS1=../$(OBJDIR)/userman.o ../$(OBJDIR)/um_utils.o ../$(OBJDIR)/um_sid_string.o ../$(OBJDIR)/um_dialogs0.o ../$(OBJDIR)/um_dialogs1.o ../$(OBJDIR)/um_dialogs2.o ../$(OBJDIR)/um_computer.o ../$(OBJDIR)/um_adds.o ../$(OBJDIR)/um_adds_internal.o ../$(OBJDIR)/um_dels.o ../$(OBJDIR)/um_manage_user.o ../$(OBJDIR)/um_manage_group.o ../$(OBJDIR)/um_acl.o ../$(OBJDIR)/um_childs.o ../$(OBJDIR)/um_arrays.o ../$(OBJDIR)/um_config.o
 OBJS2=../$(OBJDIR)/um_userdata.o ../$(OBJDIR)/um_sid_cache.o ../$(OBJDIR)/um_current_user.o
 OBJS3=../$(OBJDIR)/userman.res.o
 

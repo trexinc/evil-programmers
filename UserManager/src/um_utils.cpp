@@ -326,25 +326,6 @@ TCHAR *get_access_string(int level,int mask)
   return access_string;
 }
 
-TCHAR *get_sid_string(PSID sid)
-{
-  TCHAR *res=NULL;
-  UNICODE_STRING sid_str;
-  memset(&sid_str,0,sizeof(sid_str));
-  if(!RtlConvertSidToUnicodeString(&sid_str,sid,TRUE))
-  {
-    size_t length=sid_str.Length/sizeof(wchar_t);
-    res=(TCHAR *)malloc((length+1)*sizeof(TCHAR));
-    if(res)
-    {
-      _tcsncpy(res,sid_str.Buffer,length);
-      res[length]=0;
-    }
-    RtlFreeUnicodeString(&sid_str);
-  }
-  return res;
-}
-
 const RegRoot RegRoots[]=
 {
   {L"HKEY_CLASSES_ROOT\\",HKEY_CLASSES_ROOT},
@@ -417,7 +398,7 @@ void wcsaddendslash(wchar_t *string)
   return;
 }
 
-int parse_dir(TCHAR *root_oem,const TCHAR *obj_oem,const wchar_t *obj,int obj_type,unsigned long *param,wchar_t *host,TCHAR *host_oem)
+int parse_dir(TCHAR *root_oem,const TCHAR *obj_oem,const wchar_t *obj,int obj_type,ULONG_PTR *param,wchar_t *host,TCHAR *host_oem)
 {
   int result=-1;
   HANDLE testHandle;
