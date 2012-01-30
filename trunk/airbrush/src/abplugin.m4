@@ -85,13 +85,13 @@ struct ColorizeInfo
 #ifdef __cplusplus
 extern "C" {
 #endif
-  unsigned long WINAPI _export LoadSyntaxModule(char* ModuleName,void* Info);
-  int WINAPI _export SetColorizeInfo(struct ColorizeInfo* AInfo);
-  void WINAPI _export Colorize(int index,struct ColorizeParams* params);
-  int WINAPI  _export Input(const INPUT_RECORD* rec);
-  unsigned long WINAPI _export GetSyntaxCount(void);
-  void WINAPI _export Exit(void);
-  int WINAPI _export GetParams(int index,int command,const char** param);
+  unsigned long WINAPI LoadSyntaxModule(char* ModuleName,void* Info);
+  int WINAPI SetColorizeInfo(struct ColorizeInfo* AInfo);
+  void WINAPI Colorize(int index,struct ColorizeParams* params);
+  int WINAPI Input(const INPUT_RECORD* rec);
+  unsigned long WINAPI GetSyntaxCount(void);
+  void WINAPI Exit(void);
+  int WINAPI GetParams(int index,int command,const char** param);
 #ifdef __cplusplus
 }
 #endif
