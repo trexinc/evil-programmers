@@ -103,11 +103,11 @@ int TAutoCompletion::ProcessEditorInput(const INPUT_RECORD *Rec)
   return IgnoreThisEvent;
 }
 
-int TAutoCompletion::ProcessEditorEvent(int Event,void *Param)
+int TAutoCompletion::ProcessEditorEvent(int Event,void *Param,int EditorID)
 {
   if(Event==EE_CLOSE)
   {
-    avl_window_data Add(*static_cast<int *>(Param));
+    avl_window_data Add(EditorID);
     windows->remove(&Add);
   }
   else if(Event==EE_READ)
