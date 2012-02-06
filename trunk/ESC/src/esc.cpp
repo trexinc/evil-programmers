@@ -440,7 +440,7 @@ void WINAPI GetPluginInfoW(struct PluginInfo *Info)
   Info->PluginConfig.Count=sizeof(PluginConfigStrings)/sizeof(PluginConfigStrings[0]);
 }
 
-static int ProcessEditorEventInternal(int Event, void *Param)
+static int ProcessEditorEventInternal(int Event, void *Param, int EditorID)
 {
   /*#ifdef _DEBUG
   wchar_t *EES[]={"EE_READ","EE_SAVE","EE_REDRAW","EE_CLOSE"};
@@ -635,7 +635,7 @@ static int ProcessEditorEventInternal(int Event, void *Param)
    }
    else if(Event==EE_CLOSE)
    {
-     EditorSettingsStorage ESS(*(int *)Param);
+     EditorSettingsStorage ESS(EditorID);
      Node_<EditorSettingsStorage> *Item=ESETStorage->findNode(ESS);
      if(Item) ESETStorage->deleteNode(Item);
    }
@@ -646,7 +646,7 @@ static int ProcessEditorEventInternal(int Event, void *Param)
 
 int WINAPI ProcessEditorEventW(const struct ProcessEditorEventInfo* Info)
 {
-  return ProcessEditorEventInternal(Info->Event,Info->Param);
+  return ProcessEditorEventInternal(Info->Event,Info->Param,Info->EditorID);
 }
 
 static int ProcessEditorInputInternal(const INPUT_RECORD *Rec)
