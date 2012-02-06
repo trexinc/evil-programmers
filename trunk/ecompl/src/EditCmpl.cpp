@@ -111,7 +111,7 @@ int WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
 
 int WINAPI ProcessEditorEventW(const struct ProcessEditorEventInfo *Info)
 {
-  return ACmpl->ProcessEditorEvent(Info->Event,Info->Param);
+  return ACmpl->ProcessEditorEvent(Info->Event,Info->Param,Info->EditorID);
 }
 
 int WINAPI ProcessEditorInputW(const ProcessEditorInputInfo* Info)

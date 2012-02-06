@@ -59,7 +59,7 @@ class TAutoCompletion: public TCompletion
     TAutoCompletion();
     ~TAutoCompletion();
     int ProcessEditorInput(const INPUT_RECORD *Rec);
-    int ProcessEditorEvent(int Event,void *Param);
+    int ProcessEditorEvent(int Event,void *Param,int EditorID);
     bool CompleteWord(void);
   friend DWORD WINAPI SearchThread(LPVOID lpvThreadParm);
 };
