@@ -109,7 +109,7 @@ extern PEditFile loadfile(int eid,int type);
 extern void OnLoad(void);
 extern void OnExit(void);
 extern void OnConfigure(void);
-extern int OnEditorEvent(int event, void *param);
+extern int OnEditorEvent(int event, void *param,int editorid);
 extern int OnEditorInput(const INPUT_RECORD *Rec);
 
 #define PARSER_CACHESTR 50

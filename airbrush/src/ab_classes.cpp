@@ -135,7 +135,7 @@ void ColorizeThreadExit(void)
 }
 
 // controls editor events
-int OnEditorEvent(int event,void *param)
+int OnEditorEvent(int event,void *param,int editorid)
 {
   static bool stop_colorize=false;
   if(stop_colorize) return 0;
@@ -148,7 +148,7 @@ int OnEditorEvent(int event,void *param)
   // close file
   if(event==EE_CLOSE)
   {
-    ef_deletefile(*(int *)param);
+    ef_deletefile(editorid);
     return 0;
   }
   // ignores
