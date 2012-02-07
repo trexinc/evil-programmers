@@ -93,6 +93,7 @@ struct CEditFile
   StateCache *cache;
   int cachesize;
   int type;
+  int topline;
 };
 
 //struct CEditFile methods

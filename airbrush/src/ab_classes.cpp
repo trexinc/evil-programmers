@@ -17,6 +17,7 @@
 */
 
 #include <tchar.h>
+#include <limits.h>
 #include "plugin.hpp"
 #include "memory.h"
 #include "abplugin.h"
@@ -38,6 +39,7 @@ PEditFile ef_create(bool m)
   result->next=result->prev = result;
   result->cachesize=0;
   result->cache=NULL;
+  result->topline=0;
   return result;
 }
 
@@ -139,10 +141,20 @@ int OnEditorEvent(int event,void *param,int editorid)
 {
   static bool stop_colorize=false;
   if(stop_colorize) return 0;
+  PEditFile curfile=ef_getfile(editorid);
+
+  if(event==EE_CHANGE)
+  {
+    EditorChange* change=(EditorChange*)param;
+    if(curfile&&curfile->topline>change->StringNumber)
+    {
+      curfile->topline=change->StringNumber;
+    }
+    return 0;
+  }
 
   TCHAR* editorfilename;
   const TCHAR* filename;
-  PEditFile curfile;
   EditorInfo ei;
 
   // close file
@@ -153,12 +165,6 @@ int OnEditorEvent(int event,void *param,int editorid)
   }
   // ignores
   if(event!=EE_REDRAW) return 0;
-
-  if((INT_PTR)param)
-  {
-    Info.EditorControl(-1,ECTL_REDRAW,0,0);
-    return 0;
-  };
 
   // search file in list
   Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
@@ -172,7 +178,7 @@ int OnEditorEvent(int event,void *param,int editorid)
   egs.StringNumber=0;
   Info.EditorControl(-1,ECTL_GETSTRING,0,&egs);
 
-  if((!(curfile=ef_getfile(ei.EditorID)))&&Opt.Active&&(ei.TotalLines<=Opt.MaxLines))
+  if((!curfile)&&Opt.Active&&(ei.TotalLines<=Opt.MaxLines))
   {
     TCHAR ini_path[MAX_PATH],ini_type[256];
     lstrcpyn(ini_path,editorfilename,filename-editorfilename+1);
@@ -257,10 +263,11 @@ int OnEditorEvent(int event,void *param,int editorid)
   params.param=NULL;
 
   params.startline=ei.TopScreenLine;
-  if((ei.BlockType!=BTYPE_NONE)&&(ei.BlockStartLine<params.startline))
-    params.startline=ei.BlockStartLine;
+  if(curfile->topline<params.startline)
+    params.startline=curfile->topline;
   params.endline=ei.TopScreenLine+ei.WindowSizeY;
   if(params.endline>ei.TotalLines) params.endline=ei.TotalLines;
+  curfile->topline=INT_MAX;
 
   if(ei.TotalLines>Opt.MaxLines) curfile->type=-1;
   if((curfile->type<0)||(!Opt.Active))
