@@ -1,8 +1,8 @@
-LIBRARY LIBGFL220.DLL
+LIBRARY LIBGFL340.DLL
 
 EXPORTS
  gflGetDefaultLoadParams@4
- gflLoadBitmap@16
+ gflLoadBitmapW@16
  gflChangeColorDepth@16
  gflResize@24
  gflFreeBitmap@4
@@ -13,4 +13,5 @@ EXPORTS
  gflGetNumberOfFormat@0
  gflGetFormatInformationByIndex@8
  gflLibraryExit@0
- gflSetPluginsPathname@4
+ gflSetPluginsPathnameW@4
+ gflRotate@16

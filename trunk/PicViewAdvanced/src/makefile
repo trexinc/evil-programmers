@@ -13,8 +13,8 @@ CP = cp -f
 M4 = m4 -P
 MV = mv -f
 MKDIR = mkdir -p
-CXXFLAGS = -Os -funsigned-char -fomit-frame-pointer -fstrict-aliasing -fno-rtti -fno-exceptions
-LNKFLAGS = -mdll -s -nostartfiles -nodefaultlibs -luser32 -lkernel32 -ladvapi32 -lgdi32 -L ./ -lgfl220
+CXXFLAGS = -Os -funsigned-char -fomit-frame-pointer -fstrict-aliasing -fno-rtti -fno-exceptions -D UNICODE -D _UNICODE
+LNKFLAGS = -mdll -s -nostartfiles -nodefaultlibs -static-libgcc -luser32 -lkernel32 -ladvapi32 -lgdi32 -lmsvcrt -lgcc -L ./ -llibgfl340
 
 all: $(DLLFULLNAME)
 
