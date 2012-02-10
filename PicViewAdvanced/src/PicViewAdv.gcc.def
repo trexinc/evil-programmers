@@ -1,7 +1,8 @@
 EXPORTS
-   Configure=Configure@4
-   ExitFAR=ExitFAR@0
-   GetPluginInfo=GetPluginInfo@4
-   OpenPlugin=OpenPlugin@8
-   SetStartupInfo=SetStartupInfo@4
-   ProcessViewerEvent=ProcessViewerEvent@8
+   ConfigureW=ConfigureW@4
+   ExitFARW=ExitFARW@4
+   GetPluginInfoW=GetPluginInfoW@4
+   OpenW=OpenW@4
+   SetStartupInfoW=SetStartupInfoW@4
+   ProcessViewerEventW=ProcessViewerEventW@4
+   GetGlobalInfoW=GetGlobalInfoW@4
