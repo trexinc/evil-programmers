@@ -15,3 +15,17 @@ EXPORTS
  gflLibraryExit@0
  gflSetPluginsPathnameW@4
  gflRotate@16
+ gflGetDefaultLoadParams
+ gflLoadBitmapW
+ gflChangeColorDepth
+ gflResize
+ gflFreeBitmap
+ gflFreeBitmap
+ gflFreeFileInformation
+ gflLibraryInit
+ gflEnableLZW
+ gflGetNumberOfFormat
+ gflGetFormatInformationByIndex
+ gflLibraryExit
+ gflSetPluginsPathnameW
+ gflRotate

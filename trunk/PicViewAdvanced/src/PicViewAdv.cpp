@@ -20,6 +20,7 @@
 #include "farcolor.hpp"
 #include "plugin.hpp"
 //#include "crt.hpp"
+#include <ntdef.h>
 #include <initguid.h>
 
 // {9F25A250-45D2-45a0-90A3-5686B2A048FA}
