@@ -295,7 +295,7 @@ void FreeImage(DialogData *data)
 void UpdateInfoText(HANDLE hDlg, DialogData *data)
 {
   wchar_t string[512];
-  wchar_t *types[]={L"RGB",L"GREY",L"CMY",L"CMYK",L"YCBCR",L"YUV16",L"LAB",L"LOGLUV",L"LOGL"};
+  const wchar_t* types[]={L"RGB",L"GREY",L"CMY",L"CMYK",L"YCBCR",L"YUV16",L"LAB",L"LOGLUV",L"LOGL"};
   FSF.sprintf(string,GetMsg(MImageInfo),data->pic_info->Width,data->pic_info->Height,data->GDIRect.right,data->GDIRect.bottom,data->pic_info->Xdpi,data->pic_info->Ydpi,data->Page,data->pic_info->NumberOfImages,types[data->pic_info->ColorModel]);
   Info.SendDlgMessage(hDlg,DM_SETTEXTPTR,2,string);
   COORD coord = {0,0};
