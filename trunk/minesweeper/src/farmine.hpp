@@ -19,14 +19,13 @@ enum {
   mConfigPanelsMenu,
   mConfigViewerMenu,
   mConfigEditorMenu,
-  mConfigPreload,
+  mConfigDialogMenu,
   mConfigWonFreq,
   mConfigLoseFreq,
   mConfigSave,
   mConfigCancel,
 };
 
-#define FAR165_INFO_SIZE 336
 #define DM_RESETBOARD DM_USER+1
 #define DM_SHOWTIME DM_USER+2
 #define DM_START_GAME DM_USER+3
@@ -34,22 +33,23 @@ enum {
 
 struct Options
 {
-  DWORD ShowInConfig;
-  DWORD ShowInPanels;
-  DWORD ShowInEditor;
-  DWORD ShowInViewer;
-  DWORD Preload;
-  DWORD WonFreq;
-  DWORD LoseFreq;
+  __int64 ShowInConfig;
+  __int64 ShowInPanels;
+  __int64 ShowInEditor;
+  __int64 ShowInViewer;
+  __int64 ShowInDialog;
+  __int64 WonFreq;
+  __int64 LoseFreq;
 };
 
 extern PluginStartupInfo Info;
 extern FARSTANDARDFUNCTIONS FSF;
-extern char PluginRootKey[80];
-extern bool IsOldFAR;
 extern Options Opt;
 
-extern const char *GetMsg(int MsgId);
+extern const wchar_t* GetMsg(int MsgId);
 extern int Config(void);
+
+#define ControlKeyAllMask (RIGHT_ALT_PRESSED|LEFT_ALT_PRESSED|RIGHT_CTRL_PRESSED|LEFT_CTRL_PRESSED|SHIFT_PRESSED)
+#define IsNone(rec) static_cast<bool>(((rec)->Event.KeyEvent.dwControlKeyState&ControlKeyAllMask)==0)
 
 #endif

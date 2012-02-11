@@ -3,5 +3,5 @@ FAR Mine (version MAJOR.MINOR build BUILD TYPE).
 DATE.
 Game.
 
-Author: ZG
+Author: zg
 E-mail: zg@bmg.lv
