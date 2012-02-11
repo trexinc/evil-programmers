@@ -1,0 +1,7 @@
+LIBRARY
+EXPORTS
+   OpenPlugin=OpenPlugin@8
+   SetStartupInfo=SetStartupInfo@4
+   GetPluginInfo=GetPluginInfo@4
+   GetMinFarVersion=GetMinFarVersion@0
+   Configure=Configure@4

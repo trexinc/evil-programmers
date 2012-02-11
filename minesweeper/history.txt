@@ -1,0 +1,7 @@
+v0.0.2 16-11-2003
+- help.
+- config.
+- sometimes game don't stops on error.
+
+v0.0.1 10-10-2003
+- first version.
