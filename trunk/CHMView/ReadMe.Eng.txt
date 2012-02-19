@@ -1,5 +1,5 @@
 CHMView - list and extract files from CHM/CHI HtmlHelp archives
-Copyright (C) 2002-2005 Alex Yaroslavsky
+Copyright (C) 2002-2012 Alex Yaroslavsky
 Using:
 CHMLib library by Jed Wing (http://66.93.236.84/~jedwin/projects/chmlib/)
 LZX library by Stuart Caie (http://www.kyz.uklinux.net/)
@@ -55,6 +55,10 @@ Legend:  + added
          - removed
          * changed
          ! fixed
+
+v2.0 beta 4 (19/02/12)
+----------------------
+ + Unix support, from Alex Kozlov.
 
 v2.0 beta 3 (07/03/05)
 ----------------------
