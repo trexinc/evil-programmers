@@ -1463,7 +1463,7 @@ DWORD NormalizeControlState(DWORD State)
   if(State&(RIGHT_ALT_PRESSED|LEFT_ALT_PRESSED)) Result|=LEFT_ALT_PRESSED;
   if(State&(RIGHT_CTRL_PRESSED|LEFT_CTRL_PRESSED)) Result|=LEFT_CTRL_PRESSED;
   if(State&SHIFT_PRESSED) Result|=SHIFT_PRESSED;
-  return State;
+  return Result;
 }
 
 #endif // __mix_cpp
