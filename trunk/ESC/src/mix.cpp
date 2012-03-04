@@ -120,7 +120,7 @@ int FARPostMacro(const KeySequence *KS)
   MacroSendMacroText KeyMacro={sizeof(MacroSendMacroText),KS->Flags,{0},KS->Sequence};
   _D(int res=Info.MacroControl(0,MCTL_SENDSTRING,MSSC_POST,&KeyMacro));
   _D(SysLog(L"FARPostMacro: [%s] Flags=%p, ExitCode=%d",
-      KeyMacro.Param.PlainText.SequenceText, KS->Flags, res));
+      KeyMacro.SequenceText, KS->Flags, res));
   _D(return res);
   return (int)Info.MacroControl(0,MCTL_SENDSTRING,MSSC_POST,&KeyMacro);
 }
@@ -1285,7 +1285,9 @@ BOOL CmpWithFileMask(const wchar_t *Mask, const wchar_t *Name, bool SkipPath)
    DWORD Flags=PN_CMPNAMELIST;
    if(SkipPath)
      Flags|=PN_SKIPPATH;
-   return (BOOL)FSF.ProcessName(Mask, const_cast<wchar_t*>(Name), 0, Flags);
+   BOOL Result = (BOOL)FSF.ProcessName(Mask, const_cast<wchar_t*>(Name), 0, Flags);
+   _D(SysLog(L"CmpWithFileMask: %s <> %s => %s", Mask, Name, Result ? L"YES" : L"NO"));
+   return Result;
 }
 
 void ApplyEditorOptions(NODEDATA &Settings, const wchar_t *FileName)

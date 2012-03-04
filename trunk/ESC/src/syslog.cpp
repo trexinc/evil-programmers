@@ -23,7 +23,7 @@
 #include <CRT/crt.hpp>
 #include "syslog.hpp"
 
-#ifdef _DEBUG
+#ifdef DEBUG
 #include <windows.h>
 
 wchar_t SysLogName[MAX_PATH*2];
@@ -38,21 +38,21 @@ void SysLog(const wchar_t *fmt, ...)
   GetLocalTime(&st);
   wsprintf(temp, L"%02d.%02d.%04d %02d:%02d:%02d ",
            st.wDay,st.wMonth,st.wYear,st.wHour,st.wMinute, st.wSecond);
-  static wchar_t *msg=temp+wstrlen(temp);
+  static wchar_t *msg=temp+lstrlen(temp);
 
   va_list argptr;
   va_start(argptr, fmt);
   wvsprintf(msg, fmt, argptr);
   va_end(argptr);
 
-  wstrcat(msg, L"\r\n");
+  lstrcat(msg, L"\r\n");
   HANDLE f =
     CreateFile(SysLogName, GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_ALWAYS,
                FILE_ATTRIBUTE_NORMAL, NULL);
 
   if (f != INVALID_HANDLE_VALUE)
     {
-      DWORD dwBytesToWrite = wstrlen(temp)*sizeof(wchar_t), dwBytesWritten = 0;
+      DWORD dwBytesToWrite = lstrlen(temp)*sizeof(wchar_t), dwBytesWritten = 0;
       DWORD dwPos = SetFilePointer(f, 0, NULL, FILE_END);
 
       LockFile(f, dwPos, 0, dwPos + dwBytesToWrite, 0);
