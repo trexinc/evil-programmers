@@ -48,7 +48,7 @@ void DoReplace(HANDLE aDlg)
         set.Get(_T("CaseSensitive"),c);
         set.Get(_T("SearchFromCurPos"),p);
       }
-      static FarDialogItem DialogItems[]=
+      FarDialogItem DialogItems[]=
       {//       Type            X1 Y1 X2 Y2 Se Fl                                     Data */
        /*00*/ { DI_DOUBLEBOX,   3, 1,55,11, {0},NULL,                       NULL, DIF_BOXCOLOR,                          GetMsg(mReplaceCaption)  ,0,0},
        /*01*/ { DI_TEXT,        5, 2, 0, 2, {0},NULL,                       NULL, 0,                                     GetMsg(mSearch)          ,0,0},
