@@ -1282,6 +1282,7 @@ BOOL GotoHome(const EditorInfo &ei, NODEDATA &nodedata)
 
 BOOL CmpWithFileMask(const wchar_t *Mask, const wchar_t *Name, bool SkipPath)
 {
+   if(0==lstrcmp(Mask,L":abstract:")) return FALSE;
    DWORD Flags=PN_CMPNAMELIST;
    if(SkipPath)
      Flags|=PN_SKIPPATH;
