@@ -20,7 +20,7 @@
 #ifndef __syslog_hpp
 #define __syslog_hpp
 
-#ifdef _DEBUG
+#ifdef DEBUG
  #ifdef __cplusplus
   extern "C"
   {

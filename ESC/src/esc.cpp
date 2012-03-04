@@ -48,7 +48,7 @@ BOOL WINAPI DllMainCRTStartup(HANDLE hDll,DWORD dwReason,LPVOID lpReserved)
 #include "CIndicator.hpp"
 #include "syslog.hpp"
 
-#ifdef _DEBUG
+#ifdef DEBUG
 extern wchar_t SysLogName[MAX_PATH*2];
 #endif
 
@@ -93,6 +93,7 @@ BOOL InitSetsTree(const EditorInfo &EI, const wchar_t *editorfilename)
      nd=NodeData->getItem(i);
      if(CmpWithFileMask(nd->mask.str, editorfilename, (nd->Options&E_SkipPath_On)!=0))
      {
+       _D(SysLog(L"IST: Found: %s", nd->Name.str));
        LastAcceptableType=i;
        if(nd->Options&E_OverLoad_On)
          break;
@@ -442,8 +443,8 @@ void WINAPI GetPluginInfoW(struct PluginInfo *Info)
 
 static int ProcessEditorEventInternal(int Event, void *Param, int EditorID)
 {
-  /*#ifdef _DEBUG
-  wchar_t *EES[]={"EE_READ","EE_SAVE","EE_REDRAW","EE_CLOSE"};
+  /*#ifdef DEBUG
+  wchar_t *EES[]={L"EE_READ",L"EE_SAVE",L"EE_REDRAW",L"EE_CLOSE"};
   if(Event>=EE_READ && Event<=EE_CLOSE)
     SysLog(L"PEE: Event: %s", EES[Event]);
   else
@@ -456,6 +457,7 @@ static int ProcessEditorEventInternal(int Event, void *Param, int EditorID)
    {
     wchar_t *editorfilename = (wchar_t *)malloc(EditorControl(-1, ECTL_GETFILENAME, 0, 0)*sizeof(wchar_t));
     EditorControl(-1, ECTL_GETFILENAME, 0, editorfilename);
+    _D(SysLog(L"PEE: Filename: %s", editorfilename));
     EditorControl(-1, ECTL_GETINFO, 0, &ei);
     if(Event==EE_READ) InitSetsTree(ei,editorfilename);
     EditorSettingsStorage ESS(ei.EditorID);
