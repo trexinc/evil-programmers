@@ -40,7 +40,7 @@ void DoPwd(HANDLE aDlg)
     TCHAR *buffer=(TCHAR *)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,length*sizeof(TCHAR));
     if(buffer)
     {
-      static FarDialogItem DialogItems[] =
+      FarDialogItem DialogItems[] =
       {
         { DI_DOUBLEBOX   ,3  ,1  ,43 ,5 ,{0},NULL,NULL ,0                                 ,GetMsg(mNamePwd)   ,0,0},
         { DI_TEXT        ,5  ,2  ,0  ,0 ,{0},NULL,NULL ,0                                 ,GetMsg(mPwd)       ,0,0},
