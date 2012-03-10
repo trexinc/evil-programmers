@@ -25,10 +25,19 @@
 // {A28F2DC4-C362-4a82-AB2C-0081161171DD}
 DEFINE_GUID(ACmplGuid, 0xa28f2dc4, 0xc362, 0x4a82, 0xab, 0x2c, 0x0, 0x81, 0x16, 0x11, 0x71, 0xdd);
 
-bool CompareKeys(const INPUT_RECORD* One,const INPUT_RECORD* Two)
+static DWORD NormalizeControlState(DWORD State)
 {
-  const DWORD mask=~(CAPSLOCK_ON|NUMLOCK_ON|SCROLLLOCK_ON);
-  DWORD oneControl=One->Event.KeyEvent.dwControlKeyState&mask,twoControl=Two->Event.KeyEvent.dwControlKeyState&mask;
+  DWORD Result=0;
+  if(State&(RIGHT_ALT_PRESSED|LEFT_ALT_PRESSED)) Result|=LEFT_ALT_PRESSED;
+  if(State&(RIGHT_CTRL_PRESSED|LEFT_CTRL_PRESSED)) Result|=LEFT_CTRL_PRESSED;
+  if(State&SHIFT_PRESSED) Result|=SHIFT_PRESSED;
+  if(State&ENHANCED_KEY) Result|=ENHANCED_KEY;
+  return Result;
+}
+
+static bool CompareKeys(const INPUT_RECORD* One,const INPUT_RECORD* Two)
+{
+  DWORD oneControl=NormalizeControlState(One->Event.KeyEvent.dwControlKeyState),twoControl=NormalizeControlState(Two->Event.KeyEvent.dwControlKeyState);
   return (One->EventType==KEY_EVENT&&Two->EventType==KEY_EVENT&&One->Event.KeyEvent.bKeyDown==Two->Event.KeyEvent.bKeyDown&&One->Event.KeyEvent.wVirtualKeyCode==Two->Event.KeyEvent.wVirtualKeyCode&&One->Event.KeyEvent.uChar.UnicodeChar==Two->Event.KeyEvent.uChar.UnicodeChar&&oneControl==twoControl);
 }
 
