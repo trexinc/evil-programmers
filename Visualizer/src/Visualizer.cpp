@@ -588,6 +588,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
 
   InitDialogItems(PreDialogItems,DialogItems,ARRAYSIZE(PreDialogItems));
 
+  int OldOnOffSwitch=Opt.OnOffSwitch;
   ReadSettings();
 
   DialogItems[DLG_ONOFFSWITCH].Flags |= DIF_FOCUS;
@@ -697,6 +698,27 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
       Info.DialogFree(hDlg);
 
       WriteSettings();
+      if (OldOnOffSwitch!=Opt.OnOffSwitch&&!Opt.OnOffSwitch)
+      {
+        int wincount=Info.AdvControl(&MainGuid,ACTL_GETWINDOWCOUNT,0,0);
+        for(int ii=0;ii<wincount;++ii)
+        {
+          WindowInfo wi={sizeof(WindowInfo)};
+          wi.Pos=ii;
+          if(Info.AdvControl(&MainGuid,ACTL_GETWINDOWINFO,0,&wi)&&wi.Type==WTYPE_EDITOR)
+          {
+            EditorInfo ei;
+            EditorDeleteColor edc = {sizeof(EditorDeleteColor), MainGuid, -1, -1};
+            Info.EditorControl(wi.Id,ECTL_GETINFO,0,&ei);
+            int limit = Min(ei.TopScreenLine+ei.WindowSizeY,ei.TotalLines);
+            for (int jj=ei.TopScreenLine; jj<limit; jj++)
+            {
+              edc.StringNumber = jj;
+              Info.EditorControl(wi.Id,ECTL_DELCOLOR,0,&edc);
+            }
+          }
+        }
+      }
 
       Info.EditorControl(-1,ECTL_REDRAW,0,NULL);
 
