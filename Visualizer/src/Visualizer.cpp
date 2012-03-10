@@ -198,10 +198,10 @@ void InitDialogItems(const struct InitDialogItem *Init, struct FarDialogItem *It
 
 void ConvertColor(FarColor *Color, int Bg)
 {
-	Color->Flags = FCF_FG_4BIT|FCF_BG_4BIT;
-	Color->ForegroundColor = 0;
-	Color->BackgroundColor = Bg;
-	Color->Reserved = 0;
+  Color->Flags = FCF_FG_4BIT|FCF_BG_4BIT;
+  Color->ForegroundColor = 0;
+  Color->BackgroundColor = Bg;
+  Color->Reserved = 0;
 }
 
 void ReadSettings()
@@ -918,7 +918,7 @@ void VisualizeBookmarks(bool bStack)
   int iBookmarkCount=0;
   if (bStack)
   {
-    iBookmarkCount=(int)Info.EditorControl(-1,ECTL_GETSTACKBOOKMARKS,0,0);
+    iBookmarkCount=(int)Info.EditorControl(-1,ECTL_GETSESSIONBOOKMARKS,0,0);
   }
   else
   {
@@ -929,7 +929,7 @@ void VisualizeBookmarks(bool bStack)
   if (iBookmarkCount)
   {
     EditorBookMarks bm = {new int[iBookmarkCount],new int[iBookmarkCount],0,0,{0}};
-    if (Info.EditorControl(-1,bStack?ECTL_GETSTACKBOOKMARKS:ECTL_GETBOOKMARKS,0,&bm))
+    if (Info.EditorControl(-1,bStack?ECTL_GETSESSIONBOOKMARKS:ECTL_GETBOOKMARKS,0,&bm))
     {
       for (int i=0;i<iBookmarkCount;i++)
       {
