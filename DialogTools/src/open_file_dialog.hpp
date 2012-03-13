@@ -32,8 +32,6 @@ bool open_file_dialog(const TCHAR *curr_dir,TCHAR *filename);
 #define IsCtrl(rec) static_cast<bool>(((rec)->Event.KeyEvent.dwControlKeyState&ControlKeyCtrlMask)&&!((rec)->Event.KeyEvent.dwControlKeyState&ControlKeyNonCtrlMask))
 #define IsNone(rec) static_cast<bool>(((rec)->Event.KeyEvent.dwControlKeyState&ControlKeyAllMask)==0)
 
-#define malloc(size) HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,size)
-#define free(ptr) ((ptr)?HeapFree(GetProcessHeap(),0,ptr):0)
-#define realloc(ptr,size) ((size)?((ptr)?HeapReAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,ptr,size):HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,size)):(HeapFree(GetProcessHeap(),0,ptr),(void *)0))
+#include "memory.hpp"
 
 #endif /* __OPEN_FILE_DIALOG_HPP__ */

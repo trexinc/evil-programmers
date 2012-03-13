@@ -22,6 +22,7 @@
 #include <limits.h>
 #include <ntdef.h>
 #include "guid.hpp"
+#include "memory.hpp"
 
 #define t_memchr wmemchr
 
@@ -34,7 +35,7 @@ enum
   CCCyclic
 };
 
-TCHAR WordDiv[80];
+static TCHAR* WordDiv;
 int WordDivLen;
 __int64 ProcessWholeLine=1;
 
@@ -47,14 +48,33 @@ int ChangeCase(TCHAR *NewString, int Start, int End, int CCType);
 // What we consider as letter
 BOOL MyIsAlpha(TCHAR c)
 {
-  return (t_memchr(WordDiv,c,WordDivLen)==NULL ? TRUE : FALSE);
+  return ((WordDiv&&t_memchr(WordDiv,c,WordDivLen)==NULL) ? TRUE : FALSE);
 }
 
 void InitCase(void)
 {
-  WordDivLen=Info.AdvControl(&MainGuid,ACTL_GETSYSWORDDIV,0,WordDiv);
-  WordDivLen+=sizeof(" \n\r\t");
-  _tcscat(WordDiv,_T(" \n\r\t"));
+  FarSettingsCreate settings={sizeof(FarSettingsCreate),FarGuid,INVALID_HANDLE_VALUE};
+  HANDLE Settings=::Info.SettingsControl(INVALID_HANDLE_VALUE,SCTL_CREATE,0,&settings)?settings.Handle:0;
+  if(Settings)
+  {
+    FarSettingsItem item={FSSF_EDITOR,L"WordDiv",FST_UNKNOWN,{0}};
+    if(::Info.SettingsControl(Settings,SCTL_GET,0,&item)&&FST_STRING==item.Type)
+    {
+      WordDivLen=lstrlen(item.String)+sizeof(" \n\r\t");
+      WordDiv=(TCHAR*)malloc((WordDivLen+1)*sizeof(TCHAR));
+      if(WordDiv)
+      {
+        _tcscpy(WordDiv,item.String);
+        _tcscat(WordDiv,_T(" \n\r\t"));
+      }
+    }
+    ::Info.SettingsControl(Settings,SCTL_FREE,0,0);
+  }
+}
+
+void FinishCase(void)
+{
+  free(WordDiv);
 }
 
 void DoCase(HANDLE aDlg)

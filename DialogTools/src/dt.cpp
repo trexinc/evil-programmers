@@ -111,6 +111,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *anInfo)
 
 void WINAPI ExitFARW(const struct ExitInfo *Info)
 {
+  FinishCase();
   FinishUndo();
 }
 
