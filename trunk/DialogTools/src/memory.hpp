@@ -1,6 +1,6 @@
 /*
-    guid.hpp
-    Copyright (C) 2010 zg
+    memory.hpp
+    Copyright (C) 2012 zg
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,16 +16,11 @@
     along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __GUID_HPP__
-#define __GUID_HPP__
+#ifndef __MEMORY_HPP__
+#define __MEMORY_HPP__
 
-// {00000000-0000-0000-0000-000000000000}
-DEFINE_GUID(FarGuid,0,0,0,0,0,0,0,0,0,0,0);
-// {B2EC2264-0F55-4b86-87F7-F1392B8FC5DC}
-DEFINE_GUID(MainGuid, 0xb2ec2264, 0xf55, 0x4b86, 0x87, 0xf7, 0xf1, 0x39, 0x2b, 0x8f, 0xc5, 0xdc);
-// {7847FE2F-80BC-4994-A078-7F0980139F7A}
-DEFINE_GUID(CaseMenuGuid, 0x7847fe2f, 0x80bc, 0x4994, 0xa0, 0x78, 0x7f, 0x9, 0x80, 0x13, 0x9f, 0x7a);
-// {2C8079B1-5F14-4a95-B7EC-723C4CA049AA}
-DEFINE_GUID(UndoMenuGuid, 0x2c8079b1, 0x5f14, 0x4a95, 0xb7, 0xec, 0x72, 0x3c, 0x4c, 0xa0, 0x49, 0xaa);
+#define malloc(size) HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,size)
+#define free(ptr) ((ptr)?HeapFree(GetProcessHeap(),0,ptr):0)
+#define realloc(ptr,size) ((size)?((ptr)?HeapReAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,ptr,size):HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,size)):(HeapFree(GetProcessHeap(),0,ptr),(void *)0))
 
 #endif

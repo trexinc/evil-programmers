@@ -67,6 +67,7 @@ extern PluginStartupInfo Info;
 extern FARSTANDARDFUNCTIONS FSF;
 extern TCHAR PluginRootKey[];
 extern const TCHAR* GetMsg(int MsgId);
+extern void FinishCase(void);
 extern void DoCase(HANDLE aDlg);
 extern void InitCase(void);
 extern void DoPwd(HANDLE aDlg);
