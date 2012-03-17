@@ -5,7 +5,7 @@ include syntaxes\\sh.syntax
 include syntaxes\\rc.syntax
 include syntaxes\\cmd.syntax
 include syntaxes\\cl.syntax
-include syntaxes\\xml.syntax
+#include syntaxes\\xml.syntax
 include syntaxes\\ps.syntax
 include syntaxes\\asm.syntax
 include syntaxes\\gnuasm.syntax
