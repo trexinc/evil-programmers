@@ -34,15 +34,9 @@ typedef unsigned short UTCHAR;
 
 /*!re2c
 any                     = [\U00000001-\U0000ffff];
-xmlvalid                = [\U00000009\U00000020-\U0000dfff\U0000e000-\U0000fffd];
 
 Digit                   = [0-9];
-LCLetter                = [a-z];
-Special                 = ['()_,\-\./:=?];
-UCLetter                = [A-Z];
 
-LCNMCHAR                = [\.-];
-UCNMCHAR                = [\.-:_];
 RE                      = "\n";
 RS                      = "\r";
 SEPCHAR                 = "\011";
@@ -67,18 +61,12 @@ REFC                    = ";";
 STAGO                   = "<";
 TAGC                    = ">";
 
-name0start0character    = (LCLetter)|(UCLetter);
-name0character          = (name0start0character)|(Digit)|(LCNMCHAR)|(UCNMCHAR);
-
-/*
-name0start0character    = xmlvalid;
-name0character          = xmlvalid;
-*/
+name0start0character    = [:A-Z_a-z\U000000c0-\U000002ff\U00000370-\U0000037d\U0000037f-\U00002027\U0000202a-\U0000218f\U00002800-\U0000d7ff\U0000e000-\U0000fdcf\U0000fde0-\U0000ffef];
+name0character          = (name0start0character)|[-.0-9\U000000b7\U00000300-\U0000036f];
 
 name                    = (name0start0character) (name0character)*;
 number                  = (Digit)+;
 number0token            = (Digit) (name0character)*;
-name0token              = (name0character)+;
 s                       = (SPACE)|(RE)|(RS)|(SEPCHAR);
 ps                      = ((SPACE)|(RE)|(RS)|(SEPCHAR))+;
 ws                      = ((SPACE)|(RE)|(RS)|(SEPCHAR))*;
@@ -409,12 +397,6 @@ colorize_values:
     goto colorize_values;
   }
   /*work around end*/
-  name0token ws
-  {
-    if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_ATTRVALUE,EPriorityNormal);
-    state[0]=PARSER_OPENTAG;
-    goto colorize_opentag;
-  }
   "\""
   {
     state[0]=PARSER_STRING1;
