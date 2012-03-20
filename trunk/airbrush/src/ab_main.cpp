@@ -54,7 +54,6 @@ DEFINE_GUID(Config7MenuGuid, 0x83992d56, 0xb22b, 0x417a, 0xa3, 0x92, 0xa1, 0x7f,
 PluginStartupInfo Info;
 FARSTANDARDFUNCTIONS FSF;
 HANDLE Mutex=NULL;
-int cursor_row=-1,cursor_col=-1;
 
 struct Options Opt={true,50000,true};
 bool fatal;

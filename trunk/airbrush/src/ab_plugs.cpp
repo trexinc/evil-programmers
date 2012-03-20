@@ -80,12 +80,8 @@ static void WINAPI delcolor(int lno)
 static const TCHAR WINAPI *getline(int lno,int *len)
 {
   EditorGetString egs;
-  EditorSetPosition esp;
-  esp.CurPos=-1; esp.CurTabPos=-1; esp.TopScreenLine=-1; esp.LeftPos=-1; esp.Overtype=-1;
-  egs.StringNumber=-1;
-  esp.CurLine=lno;
+  egs.StringNumber=lno;
   WaitForSingleObject(Mutex,INFINITE);
-  Info.EditorControl(-1,ECTL_SETPOSITION,0,&esp);
   Info.EditorControl(-1,ECTL_GETSTRING,0,&egs);
   ReleaseMutex(Mutex);
   if(len)
@@ -133,20 +129,12 @@ static bool WINAPI addstate(int eid,int pos,unsigned long size,unsigned char *da
 
 static void WINAPI getcursor(int *row,int *col)
 {
-  if((cursor_row>=0)&&(cursor_col>=0))
-  {
-    *row=cursor_row;
-    *col=cursor_col;
-  }
-  else
-  {
-    EditorInfo ei;
-    WaitForSingleObject(Mutex,INFINITE);
-    Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
-    ReleaseMutex(Mutex);
-    *row=ei.CurLine;
-    *col=ei.CurPos;
-  }
+  EditorInfo ei;
+  WaitForSingleObject(Mutex,INFINITE);
+  Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
+  ReleaseMutex(Mutex);
+  *row=ei.CurLine;
+  *col=ei.CurPos;
 }
 
 static void WINAPI callparser(const TCHAR *parser,struct ColorizeParams *params)
