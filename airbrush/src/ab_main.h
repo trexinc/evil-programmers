@@ -119,7 +119,6 @@ extern int OnEditorInput(const INPUT_RECORD *Rec);
 extern PluginStartupInfo Info;
 extern FARSTANDARDFUNCTIONS FSF;
 extern HANDLE Mutex;
-extern int cursor_row,cursor_col;
 #define PLUGIN_MASK_KEY _T("masks")
 #define PLUGIN_COLOR_KEY _T("colors")
 #define PLUGIN_START_KEY _T("starts")

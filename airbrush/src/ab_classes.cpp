@@ -318,8 +318,6 @@ int OnEditorEvent(int event,void *param,int editorid)
     DWORD ThreadID;
     ColorizeThreadData ctd;
     HANDLE handles[2];
-    cursor_row=ei.CurLine;
-    cursor_col=ei.CurPos;
     params.LocalHeap=HeapCreate(HEAP_NO_SERIALIZE,0,0);
     ctd.pColorize=PluginsData[curfile->type].pColorize;
     ctd.index=PluginsData[curfile->type].Index;
@@ -396,20 +394,9 @@ int OnEditorEvent(int event,void *param,int editorid)
       CloseHandle(handles[0]);
       CloseHandle(handles[1]);
     }
-    cursor_row=-1;
-    cursor_col=-1;
     HeapDestroy(params.LocalHeap);
   }
   free(cache_data);
-  EditorSetPosition esp;
-
-  esp.CurLine=ei.CurLine;
-  esp.CurPos=ei.CurPos;
-  esp.TopScreenLine=ei.TopScreenLine;
-  esp.LeftPos=ei.LeftPos;
-  esp.CurTabPos=-1;
-  esp.Overtype=-1;
-  Info.EditorControl(-1,ECTL_SETPOSITION,0,&esp);
   if(fatal) RaiseException(0,0,0,NULL);
   return 0;
 }
