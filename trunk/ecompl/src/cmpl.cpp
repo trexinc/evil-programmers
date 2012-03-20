@@ -106,7 +106,6 @@ int TCompletion::DoSearch(void)
   if(!Word.length()) return 0;
   EditorGetString gs;
   EditorInfo ei;
-  EditorSetPosition sp;
 
   int Line2Browse[2]; // Сколько строк будем просматривать вперед и назад
 
@@ -126,19 +125,12 @@ int TCompletion::DoSearch(void)
   Line2Browse[0]=MIN(ei.CurLine,BrowseLineCnt); // сверху
   Line2Browse[1]=MIN(ei.TotalLines-ei.CurLine-1,BrowseLineCnt); // снизу
   int LinesCount=MAX(Line2Browse[0], Line2Browse[1]); // для запуска основного цикла
-  gs.StringNumber=-1; // тек. строка
-  sp.CurPos=-1;
-  sp.CurTabPos=-1;
-  sp.TopScreenLine=-1;
-  sp.LeftPos=-1;
-  sp.Overtype=-1;
   for(int i=1;(i<=LinesCount)&&(WordList.count()<WordsToFindCnt);i++)
   {
     for(int j=0;j<1+BrowseDownward;j++)
     {
       if(Line2Browse[j]<i) continue;
-      sp.CurLine=ei.CurLine+(j?i:-i); //вычисляем тек. строку
-      Info.EditorControl(-1,ECTL_SETPOSITION,0,&sp);
+      gs.StringNumber=ei.CurLine+(j?i:-i);
       Info.EditorControl(-1,ECTL_GETSTRING,0,&gs);
       Line((const UTCHAR *)gs.StringText,gs.StringLength);
       AddWords(Line,Line.length(),j);
@@ -146,11 +138,6 @@ int TCompletion::DoSearch(void)
     }
     if(Stop) break;
   }
-  sp.CurLine=ei.CurLine;
-  sp.CurPos=ei.CurPos;
-  sp.TopScreenLine=ei.TopScreenLine;
-  sp.LeftPos=ei.LeftPos;
-  Info.EditorControl(-1,ECTL_SETPOSITION,0,&sp);
   return WordList.count();
 }
 
