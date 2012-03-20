@@ -295,7 +295,6 @@ HANDLE WINAPI OpenW(const struct OpenInfo*)
             free(editorfilename);
         }
     }
-    EditorControl(-1, ECTL_TURNOFFMARKINGBLOCK, 0, 0);
     return INVALID_HANDLE_VALUE;
 }
 
@@ -794,8 +793,6 @@ static int ProcessEditorInputInternal(const INPUT_RECORD *Rec)
       {
          isReenter=1;
          RetCode=GotoHome(ei, nodedata);
-         if(RetCode)
-           EditorControl(-1, ECTL_TURNOFFMARKINGBLOCK, 0, 0);
          isReenter=0;
       }
       _D(SysLog(L"PEI: 9 return"));
@@ -870,8 +867,6 @@ static int ProcessEditorInputInternal(const INPUT_RECORD *Rec)
           }
         }
       }
-      if(RetCode)
-        EditorControl(-1, ECTL_TURNOFFMARKINGBLOCK, 0, 0);
       isReenter=0;
       _D(SysLog(L"PEI: 10 return"));
       return RetCode;
@@ -953,7 +948,6 @@ static int ProcessEditorInputInternal(const INPUT_RECORD *Rec)
               EditorControl(-1, ECTL_SETPOSITION, 0, &esp);
               EditorControl(-1, ECTL_REDRAW, 0, 0);
               RetCode=1;
-              EditorControl(-1, ECTL_TURNOFFMARKINGBLOCK, 0, 0);
             }
             free((wchar_t *)ess.StringText);
           }
@@ -977,8 +971,6 @@ static int ProcessEditorInputInternal(const INPUT_RECORD *Rec)
         RetCode=ProcessKeyEnter(ei, esp, egs,
                 IsQuote(egs.StringText,egs.StringLength),
                 (nodedata.Options&E_QuoteEOL_On)!=0);
-        if(RetCode)
-          EditorControl(-1, ECTL_TURNOFFMARKINGBLOCK, 0, 0);
       }
       _D(SysLog(L"PEI: 14 return"));
       return RetCode;
@@ -998,8 +990,6 @@ static int ProcessEditorInputInternal(const INPUT_RECORD *Rec)
         {
           RetCode=ProcessKeyDelete(egs,
                   IsQuote(egs.StringText,egs.StringLength));
-          if(RetCode)
-            EditorControl(-1, ECTL_TURNOFFMARKINGBLOCK, 0, 0);
         }
       }
       _D(SysLog(L"PEI: 15 return"));
@@ -1030,7 +1020,6 @@ static int ProcessEditorInputInternal(const INPUT_RECORD *Rec)
       isReenter=0;
       if(RetCode)
       {
-        EditorControl(-1, ECTL_TURNOFFMARKINGBLOCK, 0, 0);
         _D(SysLog(L"PEI: 16 return"));
         return TRUE;
       }
