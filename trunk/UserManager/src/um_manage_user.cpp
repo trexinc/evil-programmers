@@ -505,8 +505,10 @@ static INT_PTR WINAPI ManageGroupUserDialogProc(HANDLE hDlg,int Msg,int Param1,v
         {
           TCHAR pwd1[512],pwd2[512];
           FarDialogItemData data_pwd1,data_pwd2;
+          data_pwd1.StructSize=sizeof(FarDialogItemData);
           data_pwd1.PtrLength=sizeof(pwd1);
           data_pwd1.PtrData=pwd1;
+          data_pwd2.StructSize=sizeof(FarDialogItemData);
           data_pwd2.PtrLength=sizeof(pwd2);
           data_pwd2.PtrData=pwd2;
           Info.SendDlgMessage(hDlg,DM_GETTEXT,indexPwd1,&data_pwd1);
