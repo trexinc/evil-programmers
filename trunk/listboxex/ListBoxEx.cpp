@@ -35,7 +35,7 @@ static long upper_key(long Key)
 static long get_height(HANDLE hDlg,int Index)
 {
   long result=0;
-  FarGetDialogItem DialogItemInfo={0,NULL};
+  FarGetDialogItem DialogItemInfo={sizeof(FarGetDialogItem),0,NULL};
   DialogItemInfo.Size=Info.SendDlgMessage(hDlg,DM_GETDLGITEM,Index,&DialogItemInfo);
   DialogItemInfo.Item=(FarDialogItem*)malloc(DialogItemInfo.Size);
   if(DialogItemInfo.Item)
@@ -544,7 +544,7 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
       return_flag=false;
       if(data)
       {
-        FarGetDialogItem DialogItemInfo={0,NULL};
+        FarGetDialogItem DialogItemInfo={sizeof(FarGetDialogItem),0,NULL};
         DialogItemInfo.Size=Info.SendDlgMessage(hDlg,DM_GETDLGITEM,Param1,&DialogItemInfo);
         DialogItemInfo.Item=(FarDialogItem*)malloc(DialogItemInfo.Size);
         if(DialogItemInfo.Item)

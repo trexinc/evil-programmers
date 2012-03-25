@@ -180,7 +180,7 @@ static INT_PTR WINAPI MainDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2
             {
               case VK_DELETE:
                 {
-                  FarListDelete list={3,4};
+                  FarListDelete list={sizeof(FarListDelete),3,4};
                   Info.SendDlgMessage(hDlg,DM_LISTBOXEX_DELETE,1,&list);
                 }
                 break;
@@ -219,7 +219,7 @@ static INT_PTR WINAPI MainDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2
             {
               case VK_UP:
                 {
-                  FarListPos pos={Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L),-1};
+                  FarListPos pos={sizeof(FarListPos),Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L),-1};
                   Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_MOVE_UP,1,(void*)(INT_PTR)pos.SelectPos);
                   pos.SelectPos--;
                   Info.SendDlgMessage(hDlg,DM_LISTBOXEX_SETCURPOS,1,&pos);
@@ -227,7 +227,7 @@ static INT_PTR WINAPI MainDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2
                 break;
               case VK_DOWN:
                 {
-                  FarListPos pos={Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L),-1};
+                  FarListPos pos={sizeof(FarListPos),Info.SendDlgMessage(hDlg,DM_LISTBOXEX_GETCURPOS,1,0L),-1};
                   Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ITEM_MOVE_DOWN,1,(void*)(INT_PTR)pos.SelectPos);
                   pos.SelectPos++;
                   Info.SendDlgMessage(hDlg,DM_LISTBOXEX_SETCURPOS,1,&pos);
