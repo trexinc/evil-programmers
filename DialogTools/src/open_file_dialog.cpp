@@ -134,7 +134,7 @@ static int TryLoadDir(HANDLE hDlg, OFDData *DlgParams, TCHAR *newdir)
     free(Items);
     free(newnames);
     {
-      FarListTitles titles;
+      FarListTitles titles={sizeof(FarListTitles)};
       titles.Title=DlgParams->curr_dir;
       titles.TitleSize=lstrlen(titles.Title);
       TCHAR tmp[256];
@@ -155,7 +155,7 @@ static INT_PTR WINAPI OFDProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
   TCHAR newdir[MAX_PATH];
 
   TCHAR newcurdir[MAX_PATH];
-  FarListGetItem item;
+  FarListGetItem item={sizeof(FarListGetItem)};
   BOOL ItemPresent=FALSE;
   if (Msg==DN_CONTROLINPUT||Msg==DN_CLOSE)
   {
@@ -219,8 +219,8 @@ static INT_PTR WINAPI OFDProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
                           old_dir[Len-1]=0;
                         ptr=(TCHAR*)FSF.PointToName(old_dir);
                       }
-                      FarListPos Pos;
-                      FarListFind find={0,ptr,LIFIND_EXACTMATCH,0};
+                      FarListPos Pos={sizeof(FarListPos)};
+                      FarListFind find={sizeof(FarListFind),0,ptr,LIFIND_EXACTMATCH,0};
                       Pos.SelectPos=Info.SendDlgMessage(hDlg,DM_LISTFINDSTRING,0,&find);
                       Pos.TopPos=-1;
                       if(Pos.SelectPos>=0)
