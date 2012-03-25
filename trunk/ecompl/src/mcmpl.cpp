@@ -102,7 +102,7 @@ static void ForEach(void *data,int &pos,avl_word_data &node)
   pos++;
 }
 
-int __cdecl fcmp(const void *first,const void *second)
+int WINAPI fcmp(const void *first,const void *second,void *)
 {
   return (((const MenuAdaptor *)second)->ref)-(((const MenuAdaptor *)first)->ref);
 }
@@ -206,7 +206,7 @@ bool TMenuCompletion::ShowMenu(string &Selected)
   {
     int pos=0;
     WordList.iterate((void *)menudata,pos,ForEach);
-    if(WordList.count()<=SortListCount) FSF.qsort(menudata,WordList.count(),sizeof(*menudata),fcmp);
+    if(WordList.count()<=SortListCount) FSF.qsort(menudata,WordList.count(),sizeof(*menudata),fcmp,NULL);
 
     TCHAR BottomMsg[256];
     FSF.sprintf(BottomMsg,GetMsg(MHave),WordList.count());
