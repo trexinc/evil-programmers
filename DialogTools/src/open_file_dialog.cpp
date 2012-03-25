@@ -51,7 +51,7 @@ static int __cdecl fcmp(DWORD firstFlags,DWORD secondFlags,const TCHAR *firstTex
   return(FSF.LStricmp(firstText,secondText));
 }
 
-static int __cdecl fcmp2(const void *first,const void *second)
+static int WINAPI fcmp2(const void *first,const void *second,void *)
 {
   return(
     fcmp(
@@ -90,7 +90,7 @@ static int TryLoadDir(HANDLE hDlg, OFDData *DlgParams, TCHAR *newdir)
         }
       } while(FindNextFile(hFind,&find));
       FindClose(hFind);
-      if(newnames) FSF.qsort(newnames,count,sizeof(NMNames),fcmp2);
+      if(newnames) FSF.qsort(newnames,count,sizeof(NMNames),fcmp2,NULL);
     }
   }
   else
