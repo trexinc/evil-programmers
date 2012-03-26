@@ -245,8 +245,8 @@ void WINAPI GetPluginInfoW(struct PluginInfo *Info)
 
 HANDLE WINAPI OpenW(const struct OpenInfo *anInfo)
 {
-  if(IsOldFAR) return INVALID_HANDLE_VALUE;
-  HANDLE res=INVALID_HANDLE_VALUE;
+  if(IsOldFAR) return NULL;
+  HANDLE res=NULL;
   CFarPanel pInfo(INVALID_HANDLE_VALUE,FCTL_GETPANELINFO);
   if(pInfo.IsOk())
   {
@@ -388,7 +388,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *anInfo)
         }
         res=(HANDLE)panel;
       }
-      if(res==INVALID_HANDLE_VALUE) free(panel);
+      if(res==NULL) free(panel);
     }
   }
   return res;
