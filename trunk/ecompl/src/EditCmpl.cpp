@@ -100,7 +100,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo* Info)
 {
   (void)Info;
   ShowMenu();
-  return INVALID_HANDLE_VALUE;
+  return NULL;
 }
 
 int WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
