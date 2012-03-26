@@ -238,7 +238,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *Info)
       free(ids);
     }
   }
-  return INVALID_HANDLE_VALUE;
+  return NULL;
 }
 
 INT_PTR WINAPI Config1DialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
