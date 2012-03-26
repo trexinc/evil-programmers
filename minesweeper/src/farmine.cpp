@@ -669,7 +669,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo* Info)
     if(VirtualBuffer) HeapFree(GetProcessHeap(),0,VirtualBuffer);
     if(Separator) HeapFree(GetProcessHeap(),0,Separator);
   }
-  return INVALID_HANDLE_VALUE;
+  return NULL;
 }
 
 int WINAPI ConfigureW(const struct ConfigureInfo* anInfo)
