@@ -162,6 +162,7 @@ colorize_comment1:
       state[0].Level=0;
       goto colorize_clear;
     }
+    yycur=yytok+1;
     goto colorize_comment1;
   }
   [\000]
@@ -206,6 +207,7 @@ colorize_string1:
       state[0].Level=0;
       goto colorize_clear;
     }
+    yycur=yytok+1;
     goto colorize_string1;
   }
   [\000]
