@@ -269,5 +269,5 @@ HANDLE WINAPI OpenW(const struct OpenInfo*)
     Info.DialogFree(hDlg);
   }
   if(VirtualBuffer) HeapFree(GetProcessHeap(),0,VirtualBuffer);
-  return(INVALID_HANDLE_VALUE);
+  return NULL;
 }
