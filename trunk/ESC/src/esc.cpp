@@ -295,7 +295,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo*)
             free(editorfilename);
         }
     }
-    return INVALID_HANDLE_VALUE;
+    return NULL;
 }
 
 void WINAPI ExitFARW(const struct ExitInfo*)
