@@ -106,7 +106,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *anInfo)
       DoEdit(data->hDlg);
     }
   }
-  return INVALID_HANDLE_VALUE;
+  return NULL;
 }
 
 void WINAPI ExitFARW(const struct ExitInfo *Info)
