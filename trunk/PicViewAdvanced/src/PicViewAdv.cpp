@@ -688,7 +688,7 @@ int WINAPI ProcessViewerEventW(const struct ProcessViewerEventInfo *pveInfo)
 HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
 {
   GetJiggyWithIt(PANEL_ACTIVE,true,true);
-  return INVALID_HANDLE_VALUE;
+  return NULL;
 }
 
 void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
