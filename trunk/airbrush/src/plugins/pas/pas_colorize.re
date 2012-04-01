@@ -107,37 +107,37 @@ colorize_clear:
     if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_STRING1,EPriorityNormal);
     goto colorize_clear;
   }
-  ([cC][oO][nN][sS][tT][rR][uU][cC][tT][oO][rR])|([dD][eE][sS][tT][rR][uU][cC][tT][oO][rR])|
-  ([pP][rR][oO][cC][eE][dD][uU][rR][eE])|([wW][iI][tT][hH])|([oO][fF])|
-  ([fF][iI][nN][aA][lL][lL][yY])|([eE][xX][cC][eE][pP][tT])|([fF][oO][rR])|
-  ([tT][oO])|([dD][oO][wW][nN][tT][oO])|([tT][yY][pP][eE])|([iI][nN][tT][eE][rR][fF][aA][cC][eE])|
-  ([iI][nN][iI][tT][iI][aA][lL][iI][zZ][aA][tT][iI][oO][nN])|([fF][iI][nN][aA][lL][iI][zZ][aA][tT][iI][oO][nN])|
-  ([dD][eE][fF][aA][uU][lL][tT])|([pP][rR][iI][vV][aA][tT][eE])|([pP][uU][bB][lL][iI][cC])|
-  ([pP][rR][oO][tT][eE][cC][tT][eE][dD])|([pP][uU][bB][lL][iI][sS][hH][eE][dD])|([aA][uU][tT][oO][mM][aA][tT][eE][dD])|
-  ([pP][rR][oO][pP][eE][rR][tT][yY])|([pP][rR][oO][gG][rR][aA][mM])|([rR][eE][aA][dD])|([wW][rR][iI][tT][eE])|
-  ([oO][vV][eE][rR][rR][iI][dD][eE])|([nN][iI][lL])|([rR][aA][iI][sS][eE])|([oO][nN])|
-  ([sS][eE][tT])|([xX][oO][rR])|([sS][hH][rR])|([sS][hH][lL])|([aA][rR][gG][sS])|([iI][fF])|([tT][hH][eE][nN])|
-  ([eE][lL][sS][eE])|([eE][nN][dD][iI][fF])|([gG][oO][tT][oO])|([wW][hH][iI][lL][eE])|([dD][oO])|([vV][aA][rR])|
-  ([tT][rR][uU][eE])|([fF][aA][lL][sS][eE])|([oO][rR])|([aA][nN][dD])|([nN][oO][tT])|([mM][oO][dD])|([uU][nN][iI][tT])|
-  ([fF][uU][nN][cC][tT][iI][oO][nN])|([uU][sS][eE][sS])|([eE][xX][tT][eE][rR][nN][aA][lL])|([cC][oO][nN][sS][tT])|
-  ([iI][nN][hH][eE][rR][iI][tT][eE][dD])|([dD][iI][vV])|([vV][iI][rR][tT][uU][aA][lL])|
-  ([dD][yY][nN][aA][mM][iI][cC])|([aA][bB][sS][tT][rR][aA][cC][tT])|([aA][rR][rR][aA][yY])|([bB][rR][eE][aA][kK])|
-  ([cC][oO][nN][tT][iI][nN][uU][eE])|([rR][eE][sS][oO][uU][rR][cC][eE][sS][tT][rR][iI][nN][gG])|([eE][xX][pP][oO][rR][tT][sS])
+  ('constructor')|('destructor')|
+  ('procedure')|('with')|('of')|
+  ('finally')|('except')|('for')|
+  ('to')|('downto')|('type')|('interface')|
+  ('initialization')|('finalization')|
+  ('default')|('private')|('public')|
+  ('protected')|('published')|('automated')|
+  ('property')|('program')|('read')|('write')|
+  ('override')|('nil')|('raise')|('on')|
+  ('set')|('xor')|('shr')|('shl')|('args')|('if')|('then')|
+  ('else')|('endif')|('goto')|('while')|('do')|('var')|
+  ('true')|('false')|('or')|('and')|('not')|('mod')|('unit')|
+  ('function')|('uses')|('external')|('const')|
+  ('inherited')|('div')|('virtual')|
+  ('dynamic')|('abstract')|('array')|('break')|
+  ('continue')|('resourcestring')|('exports')
   {
     if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_KEYWORD1,EPriorityNormal);
     goto colorize_clear;
   }
-  ([bB][eE][gG][iI][nN]) {PUSH_PAIR(2)}
-  ([lL][iI][bB][rR][aA][rR][yY]) {PUSH_PAIR(3)}
-  ([iI][mM][pP][lL][eE][mM][eE][nN][tT][aA][tT][iI][oO][nN]) {PUSH_PAIR(4)}
-  ([cC][aA][sS][eE]) {PUSH_PAIR(5)}
-  ([rR][eE][cC][oO][rR][dD]) {PUSH_PAIR(6)}
-  ([oO][bB][jJ][eE][cC][tT]) {PUSH_PAIR(7)}
-  ([cC][lL][aA][sS][sS]) {PUSH_PAIR(8)}
-  ([tT][rR][yY]) {PUSH_PAIR(9)}
-  ([eE][nN][dD]) {POP_PAIR(2,9)}
-  ([rR][eE][pP][eE][aA][tT]) {PUSH_PAIR(10)}
-  ([uU][nN][tT][iI][lL]) {POP_PAIR(10,10)}
+  ('begin') {PUSH_PAIR(2)}
+  ('library') {PUSH_PAIR(3)}
+  ('implementation') {PUSH_PAIR(4)}
+  ('case') {PUSH_PAIR(5)}
+  ('record') {PUSH_PAIR(6)}
+  ('object') {PUSH_PAIR(7)}
+  ('class') {PUSH_PAIR(8)}
+  ('try') {PUSH_PAIR(9)}
+  ('end') {POP_PAIR(2,9)}
+  ('repeat') {PUSH_PAIR(10)}
+  ('until') {POP_PAIR(10,10)}
   L(L|D)*
   { goto colorize_clear; }
   /*D+
