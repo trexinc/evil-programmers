@@ -108,10 +108,14 @@ colorize_clear:
   "--"
   { commentstart=yytok; goto colorize_comment2; }
   "and"|"break"|"do"|"else"|"elseif"|
-  "end"|"false"|"for"|"function"|"if"|
-  "in"|"local"|"nill"|"not"|"or"|
-  "repeat"|"return"|"then"|"true"|"until"|"while"
+  "false"|
+  "in"|"local"|"nil"|"not"|"or"|
+  "return"|"then"|"true"
   { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_KEYWORD1,EPriorityNormal); goto colorize_clear; }
+  "for"|"function"|"if"|"while" {PUSH_PAIR(3)}
+  "end" {POP_PAIR(3,3)}
+  "repeat" {PUSH_PAIR(4)}
+  "until" {POP_PAIR(4,4)}
   L(L|D)*
   { goto colorize_clear; }
   ("0"[xX]H+)
