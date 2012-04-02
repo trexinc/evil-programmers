@@ -24,21 +24,21 @@
 ColorizeInfo Info;
 ABColor colors[]=
 {
-  {ABCF_4BIT,0x03,0,NULL,false,true},
-  {ABCF_4BIT,0x0e,0,NULL,false,true},
-  {ABCF_4BIT,0x0a,0,NULL,false,true},{ABCF_4BIT,0x0a,0,NULL,false,true},
-  {ABCF_4BIT,0x02,0,NULL,false,true},
-  {ABCF_4BIT,0x00,0x0a,NULL,false,false},
-  {ABCF_4BIT,0x0c,0,NULL,false,true},{ABCF_4BIT,0x01,0x0c,NULL,false,false},
-  {ABCF_4BIT,0x0f,0,NULL,false,true},
-  {ABCF_4BIT,0x0f,0,NULL,false,true},{ABCF_4BIT,0x0c,0,NULL,false,true},{ABCF_4BIT,0x08,0,NULL,false,true},
-  {ABCF_4BIT,0x0f,0,NULL,false,true},{ABCF_4BIT,0x08,0,NULL,false,true},
-  {ABCF_4BIT,0x0f,0,NULL,false,true},{ABCF_4BIT,0x08,0,NULL,false,true},
-  {ABCF_4BIT,0x0e,0,NULL,false,true},{ABCF_4BIT,0x08,0,NULL,false,true},
-  {ABCF_4BIT,0x0d,0,NULL,false,true},{ABCF_4BIT,0x0c,0,NULL,false,true},{ABCF_4BIT,0x05,0,NULL,false,true},{ABCF_4BIT,0x0c,0,NULL,false,true},
-  {ABCF_4BIT,0x0f,0,NULL,false,true},{ABCF_4BIT,0x0c,0,NULL,false,true},{ABCF_4BIT,0x08,0,NULL,false,true},
-  {ABCF_4BIT,0x0f,0,NULL,false,true},{ABCF_4BIT,0x08,0,NULL,false,true},
-  {ABCF_4BIT,0x0e,0,NULL,false,true},{ABCF_4BIT,0x0e,0,NULL,false,true},{ABCF_4BIT,0x06,0,NULL,false,true}
+  {ABCF_4BIT,AB_OPAQUE(0x03),AB_OPAQUE(0x00),NULL,false,true},
+  {ABCF_4BIT,AB_OPAQUE(0x0e),AB_OPAQUE(0x00),NULL,false,true},
+  {ABCF_4BIT,AB_OPAQUE(0x0a),AB_OPAQUE(0x00),NULL,false,true},{ABCF_4BIT,AB_OPAQUE(0x0a),AB_OPAQUE(0x00),NULL,false,true},
+  {ABCF_4BIT,AB_OPAQUE(0x02),AB_OPAQUE(0x00),NULL,false,true},
+  {ABCF_4BIT,AB_OPAQUE(0x00),AB_OPAQUE(0x0a),NULL,false,false},
+  {ABCF_4BIT,AB_OPAQUE(0x0c),AB_OPAQUE(0x00),NULL,false,true},{ABCF_4BIT,AB_OPAQUE(0x01),AB_OPAQUE(0x0c),NULL,false,false},
+  {ABCF_4BIT,AB_OPAQUE(0x0f),AB_OPAQUE(0x00),NULL,false,true},
+  {ABCF_4BIT,AB_OPAQUE(0x0f),AB_OPAQUE(0x00),NULL,false,true},{ABCF_4BIT,AB_OPAQUE(0x0c),AB_OPAQUE(0),NULL,false,true},{ABCF_4BIT,AB_OPAQUE(0x08),AB_OPAQUE(0),NULL,false,true},
+  {ABCF_4BIT,AB_OPAQUE(0x0f),AB_OPAQUE(0x00),NULL,false,true},{ABCF_4BIT,AB_OPAQUE(0x08),AB_OPAQUE(0),NULL,false,true},
+  {ABCF_4BIT,AB_OPAQUE(0x0f),AB_OPAQUE(0x00),NULL,false,true},{ABCF_4BIT,AB_OPAQUE(0x08),AB_OPAQUE(0),NULL,false,true},
+  {ABCF_4BIT,AB_OPAQUE(0x0e),AB_OPAQUE(0x00),NULL,false,true},{ABCF_4BIT,AB_OPAQUE(0x08),AB_OPAQUE(0),NULL,false,true},
+  {ABCF_4BIT,AB_OPAQUE(0x0d),AB_OPAQUE(0x00),NULL,false,true},{ABCF_4BIT,AB_OPAQUE(0x0c),AB_OPAQUE(0),NULL,false,true},{ABCF_4BIT,AB_OPAQUE(0x05),AB_OPAQUE(0),NULL,false,true},{ABCF_4BIT,AB_OPAQUE(0x0c),AB_OPAQUE(0),NULL,false,true},
+  {ABCF_4BIT,AB_OPAQUE(0x0f),AB_OPAQUE(0x00),NULL,false,true},{ABCF_4BIT,AB_OPAQUE(0x0c),AB_OPAQUE(0),NULL,false,true},{ABCF_4BIT,AB_OPAQUE(0x08),AB_OPAQUE(0),NULL,false,true},
+  {ABCF_4BIT,AB_OPAQUE(0x0f),AB_OPAQUE(0x00),NULL,false,true},{ABCF_4BIT,AB_OPAQUE(0x08),AB_OPAQUE(0),NULL,false,true},
+  {ABCF_4BIT,AB_OPAQUE(0x0e),AB_OPAQUE(0x00),NULL,false,true},{ABCF_4BIT,AB_OPAQUE(0x0e),AB_OPAQUE(0),NULL,false,true},{ABCF_4BIT,AB_OPAQUE(0x06),AB_OPAQUE(0),NULL,false,true}
 };
 const TCHAR* colornames[]=
 {

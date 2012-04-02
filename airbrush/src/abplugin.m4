@@ -47,6 +47,7 @@ enum ColorizePriority
   EPriorityBrackets
 };
 
+#define AB_OPAQUE(x) ((x)|0xff000000)
 #define ABCF_4BIT (0x0000000000000003ULL)
 
 struct ABColor

@@ -322,7 +322,7 @@ static const char *color_names[]={"black","blue","green","cyan","red","magenta",
 int color_by_name(char *name)
 {
   for(unsigned int i=0;i<(sizeof(color_names)/sizeof(color_names[0]));i++)
-    if(!_stricmp(name,color_names[i])) return i;
+    if(!_stricmp(name,color_names[i])) return AB_OPAQUE(i);
   return -1;
 }
 

@@ -23,20 +23,20 @@
 
 ColorizeInfo Info;
 ABColor colors[]={
-  {ABCF_4BIT,0x03,0,   NULL,false,true },              // HC_COMMENT
-  {ABCF_4BIT,0x0f,0,   NULL,false,true },              // HC_KEYWORD1
-  {ABCF_4BIT,0x0a,0,   NULL,false,true },              // HC_KEYWORD2
-  {ABCF_4BIT,0x0e,0,   NULL,false,true },              // HC_STRING
-  {ABCF_4BIT,0x02,0,   NULL,false,true },              // HC_REGEXPS
-  {ABCF_4BIT,0x06,0,   NULL,false,true },              // HC_REGEXP
-  {ABCF_4BIT,0x0a,0,   NULL,false,true },              // HC_NUMBER
-  {ABCF_4BIT,0x0f,0,   NULL,false,true },              // HC_BUILTIN
-  {ABCF_4BIT,0x0f,0,   NULL,false,true },              // HC_IO
-  {ABCF_4BIT,0x0a,0,   NULL,false,true },              // HC_PARAM
-  {ABCF_4BIT,0x0c,0,   NULL,false,true },              // HC_HIGHLITE
-  {ABCF_4BIT,0x0e,0,   NULL,false,true },              // HC_SYMBOL
-  {ABCF_4BIT,0x0d,0,   NULL,false,true },              // HC_PATTERNS
-  {ABCF_4BIT,0x01,0x0c,NULL,false,false}               // HC_HL_ERROR
+  {ABCF_4BIT,AB_OPAQUE(0x03),AB_OPAQUE(0x00),NULL,false,true },              // HC_COMMENT
+  {ABCF_4BIT,AB_OPAQUE(0x0f),AB_OPAQUE(0x00),NULL,false,true },              // HC_KEYWORD1
+  {ABCF_4BIT,AB_OPAQUE(0x0a),AB_OPAQUE(0x00),NULL,false,true },              // HC_KEYWORD2
+  {ABCF_4BIT,AB_OPAQUE(0x0e),AB_OPAQUE(0x00),NULL,false,true },              // HC_STRING
+  {ABCF_4BIT,AB_OPAQUE(0x02),AB_OPAQUE(0x00),NULL,false,true },              // HC_REGEXPS
+  {ABCF_4BIT,AB_OPAQUE(0x06),AB_OPAQUE(0x00),NULL,false,true },              // HC_REGEXP
+  {ABCF_4BIT,AB_OPAQUE(0x0a),AB_OPAQUE(0x00),NULL,false,true },              // HC_NUMBER
+  {ABCF_4BIT,AB_OPAQUE(0x0f),AB_OPAQUE(0x00),NULL,false,true },              // HC_BUILTIN
+  {ABCF_4BIT,AB_OPAQUE(0x0f),AB_OPAQUE(0x00),NULL,false,true },              // HC_IO
+  {ABCF_4BIT,AB_OPAQUE(0x0a),AB_OPAQUE(0x00),NULL,false,true },              // HC_PARAM
+  {ABCF_4BIT,AB_OPAQUE(0x0c),AB_OPAQUE(0x00),NULL,false,true },              // HC_HIGHLITE
+  {ABCF_4BIT,AB_OPAQUE(0x0e),AB_OPAQUE(0x00),NULL,false,true },              // HC_SYMBOL
+  {ABCF_4BIT,AB_OPAQUE(0x0d),AB_OPAQUE(0x00),NULL,false,true },              // HC_PATTERNS
+  {ABCF_4BIT,AB_OPAQUE(0x01),AB_OPAQUE(0x0c),NULL,false,false}               // HC_HL_ERROR
 };
 const TCHAR* colornames[]={_T("Comment"),_T("Keyword"),_T("Keyword2"),_T("String"),_T("Regexp '/'"),_T("Regexp body"),_T("Number"),_T("Builtin"),_T("IO"),_T("Param"),_T("Pair"),_T("Symbol"),_T("Patterns"),_T("Wrong Pair")};
 
