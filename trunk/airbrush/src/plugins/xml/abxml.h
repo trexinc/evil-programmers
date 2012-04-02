@@ -35,10 +35,11 @@
 #define PARSER_MARKUP   0x04
 #define PARSER_SUBSET   0x05
 #define PARSER_PI       0x06
-#define PARSER_VALUES   0x07
-#define PARSER_STRING1  0x08
-#define PARSER_STRING2  0x09
-#define PARSER_CDATA    0x0a
+#define PARSER_VALUES1  0x07
+#define PARSER_VALUES2  0x08
+#define PARSER_STRING1  0x09
+#define PARSER_STRING2  0x0a
+#define PARSER_CDATA    0x0b
 
 extern ABColor colors[];
 extern struct ColorizeInfo Info;
