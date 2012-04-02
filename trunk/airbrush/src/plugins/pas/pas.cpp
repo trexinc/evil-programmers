@@ -24,15 +24,15 @@
 ColorizeInfo Info;
 ABColor colors[]=
 {
-  {ABCF_4BIT,0x03,0,   NULL,false,true },
-  {ABCF_4BIT,0x03,0,   NULL,false,true },
-  {ABCF_4BIT,0x09,0,   NULL,false,true },
-  {ABCF_4BIT,0x0F,0,   NULL,false,true },
-  {ABCF_4BIT,0x0D,0,   NULL,false,true },
-  {ABCF_4BIT,0x0E,0,   NULL,false,true },
-  {ABCF_4BIT,0x0A,0,   NULL,false,true },
-  {ABCF_4BIT,0x0C,0,   NULL,false,true },
-  {ABCF_4BIT,0x01,0x0C,NULL,false,false}
+  {ABCF_4BIT,AB_OPAQUE(0x03),AB_OPAQUE(0x00),NULL,false,true },
+  {ABCF_4BIT,AB_OPAQUE(0x03),AB_OPAQUE(0x00),NULL,false,true },
+  {ABCF_4BIT,AB_OPAQUE(0x09),AB_OPAQUE(0x00),NULL,false,true },
+  {ABCF_4BIT,AB_OPAQUE(0x0F),AB_OPAQUE(0x00),NULL,false,true },
+  {ABCF_4BIT,AB_OPAQUE(0x0D),AB_OPAQUE(0x00),NULL,false,true },
+  {ABCF_4BIT,AB_OPAQUE(0x0E),AB_OPAQUE(0x00),NULL,false,true },
+  {ABCF_4BIT,AB_OPAQUE(0x0A),AB_OPAQUE(0x00),NULL,false,true },
+  {ABCF_4BIT,AB_OPAQUE(0x0C),AB_OPAQUE(0x00),NULL,false,true },
+  {ABCF_4BIT,AB_OPAQUE(0x01),AB_OPAQUE(0x0C),NULL,false,false}
 };
 const TCHAR *colornames[]={_T("Comment {}"),_T("Comment (**)"),_T("Assembler"),_T("Keyword"),_T("\";\" Symbol"),_T("String"),_T("Number"),_T("Pair"),_T("Wrong Pair")};
 
