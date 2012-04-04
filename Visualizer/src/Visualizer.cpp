@@ -728,7 +728,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
     Info.DialogFree(hDlg);
   }
 
-  return INVALID_HANDLE_VALUE;
+  return NULL;
 }
 
 void WINAPI GetPluginInfoW(struct PluginInfo *Info)
