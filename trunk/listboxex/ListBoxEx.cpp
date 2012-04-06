@@ -161,7 +161,7 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
 {
   if(DM_LISTBOXEX_ISLBE==Msg) return 0;
   bool return_flag=false; long return_result=FALSE,old_curpos=0L;
-  const ListBoxExColor default_colors[LISTBOXEX_COLORS_COUNT]={{{0},LISTBOXEX_COLOR_ITEM,true},{{0},LISTBOXEX_COLOR_SELECTEDITEM,true},{{0},LISTBOXEX_COLOR_DISABLED,true}};
+  const ListBoxExColor default_colors[LISTBOXEX_COLORS_COUNT]={{{0,0,0,NULL},LISTBOXEX_COLOR_ITEM,true},{{0,0,0,NULL},LISTBOXEX_COLOR_SELECTEDITEM,true},{{0,0,0,NULL},LISTBOXEX_COLOR_DISABLED,true}};
   ListBoxExData *data=NULL;
   if(Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ISLBE,Param1,0L))
   {
@@ -698,7 +698,7 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
               {
                 if(FSF.LIsAlpha((unsigned long)FirstKey))
                 {
-                  TCHAR xlat_str[1]={(unsigned long)FirstKey}; //FIXME
+                  TCHAR xlat_str[1]={(wchar_t)FirstKey}; //FIXME
                   FSF.XLat(xlat_str,0,1,0);
                   SecondKey=upper_key(xlat_str[0]);
                 }
@@ -735,13 +735,13 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
           {
             SMALL_RECT rect;
             Info.SendDlgMessage(hDlg,DM_GETDLGRECT,0,&rect);
-            COORD relative={record->Event.MouseEvent.dwMousePosition.X-rect.Left,record->Event.MouseEvent.dwMousePosition.Y-rect.Top};
+            COORD relative={(SHORT)(record->Event.MouseEvent.dwMousePosition.X-rect.Left),(SHORT)(record->Event.MouseEvent.dwMousePosition.Y-rect.Top)};
             int cur_item=0; SMALL_RECT item_rect;
             while(Info.SendDlgMessage(hDlg,DM_GETITEMPOSITION,cur_item,&item_rect))
             {
               if(Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ISLBE,cur_item,0L)&&relative.X>=item_rect.Left&&relative.X<=item_rect.Right&&relative.Y>=item_rect.Top&&relative.Y<=item_rect.Bottom)
               {
-                COORD item_relative={relative.X-item_rect.Left,relative.Y-item_rect.Top};
+                COORD item_relative={(SHORT)(relative.X-item_rect.Left),(SHORT)(relative.Y-item_rect.Top)};
                 Info.SendDlgMessage(hDlg,DN_LISTBOXEX_MOUSEMOVE,cur_item,&item_relative);
               }
               cur_item++;
