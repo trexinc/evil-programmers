@@ -24,7 +24,7 @@ HKEY OpenRegKey(HKEY hRoot, const TCHAR *root, const TCHAR *Key)
 {
   HKEY hKey;
   TCHAR FullKeyName[512];
-  FSF.sprintf(FullKeyName,_T("%s%s%s"),root,*Key ? _T("\\"):_T(""),Key);
+  wsprintf(FullKeyName,_T("%s%s%s"),root,*Key ? _T("\\"):_T(""),Key);
   if (RegOpenKeyEx(hRoot,FullKeyName,0,KEY_READ,&hKey)!=ERROR_SUCCESS)
     return(NULL);
   return(hKey);
