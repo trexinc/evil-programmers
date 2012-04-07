@@ -117,7 +117,7 @@ static bool WINAPI addstate(int eid,int pos,unsigned long size,unsigned char *da
     {
       res=false;
       TCHAR buff[256];
-      FSF.sprintf(buff,GetMsg(mFatalLine2),fl->cachesize,pos);
+      wsprintf(buff,GetMsg(mFatalLine2),fl->cachesize,pos);
       const TCHAR* MsgItems[]={GetMsg(mError),GetMsg(mFatalLine1),buff,GetMsg(mButtonOk)};
       Info.Message(&MainGuid,&MessageFatalGuid,FMSG_WARNING,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),1);
     }
@@ -157,7 +157,7 @@ void LoadPlugs(const TCHAR* ModuleName)
   lstrcpy(PluginsFolder,ModuleName);
   NamePtr=(TCHAR*)FSF.PointToName(PluginsFolder);
   lstrcpy(NamePtr,_T("\\Formats\\"));
-  FSF.sprintf(PluginsMask,_T("%s*.fmt"),PluginsFolder);
+  wsprintf(PluginsMask,_T("%s*.fmt"),PluginsFolder);
 
   HANDLE FindHandle;
   WIN32_FIND_DATA fdata;
@@ -165,7 +165,7 @@ void LoadPlugs(const TCHAR* ModuleName)
   while(!Done)
   {
     TCHAR PluginName[MAX_PATH];
-    FSF.sprintf(PluginName,_T("%s%s"),PluginsFolder,fdata.cFileName);
+    wsprintf(PluginName,_T("%s%s"),PluginsFolder,fdata.cFileName);
     HMODULE hModule=LoadLibrary(PluginName);
     if (hModule!=NULL)
     {

@@ -193,7 +193,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *Info)
         ::Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
         curfile=ef_getfile(ei.EditorID);
         if(curfile) index=curfile->type+1;
-        FSF.sprintf(text,_T("%c. %s"),hotkeys[0],GetMsg(mDefault));
+        wsprintf(text,_T("%c. %s"),hotkeys[0],GetMsg(mDefault));
         if(!index) SyntaxTypes[0].Flags|='*'|MIF_CHECKED;
         ids[0]=-1;
         index--;
@@ -204,9 +204,9 @@ HANDLE WINAPI OpenW(const struct OpenInfo *Info)
             text=data+j*128;
             SyntaxTypes[j].Text=text;
             if(j<(int)(lstrlen(hotkeys)-1))
-              FSF.sprintf(text,_T("%c. %s"),hotkeys[j],PluginsData[i].Name);
+              wsprintf(text,_T("%c. %s"),hotkeys[j],PluginsData[i].Name);
             else
-              FSF.sprintf(text,_T("%c. %s"),_T(' '),PluginsData[i].Name);
+              wsprintf(text,_T("%c. %s"),_T(' '),PluginsData[i].Name);
             if(index==i) SyntaxTypes[j].Flags|='*'|MIF_CHECKED;
             ids[j]=i;
             j++;
@@ -258,7 +258,7 @@ int WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
   {
     TCHAR* text=data+i*128;
     MenuItems[i].Text=text;
-    FSF.sprintf(text,_T("%s"),GetMsg(Msgs[i])); // Text in menu
+    wsprintf(text,_T("%s"),GetMsg(Msgs[i])); // Text in menu
   };
   int MenuCode=0;
   while(true)
@@ -305,7 +305,7 @@ int WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
 
       TCHAR lines[32];
       DialogItems[4].Data=lines;
-      FSF.sprintf(lines,_T("%d"),Opt.MaxLines);
+      wsprintf(lines,_T("%d"),Opt.MaxLines);
       int DlgCode=-1;
       HANDLE hDlg=Info.DialogInit(&MainGuid,&Config1Guid,-1,-1,76,9,_T("Config1"),DialogItems,(sizeof(DialogItems)/sizeof(DialogItems[0])),0,0,Config1DialogProc,0);
       if(hDlg!=INVALID_HANDLE_VALUE) DlgCode=Info.DialogRun(hDlg);
@@ -348,9 +348,9 @@ int WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
                 TCHAR* text=data+j*128;
                 SyntaxTypes[j].Text=text;
                 if(j<(int)lstrlen(hotkeys))
-                  FSF.sprintf(text,_T("%c. %s"),hotkeys[j],PluginsData[i].Name);
+                  wsprintf(text,_T("%c. %s"),hotkeys[j],PluginsData[i].Name);
                 else
-                  FSF.sprintf(text,_T("%c. %s"),' ',PluginsData[i].Name);
+                  wsprintf(text,_T("%c. %s"),' ',PluginsData[i].Name);
                 ids[j]=i;
                 j++;
               }
@@ -426,9 +426,9 @@ int WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
                 TCHAR* text=data+j*128;
                 SyntaxTypes[j].Text=text;
                 if(j<(int)lstrlen(hotkeys))
-                  FSF.sprintf(text,_T("%c. %s"),hotkeys[j],PluginsData[i].Name);
+                  wsprintf(text,_T("%c. %s"),hotkeys[j],PluginsData[i].Name);
                 else
-                  FSF.sprintf(text,_T("%c. %s"),' ',PluginsData[i].Name);
+                  wsprintf(text,_T("%c. %s"),' ',PluginsData[i].Name);
                 ids[j]=i;
                 j++;
               }
@@ -504,9 +504,9 @@ int WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
                 TCHAR* text=data+j*128;
                 SyntaxTypes[j].Text=text;
                 if(j<(int)lstrlen(hotkeys))
-                  FSF.sprintf(text,_T("%c. %s"),hotkeys[j],PluginsData[i].Name);
+                  wsprintf(text,_T("%c. %s"),hotkeys[j],PluginsData[i].Name);
                 else
-                  FSF.sprintf(text,_T("%c. %s"),' ',PluginsData[i].Name);
+                  wsprintf(text,_T("%c. %s"),' ',PluginsData[i].Name);
                 ids[j]=i;
                 j++;
               }
@@ -534,9 +534,9 @@ int WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
                     TCHAR* text=data+i*128;
                     ColorTypes[i].Text=text;
                     if(i<(int)lstrlen(hotkeys))
-                      FSF.sprintf(text,_T("%c. %s"),hotkeys[i],ColorNames[i]);
+                      wsprintf(text,_T("%c. %s"),hotkeys[i],ColorNames[i]);
                     else
-                      FSF.sprintf(text,_T("%c. %s"),' ',ColorNames[i]);
+                      wsprintf(text,_T("%c. %s"),' ',ColorNames[i]);
                   }
                   int ColorCode=0;
                   while(true)
