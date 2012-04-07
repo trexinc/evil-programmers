@@ -85,8 +85,7 @@ bool CFarSettings::Get(const wchar_t* aName,wchar_t* aValue,size_t aSize)
   FarSettingsItem item={iRoot,aName,FST_STRING,{0}};
   if(Info.SettingsControl(iSettings,SCTL_GET,0,&item))
   {
-    _tcsncpy(aValue,item.String,aSize-1);
-    aValue[aSize-1]=0;
+    lstrcpyn(aValue,item.String,aSize);
     return true;
   }
   return false;
