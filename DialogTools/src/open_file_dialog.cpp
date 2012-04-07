@@ -273,10 +273,10 @@ static INT_PTR WINAPI OFDProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
             TCHAR key_path[MAX_PATH], value[64], data[MAX_PATH];;
             lstrcpyn(key_path,Info.RootKey,FSF.PointToName(Info.RootKey)-Info.RootKey+1);
             lstrcat(key_path,_T("FolderShortcuts"));
-            FSF.sprintf(value,_T("PluginModule%d"),keyIn-KEY_RCTRL0);
+            wsprintf(value,_T("PluginModule%d"),keyIn-KEY_RCTRL0);
             if(GetRegKey(HKEY_CURRENT_USER,key_path,_T(""),value,data,_T(""),MAX_PATH)&&(!*data))
             {
-              FSF.sprintf(value,_T("Shortcut%d"),keyIn-KEY_RCTRL0);
+              wsprintf(value,_T("Shortcut%d"),keyIn-KEY_RCTRL0);
               GetRegKey(HKEY_CURRENT_USER,key_path,_T(""),value,data,_T(""),MAX_PATH);
               if(*data)
               {
