@@ -41,6 +41,7 @@ E = [Ee] [+-]? D+;
 FS  = [fFlL];
 IS  = [uUlL]*;
 ESC = [\\] ([abfnrtv?'"\\] | "x" H+ | O+);
+STR = ("L"|"u8"|"u"|"U");
 */
 
 void WINAPI Colorize(int index,struct ColorizeParams *params)
@@ -83,21 +84,31 @@ colorize_clear:
   { state[0]=PARSER_COMMENT1; commentstart=yytok; goto colorize_comment1; }
   "//"
   { commentstart=yytok; goto colorize_comment2; }
-  "auto"|"break"|"case"|"char"|"const"|"continue"|"default"|"do"|"double"|"else"|"enum"|
-  "extern"|"float"|"for"|"goto"|"if"|"int"|"long"|"register"|"return"|"short"|"signed"|
-  "sizeof"|"static"|"struct"|"switch"|"typedef"|"union"|"unsigned"|"void"|"volatile"|"while"|
-  "asm"|"catch"|"class"|"friend"|"delete"|"inline"|"new"|"operator"|"private"|"protected"|"public"|
-  "this"|"throw"|"template"|"try"|"virtual"|"bool"|"const_cast"|"dynamic_cast"|"explicit"|"false"|
-  "mutable"|"namespace"|"reinterpret_cast"|"static_cast"|"true"|"typeid"|"typename"|"using"|"wchar_t"|"__int64"|"size_t"
+  "alignas"|"alignof"|"and"|"and_eq"|"asm"|"auto"|
+  "bitand"|"bitor"|"bool"|"break"|
+  "case"|"catch"|"char"|"char16_t"|"char32_t"|"class"|"compl"|"const"|"constexpr"|"const_cast"|"continue"|
+  "decltype"|"default"|"delete"|"do"|"double"|"dynamic_cast"|
+  "else"|"enum"|"explicit"|"export"|"extern"|
+  "false"|"float"|"for"|"friend"|
+  "goto"|"if"|"inline"|"int"|"long"|"mutable"|
+  "namespace"|"new"|"noexcept"|"not"|"not_eq"|"nullptr"|
+  "operator"|"or"|"or_eq"|"private"|"protected"|"public"|
+  "register"|"reinterpret_cast"|"return"|
+  "short"|"signed"|"sizeof"|"static"|"static_assert"|"static_cast"|"struct"|"switch"|
+  "template"|"this"|"thread_local"|"throw"|"true"|"try"|"typedef"|"typeid"|"typename"|
+  "union"|"unsigned"|"using"|
+  "virtual"|"void"|"volatile"|
+  "wchar_t"|"while"|"xor"|"xor_eq"|
+  "__int64"|"size_t"
   { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_KEYWORD1,EPriorityNormal); goto colorize_clear; }
   L(L|D)*
   { goto colorize_clear; }
   ("0"[xX]H+IS?)|("0"O+IS?)|(D+IS?)|
   (D+E FS?)|(D*"."D+E?FS?)|(D+"."D*E?FS?)
   { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_NUMBER1,EPriorityNormal); goto colorize_clear; }
-  ("L")?["]
+  STR?["]
   { state[0]=PARSER_STRING; commentstart=yytok; goto colorize_string; }
-  (("L")?['] (ESC|any\[\\'])* ['])
+  (STR?['] (ESC|any\[\\'])* ['])
   { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_STRING1,EPriorityNormal); goto colorize_clear; }
   "..."|">>="|"<<="|"+="|"-="|"*="|"/="|"%="|"&="|"^="|"|="|">>"|"<<"|"++"|"--"|"->"|"&&"|"||"|
   "<="|">="|"=="|"!="|","|":"|"="|"."|"&"|"!"|"~"|
