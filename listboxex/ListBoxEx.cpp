@@ -358,20 +358,27 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
           data->Items[item->Index].Flags=item->Item.Flags;
           data->Items[item->Index].Hotkey=item->Item.Hotkey;
           data->Items[item->Index].CheckMark=item->Item.CheckMark;
-          data->Items[item->Index].Length=item->Item.Length;
-          if(data->Items[item->Index].Item) HeapFree(GetProcessHeap(),0,data->Items[item->Index].Item);
-          data->Items[item->Index].Item=(TCHAR*)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,(data->Items[item->Index].Length+1)*sizeof(TCHAR));
-          if(data->Items[item->Index].Item)
+          if(data->Items[item->Index].Item!=item->Item.Item)
           {
-            if(item->Item.Item)
-              memcpy(data->Items[item->Index].Item,item->Item.Item,data->Items[item->Index].Length+1);
-            else
+            data->Items[item->Index].Length=item->Item.Length;
+            if(data->Items[item->Index].Item) HeapFree(GetProcessHeap(),0,data->Items[item->Index].Item);
+            data->Items[item->Index].Item=(TCHAR*)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,(data->Items[item->Index].Length+1)*sizeof(TCHAR));
+            if(data->Items[item->Index].Item)
             {
-              memset(data->Items[item->Index].Item,' ',data->Items[item->Index].Length);
+              if(item->Item.Item)
+              {
+                wmemcpy(data->Items[item->Index].Item,item->Item.Item,data->Items[item->Index].Length+1);
+              }
+              else
+              {
+                wmemset(data->Items[item->Index].Item,L' ',data->Items[item->Index].Length);
+              }
             }
           }
           for(unsigned long i=0;i<sizeofa(data->Items[item->Index].Attribute);i++)
           {
+            if(data->Items[item->Index].Attribute[i]!=item->Item.Attribute[i])
+            {
               if(data->Items[item->Index].Attribute[i]) HeapFree(GetProcessHeap(),0,data->Items[item->Index].Attribute[i]);
               data->Items[item->Index].Attribute[i]=(ListBoxExColor*)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,data->Items[item->Index].Length*sizeof(ListBoxExColor));
               if(data->Items[item->Index].Attribute[i])
@@ -384,6 +391,7 @@ long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
                     data->Items[item->Index].Attribute[i][j]=default_colors[i];
                 }
               }
+            }
           }
           Info.SendDlgMessage(hDlg,DM_REDRAW,0,0);
           return_result=TRUE;
