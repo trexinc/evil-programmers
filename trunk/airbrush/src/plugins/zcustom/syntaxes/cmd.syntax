@@ -79,7 +79,8 @@ context default
     keyword > brightmagenta
     keyword | brightmagenta
     keyword @ brightmagenta
-    keyword linestart :*\n brightgreen
+    keyword linestart :/[a-zA-Z0-9_]+/ brightgreen
+context linestart :: \n cyan
 context linestart /[\s\t]*//[Rr]//[Ee]//[Mm]//[\s\t]+/ \n cyan
 context " " yellow
     keyword %/[a-zA-Z0-9]+/% brightmagenta
