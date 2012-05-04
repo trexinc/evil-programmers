@@ -1,5 +1,5 @@
 #define PLUGIN_MAJOR 2
-#define PLUGIN_MINOR 3
+#define PLUGIN_MINOR 4
 #define PLUGIN_DESC L"Indent selected block"
 #define PLUGIN_NAME L"BlockIndent"
 #define PLUGIN_FILENAME L"BlockIndent.dll"
