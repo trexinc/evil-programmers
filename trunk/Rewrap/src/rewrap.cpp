@@ -126,7 +126,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
             szText[1]=GetMsg(&MainGuid,IDS_NoEsc);
             szText[2]=GetMsg(&MainGuid,IDS_Cancel);
             Message(&MainGuid,NULL,FMSG_ERRORTYPE|FMSG_WARNING,szEsc,szText,3,1);
-            return INVALID_HANDLE_VALUE;
+            return NULL;
         }
     }
     if( !GetEditorSettings ){
@@ -136,7 +136,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
             szText[1]=GetMsg(&MainGuid,IDS_OldEsc);
             szText[2]=GetMsg(&MainGuid,IDS_Cancel);
             Message(&MainGuid,NULL,FMSG_ERRORTYPE|FMSG_WARNING,szEsc,szText,3,1);
-            return INVALID_HANDLE_VALUE;
+            return NULL;
         }
     }
 
@@ -151,7 +151,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
         szText[1]=GetMsg(&MainGuid,IDS_NoWrap);
         szText[2]=GetMsg(&MainGuid,IDS_Cancel);
         Message(&MainGuid,NULL,FMSG_WARNING,szEsc,szText,3,1);
-        return INVALID_HANDLE_VALUE;
+        return NULL;
     }
 
     esp.CurPos=0;
@@ -212,7 +212,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
                     EditorControl(-1,ECTL_SETPOSITION,0,&esp);
                     eur.Command=EUR_END;
                     EditorControl(-1,ECTL_UNDOREDO,0,&eur);
-                    return INVALID_HANDLE_VALUE;
+                    return NULL;
                 }
             }else if( nIndent2==-1 ){
                 for( nIndent2=0; nIndent2<egs.StringLength; nIndent2++ )
@@ -276,7 +276,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
         EditorControl(-1,ECTL_INSERTSTRING,0,0);
         eur.Command=EUR_END;
         EditorControl(-1,ECTL_UNDOREDO,0,&eur);
-        return INVALID_HANDLE_VALUE;
+        return NULL;
     }
 
     if( nIndent1>=nWrapPos-1 || nIndent1<0 ) nIndent1=0;
@@ -378,7 +378,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
 
     EditorControl(-1,ECTL_REDRAW,0,NULL);
 
-    return INVALID_HANDLE_VALUE;
+    return NULL;
 }
 
 #if defined(__GNUC__)
