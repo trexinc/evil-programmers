@@ -104,7 +104,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
   int menu;
   if ((menu = Info.Menu(&MainGuid,NULL,-1,-1,0,FMENU_WRAPMODE,GetMsg(MTitle),
       NULL,NULL,NULL,NULL,MenuItems,sizeof(MenuItems)/sizeof(MenuItems[0]))) == -1)
-    return INVALID_HANDLE_VALUE;
+    return NULL;
 
   struct EditorInfo ei;
   Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
@@ -196,5 +196,5 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
   eur.Command=EUR_END;
   Info.EditorControl(-1,ECTL_UNDOREDO,0,&eur);
 
-  return INVALID_HANDLE_VALUE;
+  return NULL;
 }
