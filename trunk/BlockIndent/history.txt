@@ -6,6 +6,11 @@ Legend:  + added
          * changed
          ! fixed
 
+v2.4 (05/05/12)
+---------------
+
+ + Far 3.0 build 2572 support.
+
 v2.3 (22/12/11)
 ---------------
 
