@@ -123,7 +123,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
     Info.EditorControl(-1,ECTL_INSERTTEXT,0,r);
   }
 
-  return INVALID_HANDLE_VALUE;
+  return NULL;
 }
 
 #if defined(__GNUC__)
