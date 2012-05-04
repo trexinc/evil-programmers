@@ -308,7 +308,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
       WMsg[0] = GetMsg(MTitle);
       WMsg[1] = GetMsg(MNoESC);
       Info.Message(&MainGuid,NULL,FMSG_WARNING|FMSG_MB_OK,NULL,WMsg,2,0);
-      return INVALID_HANDLE_VALUE;
+      return NULL;
     }
     FirstRun = FALSE;
   }
@@ -322,5 +322,5 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
     Info.DialogFree(hDlg);
   }
 
-  return INVALID_HANDLE_VALUE;
+  return NULL;
 }
