@@ -36,7 +36,7 @@ class CLockFile
       Off();
       Name=FileName;
       hFile=(FileName && *FileName)?
-        CreateFile(FileName,GENERIC_READ,FILE_SHARE_READ,NULL,
+        CreateFile(FileName,GENERIC_READ,0,NULL,
           OPEN_EXISTING,0,NULL):INVALID_HANDLE_VALUE;
     }
 
