@@ -103,7 +103,7 @@ colorize_clear:
     if(state[0].State==PARSER_STRING2) goto colorize_string2;
     if(state[0].State==PARSER_STRING3) goto colorize_string3;
 /*!re2c
-  "--" [ \t]* "[" "="* "["
+  "--[" "="* "["
   { state[0].State=PARSER_COMMENT; state[0].Level=GetLevel(yytok); commentstart=yytok; goto colorize_comment1; }
   "--"
   { commentstart=yytok; goto colorize_comment2; }
