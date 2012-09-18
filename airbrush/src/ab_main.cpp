@@ -188,6 +188,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *Info)
         TCHAR* text=data;
         SyntaxTypes[0].Text=text;
         EditorInfo ei;
+        ei.StructSize=sizeof(ei);
         PEditFile curfile;
         int index=-1;
         ::Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
@@ -229,6 +230,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *Info)
         if(MenuCode>-1)
         {
           EditorInfo ei;
+          ei.StructSize=sizeof(ei);
           ::Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
           ef_deletefile(ei.EditorID);
           loadfile(ei.EditorID,ids[MenuCode]);

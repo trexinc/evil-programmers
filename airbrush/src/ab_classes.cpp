@@ -156,6 +156,7 @@ int OnEditorEvent(int event,void *param,int editorid)
   TCHAR* editorfilename;
   const TCHAR* filename;
   EditorInfo ei;
+  ei.StructSize=sizeof(ei);
 
   // close file
   if(event==EE_CLOSE)
@@ -175,6 +176,7 @@ int OnEditorEvent(int event,void *param,int editorid)
   filename=FSF.PointToName(editorfilename); // deletes path...
 
   EditorGetString egs;
+  egs.StructSize=sizeof(egs);
   egs.StringNumber=0;
   Info.EditorControl(-1,ECTL_GETSTRING,0,&egs);
 
@@ -404,6 +406,7 @@ int OnEditorEvent(int event,void *param,int editorid)
 int OnEditorInput(const INPUT_RECORD *Rec)
 {
   EditorInfo ei;
+  ei.StructSize=sizeof(ei);
   Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
   PEditFile curfile=ef_getfile(ei.EditorID);
   if(curfile&&(curfile->type>-1)&&PluginsData[curfile->type].pInput)

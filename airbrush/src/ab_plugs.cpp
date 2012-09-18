@@ -80,6 +80,7 @@ static void WINAPI delcolor(int lno)
 static const TCHAR WINAPI *getline(int lno,int *len)
 {
   EditorGetString egs;
+  egs.StructSize=sizeof(egs);
   egs.StringNumber=lno;
   WaitForSingleObject(Mutex,INFINITE);
   Info.EditorControl(-1,ECTL_GETSTRING,0,&egs);
@@ -130,6 +131,7 @@ static bool WINAPI addstate(int eid,int pos,unsigned long size,unsigned char *da
 static void WINAPI getcursor(int *row,int *col)
 {
   EditorInfo ei;
+  ei.StructSize=sizeof(ei);
   WaitForSingleObject(Mutex,INFINITE);
   Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
   ReleaseMutex(Mutex);
