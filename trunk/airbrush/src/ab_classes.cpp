@@ -170,8 +170,9 @@ int OnEditorEvent(int event,void *param,int editorid)
   // search file in list
   Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
 
-  editorfilename = (TCHAR *)malloc(Info.EditorControl(-1,ECTL_GETFILENAME,0,NULL)*sizeof(TCHAR));
-  Info.EditorControl(-1,ECTL_GETFILENAME,0,editorfilename);
+  size_t editorfilenamesize=Info.EditorControl(-1,ECTL_GETFILENAME,0,NULL);
+  editorfilename = (TCHAR *)malloc(editorfilenamesize*sizeof(TCHAR));
+  Info.EditorControl(-1,ECTL_GETFILENAME,editorfilenamesize,editorfilename);
 
   filename=FSF.PointToName(editorfilename); // deletes path...
 
