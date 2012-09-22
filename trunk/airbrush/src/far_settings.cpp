@@ -32,27 +32,27 @@ CFarSettings::~CFarSettings()
 
 void CFarSettings::Change(const wchar_t* aName)
 {
-  FarSettingsValue value={0,aName};
+  FarSettingsValue value={sizeof(FarSettingsValue),0,aName};
   iRoot=Info.SettingsControl(iSettings,SCTL_CREATESUBKEY,0,&value);
 }
 
 void CFarSettings::Set(const wchar_t* aName,__int64 aValue)
 {
-  FarSettingsItem item={iRoot,aName,FST_QWORD,{0}};
+  FarSettingsItem item={sizeof(FarSettingsItem),iRoot,aName,FST_QWORD,{0}};
   item.Number=aValue;
   Info.SettingsControl(iSettings,SCTL_SET,0,&item);
 }
 
 void CFarSettings::Set(const wchar_t* aName,const wchar_t* aValue)
 {
-  FarSettingsItem item={iRoot,aName,FST_STRING,{0}};
+  FarSettingsItem item={sizeof(FarSettingsItem),iRoot,aName,FST_STRING,{0}};
   item.String=aValue;
   Info.SettingsControl(iSettings,SCTL_SET,0,&item);
 }
 
 void CFarSettings::Set(const wchar_t* aName,const void* aValue,size_t aSize)
 {
-  FarSettingsItem item={iRoot,aName,FST_DATA,{0}};
+  FarSettingsItem item={sizeof(FarSettingsItem),iRoot,aName,FST_DATA,{0}};
   item.Data.Size=aSize;
   item.Data.Data=aValue;
   Info.SettingsControl(iSettings,SCTL_SET,0,&item);
@@ -61,7 +61,7 @@ void CFarSettings::Set(const wchar_t* aName,const void* aValue,size_t aSize)
 __int64 CFarSettings::Get(const wchar_t* aName,__int64 aDefault)
 {
   __int64 result=aDefault;
-  FarSettingsItem item={iRoot,aName,FST_QWORD,{0}};
+  FarSettingsItem item={sizeof(FarSettingsItem),iRoot,aName,FST_QWORD,{0}};
   if(Info.SettingsControl(iSettings,SCTL_GET,0,&item))
   {
     result=item.Number;
@@ -72,7 +72,7 @@ __int64 CFarSettings::Get(const wchar_t* aName,__int64 aDefault)
 bool CFarSettings::Get(const wchar_t* aName,bool aDefault)
 {
   bool result=aDefault;
-  FarSettingsItem item={iRoot,aName,FST_QWORD,{0}};
+  FarSettingsItem item={sizeof(FarSettingsItem),iRoot,aName,FST_QWORD,{0}};
   if(Info.SettingsControl(iSettings,SCTL_GET,0,&item))
   {
     result=item.Number?true:false;
@@ -82,7 +82,7 @@ bool CFarSettings::Get(const wchar_t* aName,bool aDefault)
 
 bool CFarSettings::Get(const wchar_t* aName,wchar_t* aValue,size_t aSize)
 {
-  FarSettingsItem item={iRoot,aName,FST_STRING,{0}};
+  FarSettingsItem item={sizeof(FarSettingsItem),iRoot,aName,FST_STRING,{0}};
   if(Info.SettingsControl(iSettings,SCTL_GET,0,&item))
   {
     lstrcpyn(aValue,item.String,aSize);
@@ -93,7 +93,7 @@ bool CFarSettings::Get(const wchar_t* aName,wchar_t* aValue,size_t aSize)
 
 size_t CFarSettings::Get(const wchar_t* aName,void* aValue,size_t aSize)
 {
-  FarSettingsItem item={iRoot,aName,FST_DATA,{0}};
+  FarSettingsItem item={sizeof(FarSettingsItem),iRoot,aName,FST_DATA,{0}};
   if(Info.SettingsControl(iSettings,SCTL_GET,0,&item))
   {
     size_t result=(item.Data.Size>aSize)?aSize:item.Data.Size;
