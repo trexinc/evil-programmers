@@ -292,14 +292,14 @@ int WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
         0123456789012345678901234567890123456789012345678901234567890123456789012345
       */
       struct FarDialogItem DialogItems[]={
-      /*0*/  {DI_DOUBLEBOX,3 ,1,72,7,{0},NULL,NULL,0,                                GetMsg(mName)                   ,0,0},
-      /*1*/  {DI_CHECKBOX ,5 ,2,0 ,0,{0},NULL,NULL,DIF_FOCUS,                        GetMsg(mConfigDialogActive)     ,0,0},
-      /*2*/  {DI_CHECKBOX ,5 ,3,0 ,0,{0},NULL,NULL,0,                                GetMsg(mConfigDialogColorizeAll),0,0},
-      /*3*/  {DI_TEXT     ,5 ,4,0 ,0,{0},NULL,NULL,0,                                GetMsg(mConfigDialogMaxLines)   ,0,0},
-      /*4*/  {DI_FIXEDIT  ,64,4,70,0,{0},NULL,NULL,DIF_MASKEDIT,                     _T("")                          ,0,0},
-      /*5*/  {DI_TEXT     ,-1,5,0 ,0,{0},NULL,NULL,DIF_SEPARATOR,                    _T("")                          ,0,0},
-      /*6*/  {DI_BUTTON   ,0 ,6,0 ,0,{0},NULL,NULL,DIF_CENTERGROUP|DIF_DEFAULTBUTTON,GetMsg(mConfigSave)             ,0,0},
-      /*7*/  {DI_BUTTON   ,0 ,6,0 ,0,{0},NULL,NULL,DIF_CENTERGROUP,                  GetMsg(mConfigCancel)           ,0,0}
+      /*0*/  {DI_DOUBLEBOX,3 ,1,72,7,{0},NULL,NULL,0,                                GetMsg(mName)                   ,0,0,{0,0}},
+      /*1*/  {DI_CHECKBOX ,5 ,2,0 ,0,{0},NULL,NULL,DIF_FOCUS,                        GetMsg(mConfigDialogActive)     ,0,0,{0,0}},
+      /*2*/  {DI_CHECKBOX ,5 ,3,0 ,0,{0},NULL,NULL,0,                                GetMsg(mConfigDialogColorizeAll),0,0,{0,0}},
+      /*3*/  {DI_TEXT     ,5 ,4,0 ,0,{0},NULL,NULL,0,                                GetMsg(mConfigDialogMaxLines)   ,0,0,{0,0}},
+      /*4*/  {DI_FIXEDIT  ,64,4,70,0,{0},NULL,NULL,DIF_MASKEDIT,                     _T("")                          ,0,0,{0,0}},
+      /*5*/  {DI_TEXT     ,-1,5,0 ,0,{0},NULL,NULL,DIF_SEPARATOR,                    _T("")                          ,0,0,{0,0}},
+      /*6*/  {DI_BUTTON   ,0 ,6,0 ,0,{0},NULL,NULL,DIF_CENTERGROUP|DIF_DEFAULTBUTTON,GetMsg(mConfigSave)             ,0,0,{0,0}},
+      /*7*/  {DI_BUTTON   ,0 ,6,0 ,0,{0},NULL,NULL,DIF_CENTERGROUP,                  GetMsg(mConfigCancel)           ,0,0,{0,0}}
       };
       DialogItems[1].Selected=Opt.Active;
       DialogItems[2].Selected=Opt.ColorizeAll;
@@ -371,11 +371,11 @@ int WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
               if(PluginsData[ids[MenuCode]].Mask)
                 lstrcpy(mask,PluginsData[ids[MenuCode]].Mask);
               struct FarDialogItem DialogItems[]={
-              /*0*/  {DI_DOUBLEBOX, 3,1,72,5,{0},NULL,NULL,0,                                _T("")               ,0,0},
-              /*1*/  {DI_EDIT,      5,2,70,0,{0},NULL,NULL,DIF_FOCUS,                        _T("")               ,0,0},
-              /*2*/  {DI_TEXT,     -1,3,0 ,0,{0},NULL,NULL,DIF_SEPARATOR,                    _T("")               ,0,0},
-              /*3*/  {DI_BUTTON,    0,4,0 ,0,{0},NULL,NULL,DIF_CENTERGROUP|DIF_DEFAULTBUTTON,GetMsg(mConfigSave)  ,0,0},
-              /*4*/  {DI_BUTTON,    0,4,0 ,0,{0},NULL,NULL,DIF_CENTERGROUP,                  GetMsg(mConfigCancel),0,0}
+              /*0*/  {DI_DOUBLEBOX, 3,1,72,5,{0},NULL,NULL,0,                                _T("")               ,0,0,{0,0}},
+              /*1*/  {DI_EDIT,      5,2,70,0,{0},NULL,NULL,DIF_FOCUS,                        _T("")               ,0,0,{0,0}},
+              /*2*/  {DI_TEXT,     -1,3,0 ,0,{0},NULL,NULL,DIF_SEPARATOR,                    _T("")               ,0,0,{0,0}},
+              /*3*/  {DI_BUTTON,    0,4,0 ,0,{0},NULL,NULL,DIF_CENTERGROUP|DIF_DEFAULTBUTTON,GetMsg(mConfigSave)  ,0,0,{0,0}},
+              /*4*/  {DI_BUTTON,    0,4,0 ,0,{0},NULL,NULL,DIF_CENTERGROUP,                  GetMsg(mConfigCancel),0,0,{0,0}}
               };
               DialogItems[1].MaxLength=sizeof(mask);
               DialogItems[1].Data=mask;
@@ -449,11 +449,11 @@ int WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
               if(PluginsData[ids[MenuCode]].Start)
                 lstrcpy(start,PluginsData[ids[MenuCode]].Start);
               struct FarDialogItem DialogItems[]={
-              /*0*/  {DI_DOUBLEBOX, 3,1,72,5,{0},NULL,NULL,0,                                _T("")               ,0,0},
-              /*1*/  {DI_EDIT,      5,2,70,0,{0},NULL,NULL,DIF_FOCUS,                        _T("")               ,0,0},
-              /*2*/  {DI_TEXT,     -1,3,0 ,0,{0},NULL,NULL,DIF_SEPARATOR,                    _T("")               ,0,0},
-              /*3*/  {DI_BUTTON,    0,4,0 ,0,{0},NULL,NULL,DIF_CENTERGROUP|DIF_DEFAULTBUTTON,GetMsg(mConfigSave)  ,0,0},
-              /*4*/  {DI_BUTTON,    0,4,0 ,0,{0},NULL,NULL,DIF_CENTERGROUP,                  GetMsg(mConfigCancel),0,0}
+              /*0*/  {DI_DOUBLEBOX, 3,1,72,5,{0},NULL,NULL,0,                                _T("")               ,0,0,{0,0}},
+              /*1*/  {DI_EDIT,      5,2,70,0,{0},NULL,NULL,DIF_FOCUS,                        _T("")               ,0,0,{0,0}},
+              /*2*/  {DI_TEXT,     -1,3,0 ,0,{0},NULL,NULL,DIF_SEPARATOR,                    _T("")               ,0,0,{0,0}},
+              /*3*/  {DI_BUTTON,    0,4,0 ,0,{0},NULL,NULL,DIF_CENTERGROUP|DIF_DEFAULTBUTTON,GetMsg(mConfigSave)  ,0,0,{0,0}},
+              /*4*/  {DI_BUTTON,    0,4,0 ,0,{0},NULL,NULL,DIF_CENTERGROUP,                  GetMsg(mConfigCancel),0,0,{0,0}}
               };
               DialogItems[1].MaxLength=sizeof(start);
               DialogItems[1].Data=start;
