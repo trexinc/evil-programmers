@@ -213,7 +213,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *Info)
             j++;
           }
         }
-        int MenuCode=0,BreakCode;
+        intptr_t MenuCode=0,BreakCode;
         FarKey BreakKeys[]={{VK_F4,0},{0,0}};
         while(true)
         {
@@ -243,12 +243,12 @@ HANDLE WINAPI OpenW(const struct OpenInfo *Info)
   return NULL;
 }
 
-INT_PTR WINAPI Config1DialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
+intptr_t WINAPI Config1DialogProc(HANDLE hDlg,intptr_t Msg,intptr_t Param1,void* Param2)
 {
   return Info.DefDlgProc(hDlg,Msg,Param1,Param2);
 }
 
-int WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
+intptr_t WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
 {
   FarMenuItem MenuItems[4];
   memset(MenuItems,0,sizeof(MenuItems));
@@ -580,12 +580,12 @@ int WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
   return false;
 }
 
-int WINAPI ProcessEditorEventW(const struct ProcessEditorEventInfo *Info)
+intptr_t WINAPI ProcessEditorEventW(const struct ProcessEditorEventInfo *Info)
 {
   return OnEditorEvent(Info->Event,Info->Param,Info->EditorID);
 }
 
-int WINAPI ProcessEditorInputW(const ProcessEditorInputInfo *Info)
+intptr_t WINAPI ProcessEditorInputW(const ProcessEditorInputInfo *Info)
 {
   return OnEditorInput(&Info->Rec);
 }
