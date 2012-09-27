@@ -714,8 +714,8 @@ int WINAPI GetFindDataW(struct GetFindDataInfo *anInfo)
             (anInfo->PanelItem)[i].CustomColumnData=CustomColumnData;
             if(CustomColumnData)
             {
-              if((anInfo->PanelItem)[i].Flags&PPIF_USERDATA)
-                CustomColumnData[1]=get_sid_string(GetSidFromUserData((anInfo->PanelItem)[i].UserData));
+              if((anInfo->PanelItem)[i].UserData.FreeData)
+                CustomColumnData[1]=get_sid_string(GetSidFromUserData((anInfo->PanelItem)[i].UserData.Data));
               NormalizeCustomColumns((anInfo->PanelItem)+i);
             }
           }
@@ -830,7 +830,6 @@ void WINAPI FreeFindDataW(const struct FreeFindDataInfo *anInfo)
 {
   for(size_t i=0;i<anInfo->ItemsNumber;i++)
   {
-    free((void *)anInfo->PanelItem[i].UserData);
     free((void*)anInfo->PanelItem[i].Description);
     free((void*)anInfo->PanelItem[i].Owner);
     if(anInfo->PanelItem[i].CustomColumnData)
@@ -1177,9 +1176,9 @@ int WINAPI ProcessPanelInputW(const struct ProcessPanelInputInfo *anInfo)
       {
         if((pInfo.ItemsNumber()>0)&&(!(pInfo[pInfo.CurrentItem()].FileAttributes&FILE_ATTRIBUTE_DIRECTORY)))
         {
-          if(pInfo[pInfo.CurrentItem()].Flags&PPIF_USERDATA)
+          if(pInfo[pInfo.CurrentItem()].UserData.FreeData)
           {
-            UpdateAcl(panel,panel->level,GetSidFromUserData(pInfo[pInfo.CurrentItem()].UserData),GetItemTypeFromUserData(pInfo[pInfo.CurrentItem()].UserData),0,actionChangeType);
+            UpdateAcl(panel,panel->level,GetSidFromUserData(pInfo[pInfo.CurrentItem()].UserData.Data),GetItemTypeFromUserData(pInfo[pInfo.CurrentItem()].UserData.Data),0,actionChangeType);
           }
         }
         Info.PanelControl(anInfo->hPanel,FCTL_UPDATEPANEL,0,0);
@@ -1196,9 +1195,9 @@ int WINAPI ProcessPanelInputW(const struct ProcessPanelInputInfo *anInfo)
     {
       if((pInfo.ItemsNumber()>0)&&(!(pInfo[pInfo.CurrentItem()].FileAttributes&FILE_ATTRIBUTE_DIRECTORY)))
       {
-        if(pInfo[pInfo.CurrentItem()].Flags&PPIF_USERDATA)
+        if(pInfo[pInfo.CurrentItem()].UserData.FreeData)
         {
-          UpdateAcl(panel,panel->level,GetSidFromUserData(pInfo[pInfo.CurrentItem()].UserData),GetItemTypeFromUserData(pInfo[pInfo.CurrentItem()].UserData),0,(Key==VK_UP)?actionMoveUp:actionMoveDown);
+          UpdateAcl(panel,panel->level,GetSidFromUserData(pInfo[pInfo.CurrentItem()].UserData.Data),GetItemTypeFromUserData(pInfo[pInfo.CurrentItem()].UserData.Data),0,(Key==VK_UP)?actionMoveUp:actionMoveDown);
         }
       }
       Info.PanelControl(anInfo->hPanel,FCTL_UPDATEPANEL,0,0);
@@ -1225,10 +1224,10 @@ int WINAPI CompareW(const struct CompareInfo *Info)
   UserManager *panel=(UserManager *)Info->hPanel;
   if(sort[panel->level])
   {
-    if((Info->Item1->UserData)&&(Info->Item2->UserData))
+    if((Info->Item1->UserData.Data)&&(Info->Item2->UserData.Data))
     {
       int res;
-      res=GetSortOrderFromUserData(Info->Item1->UserData)-GetSortOrderFromUserData(Info->Item2->UserData);
+      res=GetSortOrderFromUserData(Info->Item1->UserData.Data)-GetSortOrderFromUserData(Info->Item2->UserData.Data);
       if(res) res=res/abs(res);
       return res;
     }

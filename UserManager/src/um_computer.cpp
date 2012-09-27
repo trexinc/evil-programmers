@@ -58,10 +58,10 @@ bool GetComputer(UserManager *panel,bool selection)
     static const TCHAR *ComputerHistoryName=_T("UserManager\\Computer");
     FarDialogItem DialogItems[]=
     {
-    /*0*/  {DI_DOUBLEBOX,3,1,44,5,{0},NULL,               NULL,0,                    GetMsg(mSelCompTitle),   0,0},
-    /*1*/  {DI_TEXT,     5,2, 0,0,{0},NULL,               NULL,0,                    GetMsg(mSelCompLabel),   0,0},
-    /*2*/  {DI_EDIT,     5,3,42,0,{0},ComputerHistoryName,NULL,DIF_HISTORY|DIF_FOCUS,_T(""),                  0,0},
-    /*3*/  {DI_TEXT,     5,4, 0,0,{0},NULL,               NULL,0,                    GetMsg(mSelCompFootnote),0,0},
+    /*0*/  {DI_DOUBLEBOX,3,1,44,5,{0},NULL,               NULL,0,                    GetMsg(mSelCompTitle),   0,0,{0,0}},
+    /*1*/  {DI_TEXT,     5,2, 0,0,{0},NULL,               NULL,0,                    GetMsg(mSelCompLabel),   0,0,{0,0}},
+    /*2*/  {DI_EDIT,     5,3,42,0,{0},ComputerHistoryName,NULL,DIF_HISTORY|DIF_FOCUS,_T(""),                  0,0,{0,0}},
+    /*3*/  {DI_TEXT,     5,4, 0,0,{0},NULL,               NULL,0,                    GetMsg(mSelCompFootnote),0,0,{0,0}},
     };
     DialogItems[2].Data=panel->computer_ptr;
     CFarDialog dialog;
