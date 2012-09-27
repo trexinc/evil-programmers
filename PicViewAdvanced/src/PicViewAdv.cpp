@@ -80,7 +80,7 @@ const wchar_t *GetMsg(int MsgId)
 bool GetValue(HANDLE Handle,int Root,const TCHAR* Name,bool Default)
 {
   bool result=Default;
-  FarSettingsItem item={Root,Name,FST_QWORD};
+  FarSettingsItem item={sizeof(FarSettingsItem),Root,Name,FST_QWORD};
   if(Info.SettingsControl(Handle,SCTL_GET,0,&item))
   {
     result=item.Number?true:false;
@@ -90,7 +90,7 @@ bool GetValue(HANDLE Handle,int Root,const TCHAR* Name,bool Default)
 
 void SetValue(HANDLE Handle,int Root,const TCHAR* Name,__int64 Value)
 {
-  FarSettingsItem item={Root,Name,FST_QWORD};
+  FarSettingsItem item={sizeof(FarSettingsItem),Root,Name,FST_QWORD};
   item.Number=Value;
   Info.SettingsControl(Handle,SCTL_SET,0,&item);
 }
@@ -505,7 +505,10 @@ void GetJiggyWithIt(HANDLE XPanelInfo,bool Override, bool Force)
       data.CurPanel=true;
     else
       data.CurPanel=false;
-    if(CheckName(info.FileName)||Override)
+
+    intptr_t FileNameSize=Info.ViewerControl(-1,VCTL_GETFILENAME,0,0);
+    wchar_t* FileName=(wchar_t*)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,FileNameSize*sizeof(wchar_t));
+    if(FileName&&Info.ViewerControl(-1,VCTL_GETFILENAME,FileNameSize,FileName)&&(CheckName(FileName)||Override))
     {
       RECT ViewerRect;
       if(data.ShowingIn==VIEWER)
@@ -516,8 +519,8 @@ void GetJiggyWithIt(HANDLE XPanelInfo,bool Override, bool Force)
         ViewerRect.bottom=info.WindowSizeY+1;
       }
       data.FarWindow=(HWND)Info.AdvControl(&MainGuid,ACTL_GETFARHWND,0,0);
-      size_t Size=FSF.ConvertPath(CPM_NATIVE,info.FileName,NULL,0);
-      FSF.ConvertPath(CPM_NATIVE,info.FileName,data.FileName,Size>=32768?32767:Size);
+      size_t Size=FSF.ConvertPath(CPM_NATIVE,FileName,NULL,0);
+      FSF.ConvertPath(CPM_NATIVE,FileName,data.FileName,Size>=32768?32767:Size);
 
       if(data.ShowingIn == VIEWER)
       {
@@ -560,7 +563,7 @@ void GetJiggyWithIt(HANDLE XPanelInfo,bool Override, bool Force)
           DialogItems[0].Type=DI_EDIT;
           DialogItems[0].X1=0; DialogItems[0].X2=info.WindowSizeX-1;
           DialogItems[0].Y1=0; DialogItems[0].Y2=0;
-          DialogItems[0].Data=info.FileName;
+          DialogItems[0].Data=FileName;
           DialogItems[1].Type=DI_USERCONTROL; DialogItems[1].Flags=DIF_FOCUS;
           DialogItems[1].X1=0; DialogItems[1].X2=info.WindowSizeX-1;
           DialogItems[1].Y1=1; DialogItems[1].Y2=info.WindowSizeY;
@@ -576,7 +579,7 @@ void GetJiggyWithIt(HANDLE XPanelInfo,bool Override, bool Force)
           DialogItems[0].Type=DI_DOUBLEBOX;
           DialogItems[0].X1=0; DialogItems[0].X2=PInfo.PanelRect.right-PInfo.PanelRect.left;
           DialogItems[0].Y1=0; DialogItems[0].Y2=PInfo.PanelRect.bottom-PInfo.PanelRect.top;
-          DialogItems[0].Data=FSF.PointToName(info.FileName);
+          DialogItems[0].Data=FSF.PointToName(FileName);
           DialogItems[1].Type=DI_USERCONTROL; DialogItems[1].Flags=DIF_FOCUS;
           DialogItems[1].X1=1; DialogItems[1].X2=PInfo.PanelRect.right-PInfo.PanelRect.left-1;
           DialogItems[1].Y1=1; DialogItems[1].Y2=PInfo.PanelRect.bottom-PInfo.PanelRect.top-2;
@@ -637,6 +640,7 @@ void GetJiggyWithIt(HANDLE XPanelInfo,bool Override, bool Force)
       }
       //Info.RestoreScreen(hs);
     }
+    if(FileName) HeapFree(GetProcessHeap(),0,FileName);
   }
 }
 
