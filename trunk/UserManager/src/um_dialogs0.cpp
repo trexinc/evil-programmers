@@ -64,9 +64,9 @@ bool EditCommonAccess(UserManager *panel)
   {
     if((pInfo.ItemsNumber()>0)&&(!(pInfo[pInfo.CurrentItem()].FileAttributes&FILE_ATTRIBUTE_DIRECTORY)))
     {
-      if(pInfo[pInfo.CurrentItem()].Flags&PPIF_USERDATA)
+      if(pInfo[pInfo.CurrentItem()].UserData.FreeData)
       {
-        unsigned long mask=GetLevelFromUserData(pInfo[pInfo.CurrentItem()].UserData);
+        unsigned long mask=GetLevelFromUserData(pInfo[pInfo.CurrentItem()].UserData.Data);
         //Show dialog
         /*
           0000000000111111111122222222223333333333444444444455555555556666666666777777
@@ -91,18 +91,18 @@ bool EditCommonAccess(UserManager *panel)
         */
         FarDialogItem DialogItems[]=
         {
-        /* 0*/  {DI_DOUBLEBOX,  3, 1,72,13,{0},NULL,NULL,0,                                _T(""),                              0,0},
-        /* 1*/  {DI_SINGLEBOX,  5, 4,70,11,{0},NULL,NULL,DIF_LEFTTEXT,                     _T(""),                              0,0},
-        /* 2*/  {DI_RADIOBUTTON,5, 2, 0, 0,{0},NULL,NULL,DIF_GROUP|DIF_FOCUS,              GetMsg(mPropSimpleFull),             0,0},
-        /* 3*/  {DI_RADIOBUTTON,5, 3, 0, 0,{0},NULL,NULL,0,                                GetMsg(mPropSimpleSpecial),          0,0},
-        /* 4*/  {DI_CHECKBOX,   7, 5, 0, 0,{0},NULL,NULL,0,                                GetMsg(mPropSimpleRead),             0,0},
-        /* 5*/  {DI_CHECKBOX,   7, 6, 0, 0,{0},NULL,NULL,0,                                GetMsg(mPropSimpleWrite),            0,0},
-        /* 6*/  {DI_CHECKBOX,   7, 7, 0, 0,{0},NULL,NULL,0,                                GetMsg(mPropSimpleExecute),          0,0},
-        /* 7*/  {DI_CHECKBOX,   7, 8, 0, 0,{0},NULL,NULL,0,                                GetMsg(mPropSimpleDelete),           0,0},
-        /* 8*/  {DI_CHECKBOX,   7, 9, 0, 0,{0},NULL,NULL,0,                                GetMsg(mPropSimpleChangePermissions),0,0},
-        /* 9*/  {DI_CHECKBOX,   7,10, 0, 0,{0},NULL,NULL,0,                                GetMsg(mPropSimpleTakeOwnership),    0,0},
-        /*10*/  {DI_BUTTON,     0,12, 0, 0,{0},NULL,NULL,DIF_CENTERGROUP|DIF_DEFAULTBUTTON,GetMsg(mPropButtonOk),               0,0},
-        /*11*/  {DI_BUTTON,     0,12, 0, 0,{0},NULL,NULL,DIF_CENTERGROUP,                  GetMsg(mPropButtonCancel),           0,0}
+        /* 0*/  {DI_DOUBLEBOX,  3, 1,72,13,{0},NULL,NULL,0,                                _T(""),                              0,0,{0,0}},
+        /* 1*/  {DI_SINGLEBOX,  5, 4,70,11,{0},NULL,NULL,DIF_LEFTTEXT,                     _T(""),                              0,0,{0,0}},
+        /* 2*/  {DI_RADIOBUTTON,5, 2, 0, 0,{0},NULL,NULL,DIF_GROUP|DIF_FOCUS,              GetMsg(mPropSimpleFull),             0,0,{0,0}},
+        /* 3*/  {DI_RADIOBUTTON,5, 3, 0, 0,{0},NULL,NULL,0,                                GetMsg(mPropSimpleSpecial),          0,0,{0,0}},
+        /* 4*/  {DI_CHECKBOX,   7, 5, 0, 0,{0},NULL,NULL,0,                                GetMsg(mPropSimpleRead),             0,0,{0,0}},
+        /* 5*/  {DI_CHECKBOX,   7, 6, 0, 0,{0},NULL,NULL,0,                                GetMsg(mPropSimpleWrite),            0,0,{0,0}},
+        /* 6*/  {DI_CHECKBOX,   7, 7, 0, 0,{0},NULL,NULL,0,                                GetMsg(mPropSimpleExecute),          0,0,{0,0}},
+        /* 7*/  {DI_CHECKBOX,   7, 8, 0, 0,{0},NULL,NULL,0,                                GetMsg(mPropSimpleDelete),           0,0,{0,0}},
+        /* 8*/  {DI_CHECKBOX,   7, 9, 0, 0,{0},NULL,NULL,0,                                GetMsg(mPropSimpleChangePermissions),0,0,{0,0}},
+        /* 9*/  {DI_CHECKBOX,   7,10, 0, 0,{0},NULL,NULL,0,                                GetMsg(mPropSimpleTakeOwnership),    0,0,{0,0}},
+        /*10*/  {DI_BUTTON,     0,12, 0, 0,{0},NULL,NULL,DIF_CENTERGROUP|DIF_DEFAULTBUTTON,GetMsg(mPropButtonOk),               0,0,{0,0}},
+        /*11*/  {DI_BUTTON,     0,12, 0, 0,{0},NULL,NULL,DIF_CENTERGROUP,                  GetMsg(mPropButtonCancel),           0,0,{0,0}}
         };
         if((mask&common_full_access[panel->level])==common_full_access[panel->level])
           DialogItems[2].Selected=TRUE;
@@ -126,7 +126,7 @@ bool EditCommonAccess(UserManager *panel)
               if(dialog.Check(i))
                 mask|=common_rights[panel->level][i-4];
           }
-          if(UpdateAcl(panel,panel->level,GetSidFromUserData(pInfo[pInfo.CurrentItem()].UserData),GetItemTypeFromUserData(pInfo[pInfo.CurrentItem()].UserData),mask,actionUpdate))
+          if(UpdateAcl(panel,panel->level,GetSidFromUserData(pInfo[pInfo.CurrentItem()].UserData.Data),GetItemTypeFromUserData(pInfo[pInfo.CurrentItem()].UserData.Data),mask,actionUpdate))
             res=true;
         }
       }

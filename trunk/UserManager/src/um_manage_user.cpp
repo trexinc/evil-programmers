@@ -443,24 +443,24 @@ static INT_PTR WINAPI ManageGroupUserDialogProc(HANDLE hDlg,int Msg,int Param1,v
           static const TCHAR *WorkstationsHistoryName=_T("UserManager\\Workstations");
           FarDialogItem DialogItemsProfile[]=
           {
-          /* 0*/  {DI_DOUBLEBOX,3, 1,72,12,{0},NULL,                   NULL,0,                                _T(""),                   0,0},
-          /* 1*/  {DI_TEXT,     5, 2, 0, 0,{0},NULL,                   NULL,0,                                GetMsg(mUserProfile),     0,0},
-          /* 2*/  {DI_EDIT,     5, 3,70, 0,{0},ProfileHistoryName,     NULL,DIF_HISTORY|DIF_FOCUS,            _T(""),                   0,0},
-          /* 3*/  {DI_TEXT,     5, 4, 0, 0,{0},NULL,                   NULL,0,                                GetMsg(mUserScript),      0,0},
-          /* 4*/  {DI_EDIT,     5, 5,70, 0,{0},ScriptHistoryName,      NULL,DIF_HISTORY,                      _T(""),                   0,0},
-          /* 5*/  {DI_TEXT,     5, 6, 0, 0,{0},NULL,                   NULL,0,                                GetMsg(mUserHome),        0,0},
-          /* 6*/  {DI_COMBOBOX, 5, 7, 7, 0,{0},NULL,                   NULL,DIF_DROPDOWNLIST,                 _T(""),                   0,0},
-          /* 7*/  {DI_EDIT,     9, 7,70, 0,{0},HomeHistoryName,        NULL,DIF_HISTORY,                      _T(""),                   0,0},
-          /* 8*/  {DI_TEXT,     5, 8, 0, 0,{0},NULL,                   NULL,0,                                GetMsg(mUserWorkstations),0,0},
-          /* 9*/  {DI_EDIT,     5, 9,70, 0,{0},WorkstationsHistoryName,NULL,DIF_HISTORY,                      _T(""),                   0,0},
-          /*10*/  {DI_TEXT,     5,10, 0, 0,{0},NULL,                   NULL,DIF_BOXCOLOR|DIF_SEPARATOR,       _T(""),                   0,0},
-          /*11*/  {DI_BUTTON,   0,11, 0, 0,{0},NULL,                   NULL,DIF_CENTERGROUP|DIF_DEFAULTBUTTON,GetMsg(mButtonOk),        0,0},
-          /*12*/  {DI_BUTTON,   0,11, 0, 0,{0},NULL,                   NULL,DIF_CENTERGROUP,                  GetMsg(mButtonCancel),    0,0},
+          /* 0*/  {DI_DOUBLEBOX,3, 1,72,12,{0},NULL,                   NULL,0,                                _T(""),                   0,0,{0,0}},
+          /* 1*/  {DI_TEXT,     5, 2, 0, 0,{0},NULL,                   NULL,0,                                GetMsg(mUserProfile),     0,0,{0,0}},
+          /* 2*/  {DI_EDIT,     5, 3,70, 0,{0},ProfileHistoryName,     NULL,DIF_HISTORY|DIF_FOCUS,            _T(""),                   0,0,{0,0}},
+          /* 3*/  {DI_TEXT,     5, 4, 0, 0,{0},NULL,                   NULL,0,                                GetMsg(mUserScript),      0,0,{0,0}},
+          /* 4*/  {DI_EDIT,     5, 5,70, 0,{0},ScriptHistoryName,      NULL,DIF_HISTORY,                      _T(""),                   0,0,{0,0}},
+          /* 5*/  {DI_TEXT,     5, 6, 0, 0,{0},NULL,                   NULL,0,                                GetMsg(mUserHome),        0,0,{0,0}},
+          /* 6*/  {DI_COMBOBOX, 5, 7, 7, 0,{0},NULL,                   NULL,DIF_DROPDOWNLIST,                 _T(""),                   0,0,{0,0}},
+          /* 7*/  {DI_EDIT,     9, 7,70, 0,{0},HomeHistoryName,        NULL,DIF_HISTORY,                      _T(""),                   0,0,{0,0}},
+          /* 8*/  {DI_TEXT,     5, 8, 0, 0,{0},NULL,                   NULL,0,                                GetMsg(mUserWorkstations),0,0,{0,0}},
+          /* 9*/  {DI_EDIT,     5, 9,70, 0,{0},WorkstationsHistoryName,NULL,DIF_HISTORY,                      _T(""),                   0,0,{0,0}},
+          /*10*/  {DI_TEXT,     5,10, 0, 0,{0},NULL,                   NULL,DIF_BOXCOLOR|DIF_SEPARATOR,       _T(""),                   0,0,{0,0}},
+          /*11*/  {DI_BUTTON,   0,11, 0, 0,{0},NULL,                   NULL,DIF_CENTERGROUP|DIF_DEFAULTBUTTON,GetMsg(mButtonOk),        0,0,{0,0}},
+          /*12*/  {DI_BUTTON,   0,11, 0, 0,{0},NULL,                   NULL,DIF_CENTERGROUP,                  GetMsg(mButtonCancel),    0,0,{0,0}},
           };
           TCHAR profile_title[128];
           FarListItem Drive[25];
           TCHAR DriveText[ArraySize(Drive)][3];
-          FarList Drives={sizeof(Drive)/sizeof(Drive[0]),Drive};
+          FarList Drives={sizeof(FarList),sizeof(Drive)/sizeof(Drive[0]),Drive};
           Drive[0].Flags=0;
           DriveText[0][0]=0;
           Drive[0].Text=DriveText[0];
@@ -536,8 +536,8 @@ bool ManageUser(UserManager *panel,bool type)
     {
       if(pInfo[pInfo.CurrentItem()].FileAttributes&FILE_ATTRIBUTE_DIRECTORY&&type)
       {
-        if(pInfo[pInfo.CurrentItem()].UserData) //don't call on ".." entry
-          res=ManageGroup(panel,true,GetWideNameFromUserData(pInfo[pInfo.CurrentItem()].UserData));
+        if(pInfo[pInfo.CurrentItem()].UserData.Data) //don't call on ".." entry
+          res=ManageGroup(panel,true,GetWideNameFromUserData(pInfo[pInfo.CurrentItem()].UserData.Data));
       }
       else
       {
@@ -579,30 +579,30 @@ bool ManageUser(UserManager *panel,bool type)
         static const TCHAR *CommentHistoryName=_T("UserManager\\Comment");
         static const TCHAR *ParamsHistoryName=_T("UserManager\\Params");
         FarDialogItem DialogItems[]={
-        /* 0*/  {DI_DOUBLEBOX,3, 1,72,23,{0},NULL,                  NULL,0,                                GetMsg(mUserNew),          0,0},
-        /* 1*/  {DI_TEXT,     5, 2, 0, 0,{0},NULL,                  NULL,0,                                GetMsg(mUserUsername),     0,0},
-        /* 2*/  {DI_EDIT,     5, 3,70, 0,{0},UsernameHistoryName,   NULL,DIF_HISTORY|DIF_FOCUS,            _T(""),                    0,0},
-        /* 3*/  {DI_TEXT,     5, 4, 0, 0,{0},NULL,                  NULL,0,                                GetMsg(mUserFullname),     0,0},
-        /* 4*/  {DI_EDIT,     5, 5,70, 0,{0},FullnameHistoryName,   NULL,DIF_HISTORY,                      _T(""),                    0,0},
-        /* 5*/  {DI_TEXT,     5, 6, 0, 0,{0},NULL,                  NULL,0,                                GetMsg(mUserDescription),  0,0},
-        /* 6*/  {DI_EDIT,     5, 7,70, 0,{0},DescriptionHistoryName,NULL,DIF_HISTORY,                      _T(""),                    0,0},
-        /* 7*/  {DI_TEXT,     5, 8, 0, 0,{0},NULL,                  NULL,0,                                GetMsg(mUserComment),      0,0},
-        /* 8*/  {DI_EDIT,     5, 9,70, 0,{0},CommentHistoryName,    NULL,DIF_HISTORY,                      _T(""),                    0,0},
-        /* 9*/  {DI_TEXT,     5,10, 0, 0,{0},NULL,                  NULL,0,                                GetMsg(mUserParams),       0,0},
-        /*10*/  {DI_EDIT,     5,11,70, 0,{0},ParamsHistoryName,     NULL,DIF_HISTORY,                      _T(""),                    0,0},
-        /*11*/  {DI_TEXT,     5,12, 0, 0,{0},NULL,                  NULL,0,                                GetMsg(mUserPassword1),    0,0},
-        /*12*/  {DI_PSWEDIT,  5,13,70, 0,{0},NULL,                  NULL,0,                                _T(""),                    0,0},
-        /*13*/  {DI_TEXT,     5,14, 0, 0,{0},NULL,                  NULL,0,                                GetMsg(mUserPassword2),    0,0},
-        /*14*/  {DI_PSWEDIT,  5,15,70, 0,{0},NULL,                  NULL,0,                                _T(""),                    0,0},
-        /*15*/  {DI_CHECKBOX, 5,16, 0, 0,{0},NULL,                  NULL,0,                                GetMsg(mUserChk1),         0,0},
-        /*16*/  {DI_CHECKBOX, 5,17, 0, 0,{0},NULL,                  NULL,0,                                GetMsg(mUserChk2),         0,0},
-        /*17*/  {DI_CHECKBOX, 5,18, 0, 0,{0},NULL,                  NULL,0,                                GetMsg(mUserChk3),         0,0},
-        /*18*/  {DI_CHECKBOX, 5,19, 0, 0,{0},NULL,                  NULL,0,                                GetMsg(mUserChk4),         0,0},
-        /*19*/  {DI_CHECKBOX, 5,20, 0, 0,{0},NULL,                  NULL,DIF_DISABLE,                      GetMsg(mUserChk5),         0,0},
-        /*20*/  {DI_TEXT,     5,21, 0, 0,{0},NULL,                  NULL,DIF_BOXCOLOR|DIF_SEPARATOR,       _T(""),                    0,0},
-        /*21*/  {DI_BUTTON,   0,22, 0, 0,{0},NULL,                  NULL,DIF_CENTERGROUP|DIF_DEFAULTBUTTON,GetMsg(mButtonOk),         0,0},
-        /*22*/  {DI_BUTTON,   0,22, 0, 0,{0},NULL,                  NULL,DIF_CENTERGROUP,                  GetMsg(mButtonCancel),     0,0},
-        /*23*/  {DI_BUTTON,   0,22, 0, 0,{0},NULL,                  NULL,DIF_CENTERGROUP|DIF_BTNNOCLOSE,   GetMsg(mUserButtonProfile),0,0},
+        /* 0*/  {DI_DOUBLEBOX,3, 1,72,23,{0},NULL,                  NULL,0,                                GetMsg(mUserNew),          0,0,{0,0}},
+        /* 1*/  {DI_TEXT,     5, 2, 0, 0,{0},NULL,                  NULL,0,                                GetMsg(mUserUsername),     0,0,{0,0}},
+        /* 2*/  {DI_EDIT,     5, 3,70, 0,{0},UsernameHistoryName,   NULL,DIF_HISTORY|DIF_FOCUS,            _T(""),                    0,0,{0,0}},
+        /* 3*/  {DI_TEXT,     5, 4, 0, 0,{0},NULL,                  NULL,0,                                GetMsg(mUserFullname),     0,0,{0,0}},
+        /* 4*/  {DI_EDIT,     5, 5,70, 0,{0},FullnameHistoryName,   NULL,DIF_HISTORY,                      _T(""),                    0,0,{0,0}},
+        /* 5*/  {DI_TEXT,     5, 6, 0, 0,{0},NULL,                  NULL,0,                                GetMsg(mUserDescription),  0,0,{0,0}},
+        /* 6*/  {DI_EDIT,     5, 7,70, 0,{0},DescriptionHistoryName,NULL,DIF_HISTORY,                      _T(""),                    0,0,{0,0}},
+        /* 7*/  {DI_TEXT,     5, 8, 0, 0,{0},NULL,                  NULL,0,                                GetMsg(mUserComment),      0,0,{0,0}},
+        /* 8*/  {DI_EDIT,     5, 9,70, 0,{0},CommentHistoryName,    NULL,DIF_HISTORY,                      _T(""),                    0,0,{0,0}},
+        /* 9*/  {DI_TEXT,     5,10, 0, 0,{0},NULL,                  NULL,0,                                GetMsg(mUserParams),       0,0,{0,0}},
+        /*10*/  {DI_EDIT,     5,11,70, 0,{0},ParamsHistoryName,     NULL,DIF_HISTORY,                      _T(""),                    0,0,{0,0}},
+        /*11*/  {DI_TEXT,     5,12, 0, 0,{0},NULL,                  NULL,0,                                GetMsg(mUserPassword1),    0,0,{0,0}},
+        /*12*/  {DI_PSWEDIT,  5,13,70, 0,{0},NULL,                  NULL,0,                                _T(""),                    0,0,{0,0}},
+        /*13*/  {DI_TEXT,     5,14, 0, 0,{0},NULL,                  NULL,0,                                GetMsg(mUserPassword2),    0,0,{0,0}},
+        /*14*/  {DI_PSWEDIT,  5,15,70, 0,{0},NULL,                  NULL,0,                                _T(""),                    0,0,{0,0}},
+        /*15*/  {DI_CHECKBOX, 5,16, 0, 0,{0},NULL,                  NULL,0,                                GetMsg(mUserChk1),         0,0,{0,0}},
+        /*16*/  {DI_CHECKBOX, 5,17, 0, 0,{0},NULL,                  NULL,0,                                GetMsg(mUserChk2),         0,0,{0,0}},
+        /*17*/  {DI_CHECKBOX, 5,18, 0, 0,{0},NULL,                  NULL,0,                                GetMsg(mUserChk3),         0,0,{0,0}},
+        /*18*/  {DI_CHECKBOX, 5,19, 0, 0,{0},NULL,                  NULL,0,                                GetMsg(mUserChk4),         0,0,{0,0}},
+        /*19*/  {DI_CHECKBOX, 5,20, 0, 0,{0},NULL,                  NULL,DIF_DISABLE,                      GetMsg(mUserChk5),         0,0,{0,0}},
+        /*20*/  {DI_TEXT,     5,21, 0, 0,{0},NULL,                  NULL,DIF_BOXCOLOR|DIF_SEPARATOR,       _T(""),                    0,0,{0,0}},
+        /*21*/  {DI_BUTTON,   0,22, 0, 0,{0},NULL,                  NULL,DIF_CENTERGROUP|DIF_DEFAULTBUTTON,GetMsg(mButtonOk),         0,0,{0,0}},
+        /*22*/  {DI_BUTTON,   0,22, 0, 0,{0},NULL,                  NULL,DIF_CENTERGROUP,                  GetMsg(mButtonCancel),     0,0,{0,0}},
+        /*23*/  {DI_BUTTON,   0,22, 0, 0,{0},NULL,                  NULL,DIF_CENTERGROUP|DIF_BTNNOCLOSE,   GetMsg(mUserButtonProfile),0,0,{0,0}},
         };
         UserProfile profile_data;
         UserParam params={{false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false},&profile_data};
@@ -610,7 +610,7 @@ bool ManageUser(UserManager *panel,bool type)
         TCHAR title[128];
         if(type) //read properties
         {
-          wcscpy(username,GetWideNameFromUserData(pInfo[pInfo.CurrentItem()].UserData));
+          wcscpy(username,GetWideNameFromUserData(pInfo[pInfo.CurrentItem()].UserData.Data));
           if(NetUserGetInfo(server,username,3,(LPBYTE *)&info)==NERR_Success)
           {
             DialogItems[indexName].Data=info->usri3_name;

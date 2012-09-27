@@ -30,6 +30,11 @@ struct PluginUserData
   int wide_name_diff;
 };
 
+static void WINAPI FreeUserData(void* UserData,const FarPanelItemFreeInfo* Info)
+{
+  free(UserData);
+}
+
 void AddDefaultUserdata(PluginPanelItem* Item,int level,int sortorder,int itemtype,PSID sid,const wchar_t* wide_name,const wchar_t* filename)
 {
   TCHAR* item_filename=(TCHAR*)malloc((_tcslen(filename)+1)*sizeof(TCHAR));
@@ -63,37 +68,37 @@ void AddDefaultUserdata(PluginPanelItem* Item,int level,int sortorder,int itemty
       user_data->wide_name_diff=sizeof(PluginUserData)+sid_size;
       wcscpy(ptr,wide_name);
     }
-    Item->Flags=PPIF_USERDATA;
-    Item->UserData=(DWORD_PTR)user_data;
+    Item->UserData.FreeData=FreeUserData;
+    Item->UserData.Data=user_data;
   }
 }
 
-int GetLevelFromUserData(DWORD_PTR UserData)
+int GetLevelFromUserData(void* UserData)
 {
   PluginUserData *user_data=(PluginUserData *)UserData;
   return user_data->level;
 }
 
-int GetSortOrderFromUserData(DWORD_PTR UserData)
+int GetSortOrderFromUserData(void* UserData)
 {
   PluginUserData *user_data=(PluginUserData *)UserData;
   return user_data->sortorder;
 }
 
-int GetItemTypeFromUserData(DWORD_PTR UserData)
+int GetItemTypeFromUserData(void* UserData)
 {
   PluginUserData *user_data=(PluginUserData *)UserData;
   return user_data->itemtype;
 }
 
-PSID GetSidFromUserData(DWORD_PTR UserData)
+PSID GetSidFromUserData(void* UserData)
 {
   char *ptr=(char *)UserData;
   PluginUserData *user_data=(PluginUserData *)UserData;
   return (PSID)(ptr+user_data->user_diff);
 }
 
-wchar_t *GetWideNameFromUserData(DWORD_PTR UserData)
+wchar_t *GetWideNameFromUserData(void* UserData)
 {
   char *ptr=(char *)UserData;
   PluginUserData *user_data=(PluginUserData *)UserData;

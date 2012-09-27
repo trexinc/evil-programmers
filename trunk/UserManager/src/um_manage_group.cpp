@@ -74,14 +74,14 @@ bool ManageGroup(UserManager *panel,bool type,const wchar_t *in_group)
   static const TCHAR *NewGroupHistoryName=_T("UserManager\\NewGroup");
   static const TCHAR *NewGroupHistoryComment=_T("UserManager\\NewGroupComment");
   FarDialogItem DialogItems[]={
-  /* 0*/  {DI_DOUBLEBOX,3,1,72,8,{0},NULL,                  NULL,0,                                GetMsg(mGroupNewGroup),0,0},
-  /* 1*/  {DI_TEXT,     5,2, 0,0,{0},NULL,                  NULL,0,                                GetMsg(mGroupName),    0,0},
-  /* 2*/  {DI_EDIT,     5,3,70,0,{0},NewGroupHistoryName,   NULL,DIF_HISTORY|DIF_FOCUS,            _T(""),                0,0},
-  /* 3*/  {DI_TEXT,     5,4, 0,0,{0},NULL,                  NULL,0,                                GetMsg(mGroupComment), 0,0},
-  /* 4*/  {DI_EDIT,     5,5,70,0,{0},NewGroupHistoryComment,NULL,DIF_HISTORY,                      _T(""),                0,0},
-  /* 5*/  {DI_TEXT,     5,6, 0,0,{0},NULL,                  NULL,DIF_BOXCOLOR|DIF_SEPARATOR,       _T(""),                0,0},
-  /* 6*/  {DI_BUTTON,   0,7, 0,0,{0},NULL,                  NULL,DIF_CENTERGROUP|DIF_DEFAULTBUTTON,GetMsg(mButtonOk),     0,0},
-  /* 7*/  {DI_BUTTON,   0,7, 0,0,{0},NULL,                  NULL,DIF_CENTERGROUP,                  GetMsg(mButtonCancel), 0,0},
+  /* 0*/  {DI_DOUBLEBOX,3,1,72,8,{0},NULL,                  NULL,0,                                GetMsg(mGroupNewGroup),0,0,{0,0}},
+  /* 1*/  {DI_TEXT,     5,2, 0,0,{0},NULL,                  NULL,0,                                GetMsg(mGroupName),    0,0,{0,0}},
+  /* 2*/  {DI_EDIT,     5,3,70,0,{0},NewGroupHistoryName,   NULL,DIF_HISTORY|DIF_FOCUS,            _T(""),                0,0,{0,0}},
+  /* 3*/  {DI_TEXT,     5,4, 0,0,{0},NULL,                  NULL,0,                                GetMsg(mGroupComment), 0,0,{0,0}},
+  /* 4*/  {DI_EDIT,     5,5,70,0,{0},NewGroupHistoryComment,NULL,DIF_HISTORY,                      _T(""),                0,0,{0,0}},
+  /* 5*/  {DI_TEXT,     5,6, 0,0,{0},NULL,                  NULL,DIF_BOXCOLOR|DIF_SEPARATOR,       _T(""),                0,0,{0,0}},
+  /* 6*/  {DI_BUTTON,   0,7, 0,0,{0},NULL,                  NULL,DIF_CENTERGROUP|DIF_DEFAULTBUTTON,GetMsg(mButtonOk),     0,0,{0,0}},
+  /* 7*/  {DI_BUTTON,   0,7, 0,0,{0},NULL,                  NULL,DIF_CENTERGROUP,                  GetMsg(mButtonCancel), 0,0,{0,0}},
   };
   TCHAR name[512],comment[512],title[128];
   if(type)

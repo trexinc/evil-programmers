@@ -319,18 +319,18 @@ void ProcessChilds(CFarPanel& pInfo)
     */
     FarDialogItem DialogItems[]=
     {
-    /* 0*/  {DI_DOUBLEBOX,3, 1,72,14,{0},NULL,NULL,0,                                GetMsg(mA2CTitle),        0,0},
-    /* 1*/  {DI_TEXT,     5, 2, 0, 0,{0},NULL,NULL,DIF_SHOWAMPERSAND,                _T(""),                   0,0},
-    /* 2*/  {DI_SINGLEBOX,5, 3,70, 7,{0},NULL,NULL,DIF_LEFTTEXT,                     GetMsg(mA2CObjects),      0,0},
-    /* 3*/  {DI_CHECKBOX, 7, 4, 0, 0,{1},NULL,NULL,0,                                GetMsg(mA2CFolders),      0,0},
-    /* 4*/  {DI_CHECKBOX, 7, 5, 0, 0,{1},NULL,NULL,0,                                GetMsg(mA2CFiles),        0,0},
-    /* 5*/  {DI_CHECKBOX, 7, 6, 0, 0,{1},NULL,NULL,0,                                GetMsg(mA2CKeys),         0,0},
-    /* 6*/  {DI_SINGLEBOX,5, 8,70,12,{0},NULL,NULL,DIF_LEFTTEXT,                     GetMsg(mA2CACL),          0,0},
-    /* 7*/  {DI_CHECKBOX, 7, 9, 0, 0,{1},NULL,NULL,0,                                GetMsg(mA2CRights),       0,0},
-    /* 8*/  {DI_CHECKBOX, 7,10, 0, 0,{1},NULL,NULL,0,                                GetMsg(mA2CAudit),        0,0},
-    /* 9*/  {DI_CHECKBOX, 7,11, 0, 0,{1},NULL,NULL,0,                                GetMsg(mA2COwner),        0,0},
-    /*10*/  {DI_BUTTON,   0,13, 0, 0,{0},NULL,NULL,DIF_CENTERGROUP|DIF_DEFAULTBUTTON,GetMsg(mPropButtonOk),    0,0},
-    /*11*/  {DI_BUTTON,   0,13, 0, 0,{0},NULL,NULL,DIF_CENTERGROUP,                  GetMsg(mPropButtonCancel),0,0}
+    /* 0*/  {DI_DOUBLEBOX,3, 1,72,14,{0},NULL,NULL,0,                                GetMsg(mA2CTitle),        0,0,{0,0}},
+    /* 1*/  {DI_TEXT,     5, 2, 0, 0,{0},NULL,NULL,DIF_SHOWAMPERSAND,                _T(""),                   0,0,{0,0}},
+    /* 2*/  {DI_SINGLEBOX,5, 3,70, 7,{0},NULL,NULL,DIF_LEFTTEXT,                     GetMsg(mA2CObjects),      0,0,{0,0}},
+    /* 3*/  {DI_CHECKBOX, 7, 4, 0, 0,{1},NULL,NULL,0,                                GetMsg(mA2CFolders),      0,0,{0,0}},
+    /* 4*/  {DI_CHECKBOX, 7, 5, 0, 0,{1},NULL,NULL,0,                                GetMsg(mA2CFiles),        0,0,{0,0}},
+    /* 5*/  {DI_CHECKBOX, 7, 6, 0, 0,{1},NULL,NULL,0,                                GetMsg(mA2CKeys),         0,0,{0,0}},
+    /* 6*/  {DI_SINGLEBOX,5, 8,70,12,{0},NULL,NULL,DIF_LEFTTEXT,                     GetMsg(mA2CACL),          0,0,{0,0}},
+    /* 7*/  {DI_CHECKBOX, 7, 9, 0, 0,{1},NULL,NULL,0,                                GetMsg(mA2CRights),       0,0,{0,0}},
+    /* 8*/  {DI_CHECKBOX, 7,10, 0, 0,{1},NULL,NULL,0,                                GetMsg(mA2CAudit),        0,0,{0,0}},
+    /* 9*/  {DI_CHECKBOX, 7,11, 0, 0,{1},NULL,NULL,0,                                GetMsg(mA2COwner),        0,0,{0,0}},
+    /*10*/  {DI_BUTTON,   0,13, 0, 0,{0},NULL,NULL,DIF_CENTERGROUP|DIF_DEFAULTBUTTON,GetMsg(mPropButtonOk),    0,0,{0,0}},
+    /*11*/  {DI_BUTTON,   0,13, 0, 0,{0},NULL,NULL,DIF_CENTERGROUP,                  GetMsg(mPropButtonCancel),0,0,{0,0}}
     };
     TCHAR childs_label[512];
     if(FolderCount>1)

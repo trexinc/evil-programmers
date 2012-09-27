@@ -62,9 +62,9 @@ static bool EditAdvancedAccess(UserManager *panel,int size,int *messages,unsigne
   {
     if((pInfo.ItemsNumber()>0)&&(!(pInfo[pInfo.CurrentItem()].FileAttributes&FILE_ATTRIBUTE_DIRECTORY)))
     {
-      if(pInfo[pInfo.CurrentItem()].Flags&PPIF_USERDATA)
+      if(pInfo[pInfo.CurrentItem()].UserData.FreeData)
       {
-        unsigned long mask=GetLevelFromUserData(pInfo[pInfo.CurrentItem()].UserData);
+        unsigned long mask=GetLevelFromUserData(pInfo[pInfo.CurrentItem()].UserData.Data);
         //Show dialog
         /*
           0000000000111111111122222222223333333333444444444455555555556666666666777777
@@ -127,7 +127,7 @@ static bool EditAdvancedAccess(UserManager *panel,int size,int *messages,unsigne
               if(dialog.Check(check_index+i))
                 mask|=access[i];
             }
-            if(UpdateAcl(panel,panel->level,GetSidFromUserData(pInfo[pInfo.CurrentItem()].UserData),GetItemTypeFromUserData(pInfo[pInfo.CurrentItem()].UserData),mask,actionUpdate))
+            if(UpdateAcl(panel,panel->level,GetSidFromUserData(pInfo[pInfo.CurrentItem()].UserData.Data),GetItemTypeFromUserData(pInfo[pInfo.CurrentItem()].UserData.Data),mask,actionUpdate))
               res=true;
           }
           free(DialogItems);

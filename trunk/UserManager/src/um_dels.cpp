@@ -62,9 +62,9 @@ bool DeleteACE(UserManager *panel,bool selection)
       if(!Info.Message(&MainGuid,&DelACEMessageGuid,0,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),2))
         for(int i=0;i<sp.Number();i++)
         {
-          if(sp[i].Flags&PPIF_USERDATA)
+          if(sp[i].UserData.FreeData)
           {
-            if(UpdateAcl(panel,panel->level,GetSidFromUserData(sp[i].UserData),GetItemTypeFromUserData(sp[i].UserData),GetLevelFromUserData(sp[i].UserData),actionDelete))
+            if(UpdateAcl(panel,panel->level,GetSidFromUserData(sp[i].UserData.Data),GetItemTypeFromUserData(sp[i].UserData.Data),GetLevelFromUserData(sp[i].UserData.Data),actionDelete))
               res=true;
             else
               break;
@@ -123,9 +123,9 @@ bool DeleteShare(UserManager *panel,bool selection)
             ClosePrinter(printer);
           }
         }
-        else if(sp[i].Flags&PPIF_USERDATA)
+        else if(sp[i].UserData.FreeData)
         {
-          NetShareDel(panel->computer_ptr,GetWideNameFromUserData(sp[i].UserData),0);
+          NetShareDel(panel->computer_ptr,GetWideNameFromUserData(sp[i].UserData.Data),0);
         }
     }
   }
@@ -154,21 +154,21 @@ bool DeleteGroup(UserManager *panel,bool selection)
       res=true;
       for(int i=0;i<sp.Number();i++)
       {
-        if(sp[i].Flags&PPIF_USERDATA)
+        if(sp[i].UserData.FreeData)
         {
           if(sp[i].FileAttributes&FILE_ATTRIBUTE_DIRECTORY)
           {
             if(panel->global)
             {
-              NetGroupDel(panel->domain,GetWideNameFromUserData(sp[i].UserData));
+              NetGroupDel(panel->domain,GetWideNameFromUserData(sp[i].UserData.Data));
             }
             else
             {
-              NetLocalGroupDel(panel->computer_ptr,GetWideNameFromUserData(sp[i].UserData));
+              NetLocalGroupDel(panel->computer_ptr,GetWideNameFromUserData(sp[i].UserData.Data));
             }
           }
           else
-            NetUserDel((panel->global)?(panel->domain):(panel->computer_ptr),GetWideNameFromUserData(sp[i].UserData));
+            NetUserDel((panel->global)?(panel->domain):(panel->computer_ptr),GetWideNameFromUserData(sp[i].UserData.Data));
         }
       }
     }
@@ -198,16 +198,16 @@ bool RemoveUser(UserManager *panel,bool selection)
       res=true;
       for(int i=0;i<sp.Number();i++)
       {
-        if(sp[i].Flags&PPIF_USERDATA)
+        if(sp[i].UserData.FreeData)
         {
           if(panel->global)
           {
-            NetGroupDelUser(panel->domain,panel->nonfixed,GetWideNameFromUserData(sp[i].UserData));
+            NetGroupDelUser(panel->domain,panel->nonfixed,GetWideNameFromUserData(sp[i].UserData.Data));
           }
           else
           {
             LOCALGROUP_MEMBERS_INFO_0 new_member;
-            new_member.lgrmi0_sid=GetSidFromUserData(sp[i].UserData);
+            new_member.lgrmi0_sid=GetSidFromUserData(sp[i].UserData.Data);
             NetLocalGroupDelMembers(panel->computer_ptr,panel->nonfixed,0,(LPBYTE)&new_member,1);
           }
         }
@@ -239,8 +239,8 @@ bool DeleteUser(UserManager *panel,bool selection)
       res=true;
       for(int i=0;i<sp.Number();i++)
       {
-        if(sp[i].Flags&PPIF_USERDATA)
-          NetUserDel((panel->global)?(panel->domain):(panel->computer_ptr),GetWideNameFromUserData(sp[i].UserData));
+        if(sp[i].UserData.FreeData)
+          NetUserDel((panel->global)?(panel->domain):(panel->computer_ptr),GetWideNameFromUserData(sp[i].UserData.Data));
       }
     }
   }
@@ -273,13 +273,13 @@ bool DeleteRightUsers(UserManager *panel,bool selection)
       {
         for(int i=0;i<sp.Number();i++)
         {
-          if(sp[i].Flags&PPIF_USERDATA)
+          if(sp[i].UserData.FreeData)
           {
             LSA_UNICODE_STRING RightName;
             RightName.Buffer=panel->nonfixed;
             RightName.Length=wcslen(RightName.Buffer)*sizeof(wchar_t);
             RightName.MaximumLength=RightName.Length+sizeof(wchar_t);
-            LsaRemoveAccountRights(PolicyHandle,GetSidFromUserData(sp[i].UserData),FALSE,&RightName,1);
+            LsaRemoveAccountRights(PolicyHandle,GetSidFromUserData(sp[i].UserData.Data),FALSE,&RightName,1);
           }
         }
         LsaClose(PolicyHandle);

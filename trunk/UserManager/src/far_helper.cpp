@@ -103,7 +103,7 @@ TCHAR* CFarPanel::CurDir(void)
 
 PluginPanelItem& CFarPanel::operator[](size_t index)
 {
-  FarGetPluginPanelItem piinfo={0,NULL};
+  FarGetPluginPanelItem piinfo={sizeof(FarGetPluginPanelItem),0,NULL};
   piinfo.Size=Info.PanelControl(iPlugin,FCTL_GETPANELITEM,index,&piinfo);
   Realloc(iItem,iItemSize,piinfo.Size);
   piinfo.Item=iItem;
@@ -113,7 +113,7 @@ PluginPanelItem& CFarPanel::operator[](size_t index)
 
 PluginPanelItem& CFarPanel::Selected(size_t index)
 {
-  FarGetPluginPanelItem piinfo={0,NULL};
+  FarGetPluginPanelItem piinfo={sizeof(FarGetPluginPanelItem),0,NULL};
   piinfo.Size=Info.PanelControl(iPlugin,FCTL_GETSELECTEDPANELITEM,index,&piinfo);
   Realloc(iItem,iItemSize,piinfo.Size);
   piinfo.Item=iItem;
@@ -136,7 +136,7 @@ CFarPanelSelection::~CFarPanelSelection()
 
 PluginPanelItem& CFarPanelSelection::operator[](size_t index)
 {
-  FarGetPluginPanelItem piinfo={0,NULL};
+  FarGetPluginPanelItem piinfo={sizeof(FarGetPluginPanelItem),0,NULL};
   piinfo.Size=Info.PanelControl(iPlugin,iSelection?FCTL_GETSELECTEDPANELITEM:FCTL_GETCURRENTPANELITEM,index,&piinfo);
   Realloc(iItem,iItemSize,piinfo.Size);
   piinfo.Item=iItem;
@@ -160,21 +160,21 @@ CFarSettings::~CFarSettings()
 
 void CFarSettings::Set(const wchar_t* aName,__int64 aValue)
 {
-  FarSettingsItem item={iRoot,aName,FST_QWORD,{0}};
+  FarSettingsItem item={sizeof(FarSettingsItem),iRoot,aName,FST_QWORD,{0}};
   item.Number=aValue;
   Info.SettingsControl(iSettings,SCTL_SET,0,&item);
 }
 
 void CFarSettings::Set(const wchar_t* aName,const wchar_t* aValue)
 {
-  FarSettingsItem item={iRoot,aName,FST_STRING,{0}};
+  FarSettingsItem item={sizeof(FarSettingsItem),iRoot,aName,FST_STRING,{0}};
   item.String=aValue;
   Info.SettingsControl(iSettings,SCTL_SET,0,&item);
 }
 
 void CFarSettings::Get(const wchar_t* aName,__int64& aValue)
 {
-  FarSettingsItem item={iRoot,aName,FST_QWORD,{0}};
+  FarSettingsItem item={sizeof(FarSettingsItem),iRoot,aName,FST_QWORD,{0}};
   if(Info.SettingsControl(iSettings,SCTL_GET,0,&item))
   {
     aValue=item.Number;
@@ -183,7 +183,7 @@ void CFarSettings::Get(const wchar_t* aName,__int64& aValue)
 
 void CFarSettings::Get(const wchar_t* aName,wchar_t* aValue,size_t aSize)
 {
-  FarSettingsItem item={iRoot,aName,FST_STRING,{0}};
+  FarSettingsItem item={sizeof(FarSettingsItem),iRoot,aName,FST_STRING,{0}};
   if(Info.SettingsControl(iSettings,SCTL_GET,0,&item))
   {
     _tcsncpy(aValue,item.String,aSize-1);

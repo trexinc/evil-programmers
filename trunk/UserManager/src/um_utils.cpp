@@ -234,11 +234,11 @@ bool CheckChDir(HANDLE hPlugin,const TCHAR *NewDir,TCHAR *RealDir,wchar_t *RealD
       {
         if(!_tcsicmp(pInfo[ii].FileName,NewDir))
         {
-          if(pInfo[ii].Flags&PPIF_USERDATA)
+          if(pInfo[ii].UserData.FreeData)
           {
             _tcscpy(RealDir,pInfo[ii].FileName);
-            wcscpy(RealDirW,GetWideNameFromUserData(pInfo[ii].UserData));
-            *level=GetLevelFromUserData(pInfo[ii].UserData);
+            wcscpy(RealDirW,GetWideNameFromUserData(pInfo[ii].UserData.Data));
+            *level=GetLevelFromUserData(pInfo[ii].UserData.Data);
             res=true;
             break;
           }

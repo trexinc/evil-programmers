@@ -34,9 +34,9 @@ bool AddOwner(UserManager *panel,UserManager *anotherpanel,bool selection)
   CFarPanelSelection sp((HANDLE)panel,selection);
   if(sp.Number()==1)
   {
-    if(sp[0].Flags&PPIF_USERDATA)
+    if(sp[0].UserData.FreeData)
     {
-      PSID user=GetSidFromUserData(sp[0].UserData);
+      PSID user=GetSidFromUserData(sp[0].UserData.Data);
       res=AddOwnerInternal(anotherpanel,user);
     }
   }
@@ -50,8 +50,8 @@ bool AddACE(UserManager *panel,UserManager *anotherpanel,bool selection)
   if(sp.Number())
   {
     for(int i=0;i<sp.Number();i++)
-      if(sp[i].Flags&PPIF_USERDATA)
-        UpdateAcl(anotherpanel,anotherpanel->level,GetSidFromUserData(sp[i].UserData),GetItemTypeFromUserData(sp[i].UserData),default_mask[anotherpanel->level],actionInsert);
+      if(sp[i].UserData.FreeData)
+        UpdateAcl(anotherpanel,anotherpanel->level,GetSidFromUserData(sp[i].UserData.Data),GetItemTypeFromUserData(sp[i].UserData.Data),default_mask[anotherpanel->level],actionInsert);
     res=true;
   }
   return res;
@@ -64,16 +64,16 @@ bool AddUserToGroup(UserManager *panel,UserManager *anotherpanel,bool selection)
   if(sp.Number())
   {
     for(int i=0;i<sp.Number();i++)
-      if(sp[i].Flags&PPIF_USERDATA)
+      if(sp[i].UserData.FreeData)
       {
         if(anotherpanel->global)
         {
-          NetGroupAddUser(anotherpanel->domain,anotherpanel->nonfixed,GetWideNameFromUserData(sp[i].UserData));
+          NetGroupAddUser(anotherpanel->domain,anotherpanel->nonfixed,GetWideNameFromUserData(sp[i].UserData.Data));
         }
         else
         {
           LOCALGROUP_MEMBERS_INFO_0 new_member;
-          new_member.lgrmi0_sid=GetSidFromUserData(sp[i].UserData);
+          new_member.lgrmi0_sid=GetSidFromUserData(sp[i].UserData.Data);
           NetLocalGroupAddMembers(panel->computer_ptr,anotherpanel->nonfixed,0,(LPBYTE)&new_member,1);
         }
       }
@@ -93,13 +93,13 @@ bool AddUserToRight(UserManager *panel,UserManager *anotherpanel,bool selection)
     if(PolicyHandle)
     {
       for(int i=0;i<sp.Number();i++)
-        if(sp[i].Flags&PPIF_USERDATA)
+        if(sp[i].UserData.FreeData)
         {
           LSA_UNICODE_STRING RightName;
           RightName.Buffer=anotherpanel->nonfixed;
           RightName.Length=wcslen(RightName.Buffer)*sizeof(wchar_t);
           RightName.MaximumLength=RightName.Length+sizeof(wchar_t);
-          LsaAddAccountRights(PolicyHandle,GetSidFromUserData(sp[i].UserData),&RightName,1);
+          LsaAddAccountRights(PolicyHandle,GetSidFromUserData(sp[i].UserData.Data),&RightName,1);
         }
       LsaClose(PolicyHandle);
     }
