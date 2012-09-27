@@ -57,7 +57,7 @@ void InitCase(void)
   HANDLE Settings=::Info.SettingsControl(INVALID_HANDLE_VALUE,SCTL_CREATE,0,&settings)?settings.Handle:0;
   if(Settings)
   {
-    FarSettingsItem item={FSSF_EDITOR,L"WordDiv",FST_UNKNOWN,{0}};
+    FarSettingsItem item={sizeof(FarSettingsItem),FSSF_EDITOR,L"WordDiv",FST_UNKNOWN,{0}};
     if(::Info.SettingsControl(Settings,SCTL_GET,0,&item)&&FST_STRING==item.Type)
     {
       WordDivLen=lstrlen(item.String)+sizeof(" \n\r\t");
@@ -122,7 +122,7 @@ void DoCase(HANDLE aDlg)
     Info.SendDlgMessage(aDlg,DM_GETDLGITEMSHORT,itemID,&DialogItem);
     if(DialogItem.Type==DI_EDIT)
     {
-      long length=Info.SendDlgMessage(aDlg,DM_GETTEXTLENGTH,itemID,0)+1;
+      long length=Info.SendDlgMessage(aDlg,DM_GETTEXT,itemID,0)+1;
       TCHAR *buffer=(TCHAR *)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,length*sizeof(TCHAR));
       if(buffer)
       {
@@ -130,7 +130,8 @@ void DoCase(HANDLE aDlg)
         es.BlockType=BTYPE_NONE;
         Info.SendDlgMessage(aDlg,DM_GETSELECTION,itemID,&es);
         COORD Pos; Info.SendDlgMessage(aDlg,DM_GETCURSORPOS,itemID,&Pos);
-        Info.SendDlgMessage(aDlg,DM_GETTEXTPTR,itemID,buffer);
+        FarDialogItemData getdata={sizeof(FarDialogItemData),length-1,buffer};
+        Info.SendDlgMessage(aDlg,DM_GETTEXT,itemID,&getdata);
         int Start=0,End=length-1;
         if (es.BlockType==BTYPE_NONE||es.BlockStartPos<0)
         {

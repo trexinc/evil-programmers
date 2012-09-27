@@ -27,11 +27,12 @@ void DoEdit(HANDLE aDlg)
   Info.SendDlgMessage(aDlg,DM_GETDLGITEMSHORT,itemID,&DialogItem);
   if(DialogItem.Type==DI_EDIT)
   {
-    long length=Info.SendDlgMessage(aDlg,DM_GETTEXTLENGTH,itemID,0)+1;
+    long length=Info.SendDlgMessage(aDlg,DM_GETTEXT,itemID,0)+1;
     TCHAR* buffer=(TCHAR*)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,length*sizeof(TCHAR));
     if(buffer)
     {
-      Info.SendDlgMessage(aDlg,DM_GETTEXTPTR,itemID,buffer);
+      FarDialogItemData getdata={sizeof(FarDialogItemData),length-1,buffer};
+      Info.SendDlgMessage(aDlg,DM_GETTEXT,itemID,&getdata);
       TCHAR filename[MAX_PATH];
       if(FSF.MkTemp(filename,ArraySize(filename),_T("DTE")))
       {
@@ -43,7 +44,7 @@ void DoEdit(HANDLE aDlg)
           WriteFile(file,&marker,sizeof(marker),&written,NULL);
           WriteFile(file,buffer,(length-1)*sizeof(TCHAR),&written,NULL);
           CloseHandle(file);
-          Info.Editor(filename,_T(""),0,0,-1,-1,EF_DISABLEHISTORY,1,1,CP_AUTODETECT);
+          Info.Editor(filename,_T(""),0,0,-1,-1,EF_DISABLEHISTORY,1,1,CP_UNICODE);
           file=CreateFile(filename,GENERIC_READ,FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
           if(file!=INVALID_HANDLE_VALUE)
           {

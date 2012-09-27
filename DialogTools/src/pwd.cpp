@@ -36,7 +36,7 @@ void DoPwd(HANDLE aDlg)
   Info.SendDlgMessage(aDlg,DM_GETDLGITEMSHORT,itemID,&DialogItem);
   if(DialogItem.Type==DI_PSWEDIT)
   {
-    long length=Info.SendDlgMessage(aDlg,DM_GETTEXTLENGTH,itemID,0)+1;
+    long length=Info.SendDlgMessage(aDlg,DM_GETTEXT,itemID,0)+1;
     TCHAR *buffer=(TCHAR *)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,length*sizeof(TCHAR));
     if(buffer)
     {
@@ -47,7 +47,8 @@ void DoPwd(HANDLE aDlg)
         { DI_EDIT        ,5  ,3  ,41 ,0 ,{0},NULL,NULL ,DIF_READONLY|DIF_FOCUS            ,buffer             ,0,0},
         { DI_BUTTON      ,0  ,4  ,0  ,0 ,{0},NULL,NULL ,DIF_CENTERGROUP|DIF_DEFAULTBUTTON ,GetMsg(mOk)        ,0,0}
       };
-      Info.SendDlgMessage(aDlg,DM_GETTEXTPTR,itemID,buffer);
+      FarDialogItemData getdata={sizeof(FarDialogItemData),length-1,buffer};
+      Info.SendDlgMessage(aDlg,DM_GETTEXT,itemID,&getdata);
       CFarDialog dialog;
       dialog.Execute(MainGuid,PwdDialogGuid,-1,-1,47,7,NULL,DialogItems,ArraySize(DialogItems),0,0,PwdDialogProc,NULL);
       HeapFree(GetProcessHeap(),0,buffer);
