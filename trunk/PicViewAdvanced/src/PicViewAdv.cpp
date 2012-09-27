@@ -303,7 +303,7 @@ void UpdateInfoText(HANDLE hDlg, DialogData *data)
   Info.SendDlgMessage(hDlg,DM_SETCURSORPOS,2,&coord);
 }
 
-INT_PTR WINAPI PicDialogProc(HANDLE hDlg,int Msg,int Param1,void *Param2)
+intptr_t WINAPI PicDialogProc(HANDLE hDlg,intptr_t Msg,intptr_t Param1,void *Param2)
 {
   DialogData *DlgParams=(DialogData *)Info.SendDlgMessage(hDlg,DM_GETDLGDATA,0,0);
 
@@ -662,7 +662,7 @@ void SetDefaultExtentions()
   }
 }
 
-int WINAPI ProcessViewerEventW(const struct ProcessViewerEventInfo *pveInfo)
+intptr_t WINAPI ProcessViewerEventW(const struct ProcessViewerEventInfo *pveInfo)
 {
   if(pveInfo->Event==VE_READ)
   {
@@ -779,7 +779,7 @@ void WINAPI ExitFARW(const struct ExitInfo *Info)
   ExtsNum=0;
 }
 
-int WINAPI ConfigureW(const struct ConfigureInfo *cfgInfo)
+intptr_t WINAPI ConfigureW(const struct ConfigureInfo *cfgInfo)
 {
   FarSettingsCreate settings={sizeof(FarSettingsCreate),MainGuid,INVALID_HANDLE_VALUE};
   if (Info.SettingsControl(INVALID_HANDLE_VALUE,SCTL_CREATE,0,&settings))
