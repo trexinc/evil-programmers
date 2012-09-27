@@ -64,8 +64,8 @@ void TCompletion::Cleanup(void)
 
 int TCompletion::GetPreWord(void)
 {
-  EditorInfo ei;
-  EditorGetString gs;
+  EditorInfo ei={sizeof(ei)};
+  EditorGetString gs={sizeof(gs)};
 
   Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
   if(ei.CurState&ECSTATE_LOCKED) return 0;
@@ -104,8 +104,8 @@ int TCompletion::GetPreWord(void)
 int TCompletion::DoSearch(void)
 {
   if(!Word.length()) return 0;
-  EditorGetString gs;
-  EditorInfo ei;
+  EditorGetString gs={sizeof(gs)};
+  EditorInfo ei={sizeof(ei)};
 
   int Line2Browse[2]; // Сколько строк будем просматривать вперед и назад
 
@@ -235,7 +235,7 @@ bool TCompletion::IsAlpha(unsigned int c)
 
 avl_window_data *TCompletion::GetLocalData(void)
 {
-  EditorInfo ei;
+  EditorInfo ei={sizeof(ei)};
   Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
   return windows->query(ei.EditorID);
 }
@@ -243,7 +243,7 @@ avl_window_data *TCompletion::GetLocalData(void)
 string TCompletion::PutWord(string NewWord)
 {
   //SEELATER check editor before insert
-  EditorInfo ei; EditorGetString gs;
+  EditorInfo ei={sizeof(ei)}; EditorGetString gs={sizeof(gs)};
   int OldPos;
   string OverwritedText;
   Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
@@ -265,7 +265,7 @@ string TCompletion::PutWord(string NewWord)
       Info.EditorControl(-1,ECTL_GETSTRING,0,&gs);
       if(gs.SelStart==-1)
       {
-        EditorSelect es={BTYPE_NONE,0,0,0,0};
+        EditorSelect es={sizeof(EditorSelect),BTYPE_NONE,0,0,0,0};
         Info.EditorControl(-1,ECTL_SELECT,0,&es);
       }
     }
@@ -283,6 +283,7 @@ string TCompletion::PutWord(string NewWord)
 void TCompletion::SetCurPos(int NewPos,int NewRow)
 {
   struct EditorSetPosition sp;
+  sp.StructSize=sizeof(sp);
   sp.CurLine=NewRow;
   sp.CurPos=NewPos;
   sp.CurTabPos=-1;
@@ -295,7 +296,7 @@ void TCompletion::SetCurPos(int NewPos,int NewRow)
 bool TCompletion::GetValue(HANDLE Handle,int Root,const TCHAR* Name,bool Default)
 {
   bool result=Default;
-  FarSettingsItem item={Root,Name,FST_QWORD};
+  FarSettingsItem item={sizeof(FarSettingsItem),Root,Name,FST_QWORD};
   if(Info.SettingsControl(Handle,SCTL_GET,0,&item))
   {
     result=item.Number?true:false;
@@ -306,7 +307,7 @@ bool TCompletion::GetValue(HANDLE Handle,int Root,const TCHAR* Name,bool Default
 __int64 TCompletion::GetValue(HANDLE Handle,int Root,const TCHAR* Name,__int64 Default)
 {
   __int64 result=Default;
-  FarSettingsItem item={Root,Name,FST_QWORD};
+  FarSettingsItem item={sizeof(FarSettingsItem),Root,Name,FST_QWORD};
   if(Info.SettingsControl(Handle,SCTL_GET,0,&item))
   {
     result=item.Number;
@@ -316,7 +317,7 @@ __int64 TCompletion::GetValue(HANDLE Handle,int Root,const TCHAR* Name,__int64 D
 
 bool TCompletion::GetValue(HANDLE Handle,int Root,const TCHAR* Name,TCHAR* Value,size_t Size)
 {
-  FarSettingsItem item={Root,Name,FST_STRING};
+  FarSettingsItem item={sizeof(FarSettingsItem),Root,Name,FST_STRING};
   if(Info.SettingsControl(Handle,SCTL_GET,0,&item))
   {
     _tcsncpy(Value,item.String,Size-1);
@@ -328,7 +329,7 @@ bool TCompletion::GetValue(HANDLE Handle,int Root,const TCHAR* Name,TCHAR* Value
 
 size_t TCompletion::GetValue(HANDLE Handle,int Root,const TCHAR* Name,void* Value,size_t Size)
 {
-  FarSettingsItem item={Root,Name,FST_DATA};
+  FarSettingsItem item={sizeof(FarSettingsItem),Root,Name,FST_DATA};
   if(Info.SettingsControl(Handle,SCTL_GET,0,&item))
   {
     size_t result=(item.Data.Size>Size)?Size:item.Data.Size;
@@ -340,21 +341,21 @@ size_t TCompletion::GetValue(HANDLE Handle,int Root,const TCHAR* Name,void* Valu
 
 void TCompletion::SetValue(HANDLE Handle,int Root,const TCHAR* Name,__int64 Value)
 {
-  FarSettingsItem item={Root,Name,FST_QWORD};
+  FarSettingsItem item={sizeof(FarSettingsItem),Root,Name,FST_QWORD};
   item.Number=Value;
   Info.SettingsControl(Handle,SCTL_SET,0,&item);
 }
 
 void TCompletion::SetValue(HANDLE Handle,int Root,const TCHAR* Name,TCHAR* Value)
 {
-  FarSettingsItem item={Root,Name,FST_STRING};
+  FarSettingsItem item={sizeof(FarSettingsItem),Root,Name,FST_STRING};
   item.String=Value;
   Info.SettingsControl(Handle,SCTL_SET,0,&item);
 }
 
 void TCompletion::SetValue(HANDLE Handle,int Root,const TCHAR* Name,const void* Value,size_t Size)
 {
-  FarSettingsItem item={Root,Name,FST_DATA};
+  FarSettingsItem item={sizeof(FarSettingsItem),Root,Name,FST_DATA};
   item.Data.Size=Size;
   item.Data.Data=Value;
   Info.SettingsControl(Handle,SCTL_SET,0,&item);
@@ -384,10 +385,6 @@ void TCompletion::GetOptions(void)
     WordsToFindCnt=GetValue(settings.Handle,root,_T("WordsToFindCnt"),WordsToFindCnt);
 
     GetValue(settings.Handle,root,_T("AdditionalLetters"),AdditionalLetters,ArraySize(AdditionalLetters));
-
-    FarSettingsItem item={root,L"1234",FST_SUBKEY};
-    Info.SettingsControl(settings.Handle,SCTL_SET,0,&item);
-
 
     Info.SettingsControl(settings.Handle,SCTL_FREE,0,0);
   }
