@@ -36,10 +36,10 @@ void DoPaste(HANDLE aDlg)
   Info.SendDlgMessage(aDlg,DM_GETDLGITEMSHORT,itemID,&DialogItem);
   if((DialogItem.Type==DI_EDIT||DialogItem.Type==DI_FIXEDIT||DialogItem.Type==DI_PSWEDIT||(DialogItem.Type==DI_COMBOBOX&&(!(DialogItem.Flags&DIF_DROPDOWNLIST)))))
   {
-    EditorInfo ei;
+    EditorInfo ei={sizeof(EditorInfo)};
     if(Info.EditorControl(-1,ECTL_GETINFO,0,&ei)&&ei.BlockType!=BTYPE_NONE)
     {
-      EditorGetString egs;
+      EditorGetString egs={sizeof(EditorGetString)};
       egs.StringNumber=ei.BlockStartLine;
       Info.EditorControl(-1,ECTL_GETSTRING,0,&egs);
       if(egs.SelStart>=0&&egs.SelStart<egs.StringLength)
@@ -58,7 +58,7 @@ void DoPaste(HANDLE aDlg)
               TCHAR *buffer=(TCHAR *)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,(len*MACRO_LEN+8+1)*sizeof(TCHAR));
               if (buffer)
               {
-                _tcscpy(buffer,_T("$Text \""));
+                _tcscpy(buffer,_T("print(\""));
                 for (int i=7, j=0; j<len; j++)
                 {
                   buffer[i++]='\\';
@@ -71,7 +71,7 @@ void DoPaste(HANDLE aDlg)
                   buffer[i++]=hex(value/16);
                   buffer[i++]=hex(value%16);
                 }
-                _tcscpy(buffer+len*MACRO_LEN+7,_T("\""));
+                _tcscpy(buffer+len*MACRO_LEN+7,_T("\")"));
                 MacroSendMacroText seq={sizeof(MacroSendMacroText),KMFLAGS_DISABLEOUTPUT,{0},buffer};
                 Info.MacroControl(0,MCTL_SENDSTRING,MSSC_POST,&seq);
                 HeapFree(GetProcessHeap(),0,buffer);

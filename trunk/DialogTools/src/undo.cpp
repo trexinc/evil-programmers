@@ -53,11 +53,12 @@ static UndoItem *add_to_stack(UndoItem *OldStack,HANDLE hDlg,int item)
   UndoItem *NewStack=(UndoItem *)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,sizeof(UndoItem));
   if(NewStack)
   {
-    long length=Info.SendDlgMessage(hDlg,DM_GETTEXTLENGTH,item,0);
+    long length=Info.SendDlgMessage(hDlg,DM_GETTEXT,item,0);
     NewStack->data=(TCHAR *)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,(length+1)*sizeof(TCHAR));
     if(NewStack->data)
     {
-      Info.SendDlgMessage(hDlg,DM_GETTEXTPTR,item,NewStack->data);
+      FarDialogItemData getdata={sizeof(FarDialogItemData),length,NewStack->data};
+      Info.SendDlgMessage(hDlg,DM_GETTEXT,item,&getdata);
       NewStack->unchanged=Info.SendDlgMessage(hDlg,DM_EDITUNCHANGEDFLAG,item,(void*)-1);
       Info.SendDlgMessage(hDlg,DM_GETCURSORPOS,item,&NewStack->pos);
       NewStack->next=OldStack;
@@ -105,7 +106,7 @@ void FinishUndo(void)
 void DoUndo(HANDLE aDlg)
 {
   LONG_PTR itemID=Info.SendDlgMessage(aDlg,DM_GETFOCUS,0,0);
-  FarMenuItem MenuItems[]={{MIF_SELECTED,_T(""),{0},0,0},{0,_T(""),{0},0,0}};
+  FarMenuItem MenuItems[]={{MIF_SELECTED,_T(""),{0},0,{0,0}},{0,_T(""),{0},0,{0,0}}};
   INIT_MENU_TEXT(0,GetMsg(mUndo)); INIT_MENU_TEXT(1,GetMsg(mRedo));
   int MenuCode=Info.Menu(&MainGuid,&UndoMenuGuid,-1,-1,0,FMENU_AUTOHIGHLIGHT|FMENU_WRAPMODE,GetMsg(mNameUndo),NULL,NULL,NULL,NULL,MenuItems,ArraySize(MenuItems));
   if(MenuCode>=0)

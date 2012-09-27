@@ -35,11 +35,12 @@ void DoReplace(HANDLE aDlg)
   Info.SendDlgMessage(aDlg,DM_GETDLGITEMSHORT,itemID,&DialogItem);
   if(DialogItem.Type==DI_EDIT||DialogItem.Type==DI_FIXEDIT)
   {
-    long length=Info.SendDlgMessage(aDlg,DM_GETTEXTLENGTH,itemID,0)+1;
+    long length=Info.SendDlgMessage(aDlg,DM_GETTEXT,itemID,0)+1;
     TCHAR *buffer=(TCHAR *)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,length*sizeof(TCHAR));
     if(buffer)
     {
-      Info.SendDlgMessage(aDlg,DM_GETTEXTPTR,itemID,buffer);
+      FarDialogItemData getdata={sizeof(FarDialogItemData),length-1,buffer};
+      Info.SendDlgMessage(aDlg,DM_GETTEXT,itemID,&getdata);
       COORD Pos; Info.SendDlgMessage(aDlg,DM_GETCURSORPOS,itemID,&Pos);
       __int64 c=0;
       __int64 p=1;

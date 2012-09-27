@@ -128,7 +128,7 @@ static int TryLoadDir(HANDLE hDlg, OFDData *DlgParams, TCHAR *newdir)
 
     lstrcpy(DlgParams->curr_dir,newdir);
 
-    FarList list={count,Items};
+    FarList list={sizeof(FarList),count,Items};
     Info.SendDlgMessage(hDlg,DM_LISTSET,0,&list);
 
     free(Items);
@@ -220,7 +220,7 @@ static INT_PTR WINAPI OFDProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
                         ptr=(TCHAR*)FSF.PointToName(old_dir);
                       }
                       FarListPos Pos={sizeof(FarListPos)};
-                      FarListFind find={sizeof(FarListFind),0,ptr,LIFIND_EXACTMATCH,0};
+                      FarListFind find={sizeof(FarListFind),0,ptr,LIFIND_EXACTMATCH};
                       Pos.SelectPos=Info.SendDlgMessage(hDlg,DM_LISTFINDSTRING,0,&find);
                       Pos.TopPos=-1;
                       if(Pos.SelectPos>=0)
