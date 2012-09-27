@@ -211,7 +211,7 @@ bool TMenuCompletion::ShowMenu(string &Selected)
     TCHAR BottomMsg[256];
     FSF.sprintf(BottomMsg,GetMsg(MHave),WordList.count());
 
-    EditorInfo ei;
+    EditorInfo ei={sizeof(ei)};
     Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
 
     size_t MenuWidth=MAX(WordList.get_max_len()+2,_tcslen(GetMsg(MChooseWord))+1);

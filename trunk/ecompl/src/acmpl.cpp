@@ -96,7 +96,7 @@ int TAutoCompletion::ProcessEditorInput(const INPUT_RECORD *Rec)
         if(IsAlpha(c)&&(control==0||control==(LEFT_CTRL_PRESSED|RIGHT_ALT_PRESSED)))
         {
           Window->On=true;
-          EditorInfo ei;
+          EditorInfo ei={sizeof(ei)};
           if(Info.EditorControl(-1,ECTL_GETINFO,0,&ei)&&ei.BlockType==BTYPE_STREAM&&(ei.Options&EOPT_PERSISTENTBLOCKS)==0)
           {
             Window->BlockDeleted=true;
@@ -121,7 +121,7 @@ int TAutoCompletion::ProcessEditorEvent(int Event,void *Param,int EditorID)
   }
   else if(Event==EE_READ)
   {
-    EditorInfo ei;
+    EditorInfo ei={sizeof(ei)};
     if(Info.EditorControl(-1,ECTL_GETINFO,0,&ei))
     {
       avl_window_data *Add=new avl_window_data(ei.EditorID);
@@ -164,7 +164,7 @@ int TAutoCompletion::ProcessEditorEvent(int Event,void *Param,int EditorID)
 bool TAutoCompletion::CheckText(int Pos,int Row,avl_window_data *Window)
 {
   SetCurPos(Pos,Row);
-  EditorGetString gs;
+  EditorGetString gs={sizeof(gs)};
   gs.StringNumber=-1; // current string
   Info.EditorControl(-1,ECTL_GETSTRING,0,&gs);
   if(gs.StringLength>Pos)
@@ -185,7 +185,7 @@ void TAutoCompletion::DeleteVariant(avl_window_data *Window)
   if(Window->Active)
   {
     bool process=false;
-    EditorInfo ei;
+    EditorInfo ei={sizeof(ei)};
     Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
     DeColorize(Window);
     Window->Active=false;
@@ -329,7 +329,7 @@ bool TAutoCompletion::CompleteWord(void)
 
 int TAutoCompletion::Root(HANDLE Handle)
 {
-  FarSettingsValue value={0,_T("Auto Completion")};
+  FarSettingsValue value={sizeof(FarSettingsValue),0,_T("Auto Completion")};
   return Info.SettingsControl(Handle,SCTL_CREATESUBKEY,0,&value);
 }
 
@@ -412,8 +412,9 @@ INT_PTR TAutoCompletion::DialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
     if(Param1==IAcceptKeyCfg||Param1==IDeleteKeyCfg)
     {
       Info.SendDlgMessage(hDlg,DM_SHOWDIALOG,FALSE,0);
-      TCHAR KeyName[256];
-      Info.SendDlgMessage(hDlg,DM_GETTEXTPTR,Param1,KeyName);
+      TCHAR KeyName[256]; //FIXME
+      FarDialogItemData getdata={sizeof(FarDialogItemData),255,KeyName};
+      Info.SendDlgMessage(hDlg,DM_GETTEXT,Param1,&getdata);
       FarDialogItem DialogFrame;
       INIT_DLG_DATA(DialogFrame,GetMsg(MPressDesiredKey));
       DialogFrame.Type=DI_DOUBLEBOX;
