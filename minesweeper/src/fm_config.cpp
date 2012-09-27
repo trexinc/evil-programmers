@@ -36,20 +36,20 @@ int Config(void)
   FSF.sprintf(lose,L"%6ld",Opt.LoseFreq);
   FarDialogItem DialogItems[]=
   {
-    {DI_DOUBLEBOX, 3, 1,62,12,{0},                     NULL,NULL,      0,                                GetMsg(mName)             ,0,0},
-    {DI_CHECKBOX,  5, 2, 0, 0,{(bool)Opt.ShowInConfig},NULL,NULL,      0,                                GetMsg(mConfigConfigMenu) ,0,0},
-    {DI_CHECKBOX,  5, 3, 0, 0,{(bool)Opt.ShowInPanels},NULL,NULL,      0,                                GetMsg(mConfigPanelsMenu) ,0,0},
-    {DI_CHECKBOX,  5, 4, 0, 0,{(bool)Opt.ShowInEditor},NULL,NULL,      0,                                GetMsg(mConfigViewerMenu) ,0,0},
-    {DI_CHECKBOX,  5, 5, 0, 0,{(bool)Opt.ShowInViewer},NULL,NULL,      0,                                GetMsg(mConfigEditorMenu) ,0,0},
-    {DI_CHECKBOX,  5, 6, 0, 0,{(bool)Opt.ShowInDialog},NULL,NULL,      0,                                GetMsg(mConfigDialogMenu) ,0,0},
-    {DI_TEXT,     -1, 7, 0, 0,{0},                     NULL,NULL,      DIF_SEPARATOR,                    L""                       ,0,0},
-    {DI_TEXT,      5, 8, 0, 0,{0},                     NULL,NULL,      0,                                GetMsg(mConfigWonFreq)    ,0,0},
-    {DI_FIXEDIT,   0, 8, 0, 0,{0},                     NULL,L"#####9", DIF_MASKEDIT,                     won                       ,0,0},
-    {DI_TEXT,      5, 9, 0, 0,{0},                     NULL,NULL,      0,                                GetMsg(mConfigLoseFreq)   ,0,0},
-    {DI_FIXEDIT,   0, 9, 0, 0,{0},                     NULL,L"#####9", DIF_MASKEDIT,                     lose                      ,0,0},
-    {DI_TEXT,     -1,10, 0, 0,{0},                     NULL,NULL,      DIF_SEPARATOR,                    L""                       ,0,0},
-    {DI_BUTTON,    0,11, 0, 0,{0},                     NULL,NULL,      DIF_CENTERGROUP|DIF_DEFAULTBUTTON,GetMsg(mConfigSave)       ,0,0},
-    {DI_BUTTON,    0,11, 0, 0,{0},                     NULL,NULL,      DIF_CENTERGROUP,                  GetMsg(mConfigCancel)     ,0,0},
+    {DI_DOUBLEBOX, 3, 1,62,12,{0},                     NULL,NULL,      0,                                GetMsg(mName)             ,0,0,{0,0}},
+    {DI_CHECKBOX,  5, 2, 0, 0,{(bool)Opt.ShowInConfig},NULL,NULL,      0,                                GetMsg(mConfigConfigMenu) ,0,0,{0,0}},
+    {DI_CHECKBOX,  5, 3, 0, 0,{(bool)Opt.ShowInPanels},NULL,NULL,      0,                                GetMsg(mConfigPanelsMenu) ,0,0,{0,0}},
+    {DI_CHECKBOX,  5, 4, 0, 0,{(bool)Opt.ShowInEditor},NULL,NULL,      0,                                GetMsg(mConfigViewerMenu) ,0,0,{0,0}},
+    {DI_CHECKBOX,  5, 5, 0, 0,{(bool)Opt.ShowInViewer},NULL,NULL,      0,                                GetMsg(mConfigEditorMenu) ,0,0,{0,0}},
+    {DI_CHECKBOX,  5, 6, 0, 0,{(bool)Opt.ShowInDialog},NULL,NULL,      0,                                GetMsg(mConfigDialogMenu) ,0,0,{0,0}},
+    {DI_TEXT,     -1, 7, 0, 0,{0},                     NULL,NULL,      DIF_SEPARATOR,                    L""                       ,0,0,{0,0}},
+    {DI_TEXT,      5, 8, 0, 0,{0},                     NULL,NULL,      0,                                GetMsg(mConfigWonFreq)    ,0,0,{0,0}},
+    {DI_FIXEDIT,   0, 8, 0, 0,{0},                     NULL,L"#####9", DIF_MASKEDIT,                     won                       ,0,0,{0,0}},
+    {DI_TEXT,      5, 9, 0, 0,{0},                     NULL,NULL,      0,                                GetMsg(mConfigLoseFreq)   ,0,0,{0,0}},
+    {DI_FIXEDIT,   0, 9, 0, 0,{0},                     NULL,L"#####9", DIF_MASKEDIT,                     lose                      ,0,0,{0,0}},
+    {DI_TEXT,     -1,10, 0, 0,{0},                     NULL,NULL,      DIF_SEPARATOR,                    L""                       ,0,0,{0,0}},
+    {DI_BUTTON,    0,11, 0, 0,{0},                     NULL,NULL,      DIF_CENTERGROUP|DIF_DEFAULTBUTTON,GetMsg(mConfigSave)       ,0,0,{0,0}},
+    {DI_BUTTON,    0,11, 0, 0,{0},                     NULL,NULL,      DIF_CENTERGROUP,                  GetMsg(mConfigCancel)     ,0,0,{0,0}},
   };
   size_t max=0;
   {
