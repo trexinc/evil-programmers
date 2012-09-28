@@ -22,7 +22,7 @@
 #include "umplugin.h"
 #include "guid.h"
 
-static INT_PTR WINAPI ConfigDialogProc(HANDLE hDlg, int Msg,int Param1,void* Param2)
+static intptr_t WINAPI ConfigDialogProc(HANDLE hDlg,intptr_t Msg,intptr_t Param1,void* Param2)
 {
   return Info.DefDlgProc(hDlg,Msg,Param1,Param2);
 }

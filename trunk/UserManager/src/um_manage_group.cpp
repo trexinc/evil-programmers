@@ -33,7 +33,7 @@ const int updateSize=2;
 
 //FIXME: NetApiBufferFree
 
-static INT_PTR WINAPI ManageGroupDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
+static intptr_t WINAPI ManageGroupDialogProc(HANDLE hDlg,intptr_t Msg,intptr_t Param1,void* Param2)
 {
   bool *updated=(bool *)Info.SendDlgMessage(hDlg,DM_GETDLGDATA,0,0);
   switch(Msg)

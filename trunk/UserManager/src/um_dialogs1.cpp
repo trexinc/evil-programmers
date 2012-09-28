@@ -25,7 +25,7 @@
 #include "memory.h"
 #include "guid.h"
 
-static INT_PTR WINAPI EditAdvancedAccessDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
+static intptr_t WINAPI EditAdvancedAccessDialogProc(HANDLE hDlg,intptr_t Msg,intptr_t Param1,void* Param2)
 {
   int *DlgParams=(int *)Info.SendDlgMessage(hDlg,DM_GETDLGDATA,0,0);
   switch(Msg)
