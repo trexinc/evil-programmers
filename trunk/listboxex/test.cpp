@@ -99,7 +99,7 @@ void WINAPI GetPluginInfoW(struct PluginInfo *Info)
   Info->PluginConfig.Count=0;
 }
 
-static INT_PTR WINAPI MainDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
+static intptr_t WINAPI MainDialogProc(HANDLE hDlg,intptr_t Msg,intptr_t Param1,void* Param2)
 {
   switch(Msg)
   {
