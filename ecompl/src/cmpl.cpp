@@ -504,7 +504,7 @@ void TCompletion::StoreItems(CFarDialog& Dialog)
   FSF.sprintf(AdditionalLetters,_T("%s"),Dialog.Str(IAdditionalLetters));
 }
 
-INT_PTR WINAPI ConfigDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
+intptr_t WINAPI ConfigDialogProc(HANDLE hDlg,intptr_t Msg,intptr_t Param1,void* Param2)
 {
   TCompletion *sender;
   if(Msg==DN_INITDIALOG)

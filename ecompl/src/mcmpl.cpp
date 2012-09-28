@@ -102,12 +102,12 @@ static void ForEach(void *data,int &pos,avl_word_data &node)
   pos++;
 }
 
-int WINAPI fcmp(const void *first,const void *second,void *)
+intptr_t WINAPI fcmp(const void *first,const void *second,void *)
 {
   return (((const MenuAdaptor *)second)->ref)-(((const MenuAdaptor *)first)->ref);
 }
 
-static INT_PTR WINAPI ListMenuProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
+static intptr_t WINAPI ListMenuProc(HANDLE hDlg,intptr_t Msg,intptr_t Param1,void* Param2)
 {
   ListMenuData *DlgParams=(ListMenuData *)Info.SendDlgMessage(hDlg,DM_GETDLGDATA,0,0);
   switch(Msg)
@@ -250,7 +250,7 @@ bool TMenuCompletion::ShowMenu(string &Selected)
       DialogItems[2].VBuf=VirtualBuffer;
       ListMenuData params={WordList.count(),menudata,/*(TCHAR *)GetMsg(MChooseWord),BottomMsg,*/ShortCuts,ShortCutsLen,AcceptChars,0,0,-1};
       CFarDialog dialog;
-      int DlgCode=dialog.Execute(MainGuid,MCmplGuid,MenuX,MenuY,MenuX+MenuWidth+3,MenuY+MenuHeight+1,_T("List"),DialogItems,sizeofa(DialogItems),0,0,ListMenuProc,&params);
+      intptr_t DlgCode=dialog.Execute(MainGuid,MCmplGuid,MenuX,MenuY,MenuX+MenuWidth+3,MenuY+MenuHeight+1,_T("List"),DialogItems,sizeofa(DialogItems),0,0,ListMenuProc,&params);
       if(DlgCode==2)
       {
         int MenuCode=params.CursorPos;

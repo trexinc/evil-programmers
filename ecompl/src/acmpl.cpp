@@ -386,7 +386,7 @@ int TAutoCompletion::DialogHeight(void)
   return 25;
 }
 
-INT_PTR WINAPI GetKey(HANDLE hDlg,int Msg,int Param1,void* Param2)
+intptr_t WINAPI GetKey(HANDLE hDlg,intptr_t Msg,intptr_t Param1,void* Param2)
 {
   if(Msg==DN_INITDIALOG)
   {
