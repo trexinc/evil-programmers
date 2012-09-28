@@ -113,18 +113,18 @@ HANDLE WINAPI OpenW(const struct OpenInfo* Info)
   return NULL;
 }
 
-int WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
+intptr_t WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
 {
   ShowMenu(2);
   return FALSE;
 }
 
-int WINAPI ProcessEditorEventW(const struct ProcessEditorEventInfo *Info)
+intptr_t WINAPI ProcessEditorEventW(const struct ProcessEditorEventInfo *Info)
 {
   return ACmpl->ProcessEditorEvent(Info->Event,Info->Param,Info->EditorID);
 }
 
-int WINAPI ProcessEditorInputW(const ProcessEditorInputInfo* Info)
+intptr_t WINAPI ProcessEditorInputW(const ProcessEditorInputInfo* Info)
 {
   return ACmpl->ProcessEditorInput(&Info->Rec);
 }
