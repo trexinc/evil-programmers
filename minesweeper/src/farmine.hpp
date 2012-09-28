@@ -47,7 +47,7 @@ extern FARSTANDARDFUNCTIONS FSF;
 extern Options Opt;
 
 extern const wchar_t* GetMsg(int MsgId);
-extern int Config(void);
+extern intptr_t Config(void);
 
 #define ControlKeyAllMask (RIGHT_ALT_PRESSED|LEFT_ALT_PRESSED|RIGHT_CTRL_PRESSED|LEFT_CTRL_PRESSED|SHIFT_PRESSED)
 #define IsNone(rec) static_cast<bool>(((rec)->Event.KeyEvent.dwControlKeyState&ControlKeyAllMask)==0)
