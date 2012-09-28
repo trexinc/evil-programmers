@@ -311,7 +311,7 @@ struct UserParam
   UserProfile *profile;
 };
 
-static INT_PTR WINAPI ProfileDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
+static intptr_t WINAPI ProfileDialogProc(HANDLE hDlg,intptr_t Msg,intptr_t Param1,void* Param2)
 {
   UserParam *DlgParams=(UserParam *)Info.SendDlgMessage(hDlg,DM_GETDLGDATA,0,0);
   switch(Msg)
@@ -377,7 +377,7 @@ static void UpdateExpired(HANDLE hDlg,UserParam *DlgParams)
   }
 }
 
-static INT_PTR WINAPI ManageGroupUserDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
+static intptr_t WINAPI ManageGroupUserDialogProc(HANDLE hDlg,intptr_t Msg,intptr_t Param1,void* Param2)
 {
   UserParam *DlgParams=(UserParam *)Info.SendDlgMessage(hDlg,DM_GETDLGDATA,0,0);
   switch(Msg)

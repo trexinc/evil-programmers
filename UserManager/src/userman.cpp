@@ -417,7 +417,7 @@ static void SetDescription(PluginPanelItem *tmpItem,wchar_t *Description)
   }
 }
 
-int WINAPI GetFindDataW(struct GetFindDataInfo *anInfo)
+intptr_t WINAPI GetFindDataW(struct GetFindDataInfo *anInfo)
 {
   if(!IsOldFAR)
   {
@@ -851,7 +851,7 @@ void WINAPI FreeFindDataW(const struct FreeFindDataInfo *anInfo)
   }
 }
 
-int WINAPI SetDirectoryW(const struct SetDirectoryInfo *Info)
+intptr_t WINAPI SetDirectoryW(const struct SetDirectoryInfo *Info)
 {
   if(!IsOldFAR)
   {
@@ -1036,7 +1036,7 @@ void WINAPI GetOpenPanelInfoW(struct OpenPanelInfo *Info)
   }
 }
 
-int WINAPI ProcessPanelInputW(const struct ProcessPanelInputInfo *anInfo)
+intptr_t WINAPI ProcessPanelInputW(const struct ProcessPanelInputInfo *anInfo)
 {
   if(anInfo->Rec.EventType!=KEY_EVENT||!anInfo->Rec.Event.KeyEvent.bKeyDown) return FALSE;
   UserManager *panel=(UserManager *)anInfo->hPanel;
@@ -1208,7 +1208,7 @@ int WINAPI ProcessPanelInputW(const struct ProcessPanelInputInfo *anInfo)
   return FALSE;
 }
 
-int WINAPI ConfigureW(const struct ConfigureInfo* Info)
+intptr_t WINAPI ConfigureW(const struct ConfigureInfo* Info)
 {
   return Config();
 }
@@ -1219,7 +1219,7 @@ void WINAPI ExitFARW(const struct ExitInfo *Info)
   free_current_user();
 }
 
-int WINAPI CompareW(const struct CompareInfo *Info)
+intptr_t WINAPI CompareW(const struct CompareInfo *Info)
 {
   UserManager *panel=(UserManager *)Info->hPanel;
   if(sort[panel->level])

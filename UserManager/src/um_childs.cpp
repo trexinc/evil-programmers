@@ -254,7 +254,7 @@ static void RecurceAcl(wchar_t *dir,A2CData *td)
   }
 }
 
-static INT_PTR WINAPI ProcessChildsDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
+static intptr_t WINAPI ProcessChildsDialogProc(HANDLE hDlg,intptr_t Msg,intptr_t Param1,void* Param2)
 {
   return Info.DefDlgProc(hDlg,Msg,Param1,Param2);
 }
