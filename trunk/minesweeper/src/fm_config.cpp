@@ -24,12 +24,12 @@ enum
 #define GetCheck(i) Info.SendDlgMessage(hDlg,DM_GETCHECK,i,0)
 #define GetData(i) ((const wchar_t*)Info.SendDlgMessage(hDlg,DM_GETCONSTTEXTPTR,i,0))
 
-static INT_PTR WINAPI ConfigDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
+static intptr_t WINAPI ConfigDialogProc(HANDLE hDlg,intptr_t Msg,intptr_t Param1,void* Param2)
 {
   return Info.DefDlgProc(hDlg,Msg,Param1,Param2);
 }
 
-int Config(void)
+intptr_t Config(void)
 {
   wchar_t won[32],lose[32];
   FSF.sprintf(won,L"%6ld",Opt.WonFreq);
@@ -63,7 +63,7 @@ int Config(void)
   DialogItems[CONFIGDLG_EWON].X1=DialogItems[CONFIGDLG_LWON].X1+(int)max; DialogItems[CONFIGDLG_EWON].X2=DialogItems[CONFIGDLG_EWON].X1+5;
   DialogItems[CONFIGDLG_ELOSE].X1=DialogItems[CONFIGDLG_LLOSE].X1+(int)max; DialogItems[CONFIGDLG_ELOSE].X2=DialogItems[CONFIGDLG_ELOSE].X1+5;
 
-  int DlgCode=-1;
+  intptr_t DlgCode=-1;
   HANDLE hDlg=Info.DialogInit(&MainGuid,&ConfigGuid,-1,-1,66,14,L"Config",DialogItems,sizeofa(DialogItems),0,0,ConfigDialogProc,0);
   if(hDlg!=INVALID_HANDLE_VALUE) DlgCode=Info.DialogRun(hDlg);
   if(DlgCode==CONFIGDLG_SAVE)

@@ -349,7 +349,7 @@ static void RunKey(const wchar_t* Key)
   Info.MacroControl(&MainGuid,MCTL_SENDSTRING,MSSC_POST,&macro);
 }
 
-static INT_PTR WINAPI MainDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
+static intptr_t WINAPI MainDialogProc(HANDLE hDlg,intptr_t Msg,intptr_t Param1,void* Param2)
 {
   BoardParams* DlgParams=(BoardParams*)Info.SendDlgMessage(hDlg,DM_GETDLGDATA,0,0);
   //if(Msg==DN_KEY&&Param2==KEY_ENTER) return TRUE;
@@ -585,7 +585,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo* Info)
     MenuItems[i].Text=GetMsg(mLev1+i);
   }
   MenuItems[0].Flags|=MIF_SELECTED;
-  int MenuCode=::Info.Menu(&MainGuid,&MainMenuGuid,-1,-1,0,FMENU_WRAPMODE,GetMsg(mName),NULL,L"Contents",NULL,NULL,MenuItems,sizeofa(MenuItems));
+  intptr_t MenuCode=::Info.Menu(&MainGuid,&MainMenuGuid,-1,-1,0,FMENU_WRAPMODE,GetMsg(mName),NULL,L"Contents",NULL,NULL,MenuItems,sizeofa(MenuItems));
   if(MenuCode>=0)
   {
     BoardParams bp; int curr_color;
@@ -672,7 +672,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo* Info)
   return NULL;
 }
 
-int WINAPI ConfigureW(const struct ConfigureInfo* anInfo)
+intptr_t WINAPI ConfigureW(const struct ConfigureInfo* anInfo)
 {
   return(Config());
 }
