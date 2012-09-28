@@ -24,7 +24,7 @@
 // {7452904C-CFD7-49b2-AE24-7ED22A9AAB99}
 DEFINE_GUID(SearchDialogGuid, 0x7452904c, 0xcfd7, 0x49b2, 0xae, 0x24, 0x7e, 0xd2, 0x2a, 0x9a, 0xab, 0x99);
 
-INT_PTR WINAPI SearchDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
+intptr_t WINAPI SearchDialogProc(HANDLE hDlg,intptr_t Msg,intptr_t Param1,void* Param2)
 {
   return Info.DefDlgProc(hDlg,Msg,Param1,Param2);
 }

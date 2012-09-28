@@ -115,7 +115,7 @@ void WINAPI ExitFARW(const struct ExitInfo *Info)
   FinishUndo();
 }
 
-int WINAPI ProcessDialogEventW(const struct ProcessDialogEventInfo *Info)
+intptr_t WINAPI ProcessDialogEventW(const struct ProcessDialogEventInfo *Info)
 {
   if(Info->Event==DE_DLGPROCINIT)
   {

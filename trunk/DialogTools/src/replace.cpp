@@ -23,7 +23,7 @@
 // {44769AF2-E33D-4c76-9EA4-A0E5B795A604}
 DEFINE_GUID(ReplaceDialogGuid, 0x44769af2, 0xe33d, 0x4c76, 0x9e, 0xa4, 0xa0, 0xe5, 0xb7, 0x95, 0xa6, 0x4);
 
-INT_PTR WINAPI ReplaceDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
+intptr_t WINAPI ReplaceDialogProc(HANDLE hDlg,intptr_t Msg,intptr_t Param1,void* Param2)
 {
   return Info.DefDlgProc(hDlg,Msg,Param1,Param2);
 }

@@ -20,30 +20,6 @@
 #include "dt.hpp"
 #include "open_file_dialog.hpp"
 
-HKEY OpenRegKey(HKEY hRoot, const TCHAR *root, const TCHAR *Key)
-{
-  HKEY hKey;
-  TCHAR FullKeyName[512];
-  wsprintf(FullKeyName,_T("%s%s%s"),root,*Key ? _T("\\"):_T(""),Key);
-  if (RegOpenKeyEx(hRoot,FullKeyName,0,KEY_READ,&hKey)!=ERROR_SUCCESS)
-    return(NULL);
-  return(hKey);
-}
-
-int GetRegKey(HKEY hRoot,const TCHAR * root, const TCHAR *Key,const TCHAR *ValueName,TCHAR *ValueData,const TCHAR *Default,DWORD DataSize)
-{
-  HKEY hKey=OpenRegKey(hRoot,root, Key);
-  DWORD Type;
-  int ExitCode=RegQueryValueEx(hKey,ValueName,0,&Type,(BYTE*)ValueData,&DataSize);
-  RegCloseKey(hKey);
-  if (hKey==NULL || ExitCode!=ERROR_SUCCESS)
-  {
-    lstrcpy(ValueData,Default);
-    return(FALSE);
-  }
-  return(TRUE);
-}
-
 void DoOpenFile(HANDLE aDlg)
 {
   LONG_PTR itemID=Info.SendDlgMessage(aDlg,DM_GETFOCUS,0,0);

@@ -24,7 +24,7 @@
 // {A43FF539-60AB-413b-A61A-143F2863370B}
 DEFINE_GUID(PwdDialogGuid, 0xa43ff539, 0x60ab, 0x413b, 0xa6, 0x1a, 0x14, 0x3f, 0x28, 0x63, 0x37, 0xb);
 
-INT_PTR WINAPI PwdDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
+intptr_t WINAPI PwdDialogProc(HANDLE hDlg,intptr_t Msg,intptr_t Param1,void* Param2)
 {
   return Info.DefDlgProc(hDlg,Msg,Param1,Param2);
 }

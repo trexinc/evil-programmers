@@ -51,7 +51,7 @@ static int __cdecl fcmp(DWORD firstFlags,DWORD secondFlags,const TCHAR *firstTex
   return(FSF.LStricmp(firstText,secondText));
 }
 
-static int WINAPI fcmp2(const void *first,const void *second,void *)
+static intptr_t WINAPI fcmp2(const void *first,const void *second,void *)
 {
   return(
     fcmp(
