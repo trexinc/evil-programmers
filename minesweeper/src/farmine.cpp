@@ -466,8 +466,8 @@ static intptr_t WINAPI MainDialogProc(HANDLE hDlg,intptr_t Msg,intptr_t Param1,v
         else if(record->EventType==MOUSE_EVENT)
         {
           DWORD Buttons=record->Event.MouseEvent.dwButtonState;
-          if(Buttons&FROM_LEFT_1ST_BUTTON_PRESSED) RunKey(L"Space");
-          else if(Buttons&RIGHTMOST_BUTTON_PRESSED) RunKey(L"Del");
+          if(Buttons&FROM_LEFT_1ST_BUTTON_PRESSED) RunKey(L"Keys([[Space]])");
+          else if(Buttons&RIGHTMOST_BUTTON_PRESSED) RunKey(L"Keys([[Del]])");
         }
       }
       break;
