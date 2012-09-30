@@ -625,14 +625,14 @@ void GetJiggyWithIt(HANDLE XPanelInfo,bool Override, bool Force)
 
           if (data.ResKey.Event.KeyEvent.wVirtualKeyCode==VK_F3 && data.ShowingIn==VIEWER)
           {
-            macro.SequenceText=L"CtrlF10 Esc";
+            macro.SequenceText=L"Keys([==[CtrlF10 Esc]==])";
           }
           else
           {
             wchar_t Key[128];
             if(FSF.FarInputRecordToName(&data.ResKey,Key,128))
             {
-              wsprintf(Seq,L"Keys([[%ls]])",Key);
+              wsprintf(Seq,L"Keys([==[%ls]==])",Key);
               macro.SequenceText=Seq;
             }
           }
