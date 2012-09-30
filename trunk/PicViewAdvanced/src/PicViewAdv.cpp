@@ -620,7 +620,8 @@ void GetJiggyWithIt(HANDLE XPanelInfo,bool Override, bool Force)
           macro.StructSize=sizeof(MacroSendMacroText);
           macro.Flags=KMFLAGS_DISABLEOUTPUT;
           macro.AKey=data.ResKey;
-          wchar_t Key[256];
+          macro.SequenceText=L"";
+          wchar_t Seq[256];
 
           if (data.ResKey.Event.KeyEvent.wVirtualKeyCode==VK_F3 && data.ShowingIn==VIEWER)
           {
@@ -628,8 +629,12 @@ void GetJiggyWithIt(HANDLE XPanelInfo,bool Override, bool Force)
           }
           else
           {
-            if(!FSF.FarInputRecordToName(&data.ResKey,Key,256)) Key[0]=0;
-            macro.SequenceText=Key;
+            wchar_t Key[128];
+            if(FSF.FarInputRecordToName(&data.ResKey,Key,128))
+            {
+              wsprintf(Seq,L"Keys([[%ls]])",Key);
+              macro.SequenceText=Seq;
+            }
           }
           Info.MacroControl(0,MCTL_SENDSTRING,MSSC_POST,&macro);
         }
