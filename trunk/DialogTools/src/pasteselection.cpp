@@ -27,7 +27,7 @@ inline TCHAR hex(TCHAR c)
   return ('A'+c-10);
 }
 
-#define MACRO_LEN 6
+#define MACRO_LEN 1
 
 void DoPaste(HANDLE aDlg)
 {
@@ -59,18 +59,7 @@ void DoPaste(HANDLE aDlg)
               if (buffer)
               {
                 _tcscpy(buffer,_T("print(\""));
-                for (int i=7, j=0; j<len; j++)
-                {
-                  buffer[i++]='\\';
-                  buffer[i++]='x';
-                  unsigned value=text[j];
-                  buffer[i++]=hex(value/4096);
-                  value%=4096;
-                  buffer[i++]=hex(value/256);
-                  value%=256;
-                  buffer[i++]=hex(value/16);
-                  buffer[i++]=hex(value%16);
-                }
+                _tcscpy(buffer+7,text);
                 _tcscpy(buffer+len*MACRO_LEN+7,_T("\")"));
                 MacroSendMacroText seq={sizeof(MacroSendMacroText),KMFLAGS_DISABLEOUTPUT,{0},buffer};
                 Info.MacroControl(0,MCTL_SENDSTRING,MSSC_POST,&seq);
