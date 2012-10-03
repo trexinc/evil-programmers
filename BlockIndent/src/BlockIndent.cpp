@@ -74,7 +74,7 @@ void WINAPI SetStartupInfoW(const struct PluginStartupInfo *Info)
   ::Info=*Info;
 }
 
-const wchar_t *GetMsg(int MsgId)
+const wchar_t *GetMsg(intptr_t MsgId)
 {
   return Info.GetMsg(&MainGuid,MsgId);
 }
@@ -101,43 +101,48 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
     MenuItems[0].Flags = MIF_SELECTED;
   }
 
-  int menu;
+  intptr_t menu;
   if ((menu = Info.Menu(&MainGuid,NULL,-1,-1,0,FMENU_WRAPMODE,GetMsg(MTitle),
       NULL,NULL,NULL,NULL,MenuItems,sizeof(MenuItems)/sizeof(MenuItems[0]))) == -1)
     return NULL;
 
   struct EditorInfo ei;
+  ei.StructSize = sizeof(ei);
   Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
 
   wchar_t IndentStr[2];
   IndentStr[0] = menu<2?'\t':' ';
   IndentStr[1] = '\0';
-  int IndentSize = menu<2?ei.TabSize:1;
+  intptr_t IndentSize = menu<2?ei.TabSize:1;
 
-  int line = ei.CurLine;
-  int loop = FALSE;
+  intptr_t line = ei.CurLine;
+  bool loop = false;
   if (ei.BlockType != BTYPE_NONE)
   {
     struct EditorGetString egs;
+    egs.StructSize = sizeof(egs);
     egs.StringNumber = -1;
     Info.EditorControl(-1,ECTL_GETSTRING,0,&egs);
     if (egs.SelStart != -1)
     {
-      loop = TRUE;
+      loop = true;
       line = ei.BlockStartLine;
     }
   }
 
-  struct EditorUndoRedo eur={};
+  struct EditorUndoRedo eur;
+  eur.StructSize = sizeof(eur);
   eur.Command=EUR_BEGIN;
   Info.EditorControl(-1,ECTL_UNDOREDO,0,&eur);
 
   do
   {
     struct EditorGetString egs;
+    egs.StructSize = sizeof(egs);
     if (line < ei.TotalLines)
     {
       struct EditorSetPosition esp;
+      esp.StructSize = sizeof(esp);
       esp.CurLine = line++;
       esp.CurPos = esp.Overtype = 0;
       esp.CurTabPos = esp.TopScreenLine = esp.LeftPos = -1;
@@ -154,9 +159,10 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
       j++;
     if ((j || (menu%2 == 1)) && (j < egs.StringLength))
     {
-      int x;
+      intptr_t x;
       {
         struct EditorConvertPos ecp;
+        ecp.StructSize = sizeof(ecp);
         ecp.StringNumber = -1;
         ecp.SrcPos = j+1;
         Info.EditorControl(-1,ECTL_REALTOTAB,0,&ecp);
@@ -168,6 +174,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
       }
       {
         struct EditorSetString ess;
+        ess.StructSize = sizeof(ess);
         ess.StringNumber = -1;
         ess.StringText = (wchar_t *)&egs.StringText[j];
         ess.StringEOL = (wchar_t *)egs.StringEOL;
@@ -184,6 +191,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
 
   {
     struct EditorSetPosition esp;
+    esp.StructSize = sizeof(esp);
     esp.CurLine = ei.CurLine;
     esp.CurPos = ei.CurPos;
     esp.TopScreenLine = ei.TopScreenLine;
