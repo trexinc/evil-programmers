@@ -46,7 +46,7 @@ void LoadGlobalConfig() // грузится здесь, а сохраняется в настройках
   HANDLE Settings=Info.SettingsControl(INVALID_HANDLE_VALUE,SCTL_CREATE,0,&settings)?settings.Handle:0;
   if(Settings)
   {
-    FarSettingsItem item={0,REGStrOptions,FST_QWORD,{0}};
+    FarSettingsItem item={sizeof(FarSettingsItem),0,REGStrOptions,FST_QWORD,{0}};
     if(Info.SettingsControl(Settings,SCTL_GET,0,&item))
     {
       Options=item.Number;
@@ -71,7 +71,7 @@ void SaveGlobalConfig()
   HANDLE Settings=Info.SettingsControl(INVALID_HANDLE_VALUE,SCTL_CREATE,0,&settings)?settings.Handle:0;
   if(Settings)
   {
-    FarSettingsItem item={0,REGStrOptions,FST_QWORD,{0}};
+    FarSettingsItem item={sizeof(FarSettingsItem),0,REGStrOptions,FST_QWORD,{0}};
     item.Number=Options;
     Info.SettingsControl(Settings,SCTL_SET,0,&item);
     Info.SettingsControl(Settings,SCTL_FREE,0,0);

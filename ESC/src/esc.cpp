@@ -189,8 +189,9 @@ HANDLE WINAPI OpenW(const struct OpenInfo*)
         FarMenuItem *fmi=static_cast<FarMenuItem*>(malloc(FMISize));
         if(fmi)
         {
-            wchar_t *editorfilename = (wchar_t *)malloc(EditorControl(-1,ECTL_GETFILENAME,0,0)*sizeof(wchar_t));
-            EditorControl(-1, ECTL_GETFILENAME, 0, editorfilename);
+            size_t editorfilenamesize=EditorControl(-1,ECTL_GETFILENAME,0,0);
+            wchar_t *editorfilename = (wchar_t *)malloc(editorfilenamesize*sizeof(wchar_t));
+            EditorControl(-1, ECTL_GETFILENAME, editorfilenamesize, editorfilename);
             EditorControl(-1, ECTL_GETINFO, 0, &ei);
             if(ESETStorage->IsEmpty())
                InitSetsTree(ei, editorfilename);
@@ -309,7 +310,7 @@ void WINAPI ExitFARW(const struct ExitInfo*)
   nlsStopChars=NULL;
 }
 
-INT_PTR WINAPI ConfigDlgProc (HANDLE hDlg, int Msg, int Param1, void* Param2)
+intptr_t WINAPI ConfigDlgProc (HANDLE hDlg, intptr_t Msg, intptr_t Param1, void* Param2)
 {
   switch (Msg)
     {
@@ -346,7 +347,7 @@ INT_PTR WINAPI ConfigDlgProc (HANDLE hDlg, int Msg, int Param1, void* Param2)
   return Info.DefDlgProc (hDlg, Msg, Param1, Param2);
 }
 
-int WINAPI ConfigureW(const struct ConfigureInfo*)
+intptr_t WINAPI ConfigureW(const struct ConfigureInfo*)
 {
   if(IsOldFar) return FALSE;
 
@@ -440,7 +441,7 @@ void WINAPI GetPluginInfoW(struct PluginInfo *Info)
   Info->PluginConfig.Count=sizeof(PluginConfigStrings)/sizeof(PluginConfigStrings[0]);
 }
 
-static int ProcessEditorEventInternal(int Event, void *Param, int EditorID)
+static intptr_t ProcessEditorEventInternal(int Event, void *Param, int EditorID)
 {
   /*#ifdef DEBUG
   wchar_t *EES[]={L"EE_READ",L"EE_SAVE",L"EE_REDRAW",L"EE_CLOSE"};
@@ -454,8 +455,9 @@ static int ProcessEditorEventInternal(int Event, void *Param, int EditorID)
    if(Event==EE_REDRAW ||
       ((Event==EE_READ || Event==EE_SAVE) && ReloadSettings(FALSE)))
    {
-    wchar_t *editorfilename = (wchar_t *)malloc(EditorControl(-1, ECTL_GETFILENAME, 0, 0)*sizeof(wchar_t));
-    EditorControl(-1, ECTL_GETFILENAME, 0, editorfilename);
+    size_t editorfilenamesize=EditorControl(-1,ECTL_GETFILENAME,0,0);
+    wchar_t *editorfilename = (wchar_t *)malloc(editorfilenamesize*sizeof(wchar_t));
+    EditorControl(-1, ECTL_GETFILENAME, editorfilenamesize, editorfilename);
     _D(SysLog(L"PEE: Filename: %s", editorfilename));
     EditorControl(-1, ECTL_GETINFO, 0, &ei);
     if(Event==EE_READ) InitSetsTree(ei,editorfilename);
@@ -577,6 +579,7 @@ static int ProcessEditorEventInternal(int Event, void *Param, int EditorID)
           {
             EditorSetParameter espar;
             memset(&espar, 0, sizeof(espar));
+            espar.StructSize=sizeof(EditorSetParameter);
             espar.Type=ESPT_CODEPAGE;
             bool done=false;
             if(*nodedata.TableName.str)
@@ -645,12 +648,12 @@ static int ProcessEditorEventInternal(int Event, void *Param, int EditorID)
   return 0;
 }
 
-int WINAPI ProcessEditorEventW(const struct ProcessEditorEventInfo* Info)
+intptr_t WINAPI ProcessEditorEventW(const struct ProcessEditorEventInfo* Info)
 {
   return ProcessEditorEventInternal(Info->Event,Info->Param,Info->EditorID);
 }
 
-static int ProcessEditorInputInternal(const INPUT_RECORD *Rec)
+static intptr_t ProcessEditorInputInternal(const INPUT_RECORD *Rec)
 {
     static int isReenter=0, Lines, CoordX, RetCode;
 
@@ -689,8 +692,9 @@ static int ProcessEditorInputInternal(const INPUT_RECORD *Rec)
     EditorControl(-1, ECTL_GETINFO, 0, &ei);
     if(ESETStorage->IsEmpty())
     {
-       wchar_t *editorfilename = (wchar_t *)malloc(EditorControl(-1, ECTL_GETFILENAME, 0, 0)*sizeof(wchar_t));
-       EditorControl(-1, ECTL_GETFILENAME, 0, editorfilename);
+       size_t editorfilenamesize=EditorControl(-1,ECTL_GETFILENAME,0,0);
+       wchar_t *editorfilename = (wchar_t *)malloc(editorfilenamesize*sizeof(wchar_t));
+       EditorControl(-1, ECTL_GETFILENAME, editorfilenamesize, editorfilename);
        InitSetsTree(ei, editorfilename);
        free(editorfilename);
     }
@@ -1274,7 +1278,7 @@ EXIT:
     return 0;
 }
 
-int WINAPI ProcessEditorInputW(const ProcessEditorInputInfo* Info)
+intptr_t WINAPI ProcessEditorInputW(const ProcessEditorInputInfo* Info)
 {
   return ProcessEditorInputInternal(&Info->Rec);
 }

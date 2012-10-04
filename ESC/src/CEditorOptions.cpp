@@ -35,6 +35,7 @@ CEditorOptions::CEditorOptions(const NODEDATA &Data)
 {
   CEditorOptions::Data=Data;
   memset(&ESPar, 0, sizeof(ESPar));
+  ESPar.StructSize=sizeof(ESPar);
 }
 
 CEditorOptions::~CEditorOptions()
@@ -105,7 +106,7 @@ int CEditorOptions::ApplyOption(EDITOR_SETPARAMETER_TYPES type)
           {
              ESPar.Type=ESPT_SAVEFILEPOSITION;
              ESPar.iParam=(Data.Options&E_SaveFilePos_On)?TRUE:FALSE;
-             EditorInfo EI;
+             EditorInfo EI={sizeof(EditorInfo)};
              EditorControl(-1, ECTL_GETINFO, 0, &EI);
              if(ESPar.iParam && static_cast<DWORD>(EI.TotalLines)<Data.MinLinesNum)
                 ESPar.iParam=FALSE;
