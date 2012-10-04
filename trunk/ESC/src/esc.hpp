@@ -72,10 +72,10 @@ class EditorSettingsStorage
 CRedBlackTree<EditorSettingsStorage> *ESETStorage=NULL;
 CRedBlackTree<ESCFileInfo> *FileInfoTree=NULL;
 
-struct EditorInfo ei;
-struct EditorGetString egs;
-struct EditorSetPosition esp;
-struct EditorSetString ess;
+struct EditorInfo ei={sizeof(EditorInfo)};
+struct EditorGetString egs={sizeof(EditorGetString)};
+struct EditorSetPosition esp={sizeof(EditorSetPosition)};
+struct EditorSetString ess={sizeof(EditorSetString)};
 wchar_t nlsSpace, nlsTab, nlsQuoteSym, nlsMinus;
 strcon *nlsStopChars=NULL;
 wchar_t nlsStop[64];

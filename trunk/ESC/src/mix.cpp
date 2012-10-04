@@ -978,6 +978,8 @@ BOOL ReloadSettings(BOOL Force)
 void InitESPandEGS(struct EditorSetPosition &esp, struct EditorGetString &egs)
 {
    memset(&esp, -1, sizeof(esp));
+   esp.StructSize=sizeof(EditorSetPosition);
+   egs.StructSize=sizeof(EditorGetString);
    egs.StringNumber=-1;
 }
 
@@ -1244,7 +1246,7 @@ void RestorePosition(const EditorInfo &EI)
 
 BOOL ChangeCoordX(const EditorInfo &ei, EditorSetPosition &esp)
 {
-   EditorConvertPos ecp={-1, esp.CurPos, 0};
+   EditorConvertPos ecp={sizeof(EditorConvertPos), -1, esp.CurPos, 0};
    EditorControl(-1, ECTL_REALTOTAB, 0, &ecp);
    if(ecp.DestPos>ei.WindowSizeX)
    {
@@ -1305,7 +1307,7 @@ BOOL ProcessKeyEnter(const EditorInfo &ei, EditorSetPosition &esp,
 {
   if(nQuote<1) return FALSE;
 
-  struct EditorGetString egs2;
+  struct EditorGetString egs2={sizeof(EditorGetString)};
 
   if( ei.CurPos>=egs.StringLength ) { // check if that's the last line of quote
       if( ei.CurLine>=ei.TotalLines || !isWrapQuoteEOL) return FALSE;
@@ -1456,7 +1458,7 @@ int FindCodeTable(const wchar_t *Mask)
 
 void EditorUnmarkBlock()
 {
-  EditorSelect es={BTYPE_NONE,0,0,0,0};
+  EditorSelect es={sizeof(EditorSelect),BTYPE_NONE,0,0,0,0};
   EditorControl(-1, ECTL_SELECT, 0, &es);
 }
 
