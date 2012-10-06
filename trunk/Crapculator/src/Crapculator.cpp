@@ -74,7 +74,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
   wchar_t error[] = L"Crap";
   wchar_t *r=error;
 
-  struct EditorGetString egs = {-1, 0, NULL, NULL, 0, 0};
+  struct EditorGetString egs = {sizeof(egs), -1, 0, NULL, NULL, 0, 0};
 
   if (Info.EditorControl(-1,ECTL_GETSTRING,0,&egs) && egs.StringText)
   {
