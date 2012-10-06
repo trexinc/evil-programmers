@@ -1,6 +1,6 @@
 V2.3
 ----
-- Far 3.0 build 2873 support.
+- Far 3.0 build 2873 and ESC 2.9 support.
 
 V2.2
 ----
