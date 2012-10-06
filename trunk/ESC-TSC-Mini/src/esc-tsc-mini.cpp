@@ -43,8 +43,8 @@ struct PluginStartupInfo Info;
 FARSTANDARDFUNCTIONS FSF;
 HMODULE hEsc = NULL;
 BOOL FirstRun = TRUE;
-int (WINAPI *SetEditorOption)(int EditorID, const wchar_t *szName, void *Param);
-int (WINAPI *GetEditorSettings)(int EditorID, const wchar_t *szName, void *Param);
+int (WINAPI *SetEditorOption)(intptr_t EditorID, const wchar_t *szName, void *Param);
+int (WINAPI *GetEditorSettings)(intptr_t EditorID, const wchar_t *szName, void *Param);
 
 struct InitDialogItem
 {
@@ -70,7 +70,7 @@ static const GUID MenuGuid =
 static const GUID DialogGuid =
 { 0x6c75eec0, 0xa95d, 0x445f, { 0xb2, 0xd9, 0x64, 0x43, 0xac, 0x2b, 0x84, 0x80 } };
 
-const wchar_t *GetMsg(int MsgId)
+const wchar_t *GetMsg(intptr_t MsgId)
 {
   return Info.GetMsg(&MainGuid,MsgId);
 }
@@ -86,7 +86,7 @@ void InitDialogItems(const struct InitDialogItem *Init, struct FarDialogItem *It
     PItem->Y1=PInit->Y1;
     PItem->X2=PInit->X2;
     PItem->Y2=PInit->Y2;
-    PItem->Reserved=0;
+    PItem->Reserved0=0;
     PItem->Flags=PInit->Flags;
     PItem->MaxLength=0;
     PItem->UserData=0;
@@ -121,11 +121,11 @@ void WINAPI SetStartupInfoW(const struct PluginStartupInfo *psi)
   Info.FSF=&FSF;
 }
 
-INT_PTR WINAPI MyDialog(HANDLE hDlg,int Msg,int Param1,void *Param2)
+intptr_t WINAPI MyDialog(HANDLE hDlg,intptr_t Msg,intptr_t Param1,void *Param2)
 {
-  struct FarDialogItemData DlgData;
+  struct FarDialogItemData DlgData = {sizeof(DlgData)};
   static BOOL StatusBar;
-  static struct EditorInfo ei;
+  static struct EditorInfo ei = {sizeof(ei)};
   wchar_t temp[52];
   static const wchar_t *KnownCommands[] = {
     L"addsymbol",
@@ -185,12 +185,16 @@ INT_PTR WINAPI MyDialog(HANDLE hDlg,int Msg,int Param1,void *Param2)
       {
         case 3:
         {
-          Info.SendDlgMessage(hDlg,DM_GETTEXTPTR,2,temp);
+          DlgData.PtrLength = ARRAYSIZE(temp)-1;
+          DlgData.PtrData = temp;
+          Info.SendDlgMessage(hDlg,DM_GETTEXT,2,&DlgData);
           int i = 0; //no etry == zero
           FSF.sscanf(temp,L"%d",&i);
           FSF.sprintf(temp,L"%d",i);
           Info.SendDlgMessage(hDlg,DM_SETTEXTPTR,2,temp);
-          Info.SendDlgMessage(hDlg,DM_GETTEXTPTR,1,temp);
+          DlgData.PtrLength = ARRAYSIZE(temp)-1;
+          DlgData.PtrData = temp;
+          Info.SendDlgMessage(hDlg,DM_GETTEXT,1,&DlgData);
           if (SetEditorOption(ei.EditorID,temp,&i))
           {
             Info.SendDlgMessage(hDlg,DM_ADDHISTORY,1,temp);
@@ -213,7 +217,9 @@ INT_PTR WINAPI MyDialog(HANDLE hDlg,int Msg,int Param1,void *Param2)
         case 4:
         {
           int i;
-          Info.SendDlgMessage(hDlg,DM_GETTEXTPTR,1,temp);
+          DlgData.PtrLength = ARRAYSIZE(temp)-1;
+          DlgData.PtrData = temp;
+          Info.SendDlgMessage(hDlg,DM_GETTEXT,1,&DlgData);
           if (GetEditorSettings(ei.EditorID,temp,&i))
           {
             Info.SendDlgMessage(hDlg,DM_ADDHISTORY,1,temp);
@@ -296,11 +302,11 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
     }
     if (!GetEditorSettings && hEsc)
     {
-      GetEditorSettings=(int (WINAPI*)(int, const wchar_t*, void*))GetProcAddress(hEsc,"GetEditorSettingsW");
+      GetEditorSettings=(int (WINAPI*)(intptr_t, const wchar_t*, void*))GetProcAddress(hEsc,"GetEditorSettingsW");
     }
     if (!SetEditorOption && hEsc)
     {
-      SetEditorOption=(int (WINAPI*)(int, const wchar_t*, void*))GetProcAddress(hEsc,"SetEditorOptionW");
+      SetEditorOption=(int (WINAPI*)(intptr_t, const wchar_t*, void*))GetProcAddress(hEsc,"SetEditorOptionW");
     }
     if (!SetEditorOption || !GetEditorSettings)
     {
