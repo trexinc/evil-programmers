@@ -60,7 +60,7 @@ void WINAPI GetPluginInfoW(struct PluginInfo *Info)
 	Info->PluginMenu.Count=ARRAYSIZE(PluginMenuStrings);
 }
 
-struct EditorInfo ei;
+struct EditorInfo ei = {sizeof(ei)};
 wchar_t nlsSpace;
 
 inline int IsCSpace(wchar_t ch)
@@ -77,7 +77,7 @@ static int IsQuote(const wchar_t* pszStr, size_t nLength)
     while( i<nLength && i<4 ){
         if( pszStr[i++]==q ){
             while( i<nLength && (pszStr[i]==q || IsCSpace(pszStr[i])) ) i++;
-            return i;
+            return (int)i;
         }
     }
     return 0;
@@ -96,12 +96,13 @@ static int IsSameQuote(const wchar_t* pszQuote1, size_t nLen1, const wchar_t* ps
 
 HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
 {
-    struct EditorSetPosition esp;
-    struct EditorGetString egs;
-    struct EditorSetString ess;
-    struct EditorSelect es;
-    struct EditorUndoRedo eur={};
-    int i,j;
+    struct EditorSetPosition esp  = {sizeof(esp)};
+    struct EditorGetString egs = {sizeof(egs)};
+    struct EditorSetString ess = {sizeof(ess)};
+    struct EditorSelect es = {sizeof(es)};
+    struct EditorUndoRedo eur = {sizeof(eur)};
+    intptr_t i;
+    int j;
     int nIndent1, nIndent2;
     wchar_t* pMem;
     int nLen;
@@ -111,7 +112,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
     int nAddLine;
     div_t SpaceCount;
     static HMODULE hEsc=NULL;
-    static int (WINAPI *GetEditorSettings)(int EditorID, const wchar_t *szName, void *Param);
+    static int (WINAPI *GetEditorSettings)(intptr_t EditorID, const wchar_t *szName, void *Param);
     const wchar_t* szText[3];
     int nQuote;
     wchar_t* szQuote;
@@ -130,7 +131,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
         }
     }
     if( !GetEditorSettings ){
-        GetEditorSettings=(int (WINAPI*)(int, const wchar_t*, void*))GetProcAddress(hEsc,"GetEditorSettingsW");
+        GetEditorSettings=(int (WINAPI*)(intptr_t, const wchar_t*, void*))GetProcAddress(hEsc,"GetEditorSettingsW");
         if( !GetEditorSettings ){
             szText[0]=GetMsg(&MainGuid,IDS_Rewrap);
             szText[1]=GetMsg(&MainGuid,IDS_OldEsc);
@@ -291,14 +292,14 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
 
         wmemset((wchar_t*)ess.StringText,nlsSpace,nIndent1);
         wmemcpy((wchar_t*)&ess.StringText[nIndent1],szQuote,nQuote);
-        nPara=ess.StringLength=j=nIndent1+nQuote;
+        ess.StringLength=nPara=j=nIndent1+nQuote;
         nIndent1=nIndent2;
 
         for( i=nStart; i<nLen; i++ ){
             ((wchar_t*)ess.StringText)[j]=pMem[i];
             if( IsCSpace(pMem[i]) ){
                 ess.StringLength=j++;
-                nStart=i+1;
+                nStart=(int)(i+1);
             }else{
                 if( ++j>nWrapPos ){
                     i--;
@@ -307,24 +308,24 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
             }
         }
         if( i==nLen ){
-            nStart=i;
+            nStart=(int)i;
             ess.StringLength=j;
         }else if( i<nLen ){
             if( nIndent1==ess.StringLength ){
                 nIndent1=0;
                 ess.StringLength=j-1;
-                nStart=i+1;
+                nStart=(int)(i+1);
             }else if( isJustifyEnabled && ess.StringLength<nWrapPos ){
                 for( j=0, i=nPara; i<ess.StringLength; i++ )
                     if( IsCSpace(ess.StringText[i]) )j++;
                 // j==amount of meaning blanks==word count-1
                 if( j ){
-                    SpaceCount.quot = nWrapPos-ess.StringLength+j;
+                    SpaceCount.quot = nWrapPos-(int)ess.StringLength+j;
                     SpaceCount.rem = SpaceCount.quot % j;
                     SpaceCount.quot = SpaceCount.quot / j;
                     // now we have minimum space length in SpaceCount.quot
                     // and amount of blank fields with extra spacing in SpaceCount.rem
-                    for( j=nWrapPos-1, i=ess.StringLength-1; i>=nPara; i-- ){
+                    for( j=nWrapPos-1, i=(int)(ess.StringLength-1); i>=nPara; i-- ){
                         if( IsCSpace(ess.StringText[i]) ){
                             if( SpaceCount.rem ){
                                 SpaceCount.rem--;
