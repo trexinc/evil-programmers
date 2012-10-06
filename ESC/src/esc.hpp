@@ -36,18 +36,19 @@ TArray<NODEDATA> *NodeData=NULL;
 class EditorSettingsStorage
 {
  public:
-  int EditorId, index;
+  intptr_t EditorId;
+  int index;
   NODEDATA Data;
 
   EditorSettingsStorage():EditorId(-1), index(-1)
   {
   }
 
-  EditorSettingsStorage(int Id):EditorId(Id), index(-1)
+  EditorSettingsStorage(intptr_t Id):EditorId(Id), index(-1)
   {
   }
 
-  EditorSettingsStorage(int Id, int ind, const NODEDATA &data):
+  EditorSettingsStorage(intptr_t Id, int ind, const NODEDATA &data):
     EditorId(Id), index(ind), Data(data)
   {
   }

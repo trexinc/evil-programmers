@@ -33,17 +33,18 @@ private:
   Period;
   const wchar_t *MsgData[3];
   wchar_t Bar[BarSize + 1], *ptr;
-  int Procent, NewProcent, OldProcent, Counter, Total, CurPos, Items;
+  int Procent, NewProcent, OldProcent, Counter, CurPos, Items;
+  intptr_t Total;
 
   BOOL CheckTimer();
 
 public:
     CIndicator(const wchar_t *BarTitle);
    ~CIndicator();
-  void ShowProgress(int Cur);
+  void ShowProgress(intptr_t Cur);
   void ShowFinal(void);
   void StartTimer(DWORD ms);    // вызывается самым первым
-  void SetParams(const wchar_t *Title, int total); // вызывается вторым
+  void SetParams(const wchar_t *Title, intptr_t total); // вызывается вторым
 
 private:
   CIndicator& operator=(const CIndicator& rhs); /* чтобы не */

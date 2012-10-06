@@ -52,7 +52,7 @@ int CEditorOptions::ApplyOption(EDITOR_SETPARAMETER_TYPES type)
           {
             ESPar.Type=ESPT_TABSIZE;
             ESPar.iParam=Data.TabSize;
-            RetCode=EditorControl(-1, ECTL_SETPARAM, 0, &ESPar);
+            RetCode=(int)EditorControl(-1, ECTL_SETPARAM, 0, &ESPar);
           }
           break;
      case ESPT_EXPANDTABS:
@@ -65,7 +65,7 @@ int CEditorOptions::ApplyOption(EDITOR_SETPARAMETER_TYPES type)
               ESPar.iParam=EXPAND_NEWTABS;
             else
               ESPar.iParam=EXPAND_NOTABS;
-            RetCode=EditorControl(-1, ECTL_SETPARAM, 0, &ESPar);
+            RetCode=(int)EditorControl(-1, ECTL_SETPARAM, 0, &ESPar);
           }
           break;
      case ESPT_AUTOINDENT:
@@ -74,7 +74,7 @@ int CEditorOptions::ApplyOption(EDITOR_SETPARAMETER_TYPES type)
           {
             ESPar.Type=ESPT_AUTOINDENT;
             ESPar.iParam=(Data.Options&E_AutoIndent_On)?TRUE:FALSE;
-            RetCode=EditorControl(-1, ECTL_SETPARAM, 0, &ESPar);
+            RetCode=(int)EditorControl(-1, ECTL_SETPARAM, 0, &ESPar);
           }
           break;
      case ESPT_CURSORBEYONDEOL:
@@ -84,7 +84,7 @@ int CEditorOptions::ApplyOption(EDITOR_SETPARAMETER_TYPES type)
           {
             ESPar.Type=ESPT_CURSORBEYONDEOL;
             ESPar.iParam=(Data.Options&E_CursorBeyondEOL_On)?TRUE:FALSE;
-            RetCode=EditorControl(-1, ECTL_SETPARAM, 0, &ESPar);
+            RetCode=(int)EditorControl(-1, ECTL_SETPARAM, 0, &ESPar);
           }
           break;
      case ESPT_CHARCODEBASE:
@@ -96,7 +96,7 @@ int CEditorOptions::ApplyOption(EDITOR_SETPARAMETER_TYPES type)
             ESPar.Type=ESPT_CHARCODEBASE;
             ESPar.iParam=(Data.Options&E_CharCodeBase_Oct)?0:
                           ((Data.Options&E_CharCodeBase_Dec)?1:2);
-            RetCode=EditorControl(-1, ECTL_SETPARAM, 0, &ESPar);
+            RetCode=(int)EditorControl(-1, ECTL_SETPARAM, 0, &ESPar);
           }
           break;
      case ESPT_SAVEFILEPOSITION:
@@ -121,7 +121,7 @@ int CEditorOptions::ApplyOption(EDITOR_SETPARAMETER_TYPES type)
           {
             ESPar.Type=ESPT_LOCKMODE;
             ESPar.iParam=(Data.Options&E_LockMode_On)?TRUE:FALSE;
-            RetCode=EditorControl(-1, ECTL_SETPARAM, 0, &ESPar);
+            RetCode=(int)EditorControl(-1, ECTL_SETPARAM, 0, &ESPar);
           }
           break;
      case ESPT_SETWORDDIV:
@@ -138,7 +138,7 @@ int CEditorOptions::ApplyOption(EDITOR_SETPARAMETER_TYPES type)
             _D(SysLog(L"ESPT_SETWORDDIV: OFF"));
             ESPar.wszParam=NULL;
           }
-          RetCode=EditorControl(-1, ECTL_SETPARAM, 0, &ESPar);
+          RetCode=(int)EditorControl(-1, ECTL_SETPARAM, 0, &ESPar);
           _D(SysLog(L"ESPT_SETWORDDIV: retcode=%d",RetCode));
           break;
      case ESPT_SHOWWHITESPACE:
@@ -146,7 +146,7 @@ int CEditorOptions::ApplyOption(EDITOR_SETPARAMETER_TYPES type)
           {
             ESPar.Type=ESPT_SHOWWHITESPACE;
             ESPar.iParam=(Data.Options2&E_Show_White_Space_On)?TRUE:FALSE;
-            RetCode=EditorControl(-1, ECTL_SETPARAM, 0, &ESPar);
+            RetCode=(int)EditorControl(-1, ECTL_SETPARAM, 0, &ESPar);
           }
           break;
      default:

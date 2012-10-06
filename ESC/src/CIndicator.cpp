@@ -70,11 +70,11 @@ void CIndicator::ShowFinal(void)
     }
 }
 
-void CIndicator::ShowProgress(int Cur)
+void CIndicator::ShowProgress(intptr_t Cur)
 {
   if (CheckTimer())
     {
-      Procent = (Cur + 1) * 100 / (Total + 1);
+      Procent = (int)((Cur + 1) * 100 / (Total + 1));
       NewProcent = Procent * BarSize / 100;
       if (NewProcent > BarSize)
         NewProcent = BarSize;
@@ -95,7 +95,7 @@ void CIndicator::ShowProgress(int Cur)
     }
 }
 
-void CIndicator::SetParams(const wchar_t *Title, int total)
+void CIndicator::SetParams(const wchar_t *Title, intptr_t total)
 {
   if (Title != NULL)
     MsgData[Items-2] = Title;
