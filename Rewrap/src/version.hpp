@@ -1,5 +1,5 @@
 #define PLUGIN_MAJOR 2
-#define PLUGIN_MINOR 2
+#define PLUGIN_MINOR 3
 #define PLUGIN_DESC L"Reformat paragraph based on ESC plugin settings"
 #define PLUGIN_NAME L"Rewrap"
 #define PLUGIN_FILENAME L"rewrap.dll"

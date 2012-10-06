@@ -4,6 +4,8 @@ FARDEV = ..\..\..\FAR\fardev
 !endif
 COMMON = $(FARDEV)\plugins\common
 
+!include $(FARDEV)\plugins\makefile_vc_base
+
 NAME = rewrap
 LINK_OBJS = $(OBJDIR)\rewrap.obj
 DOCS = rewrapen.hlf rewrapru.hlf wrapeng.lng wraprus.lng
