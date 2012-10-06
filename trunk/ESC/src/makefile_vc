@@ -4,6 +4,8 @@ FARDEV = ..\..\..\FAR\fardev
 !endif
 COMMON = $(FARDEV)\plugins\common
 
+!include $(FARDEV)\plugins\makefile_vc_base
+
 NAME = esc
 LINK_OBJS = $(OBJDIR)\esc.obj $(OBJDIR)\CEditorOptions.obj $(OBJDIR)\CIndicator.obj $(OBJDIR)\CUserMacros.obj \
             $(OBJDIR)\e_options.obj $(OBJDIR)\hash.obj $(OBJDIR)\KeySequenceStorage.obj $(OBJDIR)\mix.obj \

@@ -252,7 +252,7 @@ const wchar_t *GetMsg(int MsgId) {return (Info.GetMsg(&MainGuid, MsgId));}
 
 int FarAllInOneMessage(const wchar_t *Message, unsigned int Flags)
 {
-  return FarMessage(&MainGuid, &AllInOneMessageGuid, Flags|FMSG_ALLINONE, NULL,
+  return (int)FarMessage(&MainGuid, &AllInOneMessageGuid, Flags|FMSG_ALLINONE, NULL,
                       (const wchar_t * const *)Message, 1, 1);
 }
 
@@ -983,7 +983,7 @@ void InitESPandEGS(struct EditorSetPosition &esp, struct EditorGetString &egs)
    egs.StringNumber=-1;
 }
 
-int Size;
+intptr_t Size;
 bool prc_Minuses;
 
 inline bool IsMinusMinusSpace(const EditorGetString &egs)
@@ -1090,17 +1090,17 @@ int CalcWrapPos(const NODEDATA &Data, const EditorInfo &ei)
 {
    if(Data.Options2 & E_Wrap_Percent)
    {
-      int w=ei.WindowSizeX*Data.WrapPos/100;
+      int w=(int)(ei.WindowSizeX*Data.WrapPos/100);
       return (w>511)?511:w;
    }
    else
       return Data.WrapPos;
 }
 
-int GetPrevCoordX(EditorInfo &ei, int Lines, const wchar_t *StopChars)
+intptr_t GetPrevCoordX(EditorInfo &ei, int Lines, const wchar_t *StopChars)
 {
-   int oldX(ei.CurPos), oldY(ei.CurLine), CoordX(-1), LastCoordX(ei.CurPos),
-       ForceRight(TRUE);
+   intptr_t oldX(ei.CurPos), oldY(ei.CurLine), CoordX(-1), LastCoordX(ei.CurPos);
+   int ForceRight(TRUE);
    if(oldX>0)
    {
      ei.CurPos=0;
@@ -1109,7 +1109,7 @@ int GetPrevCoordX(EditorInfo &ei, int Lines, const wchar_t *StopChars)
        CoordX=GetNextCoordX(ei, Lines, StopChars);
        if(ForceRight)
        {
-         int oldCoordX=CoordX, LastX=-1;
+         intptr_t oldCoordX=CoordX, LastX=-1;
          if(CoordX!=-1) do
          {
             ei.CurPos=LastX=CoordX;
@@ -1147,9 +1147,10 @@ int GetPrevCoordX(EditorInfo &ei, int Lines, const wchar_t *StopChars)
    return LastCoordX;
 }
 
-int GetNextCoordX(const EditorInfo &EI, int Lines, const wchar_t *StopChars)
+intptr_t GetNextCoordX(const EditorInfo &EI, int Lines, const wchar_t *StopChars)
 {
-  int Ret=-1, tmpX, f, ExistNonSpace, LastExistNonSpace;
+  int ExistNonSpace, LastExistNonSpace;
+  intptr_t Ret=-1, tmpX, f;
   _D(esp.CurLine=EI.CurLine-1);
   InitESPandEGS(esp, egs);
 
@@ -1202,7 +1203,7 @@ int GetNextCoordX(const EditorInfo &EI, int Lines, const wchar_t *StopChars)
             tmpX=f; // теперь tmpX гарантированно указывает на пробел
             if(f<egs.StringLength)
             {
-              int lastX=tmpX; // запомним tmpX
+              intptr_t lastX=tmpX; // запомним tmpX
               for(f=tmpX; f<egs.StringLength; ++f)// проверим следующие символы
               {
                 if(!IsCSpaceOrTab(egs.StringText[f])) // нашли "непробел" -
@@ -1326,7 +1327,7 @@ BOOL ProcessKeyEnter(const EditorInfo &ei, EditorSetPosition &esp,
   buff[nQuote]=L'\0';
 
   BOOL RetCode=TRUE;
-  for(int i=ei.CurPos; i<nQuote; i++ )
+  for(intptr_t i=ei.CurPos; i<nQuote; i++ )
     if( buff[i]!=L' ' )
     {
       RetCode=FALSE;

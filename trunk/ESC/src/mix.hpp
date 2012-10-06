@@ -42,7 +42,7 @@ extern "C"
     BOOL CheckForEsc(void);
     const wchar_t *GetMsg(int MsgId);
     BOOL ChangeCoordX(const EditorInfo &ei, EditorSetPosition &esp);
-    int GetPrevCoordX(EditorInfo &ei, int Lines, const wchar_t *StopChars);
+    intptr_t GetPrevCoordX(EditorInfo &ei, int Lines, const wchar_t *StopChars);
     BOOL GotoHome(const EditorInfo &ei, NODEDATA &nodedata);
     void FreeMem();
     BOOL ReloadSettings(BOOL Force);
@@ -56,7 +56,7 @@ extern "C"
     wchar_t *TruncFromRigth(wchar_t *Str, unsigned int maxsize, BOOL AddSpaces);
     void InitNLS(const EditorInfo &ei, NODEDATA &nodedata);
     int CalcWrapPos(const NODEDATA &Data, const EditorInfo &ei);
-    int GetNextCoordX(const EditorInfo &EI, int Lines, const wchar_t *StopChars);
+    intptr_t GetNextCoordX(const EditorInfo &EI, int Lines, const wchar_t *StopChars);
     void ApplyEditorOptions(NODEDATA &Settings,const wchar_t *FileName);
     void RestorePosition(const EditorInfo &EI);
     BOOL InsertAdditionalSymbol(const EditorInfo &ei,

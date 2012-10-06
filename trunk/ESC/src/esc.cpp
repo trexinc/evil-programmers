@@ -268,7 +268,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo*)
                 MenuCode=0;
             fmi[MenuCode].Flags|=MIF_SELECTED;
             if(RealPos>-1) fmi[RealPos].Flags|=L'*'|MIF_CHECKED;
-            NewMenuCode = Info.Menu(&MainGuid, &MenuGuid, -1, -1, 0,
+            NewMenuCode = (int)Info.Menu(&MainGuid, &MenuGuid, -1, -1, 0,
                                     FMENU_AUTOHIGHLIGHT | FMENU_WRAPMODE | FMENU_CHANGECONSOLETITLE,
                                     GetMsg(MTitle), NULL, NULL,
                                     NULL, NULL, fmi, TotalNodes);
@@ -386,7 +386,7 @@ intptr_t WINAPI ConfigureW(const struct ConfigureInfo*)
   {
     HANDLE hDlg = Info.DialogInit (&MainGuid, &ConfigureGuid, -1, -1, 75, 11,
                                     NULL, DialogItems, 10, 0, 0, ConfigDlgProc, 0);
-    ExitCode = Info.DialogRun(hDlg);
+    ExitCode = (int)Info.DialogRun(hDlg);
 
     if(8==ExitCode)
     {
@@ -441,7 +441,7 @@ void WINAPI GetPluginInfoW(struct PluginInfo *Info)
   Info->PluginConfig.Count=sizeof(PluginConfigStrings)/sizeof(PluginConfigStrings[0]);
 }
 
-static intptr_t ProcessEditorEventInternal(int Event, void *Param, int EditorID)
+static intptr_t ProcessEditorEventInternal(intptr_t Event, void *Param, intptr_t EditorID)
 {
   /*#ifdef DEBUG
   wchar_t *EES[]={L"EE_READ",L"EE_SAVE",L"EE_REDRAW",L"EE_CLOSE"};
@@ -519,7 +519,8 @@ static intptr_t ProcessEditorEventInternal(int Event, void *Param, int EditorID)
           {
              RestorePos=TRUE;
              InitESPandEGS(esp, egs);
-             int LastNotEmptyLine, LimitLine, lineFound=FALSE, lEmpty;
+             intptr_t LastNotEmptyLine, LimitLine;
+             int lineFound=FALSE, lEmpty;
 
              LastNotEmptyLine=LimitLine=(nodedata.Options&E_ForceKillEL_On)?
                                          0:ei.CurLine;
@@ -655,7 +656,8 @@ intptr_t WINAPI ProcessEditorEventW(const struct ProcessEditorEventInfo* Info)
 
 static intptr_t ProcessEditorInputInternal(const INPUT_RECORD *Rec)
 {
-    static int isReenter=0, Lines, CoordX, RetCode;
+    static int isReenter=0, Lines, RetCode;
+    static intptr_t CoordX;
 
     if(IsOldFar || isReenter ||
        (Rec->EventType!=KEY_EVENT && Rec->EventType!=FARMACRO_KEY_EVENT && Rec->EventType!=MOUSE_EVENT))
@@ -912,8 +914,8 @@ static intptr_t ProcessEditorInputInternal(const INPUT_RECORD *Rec)
         InitESPandEGS(esp, egs);
         InitNLS(ei, nodedata);
         EditorControl(-1, ECTL_GETSTRING, 0, &egs);
-        int X=Min(egs.StringLength, ei.CurPos);
-        for(int f=X-1;f>=0;--f)
+        intptr_t X=Min(egs.StringLength, ei.CurPos);
+        for(intptr_t f=X-1;f>=0;--f)
         {
           if(!IsCSpaceOrTab(egs.StringText[f]))
           {
@@ -1030,9 +1032,9 @@ static intptr_t ProcessEditorInputInternal(const INPUT_RECORD *Rec)
     }
 
     wchar_t* buff, *buff1, *buff1org, *buff2=NULL, *buff3=NULL;
-    int buff2TextLength=0;
+    intptr_t buff2TextLength=0;
     int Blank;
-    int i;
+    intptr_t i;
     int nbCount, nbExtra;
     int nWrapPos=CalcWrapPos(nodedata, ei),
         isJustifyEnabled=(nodedata.Options2&E_Wrap_Justify)?1:0;
@@ -1152,8 +1154,8 @@ static intptr_t ProcessEditorInputInternal(const INPUT_RECORD *Rec)
 
                     }else{
 
-                        SpaceCount.quot=(nWrapPos-nbCount-buff2TextLength)/--Blank;
-                        SpaceCount.rem=nWrapPos-nbCount-buff2TextLength-SpaceCount.quot*Blank;
+                        SpaceCount.quot=(int)((nWrapPos-nbCount-buff2TextLength)/--Blank);
+                        SpaceCount.rem=(int)(nWrapPos-nbCount-buff2TextLength-SpaceCount.quot*Blank);
                         SpaceCount.rem=Blank-SpaceCount.rem;
 
                         // now we have minimum space length in SpaceCount.quot
