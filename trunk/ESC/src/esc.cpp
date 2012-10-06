@@ -1289,7 +1289,7 @@ intptr_t WINAPI ProcessEditorInputW(const ProcessEditorInputInfo* Info)
 extern "C"
 {
 #endif
-int WINAPI GetEditorSettingsW(int EditorID, const wchar_t *szName, void *Param)
+int WINAPI GetEditorSettingsW(intptr_t EditorID, const wchar_t *szName, void *Param)
 {
   if(!szName || !Param || *szName==0 || !NodeData || !ESETStorage)
     return FALSE;
@@ -1447,7 +1447,7 @@ int WINAPI GetEditorSettingsW(int EditorID, const wchar_t *szName, void *Param)
   return RetCode;
 }
 
-int WINAPI SetEditorOptionW(int EditorID, const wchar_t *szName, void *Param)
+int WINAPI SetEditorOptionW(intptr_t EditorID, const wchar_t *szName, void *Param)
 {
   if(!szName || !Param || *szName==0 || !NodeData || !ESETStorage)
     return FALSE;
