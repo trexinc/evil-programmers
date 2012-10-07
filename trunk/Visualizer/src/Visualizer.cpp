@@ -58,7 +58,7 @@ static const GUID ConfigCologDialogGuid =
 struct PluginStartupInfo Info;
 FARSTANDARDFUNCTIONS FSF;
 HMODULE hEsc;
-int (WINAPI *GetEditorSettings)(int EditorID, const wchar_t *szName, void *Param);
+int (WINAPI *GetEditorSettings)(intptr_t EditorID, const wchar_t *szName, void *Param);
 
 struct Options
 {
@@ -163,7 +163,7 @@ enum ENUMLineNumbers
 };
 */
 
-const wchar_t *GetMsg(int MsgId)
+const wchar_t *GetMsg(intptr_t MsgId)
 {
   return Info.GetMsg(&MainGuid,MsgId);
 }
@@ -179,7 +179,7 @@ void InitDialogItems(const struct InitDialogItem *Init, struct FarDialogItem *It
     PItem->Y1=PInit->Y1;
     PItem->X2=PInit->X2;
     PItem->Y2=PInit->Y2;
-    PItem->Reserved=0;
+    PItem->Reserved0=0;
     PItem->Flags=PInit->Flags;
     PItem->MaxLength=0;
     if (PInit->Data>=0)
@@ -358,7 +358,7 @@ void WINAPI SetStartupInfoW(const struct PluginStartupInfo *psi)
   hEsc=GetModuleHandle(L"esc.dll");
   if (hEsc)
   {
-    GetEditorSettings=(int (WINAPI*)(int, const wchar_t*, void*))GetProcAddress(hEsc,"GetEditorSettingsW");
+    GetEditorSettings=(int (WINAPI*)(intptr_t, const wchar_t*, void*))GetProcAddress(hEsc,"GetEditorSettingsW");
   }
 }
 
@@ -428,7 +428,7 @@ void ConfigColor(struct Options *Opt)
     if (hDlg == INVALID_HANDLE_VALUE)
       break;
 
-    ExitCode = Info.DialogRun(hDlg);
+    ExitCode = (int)Info.DialogRun(hDlg);
 
     if (ExitCode==-1 || ExitCode==DLG_OK || ExitCode==DLG_CANCEL)
     {
@@ -613,16 +613,16 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
   DialogItems[DLG_STACKBOOKMARKSCHK].Selected = Opt.ShowStackBookmarks;
 
   struct FarListItem RBListItems[RB_MAX];
-  struct FarList RBList = {ARRAYSIZE(RBListItems),RBListItems};
+  struct FarList RBList = {sizeof(RBList), ARRAYSIZE(RBListItems),RBListItems};
 
   struct FarListItem EOLListItems[EOL_MAX];
-  struct FarList EOLList = {ARRAYSIZE(EOLListItems),EOLListItems};
+  struct FarList EOLList = {sizeof(EOLList), ARRAYSIZE(EOLListItems),EOLListItems};
 
   struct FarListItem TabListItems[TAB_MAX];
-  struct FarList TabList = {ARRAYSIZE(TabListItems),TabListItems};
+  struct FarList TabList = {sizeof(TabList), ARRAYSIZE(TabListItems),TabListItems};
 
   struct FarListItem CrossListItems[CROSS_MAX];
-  struct FarList CrossList = {ARRAYSIZE(CrossListItems),CrossListItems};
+  struct FarList CrossList = {sizeof(CrossList), ARRAYSIZE(CrossListItems),CrossListItems};
 
   DialogItems[DLG_OK].Flags |= DIF_DEFAULTBUTTON;
 
@@ -649,7 +649,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
     if (hDlg == INVALID_HANDLE_VALUE)
       break;
 
-    ExitCode = Info.DialogRun(hDlg);
+    ExitCode = (int)Info.DialogRun(hDlg);
 
     if (ExitCode==-1 || ExitCode==DLG_CANCEL)
     {
@@ -700,18 +700,18 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
       WriteSettings();
       if (OldOnOffSwitch!=Opt.OnOffSwitch&&!Opt.OnOffSwitch)
       {
-        int wincount=Info.AdvControl(&MainGuid,ACTL_GETWINDOWCOUNT,0,0);
+        int wincount=(int)Info.AdvControl(&MainGuid,ACTL_GETWINDOWCOUNT,0,0);
         for(int ii=0;ii<wincount;++ii)
         {
           WindowInfo wi={sizeof(WindowInfo)};
           wi.Pos=ii;
           if(Info.AdvControl(&MainGuid,ACTL_GETWINDOWINFO,0,&wi)&&wi.Type==WTYPE_EDITOR)
           {
-            EditorInfo ei;
+            EditorInfo ei = {sizeof(ei)};
             EditorDeleteColor edc = {sizeof(EditorDeleteColor), MainGuid, -1, -1};
             Info.EditorControl(wi.Id,ECTL_GETINFO,0,&ei);
-            int limit = Min(ei.TopScreenLine+ei.WindowSizeY,ei.TotalLines);
-            for (int jj=ei.TopScreenLine; jj<limit; jj++)
+            intptr_t limit = Min(ei.TopScreenLine+ei.WindowSizeY,ei.TotalLines);
+            for (intptr_t jj=ei.TopScreenLine; jj<limit; jj++)
             {
               edc.StringNumber = jj;
               Info.EditorControl(wi.Id,ECTL_DELCOLOR,0,&edc);
@@ -745,7 +745,7 @@ void WINAPI GetPluginInfoW(struct PluginInfo *Info)
 #define __DEF_EDITORCOLOR__ {sizeof(EditorColor), -1, 0, 0, 0, (unsigned)-1, 0, {0}, MainGuid}
 void VisualizeRightBorder(int ShowRightBorder, int RightBorder, int AutoWrap)
 {
-  static struct EditorConvertPos ecp = {-1, 0, 0};
+  static struct EditorConvertPos ecp = {sizeof(ecp), -1, 0, 0};
   static struct EditorColor ec = __DEF_EDITORCOLOR__;
   if (RightBorder && (AutoWrap || ShowRightBorder!=RB_ONONLYIFAUTOWRAP))
   {
@@ -757,9 +757,9 @@ void VisualizeRightBorder(int ShowRightBorder, int RightBorder, int AutoWrap)
   }
 }
 
-void VisualizeEndOfLine(int ShowEOL, int StringLength,const wchar_t *StringEOL, int CurLine, int TotalLines, int Line, int LeftPos)
+void VisualizeEndOfLine(int ShowEOL, intptr_t StringLength, const wchar_t *StringEOL, intptr_t CurLine, intptr_t TotalLines, intptr_t Line, intptr_t LeftPos)
 {
-  static struct EditorConvertPos ecp = {-1, 0, 0};
+  static struct EditorConvertPos ecp = {sizeof(ecp), -1, 0, 0};
   static struct EditorColor ec = __DEF_EDITORCOLOR__;
   COORD c;
   DWORD w;
@@ -778,8 +778,8 @@ void VisualizeEndOfLine(int ShowEOL, int StringLength,const wchar_t *StringEOL, 
   {
     nXShift = rcFar.Left; nYShift = rcFar.Top;
   }
-  c.Y = Line + nYShift;
-  c.X = ecp.DestPos - LeftPos + nXShift;
+  c.Y = (SHORT)(Line + nYShift);
+  c.X = (SHORT)(ecp.DestPos - LeftPos + nXShift);
   if (ShowEOL==EOL_ON || ShowEOL==EOL_MARKWITHSYMBOL)
   {
     ec.Color = Opt.ColorOfEOLNormal;
@@ -831,7 +831,7 @@ void VisualizeEndOfLine(int ShowEOL, int StringLength,const wchar_t *StringEOL, 
   }
 }
 
-void VisualizeEndOfFile(int StringLength, int CurLine, int TotalLines)
+void VisualizeEndOfFile(intptr_t StringLength, intptr_t CurLine, intptr_t TotalLines)
 {
   static struct EditorColor ec = __DEF_EDITORCOLOR__;
   if (CurLine==TotalLines-1)
@@ -842,9 +842,9 @@ void VisualizeEndOfFile(int StringLength, int CurLine, int TotalLines)
   }
 }
 
-void VisualizeTabs(int ShowTabs, int ShowTabSymbol, wchar_t TabSymbol, const wchar_t *StringText, int StringLength, int Line, int LeftPos)
+void VisualizeTabs(int ShowTabs, int ShowTabSymbol, wchar_t TabSymbol, const wchar_t *StringText, intptr_t StringLength, intptr_t Line, intptr_t LeftPos)
 {
-  static struct EditorConvertPos ecp = {-1, 0, 0};
+  static struct EditorConvertPos ecp = {sizeof(ecp), -1, 0, 0};
   static struct EditorColor ec = __DEF_EDITORCOLOR__;
   static struct EditorColor ec2 = __DEF_EDITORCOLOR__;
   COORD c;
@@ -874,17 +874,17 @@ void VisualizeTabs(int ShowTabs, int ShowTabSymbol, wchar_t TabSymbol, const wch
       {
         ecp.SrcPos = i;
         Info.EditorControl(-1,ECTL_REALTOTAB,0,&ecp);
-        c.X = ecp.DestPos - LeftPos + nXShift;
-        c.Y = Line + nYShift;
+        c.X = (SHORT)(ecp.DestPos - LeftPos + nXShift);
+        c.Y = (SHORT)(Line + nYShift);
         WriteConsoleOutputCharacterW(GetStdHandle(STD_OUTPUT_HANDLE),&TabSymbol,1,c,&w);
       }
     }
   }
 }
 
-void VisualizeCross(int ShowCross, int CurLine, int Line, int Column, int LeftPos, int WindowSizeX)
+void VisualizeCross(int ShowCross, intptr_t CurLine, intptr_t Line, intptr_t Column, intptr_t LeftPos, intptr_t WindowSizeX)
 {
-  static struct EditorConvertPos ecp = {-1, 0, 0};
+  static struct EditorConvertPos ecp = {sizeof(ecp), -1, 0, 0};
   static struct EditorColor ec = __DEF_EDITORCOLOR__;
   if (ShowCross==CROSS_ON || ShowCross==CROSS_VERTICAL || ShowCross==CROSS_SMALL)
   {
@@ -920,9 +920,9 @@ void VisualizeCross(int ShowCross, int CurLine, int Line, int Column, int LeftPo
   }
 }
 
-void VisualizeCursor(int CurLine, int Line, int Column)
+void VisualizeCursor(intptr_t CurLine, intptr_t Line, intptr_t Column)
 {
-  static struct EditorConvertPos ecp = {-1, 0, 0};
+  static struct EditorConvertPos ecp = {sizeof(ecp), -1, 0, 0};
   static struct EditorColor ec = __DEF_EDITORCOLOR__;
   if (CurLine==Line)
   {
@@ -937,6 +937,7 @@ void VisualizeCursor(int CurLine, int Line, int Column)
 
 void VisualizeBookmarks(bool bStack)
 {
+/*
   int iBookmarkCount=0;
   if (bStack)
   {
@@ -944,13 +945,13 @@ void VisualizeBookmarks(bool bStack)
   }
   else
   {
-    EditorInfo ei;
+    EditorInfo ei = {sizeof(ei)};
     Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
     iBookmarkCount=ei.BookMarkCount;
   }
   if (iBookmarkCount)
   {
-    EditorBookMarks bm = {new int[iBookmarkCount],new int[iBookmarkCount],0,0,{0}};
+    EditorBookmarks bm = {new int[iBookmarkCount],new int[iBookmarkCount],0,0,{0}}; //FIXME
     if (Info.EditorControl(-1,bStack?ECTL_GETSESSIONBOOKMARKS:ECTL_GETBOOKMARKS,0,&bm))
     {
       for (int i=0;i<iBookmarkCount;i++)
@@ -968,17 +969,18 @@ void VisualizeBookmarks(bool bStack)
     delete[] bm.Line;
     delete[] bm.Cursor;
   }
+  */
 }
 
-int WINAPI ProcessEditorEventW(const struct ProcessEditorEventInfo *EInfo)
+intptr_t WINAPI ProcessEditorEventW(const struct ProcessEditorEventInfo *EInfo)
 {
   int RightBorder=0;
   int AutoWrap=0;
   int VisualizerOn=Opt.OnOffSwitch&&(Opt.ShowRightBorderOn||Opt.ShowEOLOn||Opt.ShowEOFOn||Opt.ShowTabsOn||Opt.ShowCrossOn||Opt.ShowCursorOn||Opt.ShowLineNumbersOn);
-  struct EditorInfo ei;
-  static struct EditorSetPosition esp = {-1, -1, -1, -1, -1, -1};
-  static struct EditorGetString egs = {-1, 0, NULL, NULL, 0, 0};
-  static struct EditorDeleteColor edc = {sizeof(EditorDeleteColor), MainGuid, -1, -1};
+  struct EditorInfo ei = {sizeof(ei)};
+  static struct EditorSetPosition esp = {sizeof(esp), -1, -1, -1, -1, -1, -1};
+  static struct EditorGetString egs = {sizeof(egs), -1, 0, NULL, NULL, 0, 0};
+  static struct EditorDeleteColor edc = {sizeof(edc), MainGuid, -1, -1};
 
   if (EInfo->Event==EE_REDRAW && VisualizerOn)
   {
@@ -1034,8 +1036,8 @@ int WINAPI ProcessEditorEventW(const struct ProcessEditorEventInfo *EInfo)
       {
         nXShift = rcFar.Left; nYShift = rcFar.Top;
       }
-      int limit = Min(ei.TopScreenLine+ei.WindowSizeY,ei.TotalLines);
-      for (int i=ei.TopScreenLine; i<limit; i++)
+      intptr_t limit = Min(ei.TopScreenLine+ei.WindowSizeY,ei.TotalLines);
+      for (intptr_t i=ei.TopScreenLine; i<limit; i++)
       {
         //move to next line (this is needed to speed up the editor)
         esp.CurLine = i;
@@ -1080,8 +1082,8 @@ int WINAPI ProcessEditorEventW(const struct ProcessEditorEventInfo *EInfo)
           wchar_t tmp[50];
           FSF.sprintf(tmp,L"%d",ei.TotalLines);
           FSF.sprintf(tmp,L":%*.*d",lstrlen(tmp),lstrlen(tmp),i+1);
-          c.X = ei.WindowSizeX-lstrlen(tmp)+nXShift;
-          c.Y = i-ei.TopScreenLine+1+nYShift;
+          c.X = (SHORT)(ei.WindowSizeX-lstrlen(tmp)+nXShift);
+          c.Y = (SHORT)(i-ei.TopScreenLine+1+nYShift);
           WriteConsoleOutputCharacter(GetStdHandle(STD_OUTPUT_HANDLE),tmp,lstrlen(tmp),c,&w);
         }
       }
