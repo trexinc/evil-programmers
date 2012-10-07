@@ -102,7 +102,7 @@ static void ForEach(void *data,int &pos,avl_word_data &node)
   pos++;
 }
 
-intptr_t WINAPI fcmp(const void *first,const void *second,void *)
+int WINAPI fcmp(const void *first,const void *second,void *)
 {
   return (((const MenuAdaptor *)second)->ref)-(((const MenuAdaptor *)first)->ref);
 }
