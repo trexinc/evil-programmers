@@ -1,6 +1,11 @@
 History:
 --------
 
+v1.2
+----
+- Far 3.0 build 2873 and ESC 2.9 support.
+- Bookmarks highlighting doesn't work yet.
+
 v1.1
 ----
  - Remove scrollbar as it exists in Far 3.0

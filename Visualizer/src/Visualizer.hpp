@@ -105,7 +105,7 @@ struct InitDialogItem
   int Data;
 };
 
-const wchar_t *GetMsg(int MsgId);
+const wchar_t *GetMsg(intptr_t MsgId);
 void InitDialogItems(const struct InitDialogItem *Init, struct FarDialogItem *Item, int ItemsNumber);
 
 #define DEFTABSYMBOL 0x25CB
