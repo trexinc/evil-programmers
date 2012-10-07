@@ -51,7 +51,7 @@ static int __cdecl fcmp(DWORD firstFlags,DWORD secondFlags,const TCHAR *firstTex
   return(FSF.LStricmp(firstText,secondText));
 }
 
-static intptr_t WINAPI fcmp2(const void *first,const void *second,void *)
+static int WINAPI fcmp2(const void *first,const void *second,void *)
 {
   return(
     fcmp(
@@ -149,7 +149,7 @@ static int TryLoadDir(HANDLE hDlg, OFDData *DlgParams, TCHAR *newdir)
 
 #define DM_UPDATESIZE DM_USER+1
 
-static INT_PTR WINAPI OFDProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
+static intptr_t WINAPI OFDProc(HANDLE hDlg,intptr_t Msg,intptr_t Param1,void* Param2)
 {
   OFDData *DlgParams=(OFDData *)Info.SendDlgMessage(hDlg,DM_GETDLGDATA,0,0);
   TCHAR newdir[MAX_PATH];
