@@ -937,39 +937,37 @@ void VisualizeCursor(intptr_t CurLine, intptr_t Line, intptr_t Column)
 
 void VisualizeBookmarks(bool bStack)
 {
-/*
-  int iBookmarkCount=0;
-  if (bStack)
-  {
-    iBookmarkCount=(int)Info.EditorControl(-1,ECTL_GETSESSIONBOOKMARKS,0,0);
-  }
-  else
+  size_t iBookmarkCount=0;
   {
     EditorInfo ei = {sizeof(ei)};
     Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
-    iBookmarkCount=ei.BookMarkCount;
+    iBookmarkCount = bStack ? ei.SessionBookmarkCount : ei.BookmarkCount;
   }
   if (iBookmarkCount)
   {
-    EditorBookmarks bm = {new int[iBookmarkCount],new int[iBookmarkCount],0,0,{0}}; //FIXME
-    if (Info.EditorControl(-1,bStack?ECTL_GETSESSIONBOOKMARKS:ECTL_GETBOOKMARKS,0,&bm))
+    EditorBookmarks *bm;
+    intptr_t size = Info.EditorControl(-1,bStack?ECTL_GETSESSIONBOOKMARKS:ECTL_GETBOOKMARKS,0,NULL);
+    bm = (EditorBookmarks *)malloc(size);
+    if (!bm)
+      return;
+    bm->StructSize = sizeof(*bm);
+    bm->Size = size;
+    if (Info.EditorControl(-1,bStack?ECTL_GETSESSIONBOOKMARKS:ECTL_GETBOOKMARKS,0,bm))
     {
-      for (int i=0;i<iBookmarkCount;i++)
+      for (size_t i=0;i<bm->Count;i++)
       {
         static EditorColor ec = __DEF_EDITORCOLOR__;
-        if (bm.Line[i] != -1)
+        if (bm->Line[i] != -1)
         {
-          ec.StringNumber = bm.Line[i];
-          ec.StartPos = ec.EndPos = bm.Cursor[i];
+          ec.StringNumber = bm->Line[i];
+          ec.StartPos = ec.EndPos = bm->Cursor[i];
           ec.Color = bStack?Opt.ColorOfStackBookmarks:Opt.ColorOfBookmarks;
           Info.EditorControl(-1,ECTL_ADDCOLOR,0,&ec);
         }
       }
     }
-    delete[] bm.Line;
-    delete[] bm.Cursor;
+    free(bm);
   }
-  */
 }
 
 intptr_t WINAPI ProcessEditorEventW(const struct ProcessEditorEventInfo *EInfo)
