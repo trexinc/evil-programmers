@@ -151,7 +151,7 @@ static int GetBG(int row,int col,int state)
 
 static void SubmitScore(BoardParams* DlgParams)
 {
-  __int64 new_time=(DlgParams->end_time-DlgParams->start_time)/1000,old_time=LLONG_MAX,Type,DataSize=0,Disposition;
+  __int64 new_time=(DlgParams->end_time-DlgParams->start_time)/1000,old_time=LLONG_MAX;
   wchar_t ScoreKeyName[1024],PlayerKeyName[1024];
   FSF.sprintf(ScoreKeyName,L"Score_%d_%d_%d",DlgParams->width,DlgParams->height,DlgParams->mines);
   FSF.sprintf(PlayerKeyName,L"Player_%d_%d_%d",DlgParams->width,DlgParams->height,DlgParams->mines);
@@ -175,7 +175,7 @@ static void CheckStop(HANDLE hDlg,BoardParams *DlgParams,int row,int col)
   Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,DlgParams->width*col+row,&DialogItem);
   if(GET_DATA_1(DialogItem)==STATE_OPEN&&GET_DATA_0(DialogItem)==9)
   {
-    Info.SendDlgMessage(hDlg,DM_SETTEXTPTR,DlgParams->width*DlgParams->height,(void*)GetMsg(mLose));
+    Info.SendDlgMessage(hDlg,DM_SETTEXTPTR,DlgParams->width*DlgParams->height,const_cast<wchar_t*>(GetMsg(mLose)));
     DlgParams->finished=FINISH_LOSE;
     DlgParams->end_time=GetTickCount();
     Beep((long)Opt.LoseFreq,100);
@@ -210,7 +210,7 @@ static void CheckStop(HANDLE hDlg,BoardParams *DlgParams,int row,int col)
     }
     if(won)
     {
-      Info.SendDlgMessage(hDlg,DM_SETTEXTPTR,DlgParams->width*DlgParams->height,(void*)GetMsg(mWon));
+      Info.SendDlgMessage(hDlg,DM_SETTEXTPTR,DlgParams->width*DlgParams->height,const_cast<wchar_t*>(GetMsg(mWon)));
       DlgParams->finished=FINISH_WON;
       DlgParams->end_time=GetTickCount();
       DlgParams->curr_mines=DlgParams->mines;
@@ -433,7 +433,7 @@ static intptr_t WINAPI MainDialogProc(HANDLE hDlg,intptr_t Msg,intptr_t Param1,v
               case VK_F2:
                 DlgParams->started=false;
                 DlgParams->finished=FINISH_NO;
-                Info.SendDlgMessage(hDlg,DM_SETTEXTPTR,DlgParams->width*DlgParams->height,(void*)GetMsg(mStart));
+                Info.SendDlgMessage(hDlg,DM_SETTEXTPTR,DlgParams->width*DlgParams->height,const_cast<wchar_t*>(GetMsg(mStart)));
                 Info.SendDlgMessage(hDlg,DM_RESETBOARD,0,0);
                 break;
               case VK_F3:
@@ -548,7 +548,7 @@ static intptr_t WINAPI MainDialogProc(HANDLE hDlg,intptr_t Msg,intptr_t Param1,v
       }
       break;
     case DM_START_GAME:
-      Info.SendDlgMessage(hDlg,DM_SETTEXTPTR,DlgParams->width*DlgParams->height,(void*)GetMsg(mGame));
+      Info.SendDlgMessage(hDlg,DM_SETTEXTPTR,DlgParams->width*DlgParams->height,const_cast<wchar_t*>(GetMsg(mGame)));
       DlgParams->started=true;
       DlgParams->start_time=GetTickCount();
       break;
@@ -564,6 +564,7 @@ static int screen_heights[]={14,21,21};
 
 HANDLE WINAPI OpenW(const struct OpenInfo* Info)
 {
+  (void)Info;
   int screen_width=80,screen_height=25;
   HANDLE console=CreateFile(L"CONOUT$",GENERIC_READ,FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
   if(console!=INVALID_HANDLE_VALUE)
@@ -674,6 +675,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo* Info)
 
 intptr_t WINAPI ConfigureW(const struct ConfigureInfo* anInfo)
 {
+  (void)anInfo;
   return(Config());
 }
 

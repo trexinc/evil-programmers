@@ -1,4 +1,3 @@
-LIBRARY
 EXPORTS
    OpenW=OpenW@4
    SetStartupInfoW=SetStartupInfoW@4
