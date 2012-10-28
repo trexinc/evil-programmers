@@ -596,9 +596,11 @@ void GetJiggyWithIt(HANDLE XPanelInfo,bool Override, bool Force)
         if (VirtualBuffer)
         {
           DialogItems[1].VBuf=VirtualBuffer;
+          Color.ForegroundColor=Color.BackgroundColor;
+          static wchar_t Symbol=0;
           for(unsigned int i=0;i<VBufSize;i++)
           {
-            VirtualBuffer[i].Char=L' ';
+            VirtualBuffer[i].Char=Symbol++;
             VirtualBuffer[i].Attributes=Color;
           }
 
