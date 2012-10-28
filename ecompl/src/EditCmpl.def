@@ -1,4 +1,3 @@
-LIBRARY
 EXPORTS
    SetStartupInfoW=SetStartupInfoW@4
    GetPluginInfoW=GetPluginInfoW@4
