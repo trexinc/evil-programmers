@@ -20,9 +20,7 @@
 #include "far_helper.h"
 #include "umplugin.h"
 #include "memory.h"
-#ifdef _AMD64_
 #include <winternl.h>
-#endif
 
 TCHAR *get_sid_string(PSID sid)
 {
