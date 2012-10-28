@@ -52,6 +52,7 @@ void WINAPI SetStartupInfoW(const struct PluginStartupInfo* Info)
   ::FSF=*Info->FSF;
   ::Info.FSF=&::FSF;
   InitCase();
+  InitUndo();
 }
 
 void WINAPI GetPluginInfoW(struct PluginInfo* Info)
@@ -119,7 +120,11 @@ intptr_t WINAPI ProcessDialogEventW(const struct ProcessDialogEventInfo *Info)
 {
   if(Info->Event==DE_DLGPROCINIT)
   {
-    FilterUndo(Info->Param->hDlg,Info->Param->Msg,Info->Param->Param1,Info->Param->Param2);
+    FilterUndoInit(Info->Param->hDlg,Info->Param->Msg,Info->Param->Param1,Info->Param->Param2);
+  }
+  else if(Info->Event==DE_DLGPROCEND)
+  {
+    FilterUndoEnd(Info->Param->hDlg,Info->Param->Msg,Info->Param->Param1,Info->Param->Param2,Info->Param->Result);
   }
   return FALSE;
 }
