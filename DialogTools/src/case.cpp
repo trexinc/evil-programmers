@@ -122,7 +122,7 @@ void DoCase(HANDLE aDlg)
     Info.SendDlgMessage(aDlg,DM_GETDLGITEMSHORT,itemID,&DialogItem);
     if(DialogItem.Type==DI_EDIT)
     {
-      long length=Info.SendDlgMessage(aDlg,DM_GETTEXT,itemID,0)+1;
+      size_t length=Info.SendDlgMessage(aDlg,DM_GETTEXT,itemID,0)+1;
       TCHAR *buffer=(TCHAR *)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,length*sizeof(TCHAR));
       if(buffer)
       {
