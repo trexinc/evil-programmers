@@ -293,7 +293,7 @@ void TCompletion::SetCurPos(int NewPos,int NewRow)
   Info.EditorControl(-1,ECTL_SETPOSITION,0,&sp);
 }
 
-bool TCompletion::GetValue(HANDLE Handle,int Root,const TCHAR* Name,bool Default)
+bool TCompletion::GetValue(HANDLE Handle,size_t Root,const TCHAR* Name,bool Default)
 {
   bool result=Default;
   FarSettingsItem item={sizeof(FarSettingsItem),Root,Name,FST_QWORD};
@@ -304,7 +304,7 @@ bool TCompletion::GetValue(HANDLE Handle,int Root,const TCHAR* Name,bool Default
   return result;
 }
 
-__int64 TCompletion::GetValue(HANDLE Handle,int Root,const TCHAR* Name,__int64 Default)
+__int64 TCompletion::GetValue(HANDLE Handle,size_t Root,const TCHAR* Name,__int64 Default)
 {
   __int64 result=Default;
   FarSettingsItem item={sizeof(FarSettingsItem),Root,Name,FST_QWORD};
@@ -315,7 +315,7 @@ __int64 TCompletion::GetValue(HANDLE Handle,int Root,const TCHAR* Name,__int64 D
   return result;
 }
 
-bool TCompletion::GetValue(HANDLE Handle,int Root,const TCHAR* Name,TCHAR* Value,size_t Size)
+bool TCompletion::GetValue(HANDLE Handle,size_t Root,const TCHAR* Name,TCHAR* Value,size_t Size)
 {
   FarSettingsItem item={sizeof(FarSettingsItem),Root,Name,FST_STRING};
   if(Info.SettingsControl(Handle,SCTL_GET,0,&item))
@@ -327,7 +327,7 @@ bool TCompletion::GetValue(HANDLE Handle,int Root,const TCHAR* Name,TCHAR* Value
   return false;
 }
 
-size_t TCompletion::GetValue(HANDLE Handle,int Root,const TCHAR* Name,void* Value,size_t Size)
+size_t TCompletion::GetValue(HANDLE Handle,size_t Root,const TCHAR* Name,void* Value,size_t Size)
 {
   FarSettingsItem item={sizeof(FarSettingsItem),Root,Name,FST_DATA};
   if(Info.SettingsControl(Handle,SCTL_GET,0,&item))
@@ -339,21 +339,21 @@ size_t TCompletion::GetValue(HANDLE Handle,int Root,const TCHAR* Name,void* Valu
   return 0;
 }
 
-void TCompletion::SetValue(HANDLE Handle,int Root,const TCHAR* Name,__int64 Value)
+void TCompletion::SetValue(HANDLE Handle,size_t Root,const TCHAR* Name,__int64 Value)
 {
   FarSettingsItem item={sizeof(FarSettingsItem),Root,Name,FST_QWORD};
   item.Number=Value;
   Info.SettingsControl(Handle,SCTL_SET,0,&item);
 }
 
-void TCompletion::SetValue(HANDLE Handle,int Root,const TCHAR* Name,TCHAR* Value)
+void TCompletion::SetValue(HANDLE Handle,size_t Root,const TCHAR* Name,TCHAR* Value)
 {
   FarSettingsItem item={sizeof(FarSettingsItem),Root,Name,FST_STRING};
   item.String=Value;
   Info.SettingsControl(Handle,SCTL_SET,0,&item);
 }
 
-void TCompletion::SetValue(HANDLE Handle,int Root,const TCHAR* Name,const void* Value,size_t Size)
+void TCompletion::SetValue(HANDLE Handle,size_t Root,const TCHAR* Name,const void* Value,size_t Size)
 {
   FarSettingsItem item={sizeof(FarSettingsItem),Root,Name,FST_DATA};
   item.Data.Size=Size;
@@ -361,7 +361,7 @@ void TCompletion::SetValue(HANDLE Handle,int Root,const TCHAR* Name,const void* 
   Info.SettingsControl(Handle,SCTL_SET,0,&item);
 }
 
-int TCompletion::Root(HANDLE Handle)
+size_t TCompletion::Root(HANDLE Handle)
 {
   return 0;
 }
