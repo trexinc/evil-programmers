@@ -157,7 +157,7 @@ static void free_item(ListBoxExData *data,long Index)
     if(data->Items[Index].Attribute[i]) HeapFree(GetProcessHeap(),0,data->Items[Index].Attribute[i]);
 }
 
-long WINAPI ListBoxExDialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)
+intptr_t WINAPI ListBoxExDialogProc(HANDLE hDlg,intptr_t Msg,intptr_t Param1,void* Param2)
 {
   if(DM_LISTBOXEX_ISLBE==Msg) return 0;
   bool return_flag=false; long return_result=FALSE,old_curpos=0L;
