@@ -77,13 +77,13 @@ class TCompletion
     bool IsAlpha(unsigned int c);
     avl_window_data *GetLocalData(void);
   protected: //options
-    static bool GetValue(HANDLE Handle,int Root,const TCHAR* Name,bool Default);
-    static __int64 GetValue(HANDLE Handle,int Root,const TCHAR* Name,__int64 Default);
-    static bool GetValue(HANDLE Handle,int Root,const TCHAR* Name,TCHAR* Value,size_t Size);
-    static size_t GetValue(HANDLE Handle,int Root,const TCHAR* Name,void* Value,size_t Size);
-    static void SetValue(HANDLE Handle,int Root,const TCHAR* Name,__int64 Value);
-    static void SetValue(HANDLE Handle,int Root,const TCHAR* Name,TCHAR* Value);
-    static void SetValue(HANDLE Handle,int Root,const TCHAR* Name,const void* Value,size_t Size);
+    static bool GetValue(HANDLE Handle,size_t Root,const TCHAR* Name,bool Default);
+    static __int64 GetValue(HANDLE Handle,size_t Root,const TCHAR* Name,__int64 Default);
+    static bool GetValue(HANDLE Handle,size_t Root,const TCHAR* Name,TCHAR* Value,size_t Size);
+    static size_t GetValue(HANDLE Handle,size_t Root,const TCHAR* Name,void* Value,size_t Size);
+    static void SetValue(HANDLE Handle,size_t Root,const TCHAR* Name,__int64 Value);
+    static void SetValue(HANDLE Handle,size_t Root,const TCHAR* Name,TCHAR* Value);
+    static void SetValue(HANDLE Handle,size_t Root,const TCHAR* Name,const void* Value,size_t Size);
     void GetOptions(void);
     virtual void SetOptions(void);
     virtual int GetItemCount(void)=0;
@@ -92,7 +92,7 @@ class TCompletion
     virtual INT_PTR DialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2)=0;
     virtual void InitItems(FarDialogItem *DialogItems);
     virtual void StoreItems(CFarDialog& Dialog);
-    virtual int Root(HANDLE Handle);
+    virtual size_t Root(HANDLE Handle);
   public:
     TCompletion();
     virtual ~TCompletion();

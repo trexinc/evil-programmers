@@ -327,7 +327,7 @@ bool TAutoCompletion::CompleteWord(void)
   return WasCompleted;
 }
 
-int TAutoCompletion::Root(HANDLE Handle)
+size_t TAutoCompletion::Root(HANDLE Handle)
 {
   FarSettingsValue value={sizeof(FarSettingsValue),0,_T("Auto Completion")};
   return Info.SettingsControl(Handle,SCTL_CREATESUBKEY,0,&value);
@@ -339,7 +339,7 @@ void TAutoCompletion::GetOptions(void)
   FarSettingsCreate settings={sizeof(FarSettingsCreate),MainGuid,INVALID_HANDLE_VALUE};
   if(Info.SettingsControl(INVALID_HANDLE_VALUE,SCTL_CREATE,0,&settings))
   {
-    int root=Root(settings.Handle);
+    intptr_t root=Root(settings.Handle);
     GetValue(settings.Handle,root,_T("Color"),&HighliteColor,sizeof(HighliteColor));
     TCHAR Key[256];
     FSF.FarNameToInputRecord(GetValue(settings.Handle,root,_T("AcceptKey"),Key,ArraySize(Key))?Key:_T("CtrlEnd"),&AcceptKey);
@@ -356,7 +356,7 @@ void TAutoCompletion::SetOptions(void)
   FarSettingsCreate settings={sizeof(FarSettingsCreate),MainGuid,INVALID_HANDLE_VALUE};
   if(Info.SettingsControl(INVALID_HANDLE_VALUE,SCTL_CREATE,0,&settings))
   {
-    int root=Root(settings.Handle);
+    intptr_t root=Root(settings.Handle);
     SetValue(settings.Handle,root,_T("Color"),&HighliteColor,sizeof(HighliteColor));
     SetValue(settings.Handle,root,_T("AcceptFromMenu"),AcceptFromMenu);
     SetValue(settings.Handle,root,_T("AcceptChars"),AcceptChars);

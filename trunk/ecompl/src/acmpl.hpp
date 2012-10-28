@@ -54,7 +54,7 @@ class TAutoCompletion: public TCompletion
     INT_PTR DialogProc(HANDLE hDlg,int Msg,int Param1,void* Param2);
     void InitItems(FarDialogItem *DialogItems);
     void StoreItems(CFarDialog& Dialog);
-    int Root(HANDLE Handle);
+    size_t Root(HANDLE Handle);
   public:
     TAutoCompletion();
     ~TAutoCompletion();

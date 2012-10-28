@@ -274,7 +274,7 @@ void TMenuCompletion::GetOptions(void)
   FarSettingsCreate settings={sizeof(FarSettingsCreate),MainGuid,INVALID_HANDLE_VALUE};
   if(Info.SettingsControl(INVALID_HANDLE_VALUE,SCTL_CREATE,0,&settings))
   {
-    int root=Root(settings.Handle);
+    intptr_t root=Root(settings.Handle);
     SingleVariantInMenu=GetValue(settings.Handle,root,_T("SingleVariantInMenu"),SingleVariantInMenu);
     NotFoundSound=GetValue(settings.Handle,root,_T("NotFoundSound"),NotFoundSound);
     SortListCount=GetValue(settings.Handle,root,_T("SortListCount"),SortListCount);
@@ -292,7 +292,7 @@ void TMenuCompletion::SetOptions(void)
   FarSettingsCreate settings={sizeof(FarSettingsCreate),MainGuid,INVALID_HANDLE_VALUE};
   if(Info.SettingsControl(INVALID_HANDLE_VALUE,SCTL_CREATE,0,&settings))
   {
-    int root=Root(settings.Handle);
+    intptr_t root=Root(settings.Handle);
     SetValue(settings.Handle,root,_T("SingleVariantInMenu"),SingleVariantInMenu);
     SetValue(settings.Handle,root,_T("NotFoundSound"),NotFoundSound);
     SetValue(settings.Handle,root,_T("SortListCount"),SortListCount);
