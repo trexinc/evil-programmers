@@ -701,8 +701,4 @@ extern void free_current_user(void);
 #define IsAlt(rec) static_cast<bool>(((rec)->Event.KeyEvent.dwControlKeyState&ControlKeyAltMask)&&!((rec)->Event.KeyEvent.dwControlKeyState&ControlKeyNonAltMask))
 #define IsNone(rec) static_cast<bool>(((rec)->Event.KeyEvent.dwControlKeyState&ControlKeyAllMask)==0)
 
-#ifdef _AMD64_
 #include <ntstatus.h>
-#else
-#include <ddk/ntifs.h>
-#endif
