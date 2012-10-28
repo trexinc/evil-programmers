@@ -12,7 +12,7 @@ OBJDIR=o$(DIRSURF)
 BINDIR=bin$(DIRSURF)
 
 TARGET=../$(BINDIR)/dt.dll
-SRCS=dt.cpp case.cpp pwd.cpp open_file_dialog.cpp openfiledialog.cpp undo.cpp pasteselection.cpp search.cpp replace.cpp edit.cpp far_helper.cpp
+SRCS=dt.cpp case.cpp pwd.cpp open_file_dialog.cpp openfiledialog.cpp undo.cpp pasteselection.cpp search.cpp replace.cpp edit.cpp far_helper.cpp memory.cpp
 DEF=dt$(DIRSURF).def
 OBJS=$(patsubst %.cpp,../$(OBJDIR)/%.o,$(filter %.cpp,$(SRCS)))
 DEPS=$(patsubst %.cpp,../$(OBJDIR)/%.d,$(filter %.cpp,$(SRCS)))
