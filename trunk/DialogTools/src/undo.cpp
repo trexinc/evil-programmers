@@ -73,7 +73,7 @@ void UndoData::Add(HANDLE value,intptr_t item)
   UndoItem* NewStack=(UndoItem*)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,sizeof(UndoItem));
   if(NewStack)
   {
-    long length=Info.SendDlgMessage(value,DM_GETTEXT,item,0);
+    size_t length=Info.SendDlgMessage(value,DM_GETTEXT,item,0);
     NewStack->data=(TCHAR*)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,(length+1)*sizeof(TCHAR));
     if(NewStack->data)
     {
