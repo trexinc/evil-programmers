@@ -12,44 +12,32 @@ _ODB_=64
 _ODB_=32
 !endif
 
-OUTDIR=$(_ODN_).$(_ODB_)$(_ODS_).vc
-
+OUTDIR=$(_ODN_).$(_ODB_).vc
 INTDIR = $(OUTDIR)\obj
 COMMON = ..\common
-
-!ifdef ANSI
-_ODS_=A
-INC=$(COMMON)\ascii
-CPP_WIDE=
-RC_PROJ=
-!else
-_ODS_=W
 INC=$(COMMON)\unicode
-CPP_WIDE=/DUNICODE /D_UNICODE
-RC_PROJ=$(RC_PROJ) /DUNICODE
-!endif
+RCFLAGS=/DUNICODE 
 
 !ifdef AMD64
-RC_PROJ=$(RC_PROJ) /D_WIN64
+RCFLAGS=$(RCFLAGS) /D_WIN64
 ULOUT=-Tpd+
 !else
 ULOUT=-Tpd -Re
 !endif
 
 DLLFULLNAME = $(OUTDIR)\$(DLLNAME)
-DEF=$(NAME)$(_ODS_).vc.def
+DEF=$(NAME).vc.def
 MAP=$(OUTDIR)\$(NAME).map
 
 PCH=$(INTDIR)\headers.pch
 
 LIBS=chkstk.obj kernel32.lib user32.lib Version.lib shlwapi.lib Psapi.lib Shell32.lib wininet.lib oleaut32.lib
 
-CPP_PROJ=/W3 /nologo /c /Oi- /O1 /Os /J /GF /GS- /Gr /GR- /EHs-c- /LD /Fo"$(INTDIR)\\" $(CPP_WIDE) /I "$(INC)"
+CPP_PROJ=/W3 /nologo /c /Oi- /O1 /Os /J /GF /GS- /Gr /GR- /EHs-c- /LD /Fo"$(INTDIR)\\" /DUNICODE /D_UNICODE /I "$(INC)"
 
 !ifdef AMD64
 CPP_PROJ=$(CPP_PROJ) /Zp8
 !endif
-
 
 !ifndef ULINK
 LNK=$(_LINK_PATH_)link.exe
@@ -58,10 +46,6 @@ LINK_FLAGS=/noentry /nodefaultlib /nologo /dll /release /merge:.rdata=.text /def
 LNK=$(_ULINK_PATH_)ulink.exe +-
 LINK_FLAGS=-q $(ULOUT) -Gz -m- -Gh -Gh- -e- -n /ZD:"$(DEF)" /ZM:"$(MAP)" /ZO:"$(DLLFULLNAME)" $(LIBS)
 !endif
-
-
-
-
 
 LINK_OBJS = $(INTDIR)\$(NAME).obj\
             $(INTDIR)\Console.obj\
@@ -72,6 +56,7 @@ LINK_OBJS = $(INTDIR)\$(NAME).obj\
             $(INTDIR)\Memory.obj\
             $(INTDIR)\Underscore.Archives.obj\
             $(INTDIR)\PropVariant.obj\
+            $(INTDIR)\Headers.obj\
             $(INTDIR)\$(NAME).res
 
 ALL: $(OUTDIR) $(INTDIR) lng $(PCH) $(DLLFULLNAME)
@@ -82,9 +67,6 @@ lng: lng.templ
 	@tools\lng.generator.exe -nc -i lng.ini -ol "$(OUTDIR)" lng.templ
 	@copy /b $(DLLNAME).config $(OUTDIR)\$(DLLNAME).config
 	@copy /b 7zxr.dll.$(_ODB_) $(OUTDIR)\7zxr.dll
-!ifndef ANSI
-	@$(COMMON)\convert.exe "$(OUTDIR)"\update_ru.lng "$(OUTDIR)"\update_en.lng "$(OUTDIR)"\
-!endif
 
 $(PCH): headers.cpp
 	@echo making precompiled headers
@@ -101,7 +83,7 @@ $(DLLFULLNAME): $(LINK_OBJS)
 <<
 
 $(INTDIR)\$(NAME).res: $(NAME).rc
-	@rc $(RC_PROJ) /fo"$(INTDIR)\$(NAME).res" $(NAME).rc
+	@rc $(RCFLAGS) /fo"$(INTDIR)\$(NAME).res" $(NAME).rc
 
 $(INTDIR): $(OUTDIR)
 	@if not exist "$(INTDIR)\" mkdir "$(INTDIR)"

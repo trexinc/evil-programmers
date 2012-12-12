@@ -590,10 +590,10 @@ INT WINAPI GetMinFarVersionW()
 #undef MAKEFARVERSION
 }
 
-void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
+void WINAPI GetGlobalInfoW(GlobalInfo *Info)
 {
 	Info->StructSize=sizeof(GlobalInfo);
-	Info->MinFarVersion=MAKEFARVERSION(3, 0, 0, 2305, VS_RELEASE);
+	Info->MinFarVersion=MAKEFARVERSION(3, 0, 0, 2922, VS_RELEASE);
 	Info->Guid=MainGuid;
 	Info->Title=L"Update";
 	Info->Description=L"Automatic updates";
@@ -761,7 +761,7 @@ bool Extract(LPCWSTR lpArc,LPCWSTR lpPath,LPCWSTR lpDestDir)
 	return Result;
 }
 
-INT WINAPI ProcessSynchroEventW(const ProcessSynchroEventInfo *pInfo)
+intptr_t WINAPI ProcessSynchroEventW(const ProcessSynchroEventInfo *pInfo)
 {
 	switch(pInfo->Event)
 	{
