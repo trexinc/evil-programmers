@@ -19,7 +19,7 @@ FILEFLAGS VS_FF_PRERELEASE
  {
   BLOCK L"000004E4"
   {
-   VALUE L"FileDescription",L"Update plugin for FAR Manager " FARVER
+   VALUE L"FileDescription",L"Update plugin for Far Manager " FARVER
    VALUE L"FileVersion",ALLSTR
    VALUE L"ProductVersion",ALLSTR
    VALUE L"InternalName",L"Update"

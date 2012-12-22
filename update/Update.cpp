@@ -593,10 +593,11 @@ INT WINAPI GetMinFarVersionW()
 void WINAPI GetGlobalInfoW(GlobalInfo *Info)
 {
 	Info->StructSize=sizeof(GlobalInfo);
-	Info->MinFarVersion=MAKEFARVERSION(3, 0, 0, 2922, VS_RELEASE);
+	Info->MinFarVersion=MAKEFARVERSION(MIN_FAR_MAJOR_VER, MIN_FAR_MINOR_VER, 0, MIN_FAR_BUILD, VS_RELEASE);
+	Info->Version=MAKEFARVERSION(MAJOR_VER, MINOR_VER, 0, BUILD, VS_RELEASE);
 	Info->Guid=MainGuid;
 	Info->Title=L"Update";
-	Info->Description=L"Automatic updates";
+	Info->Description=L"Automatic update";
 	Info->Author=L"Alex Alabuzhev";
 }
 
@@ -666,7 +667,7 @@ HANDLE WINAPI OpenW(const OpenInfo* oInfo)
 {
 	if(WaitForSingleObject(UnlockEvent,0)==WAIT_TIMEOUT)
 	{
-		return INVALID_HANDLE_VALUE;
+		return nullptr;
 	}
 	else
 	{
@@ -729,7 +730,7 @@ HANDLE WINAPI OpenW(const OpenInfo* oInfo)
 	SaveTime();
 	mprintf(L"\n\n");
 
-	return INVALID_HANDLE_VALUE;
+	return nullptr;
 }
 
 bool Extract(LPCWSTR lpArc,LPCWSTR lpPath,LPCWSTR lpDestDir)
