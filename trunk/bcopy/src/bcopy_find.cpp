@@ -112,7 +112,7 @@
       else
       {
         Info.ControlShort3(INVALID_HANDLE_VALUE,FCTL_UPDATEPANEL,(FIRST_PARAM)0);
-        Info.ControlShort(INVALID_HANDLE_VALUE,FCTL_REDRAWPANEL,NULL);
+        Info.ControlShort(INVALID_HANDLE_VALUE,FCTL_REDRAWPANEL,0);
       }
     }
   }
@@ -192,7 +192,7 @@
     for(int j=0;j<pInfo.ItemsNumber();j++)
       pInfo.RemoveSelection(j);
     pInfo.CommitSelection();
-    Info.ControlShort(INVALID_HANDLE_VALUE,FCTL_REDRAWPANEL,NULL);
+    Info.ControlShort(INVALID_HANDLE_VALUE,FCTL_REDRAWPANEL,0);
     //show info dialog
     if(PlgOpt.AutoShowInfo)
       ShowInfoDialog(&RetData);

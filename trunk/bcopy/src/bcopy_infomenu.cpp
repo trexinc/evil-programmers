@@ -239,14 +239,14 @@ static LONG_PTR WINAPI InfoMenuProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Para
                 Info.SendDlgMessage(hDlg,DM_MOVEDIALOG,TRUE,(LONG_PTR)&position);
               }
               { //resize listbox
-                SMALL_RECT listbox_size={3,1,(SHORT)width-4,(SHORT)height-2};
+                SMALL_RECT listbox_size={3,1,(SHORT)(width-4),(SHORT)(height-2)};
                 Info.SendDlgMessage(hDlg,DM_SETITEMPOSITION,0,(LONG_PTR)&listbox_size);
               }
               { //refresh listbox
                 FarListPos new_pos={0,-1};
                 FarListDelete clear={0,0};
                 FarListItem *list_items=(FarListItem *)malloc(sizeof(FarListItem)*size);
-                FarList list={size,list_items};
+                FarList list={(int)size,list_items};
                 if(list_items)
                 {
                   Info.SendDlgMessage(hDlg,DM_LISTDELETE,0,(LONG_PTR)&clear);

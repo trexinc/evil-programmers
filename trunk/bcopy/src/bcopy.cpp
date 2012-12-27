@@ -219,10 +219,10 @@ static BOOL CheckPipeEx(void)
       SERVICE_STATUS ServiceStatus;
 
       SCManagerHandle=OpenSCManager(NULL,NULL,STANDARD_RIGHTS_READ);
-      if(SCManagerHandle>0)
+      if(SCManagerHandle)
       {
         ServiceControlHandle=OpenService(SCManagerHandle,SVC_NAMEP,SERVICE_QUERY_STATUS|SERVICE_START);
-        if(ServiceControlHandle>0)
+        if(ServiceControlHandle)
         {
           if(StartService(ServiceControlHandle,0,NULL))
           {
@@ -341,7 +341,7 @@ static bool CheckSystemFile(TCHAR *name)
   return false;
 }
 
-HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom,int Item)
+HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom,INT_PTR Item)
 {
   (void)Item;
   int MenuCode=-1;
@@ -536,6 +536,7 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom,int Item)
 #else
               res=FSF.ExpandEnvironmentStr(eto,exp,ArraySize(exp));
 #endif
+              (void)res;
               _tcscpy(eto,exp);
             }
             TCHAR *filename;
