@@ -20,6 +20,9 @@
 #define __FAR_HELPER_H__
 
 #include <tchar.h>
+#if defined(__GNUC__) && !defined(_export)
+# define _export
+#endif
 #include "plugin.hpp"
 extern PluginStartupInfo Info;
 #define ArraySize(a) (sizeof(a)/sizeof(a[0]))

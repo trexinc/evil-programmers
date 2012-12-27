@@ -17,6 +17,9 @@
 */
 
 #include <tchar.h>
+#if defined(__GNUC__) && !defined(_export)
+# define _export
+#endif
 #include "plugin.hpp"
 #include "bcplugin.h"
 
@@ -39,7 +42,7 @@ static DWORD GetFlags(int i,HANDLE hDlg)
 }
 #endif
 
-long WINAPI ColorDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
+LONG_PTR WINAPI ColorDialogProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2)
 {
   int color=0;
 #ifdef UNICODE

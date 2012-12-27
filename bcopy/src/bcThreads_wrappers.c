@@ -54,7 +54,7 @@ static BOOL MyReadFile(HANDLE hFile,PVOID lpBuffer,DWORD nNumberOfBytesToRead,PD
   WRAPPER_EPILOG(0,ERROR_SUCCESS)
 }
 
-static BOOL MyWriteFile(HANDLE hFile,PCVOID lpBuffer,DWORD nNumberOfBytesToWrite,PDWORD lpNumberOfBytesWritten,LPOVERLAPPED lpOverlapped,DWORD *flags)
+static BOOL MyWriteFile(HANDLE hFile,LPCVOID lpBuffer,DWORD nNumberOfBytesToWrite,PDWORD lpNumberOfBytesWritten,LPOVERLAPPED lpOverlapped,DWORD *flags)
 {
   WRAPPER_PROLOG(0,BOOL)
   WriteFile(hFile,lpBuffer,nNumberOfBytesToWrite,lpNumberOfBytesWritten,lpOverlapped);

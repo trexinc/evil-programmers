@@ -36,7 +36,7 @@ void InitDialogItems(InitDialogItem *Init,FarDialogItem *Item,int ItemsNumber)
 #ifdef UNICODE
     Item[i].MaxLen=0;
 #endif
-    if((unsigned)Init[i].Data<2000)
+    if((uintptr_t)Init[i].Data<2000)
 #ifdef UNICODE
       Item[i].PtrData=GetMsg((unsigned int)(DWORD_PTR)Init[i].Data);
 #else

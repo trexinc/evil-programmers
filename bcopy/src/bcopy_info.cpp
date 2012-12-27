@@ -823,7 +823,7 @@ void ShowInfoDialog(SmallInfoRec *receive)
       if(!_tcsicmp(panels[i],from)||!_tcsicmp(panels[i],to))
       {
         Info.ControlShort3(panel[i],update[i],(FIRST_PARAM)1);
-        Info.ControlShort(panel[i],redraw[i],NULL);
+        Info.ControlShort(panel[i],redraw[i],0);
       }
     }
   }

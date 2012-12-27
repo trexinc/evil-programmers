@@ -19,8 +19,8 @@ BOOTSTRAPDIR=bootstrap$(DIRSURF)
 WFLAGS=-Wall -W -Wpointer-arith -Winline -Wno-strict-aliasing
 # -Wno-unused
 # -Werror -ffor-scope -Wbad-function-cast
-CFLAGS=-c -mtune=pentium4 -Os $(WFLAGS) -fomit-frame-pointer -fstrict-aliasing -I ./$(BOOTSTRAPDIR)
-CPPFLAGS=-c -mtune=pentium4 -Os $(WFLAGS) -fomit-frame-pointer -fstrict-aliasing -fno-exceptions -fno-rtti -fno-threadsafe-statics $(CCWIDE) -I $(COMINC)
+CFLAGS=-c -mtune=core2 -Os $(WFLAGS) -fomit-frame-pointer -fstrict-aliasing -I ./$(BOOTSTRAPDIR)
+CPPFLAGS=-c -mtune=core2 -Os $(WFLAGS) -fomit-frame-pointer -fstrict-aliasing -fno-exceptions -fno-rtti -fno-threadsafe-statics $(CCWIDE) -I $(COMINC)
 LFLAGS=-s -nostartfiles
 LIBS=-lmpr -lntdll
 SVCLIBS=-lntdll
