@@ -217,7 +217,7 @@ bool TMenuCompletion::ShowMenu(string &Selected)
     size_t MenuWidth=MAX(WordList.get_max_len()+2,_tcslen(GetMsg(MChooseWord))+1);
     MenuWidth=MAX(MenuWidth,_tcslen(BottomMsg));
     size_t MenuHeight=1;
-    int CoorX=ei.CurPos-ei.LeftPos;
+    int CoorX=ei.CurTabPos-ei.LeftPos;
     int CoorY=ei.CurLine-ei.TopScreenLine;
     int MenuX=MAX(0,CoorX+1-((signed)(Word.length()))-(signed)MenuWidth-MENU_OVERHEAD_WIDTH);
     MenuX=(ei.WindowSizeX-CoorX)>(CoorX+2-((signed)(Word.length())))?CoorX+1:MenuX; //меню права или слева от слова?
