@@ -1,5 +1,6 @@
 --[[
     Block Indent for Far Manager
+	Version: 2.0
     Copyright (C) 2001 Alex Yaroslavsky
 
     This program is free software; you can redistribute it and/or modify
