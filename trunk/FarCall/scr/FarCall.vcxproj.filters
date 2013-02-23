@@ -2,15 +2,15 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Source Files">
-      <UniqueIdentifier>{f1731387-da25-4f68-bc8c-e0514e456875}</UniqueIdentifier>
+      <UniqueIdentifier>{6e3bf6b2-7bdb-470f-984e-2ea80411879c}</UniqueIdentifier>
       <Extensions>cpp;c;cxx;rc;def;r;odl;idl;hpj;bat</Extensions>
     </Filter>
     <Filter Include="Header Files">
-      <UniqueIdentifier>{19134db1-ed92-4a26-930f-4b588adbe90b}</UniqueIdentifier>
+      <UniqueIdentifier>{7a12a0dc-35c1-4593-9fa5-428a64495f76}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl</Extensions>
     </Filter>
     <Filter Include="Resource Files">
-      <UniqueIdentifier>{4ebe7389-431a-4bd9-8e2f-1ef53bc44c60}</UniqueIdentifier>
+      <UniqueIdentifier>{a90787bf-14a5-4526-9e39-a78626bd187d}</UniqueIdentifier>
       <Extensions>ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe</Extensions>
     </Filter>
   </ItemGroup>
@@ -29,7 +29,7 @@
     <ClInclude Include="plugin.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="FarCall.h">
+    <ClInclude Include="pluginW.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
