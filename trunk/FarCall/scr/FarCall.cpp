@@ -98,7 +98,7 @@ static void lmemcpy( void* dst, void* src, int len )
 static char* w2a(const wchar_t* s, int cp = CP_ACP)
 {
     char* res = 0;
-    size_t size = 0;
+    int size = 0;
 
     if (!s)
         return NULL;
@@ -337,7 +337,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *Info)
         lstrcpyW( comspec, L"cmd.exe" );
 
     char pipename[100];
-    wsprintf( pipename, "\\\\.\\pipe\\FarCall%d", GetCurrentProcessId() );
+    wsprintf( pipename, "\\\\.\\pipe\\FarCall%ul", GetCurrentProcessId() );
 
     char* batchstr = (char*)malloc( 10000 );
     wsprintf( batchstr, batch, filename, ModuleName, pipename );
