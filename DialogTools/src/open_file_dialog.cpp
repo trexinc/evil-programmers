@@ -267,27 +267,24 @@ static intptr_t WINAPI OFDProc(HANDLE hDlg,intptr_t Msg,intptr_t Param1,void* Pa
             }
             return TRUE;
           }
-#if 0
-          else if(keyIn>=KEY_RCTRL0&&keyIn<=KEY_RCTRL9)
+          else if(IsRCtrl(record)&&Char>='0'&&Char<='9')
           {
-            TCHAR key_path[MAX_PATH], value[64], data[MAX_PATH];;
-            lstrcpyn(key_path,Info.RootKey,FSF.PointToName(Info.RootKey)-Info.RootKey+1);
-            lstrcat(key_path,_T("FolderShortcuts"));
-            wsprintf(value,_T("PluginModule%d"),keyIn-KEY_RCTRL0);
-            if(GetRegKey(HKEY_CURRENT_USER,key_path,_T(""),value,data,_T(""),MAX_PATH)&&(!*data))
+            FarSettingsCreate settings={sizeof(FarSettingsCreate),FarGuid,INVALID_HANDLE_VALUE};
+            HANDLE Settings=Info.SettingsControl(INVALID_HANDLE_VALUE,SCTL_CREATE,0,&settings)?settings.Handle:0;
+            if(Settings)
             {
-              wsprintf(value,_T("Shortcut%d"),keyIn-KEY_RCTRL0);
-              GetRegKey(HKEY_CURRENT_USER,key_path,_T(""),value,data,_T(""),MAX_PATH);
-              if(*data)
+              FarSettingsEnum enums={sizeof(FarSettingsEnum),0,0,{0}};
+              enums.Root=FSSF_FOLDERSHORTCUT_0+Char-'0';
+              if(Info.SettingsControl(Settings,SCTL_ENUM,0,&enums)&&enums.Count==1)
               {
-                lstrcpy(newdir,data);
+                lstrcpy(newdir,enums.Items[0].Name);
                 FSF.AddEndSlash(newdir);
                 TryLoadDir(hDlg,DlgParams,newdir);
               }
+              Info.SettingsControl(Settings,SCTL_FREE,0,0);
             }
             return TRUE;
           }
-#endif
           else if(IsNone(record)&&Key==VK_LEFT)
           {
             INPUT_RECORD keyOut={0};
