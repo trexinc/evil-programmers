@@ -311,22 +311,29 @@ static intptr_t WINAPI OFDProc(HANDLE hDlg,intptr_t Msg,intptr_t Param1,void* Pa
         }
       }
       break;
-#if 0
     case DN_CTLCOLORDIALOG:
-      return Info.AdvControl(&MainGuid,ACTL_GETCOLOR,(void *)COL_MENUTEXT);
+      Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_MENUTEXT, Param2);
+      return true;
     case DN_CTLCOLORDLGLIST:
       if(Param1==0)
       {
-        FarListColors *Colors=(FarListColors *)Param2;
+        FarDialogItemColors *fdic=(FarDialogItemColors *)Param2;
+        FarColor *Colors = fdic->Colors;
+        
         int ColorIndex[]={COL_MENUTEXT,COL_MENUTEXT,COL_MENUTITLE,COL_MENUTEXT,COL_MENUHIGHLIGHT,COL_MENUTEXT,COL_MENUSELECTEDTEXT,COL_MENUSELECTEDHIGHLIGHT,COL_MENUSCROLLBAR,COL_MENUDISABLEDTEXT};
-        int Count=sizeof(ColorIndex)/sizeof(ColorIndex[0]);
-        if(Count>Colors->ColorCount) Count=Colors->ColorCount;
-        for(int i=0;i<Count;i++)
-          Colors->Colors[i]=(TCHAR)Info.AdvControl(&MainGuid,ACTL_GETCOLOR,(void *)(ColorIndex[i]));
+        size_t Count=sizeof(ColorIndex)/sizeof(ColorIndex[0]);
+        if(Count>fdic->ColorsCount) Count=fdic->ColorsCount;
+        for(size_t i=0;i<Count;i++)
+        {
+          FarColor fc;
+          if (Info.AdvControl(&MainGuid, ACTL_GETCOLOR, ColorIndex[i],&fc))
+          {
+            Colors[i] = fc;
+          }
+        }
         return TRUE;
       }
       break;
-#endif
     case DN_INITDIALOG:
       Info.SendDlgMessage(hDlg,DM_UPDATESIZE,0,0);
       TryLoadDir(hDlg,(OFDData *)Param2,((OFDData *)Param2)->curr_dir);
