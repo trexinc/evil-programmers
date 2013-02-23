@@ -51,8 +51,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,6
- PRODUCTVERSION 1,0,0,6
+ FILEVERSION 3,0,0,1
+ PRODUCTVERSION 3,0,0,1
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -69,12 +69,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "hoopoepg"
             VALUE "FileDescription", "FarCall"
-            VALUE "FileVersion", "1.0.0.6"
+            VALUE "FileVersion", "3.0.0.1"
             VALUE "InternalName", "FarCall"
             VALUE "LegalCopyright", "Copyleft :)"
             VALUE "OriginalFilename", "FarCall.dll"
             VALUE "ProductName", "Far Call"
-            VALUE "ProductVersion", "1.0.0.6"
+            VALUE "ProductVersion", "3.0.0.1"
         END
     END
     BLOCK "VarFileInfo"
