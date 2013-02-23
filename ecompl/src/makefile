@@ -13,7 +13,7 @@ BINDIR=bin$(DIRSURF)
 
 TARGET=../$(BINDIR)/EditCmpl.dll
 SRCS=EditCmpl.cpp MatPat.cpp cmpl.cpp mcmpl.cpp acmpl.cpp avl_words.cpp avl_windows.cpp string.cpp memory.cpp
-DEF=EditCmpl$(DIRSURF).def
+DEF=EditCmpl.def
 OBJS1=$(patsubst %.cpp,../$(OBJDIR)/%.o,$(filter %.cpp,$(SRCS)))
 DEPS=$(patsubst %.cpp,../$(OBJDIR)/%.d,$(filter %.cpp,$(SRCS)))
 LIBS=-lmsvcrt
