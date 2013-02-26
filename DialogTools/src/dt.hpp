@@ -51,7 +51,7 @@ enum
   mReplace,
   mCase,
   mCurPos,
-  mSelect
+  mFolderShortcut
 };
 
 struct InitDialogItem
