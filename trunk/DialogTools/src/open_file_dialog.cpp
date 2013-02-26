@@ -24,6 +24,9 @@
 #include <initguid.h>
 // {6FF19CDE-E672-4887-81A0-05D49C96E42D}
 DEFINE_GUID(FileDialogGuid, 0x6ff19cde, 0xe672, 0x4887, 0x81, 0xa0, 0x5, 0xd4, 0x9c, 0x96, 0xe4, 0x2d);
+// {3330FCB7-C22D-4a07-930F-DF8206802C76}
+DEFINE_GUID(ShortcutMenuDiag, 0x3330fcb7, 0xc22d, 0x4a07, 0x93, 0xf, 0xdf, 0x82, 0x6, 0x80, 0x2c, 0x76);
+
 
 typedef struct NMNames
 {
@@ -275,11 +278,30 @@ static intptr_t WINAPI OFDProc(HANDLE hDlg,intptr_t Msg,intptr_t Param1,void* Pa
             {
               FarSettingsEnum enums={sizeof(FarSettingsEnum),0,0,{0}};
               enums.Root=FSSF_FOLDERSHORTCUT_0+Char-'0';
-              if(Info.SettingsControl(Settings,SCTL_ENUM,0,&enums)&&enums.Count==1)
+              if(Info.SettingsControl(Settings,SCTL_ENUM,0,&enums)&&enums.Count>0)
               {
-                lstrcpy(newdir,enums.Items[0].Name);
-                FSF.AddEndSlash(newdir);
-                TryLoadDir(hDlg,DlgParams,newdir);
+                intptr_t menu_id=-1;
+                if (enums.Count==1)
+                {
+                  menu_id=0;
+                } 
+                else
+                {
+                  FarMenuItem *menuElements=(FarMenuItem *)malloc(enums.Count*sizeof(FarMenuItem));
+                  for(size_t ii=0;ii<enums.Count;ii++)
+                  {
+                    menuElements[ii].Text=enums.Histories[ii].Name;
+                    menuElements[ii].Flags=0;
+                  }
+                  menu_id=Info.Menu(&MainGuid,&ShortcutMenuDiag,-1,-1,0,FMENU_WRAPMODE,GetMsg(mFolderShortcut),0,NULL,NULL,NULL,menuElements,enums.Count);
+                  free(menuElements);
+                }
+                if (menu_id!=-1)
+                {
+                  lstrcpy(newdir,enums.Histories[menu_id].Name);
+                  FSF.AddEndSlash(newdir);
+                  TryLoadDir(hDlg,DlgParams,newdir);
+                }
               }
               Info.SettingsControl(Settings,SCTL_FREE,0,0);
             }
