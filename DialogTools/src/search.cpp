@@ -66,19 +66,20 @@ void DoSearch(HANDLE aDlg)
       int n=dialog.Execute(MainGuid,SearchDialogGuid,-1,-1,59,11,NULL,DialogItems,ArraySize(DialogItems),0,0,SearchDialogProc,NULL);
       if (n==7)
       {
-        c=(DialogItems[4].Selected==TRUE)?1:0;
-        p=(DialogItems[5].Selected==TRUE)?1:0;
+        c=(dialog.Check(4)==TRUE)?1:0;
+        p=(dialog.Check(5)==TRUE)?1:0;
         CFarSettings set(MainGuid);
         set.Set(_T("CaseSensitive"),c);
         set.Set(_T("SearchFromCurPos"),p);
+        TCHAR *buffer_temp=buffer;
         if (p==1)
-          buffer+=Pos.X;
+          buffer_temp+=Pos.X;
         else
           Pos.X=0;
-        unsigned l=_tcslen(buffer);
+        unsigned l=_tcslen(buffer_temp);
         for (unsigned i=0;i<l;i++)
         {
-          int r=(c==1)?_tcsncmp(buffer+i,dialog.Str(2),(int)_tcslen(dialog.Str(2))):FSF.LStrnicmp(buffer+i,dialog.Str(2),(int)_tcslen(dialog.Str(2)));
+          int r=(c==1)?_tcsncmp(buffer_temp+i,dialog.Str(2),(int)_tcslen(dialog.Str(2))):FSF.LStrnicmp(buffer_temp+i,dialog.Str(2),(int)_tcslen(dialog.Str(2)));
           if (r==0)
           {
             Pos.X+=i;
