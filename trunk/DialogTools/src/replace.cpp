@@ -67,20 +67,21 @@ void DoReplace(HANDLE aDlg)
       int n=dialog.Execute(MainGuid,ReplaceDialogGuid,-1,-1,59,13,NULL,DialogItems,ArraySize(DialogItems),0,0,ReplaceDialogProc,NULL);
       if (n==9)
       {
-        c=(DialogItems[6].Selected==TRUE)?1:0;
-        p=(DialogItems[7].Selected==TRUE)?1:0;
+        c=(dialog.Check(6)==TRUE)?1:0;
+        p=(dialog.Check(7)==TRUE)?1:0;
         CFarSettings set(MainGuid);
         set.Set(_T("CaseSensitive"),c);
         set.Set(_T("SearchFromCurPos"),p);
+        TCHAR *buffer_temp=buffer;
         if (p==1)
-          buffer+=Pos.X;
+          buffer_temp+=Pos.X;
         else
           Pos.X=0;
         unsigned n=0;
-        unsigned l=_tcslen(buffer);
+        unsigned l=_tcslen(buffer_temp);
         for (unsigned i=0;i<l;)
         {
-          int r=(c==1)?_tcsncmp(buffer+i,dialog.Str(2),(int)_tcslen(dialog.Str(2))):FSF.LStrnicmp(buffer+i,dialog.Str(2),(int)_tcslen(dialog.Str(2)));
+          int r=(c==1)?_tcsncmp(buffer_temp+i,dialog.Str(2),(int)_tcslen(dialog.Str(2))):FSF.LStrnicmp(buffer_temp+i,dialog.Str(2),(int)_tcslen(dialog.Str(2)));
           if (r==0)
           {
             n++;
@@ -89,14 +90,14 @@ void DoReplace(HANDLE aDlg)
           else
             i++;
         }
-        unsigned newlength=_tcslen(buffer-Pos.X)-n*_tcslen(dialog.Str(2))+n*_tcslen(dialog.Str(4));
+        unsigned newlength=_tcslen(buffer)-n*_tcslen(dialog.Str(2))+n*_tcslen(dialog.Str(4))+1;
         TCHAR *newbuffer=(TCHAR *)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,newlength*sizeof(TCHAR));
         for (int i=0;i<Pos.X;i++)
-          newbuffer[i]=buffer[i-Pos.X];
+          newbuffer[i]=buffer[i];
         unsigned j=Pos.X;
         for (unsigned i=0;i<l;)
         {
-          int r=(c==1)?_tcsncmp(buffer+i,dialog.Str(2),(int)_tcslen(dialog.Str(2))):FSF.LStrnicmp(buffer+i,dialog.Str(2),(int)_tcslen(dialog.Str(2)));
+          int r=(c==1)?_tcsncmp(buffer_temp+i,dialog.Str(2),(int)_tcslen(dialog.Str(2))):FSF.LStrnicmp(buffer_temp+i,dialog.Str(2),(int)_tcslen(dialog.Str(2)));
           if (r==0)
           {
             for (unsigned k=0;k<_tcslen(dialog.Str(4));k++)
@@ -105,7 +106,7 @@ void DoReplace(HANDLE aDlg)
           }
           else
           {
-            newbuffer[j]=buffer[i];
+            newbuffer[j]=buffer_temp[i];
             i++;
             j++;
           }

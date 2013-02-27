@@ -133,7 +133,7 @@ void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
 {
   Info->StructSize=sizeof(GlobalInfo);
   Info->MinFarVersion=FARMANAGERVERSION;
-  Info->Version=MAKEFARVERSION(1,0,1,0,VS_RELEASE);
+  Info->Version=MAKEFARVERSION(1,0,2,0,VS_RELEASE);
   Info->Guid=MainGuid;
   Info->Title=L"Dialog Tools";
   Info->Description=L"Small tools for Far dialogs";
