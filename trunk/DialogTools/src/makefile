@@ -17,10 +17,9 @@ DEF=dt$(DIRSURF).def
 OBJS=$(patsubst %.cpp,../$(OBJDIR)/%.o,$(filter %.cpp,$(SRCS)))
 DEPS=$(patsubst %.cpp,../$(OBJDIR)/%.d,$(filter %.cpp,$(SRCS)))
 LIBS=-lmsvcrt
-DOCTARGET_ENG=../$(BINDIR)/dtEng.lng
-DOCTARGET_RUS=../$(BINDIR)/dtRus.lng
+DOCTARGET=../$(BINDIR)/dtEng.lng ../$(BINDIR)/dtRus.lng
 
-all: dirs $(TARGET) $(DOCTARGET_ENG) $(DOCTARGET_RUS)
+all: dirs $(TARGET) $(DOCTARGET)
 
 CFLAGS=-c -Os -Wall -Werror -fno-rtti -fno-exceptions -fno-threadsafe-statics -fno-builtin -fomit-frame-pointer -fstrict-aliasing $(CCWIDE) -I $(COMINC)
 LFLAGS=-mdll -s -nostartfiles
