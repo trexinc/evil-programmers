@@ -57,7 +57,7 @@ void WINAPI SetStartupInfoW(const struct PluginStartupInfo* Info)
 
 void WINAPI GetPluginInfoW(struct PluginInfo* Info)
 {
-  memset(Info,0,sizeof(Info));
+  memset(Info,0,sizeof(*Info));
   Info->StructSize=sizeof(*Info);
   Info->Flags=PF_DIALOG|PF_DISABLEPANELS;
   static const GUID guids[]={CaseGuid,FileGuid,PasteGuid,PwdGuid,SearchGuid,ReplaceGuid,UndoGuid,EditGuid};
