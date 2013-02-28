@@ -87,31 +87,21 @@ static int Config()
   };
   struct FarDialogItem DialogItems[ArraySize(InitItems)];
   InitDialogItems(InitItems,DialogItems,ArraySize(InitItems));
-#ifdef UNICODE
   TCHAR DisksMenuDigitText[21],PrefixText[21];
-#endif
 
   DialogItems[CONFIG_ADDDISK].Selected=Opt.AddToDisksMenu;
   if (Opt.DisksMenuDigit)
   {
-#ifdef UNICODE
     FSF.sprintf(DisksMenuDigitText,_T("%d"),Opt.DisksMenuDigit);
     DialogItems[CONFIG_DISKHOTKEY].PtrData=DisksMenuDigitText;
-#else
-    FSF.sprintf(DialogItems[CONFIG_DISKHOTKEY].Data,_T("%d"),Opt.DisksMenuDigit);
-#endif
   }
   DialogItems[CONFIG_ADDMENU].Selected=Opt.AddToPluginsMenu;
   DialogItems[CONFIG_BROWSEEVT].Selected=Opt.BrowseEvtFiles;
   DialogItems[CONFIG_STRIPEXT].Selected=Opt.StripExt;
   DialogItems[CONFIG_RESTORE].Selected=Opt.Restore;
   DialogItems[CONFIG_FORWARD+Opt.ScanType].Selected=1;
-#ifdef UNICODE
   FSF.sprintf(PrefixText,_T("%s"),Opt.Prefix);
   DialogItems[CONFIG_PREFIX].PtrData=PrefixText;
-#else
-  FSF.sprintf(DialogItems[CONFIG_PREFIX].Data,_T("%s"),Opt.Prefix);
-#endif
   DialogItems[CONFIG_SHOWHEADER].Selected=QVOpt.ShowHeader;
   DialogItems[CONFIG_SHOWDESC].Selected=QVOpt.ShowDescription;
   DialogItems[CONFIG_SHOWDATA].Selected=QVOpt.ShowData;

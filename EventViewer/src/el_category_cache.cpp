@@ -68,9 +68,6 @@ static const TCHAR *add_category_cache(TCHAR *source,unsigned short category_ind
               if(RegQueryValueEx(hKey2,_T("CategoryMessageFile"),0,&Type,(LPBYTE)CatFileWork,&DataSize)==ERROR_SUCCESS)
               {
                 ExpandEnvironmentStrings(CatFileWork,CatFile,ArraySize(CatFile));
-#ifndef UNICODE
-                CharToOem(CatFile,CatFile);
-#endif
               }
               RegCloseKey(hKey2);
               break;
@@ -95,9 +92,6 @@ static const TCHAR *add_category_cache(TCHAR *source,unsigned short category_ind
           if(new_rec->category)
           {
             _tcscpy(new_rec->category,category);
-#ifndef UNICODE
-            CharToOem(new_rec->category,new_rec->category);
-#endif
             res=new_rec->category;
             new_rec->flag=true;
           }

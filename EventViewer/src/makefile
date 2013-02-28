@@ -1,22 +1,16 @@
-ifdef WIDE
 CCWIDE = -D UNICODE -D _UNICODE
 DIRSURF = W
-endif
 ifndef COMMON
 COMMON = ../../common
 endif
 
-ifdef WIDE
 COMINC = $(COMMON)/unicode
-else
-COMINC = $(COMMON)/ascii
-endif
 
 OBJDIR=o$(DIRSURF)
 BINDIR=bin$(DIRSURF)
 BOOTSTRAPDIR=bootstrap$(DIRSURF)
 
-CFLAGS=-c -mtune=pentium4 -Os -Wall -fomit-frame-pointer -fstrict-aliasing -fno-exceptions -fno-rtti -fno-threadsafe-statics $(CCWIDE) -I $(COMINC)
+CFLAGS=-c -Os -Wall -fomit-frame-pointer -fstrict-aliasing -fno-exceptions -fno-rtti -fno-threadsafe-statics $(CCWIDE) -I $(COMINC)
 LFLAGS=-s
 LIBS=-lntdll
 
@@ -27,7 +21,7 @@ M4=m4
 CP=cp
 MKDIR=mkdir -p
 
-DEF=ntevent$(DIRSURF).def
+DEF=nteventW.def
 OBJS=../$(OBJDIR)/ntevent.o ../$(OBJDIR)/el_sid_cache.o ../$(OBJDIR)/el_category_cache.o ../$(OBJDIR)/far_helper.o ../$(OBJDIR)/ntevent.res.o
 TARGET=../$(BINDIR)/ntevent.dll
 
