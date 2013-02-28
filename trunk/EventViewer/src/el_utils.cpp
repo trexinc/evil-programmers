@@ -235,9 +235,6 @@ static TCHAR *FormatLogMessage(TCHAR *Class,EVENTLOGRECORD *rec)
   }
   free(params);
   if(msgs) free(msgs);
-#ifndef UNICODE
-  CharToOem(res,res);
-#endif
 clear_exit:
   free(filename);
   free(params_filename);
@@ -252,9 +249,6 @@ static TCHAR *GetComputerName(EVENTLOGRECORD *rec)
   static TCHAR CompName[SMALL_BUFFER];
   TCHAR *SourceName=(TCHAR *)(rec+1);
   FSF.sprintf(CompName,_T("%s"),SourceName+_tcslen(SourceName)+1);
-#ifndef UNICODE
-  CharToOem(CompName,CompName);
-#endif
   return CompName;
 }
 

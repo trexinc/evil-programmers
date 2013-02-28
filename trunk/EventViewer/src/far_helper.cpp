@@ -16,7 +16,6 @@
     along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifdef UNICODE
 
 #include "far_helper.h"
 
@@ -72,5 +71,3 @@ PluginPanelItem& CFarPanel::Selected(size_t index)
   Info.Control(iPlugin,FCTL_GETSELECTEDPANELITEM,index,(LONG_PTR)iItem);
   return *iItem;
 }
-
-#endif

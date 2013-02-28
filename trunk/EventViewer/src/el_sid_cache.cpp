@@ -54,9 +54,6 @@ add_sid_cache_retry:
             {
               if(domain_size)
                 new_rec->username[domain_size]='\\';
-#ifndef UNICODE
-              CharToOem(new_rec->username,new_rec->username);
-#endif
               goto add_sid_cache_link;
             }
           }
