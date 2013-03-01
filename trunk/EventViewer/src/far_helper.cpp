@@ -19,14 +19,14 @@
 
 #include "far_helper.h"
 
-void Realloc(TCHAR*& aData,int& aLength,int aNewLength)
+void Realloc(wchar_t*& aData,int& aLength,int aNewLength)
 {
   if(aNewLength>aLength)
   {
-    void* newData=realloc(aData,aNewLength*sizeof(TCHAR));
+    void* newData=realloc(aData,aNewLength*sizeof(wchar_t));
     if(newData)
     {
-      aData=(TCHAR*)newData;
+      aData=(wchar_t*)newData;
       aLength=aNewLength;
     }
   }
@@ -51,7 +51,7 @@ CFarPanel::~CFarPanel()
   free(iItem);
 };
 
-TCHAR* CFarPanel::CurDir(void)
+wchar_t* CFarPanel::CurDir(void)
 {
   Realloc(iCurDir,iCurDirSize,Info.Control(iPlugin,FCTL_GETPANELDIR,0,0));
   Info.Control(iPlugin,FCTL_GETPANELDIR,iCurDirSize,(LONG_PTR)iCurDir);
