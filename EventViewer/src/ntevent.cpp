@@ -7,7 +7,7 @@
 
 PluginStartupInfo Info;
 FARSTANDARDFUNCTIONS FSF;
-TCHAR PluginRootKey[80];
+wchar_t PluginRootKey[80];
 
 struct Options {
   BOOL AddToDisksMenu;
@@ -18,8 +18,8 @@ struct Options {
   BOOL StripExt;
   BOOL Restore;
   DWORD ScanType;
-  TCHAR Prefix[16];
-} Opt={FALSE,0,TRUE,TRUE,TRUE,TRUE,TRUE,0,_T("evt")};
+  wchar_t Prefix[16];
+} Opt={FALSE,0,TRUE,TRUE,TRUE,TRUE,TRUE,0,L"evt"};
 
 struct QVOptions {
   BOOL ShowHeader;
@@ -29,27 +29,27 @@ struct QVOptions {
 
 struct TechOptions
 {
-  TCHAR Separator[1024];
+  wchar_t Separator[1024];
   BOOL NetBackup;
 } TechOpt;
 
 struct PluginState
 {
-  TCHAR Path[MAX_PATH];
-  TCHAR Computer[MAX_PATH];
+  wchar_t Path[MAX_PATH];
+  wchar_t Computer[MAX_PATH];
   int Current;
   int Top;
   int ViewMode;
   int SortMode;
   int SortOrder;
-} State={_T(""),_T(""),0,0,-1,-1,-1};
+} State={L"",L"",0,0,-1,-1,-1};
 
-static TCHAR *GetMsg(int MsgId)
+static wchar_t *GetMsg(int MsgId)
 {
-  return (TCHAR *)Info.GetMsg(Info.ModuleNumber,MsgId);
+  return (wchar_t *)Info.GetMsg(Info.ModuleNumber,MsgId);
 }
 
-static const TCHAR *default_column_data=_T("");
+static const wchar_t *default_column_data=L"";
 
 struct InitDialogItem
 {
@@ -59,7 +59,7 @@ struct InitDialogItem
   int Selected;
   unsigned int Flags;
   int DefaultButton;
-  const TCHAR *Data;
+  const wchar_t *Data;
 };
 
 static void InitDialogItems(InitDialogItem *Init,FarDialogItem *Item,int ItemsNumber)
@@ -83,12 +83,12 @@ static void InitDialogItems(InitDialogItem *Init,FarDialogItem *Item,int ItemsNu
   }
 }
 
-static bool CheckRemoteEventLog(TCHAR *computer)
+static bool CheckRemoteEventLog(wchar_t *computer)
 {
   HANDLE hSScr=Info.SaveScreen(0,0,-1,-1);
-  const TCHAR *MsgItems[]={_T(""),GetMsg(mOtherConnecting)};
+  const wchar_t *MsgItems[]={L"",GetMsg(mOtherConnecting)};
   Info.Message(Info.ModuleNumber,0,NULL,MsgItems,ArraySize(MsgItems),0);
-  HANDLE evt=OpenEventLog(computer,_T("System")); //REMOTE
+  HANDLE evt=OpenEventLog(computer,L"System"); //REMOTE
   Info.RestoreScreen(hSScr);
   if(evt)
   {
@@ -103,11 +103,11 @@ static bool CheckRemoteEventLog(TCHAR *computer)
 
 #define DISPLAY_WIN_ERROR \
 { \
-  const TCHAR *MsgItems[]={GetMsg(mError),GetMsg(mOk)}; \
+  const wchar_t *MsgItems[]={GetMsg(mError),GetMsg(mOk)}; \
   Info.Message(Info.ModuleNumber,FMSG_ERRORTYPE|FMSG_WARNING,NULL,MsgItems,ArraySize(MsgItems),1); \
 }
 
-static HANDLE RealOpenFilePlugin(const TCHAR *Name,const unsigned char *Data,int DataSize);
+static HANDLE RealOpenFilePlugin(const wchar_t *Name,const unsigned char *Data,int DataSize);
 
 void WINAPI SetStartupInfoW(const struct PluginStartupInfo *Info)
 {
@@ -116,8 +116,8 @@ void WINAPI SetStartupInfoW(const struct PluginStartupInfo *Info)
     ::FSF=*Info->FSF;
     ::Info.FSF=&::FSF;
 
-    _tcscpy(PluginRootKey,Info->RootKey);
-    _tcscat(PluginRootKey,_T("\\ntevent"));
+    wcscpy(PluginRootKey,Info->RootKey);
+    wcscat(PluginRootKey,L"\\ntevent");
     TechOpt.NetBackup=FALSE;
     TechOpt.Separator[0]=0;
     HKEY hKey;
@@ -127,57 +127,57 @@ void WINAPI SetStartupInfoW(const struct PluginStartupInfo *Info)
     {
       //tech options
       DataSize=sizeof(Opt.AddToConfigMenu);
-      RegQueryValueEx(hKey,_T("AddToConfigMenu"),0,&Type,(LPBYTE)&Opt.AddToConfigMenu,&DataSize);
+      RegQueryValueEx(hKey,L"AddToConfigMenu",0,&Type,(LPBYTE)&Opt.AddToConfigMenu,&DataSize);
       //state options
       DataSize=sizeof(State.Path);
-      RegQueryValueEx(hKey,_T("StatePath"),0,&Type,(LPBYTE)State.Path,&DataSize);
+      RegQueryValueEx(hKey,L"StatePath",0,&Type,(LPBYTE)State.Path,&DataSize);
       DataSize=sizeof(State.Computer);
-      RegQueryValueEx(hKey,_T("StateComputer"),0,&Type,(LPBYTE)State.Computer,&DataSize);
+      RegQueryValueEx(hKey,L"StateComputer",0,&Type,(LPBYTE)State.Computer,&DataSize);
       DataSize=sizeof(State.Current);
-      RegQueryValueEx(hKey,_T("StateCurrent"),0,&Type,(LPBYTE)&State.Current,&DataSize);
+      RegQueryValueEx(hKey,L"StateCurrent",0,&Type,(LPBYTE)&State.Current,&DataSize);
       DataSize=sizeof(State.Top);
-      RegQueryValueEx(hKey,_T("StateTop"),0,&Type,(LPBYTE)&State.Top,&DataSize);
+      RegQueryValueEx(hKey,L"StateTop",0,&Type,(LPBYTE)&State.Top,&DataSize);
       DataSize=sizeof(State.ViewMode);
-      RegQueryValueEx(hKey,_T("StateViewMode"),0,&Type,(LPBYTE)&State.ViewMode,&DataSize);
+      RegQueryValueEx(hKey,L"StateViewMode",0,&Type,(LPBYTE)&State.ViewMode,&DataSize);
       DataSize=sizeof(State.SortMode);
-      RegQueryValueEx(hKey,_T("StateSortMode"),0,&Type,(LPBYTE)&State.SortMode,&DataSize);
+      RegQueryValueEx(hKey,L"StateSortMode",0,&Type,(LPBYTE)&State.SortMode,&DataSize);
       DataSize=sizeof(State.SortOrder);
-      RegQueryValueEx(hKey,_T("StateSortOrder"),0,&Type,(LPBYTE)&State.SortOrder,&DataSize);
+      RegQueryValueEx(hKey,L"StateSortOrder",0,&Type,(LPBYTE)&State.SortOrder,&DataSize);
       //main options
       DataSize=sizeof(Opt.AddToDisksMenu);
-      RegQueryValueEx(hKey,_T("AddToDisksMenu"),0,&Type,(LPBYTE)&Opt.AddToDisksMenu,&DataSize);
+      RegQueryValueEx(hKey,L"AddToDisksMenu",0,&Type,(LPBYTE)&Opt.AddToDisksMenu,&DataSize);
       DataSize=sizeof(Opt.DisksMenuDigit);
-      RegQueryValueEx(hKey,_T("DisksMenuDigit"),0,&Type,(LPBYTE)&Opt.DisksMenuDigit,&DataSize);
+      RegQueryValueEx(hKey,L"DisksMenuDigit",0,&Type,(LPBYTE)&Opt.DisksMenuDigit,&DataSize);
       DataSize=sizeof(Opt.AddToPluginsMenu);
-      RegQueryValueEx(hKey,_T("AddToPluginsMenu"),0,&Type,(LPBYTE)&Opt.AddToPluginsMenu,&DataSize);
+      RegQueryValueEx(hKey,L"AddToPluginsMenu",0,&Type,(LPBYTE)&Opt.AddToPluginsMenu,&DataSize);
       DataSize=sizeof(Opt.BrowseEvtFiles);
-      RegQueryValueEx(hKey,_T("BrowseEvtFiles"),0,&Type,(LPBYTE)&Opt.BrowseEvtFiles,&DataSize);
+      RegQueryValueEx(hKey,L"BrowseEvtFiles",0,&Type,(LPBYTE)&Opt.BrowseEvtFiles,&DataSize);
       DataSize=sizeof(Opt.StripExt);
-      RegQueryValueEx(hKey,_T("StripExt"),0,&Type,(LPBYTE)&Opt.StripExt,&DataSize);
+      RegQueryValueEx(hKey,L"StripExt",0,&Type,(LPBYTE)&Opt.StripExt,&DataSize);
       DataSize=sizeof(Opt.ScanType);
-      RegQueryValueEx(hKey,_T("ScanType"),0,&Type,(LPBYTE)&Opt.ScanType,&DataSize);
+      RegQueryValueEx(hKey,L"ScanType",0,&Type,(LPBYTE)&Opt.ScanType,&DataSize);
       DataSize=sizeof(Opt.Prefix);
-      RegQueryValueEx(hKey,_T("Prefix"),0,&Type,(LPBYTE)Opt.Prefix,&DataSize);
+      RegQueryValueEx(hKey,L"Prefix",0,&Type,(LPBYTE)Opt.Prefix,&DataSize);
       DataSize=sizeof(Opt.Restore);
-      RegQueryValueEx(hKey,_T("Restore"),0,&Type,(LPBYTE)&Opt.Restore,&DataSize);
+      RegQueryValueEx(hKey,L"Restore",0,&Type,(LPBYTE)&Opt.Restore,&DataSize);
       //QuickView
       DataSize=sizeof(QVOpt.ShowHeader);
-      RegQueryValueEx(hKey,_T("ShowHeader"),0,&Type,(LPBYTE)&QVOpt.ShowHeader,&DataSize);
+      RegQueryValueEx(hKey,L"ShowHeader",0,&Type,(LPBYTE)&QVOpt.ShowHeader,&DataSize);
       DataSize=sizeof(QVOpt.ShowDescription);
-      RegQueryValueEx(hKey,_T("ShowDescription"),0,&Type,(LPBYTE)&QVOpt.ShowDescription,&DataSize);
+      RegQueryValueEx(hKey,L"ShowDescription",0,&Type,(LPBYTE)&QVOpt.ShowDescription,&DataSize);
       DataSize=sizeof(QVOpt.ShowData);
-      RegQueryValueEx(hKey,_T("ShowData"),0,&Type,(LPBYTE)&QVOpt.ShowData,&DataSize);
+      RegQueryValueEx(hKey,L"ShowData",0,&Type,(LPBYTE)&QVOpt.ShowData,&DataSize);
       //Tech
       DataSize=sizeof(TechOpt.Separator);
-      RegQueryValueEx(hKey,_T("Separator"),0,&Type,(LPBYTE)TechOpt.Separator,&DataSize);
+      RegQueryValueEx(hKey,L"Separator",0,&Type,(LPBYTE)TechOpt.Separator,&DataSize);
       DataSize=sizeof(TechOpt.NetBackup);
-      RegQueryValueEx(hKey,_T("NetBackup"),0,&Type,(LPBYTE)&TechOpt.NetBackup,&DataSize);
+      RegQueryValueEx(hKey,L"NetBackup",0,&Type,(LPBYTE)&TechOpt.NetBackup,&DataSize);
 
       RegCloseKey(hKey);
       if((Opt.ScanType!=0)&&(Opt.ScanType!=1))
         Opt.ScanType=0;
       if(!Opt.Prefix[0])
-        FSF.sprintf(Opt.Prefix,_T("%s"),_T("evt"));
+        FSF.sprintf(Opt.Prefix,L"%s",L"evt");
     }
 }
 
@@ -186,12 +186,12 @@ void WINAPI GetPluginInfoW(struct PluginInfo *Info)
     Info->StructSize=sizeof(*Info);
     Info->Flags=0;
 
-    static TCHAR *DisksMenuStrings[1];
+    static wchar_t *DisksMenuStrings[1];
     DisksMenuStrings[0]=GetMsg(mNameDisk);
     Info->DiskMenuStrings=DisksMenuStrings;
     Info->DiskMenuStringsNumber=Opt.AddToDisksMenu?1:0;
 
-    static TCHAR *PluginMenuStrings[1];
+    static wchar_t *PluginMenuStrings[1];
     PluginMenuStrings[0]=GetMsg(mName);
     Info->PluginMenuStrings=PluginMenuStrings;
     Info->PluginMenuStringsNumber=Opt.AddToPluginsMenu?(ArraySize(PluginMenuStrings)):0;
@@ -206,22 +206,22 @@ HANDLE WINAPI OpenPluginW(int OpenFrom,int Item)
   if(!panel)
     return INVALID_HANDLE_VALUE;
   panel->level=0;
-  _tcscpy(panel->path,_T(""));
-  _tcscpy(panel->computer,_T(""));
-  _tcscpy(panel->computer_oem,_T(""));
+  wcscpy(panel->path,L"");
+  wcscpy(panel->computer,L"");
+  wcscpy(panel->computer_oem,L"");
   panel->computer_ptr=NULL;
   panel->redraw=Opt.Restore;
   if(Opt.Restore)
   {
-    _tcscpy(panel->path,State.Path);
-    if(_tcslen(panel->path)) panel->level=1;
-    if(_tcslen(State.Computer))
+    wcscpy(panel->path,State.Path);
+    if(wcslen(panel->path)) panel->level=1;
+    if(wcslen(State.Computer))
     {
-      TCHAR temp_computer_name[MAX_PATH]; t_OemToChar(State.Computer,temp_computer_name);
+      wchar_t temp_computer_name[MAX_PATH]; t_OemToChar(State.Computer,temp_computer_name);
       if(CheckRemoteEventLog(temp_computer_name))
       {
-        _tcscpy(panel->computer,temp_computer_name);
-        _tcscpy(panel->computer_oem,State.Computer);
+        wcscpy(panel->computer,temp_computer_name);
+        wcscpy(panel->computer_oem,State.Computer);
         panel->computer_ptr=panel->computer;
       }
     }
@@ -240,15 +240,15 @@ int WINAPI GetFindDataW(HANDLE hPlugin,struct PluginPanelItem **pPanelItem,int *
     HANDLE hSScr=Info.SaveScreen(0,0,-1,-1),console=INVALID_HANDLE_VALUE;
     if(!(OpMode&(OPM_FIND)))
     {
-      const TCHAR *MsgItems[]={_T(""),GetMsg(mOtherScanning)};
+      const wchar_t *MsgItems[]={L"",GetMsg(mOtherScanning)};
       Info.Message(Info.ModuleNumber,0,NULL,MsgItems,ArraySize(MsgItems),0);
-      console=CreateFile(_T("CONIN$"),GENERIC_READ|GENERIC_WRITE,FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
+      console=CreateFile(L"CONIN$",GENERIC_READ|GENERIC_WRITE,FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
     }
     EventViewer *panel=(EventViewer *)hPlugin;
     HANDLE evt=INVALID_HANDLE_VALUE; DWORD scan=EVENTLOG_FORWARDS_READ;
     if(Opt.ScanType==1) scan=EVENTLOG_BACKWARDS_READ;
     *pPanelItem=NULL; *pItemsNumber=0;
-    TCHAR path_ansi[MAX_PATH];
+    wchar_t path_ansi[MAX_PATH];
     t_OemToChar(panel->path,path_ansi);
     switch(panel->level)
     {
@@ -257,7 +257,7 @@ int WINAPI GetFindDataW(HANDLE hPlugin,struct PluginPanelItem **pPanelItem,int *
         HKEY hKey=NULL;
         if(RegOpenKeyEx(HKEY_LOCAL_MACHINE,EVENTLOG_KEY,0,KEY_READ,&hKey)==ERROR_SUCCESS)
         {
-          TCHAR NameBuffer[MAX_PATH]; LONG Result;
+          wchar_t NameBuffer[MAX_PATH]; LONG Result;
           for(int i=0;;i++)
           {
             Result=RegEnumKey(hKey,i,NameBuffer,ArraySize(NameBuffer));
@@ -271,8 +271,8 @@ int WINAPI GetFindDataW(HANDLE hPlugin,struct PluginPanelItem **pPanelItem,int *
                 *pPanelItem=pNewPanelItem;
                 PluginPanelItem *curr=(*pPanelItem)+(*pItemsNumber)++;
                 memset(curr,0,sizeof(PluginPanelItem));
-                curr->FindData.PANEL_FILENAME=(TCHAR*)malloc((_tcslen(NameBuffer)+1)*sizeof(TCHAR));
-                if(curr->FindData.PANEL_FILENAME) _tcscpy((TCHAR*)curr->FindData.PANEL_FILENAME,NameBuffer);
+                curr->FindData.PANEL_FILENAME=(wchar_t*)malloc((wcslen(NameBuffer)+1)*sizeof(wchar_t));
+                if(curr->FindData.PANEL_FILENAME) wcscpy((wchar_t*)curr->FindData.PANEL_FILENAME,NameBuffer);
                 curr->FindData.dwFileAttributes=FILE_ATTRIBUTE_DIRECTORY;
               }
               else
@@ -302,38 +302,38 @@ int WINAPI GetFindDataW(HANDLE hPlugin,struct PluginPanelItem **pPanelItem,int *
             if(*pPanelItem)
             {
               memset(*pPanelItem,0,sizeof(PluginPanelItem)*(*pItemsNumber));
-              (*pPanelItem)->FindData.PANEL_FILENAME=(TCHAR*)malloc(3*sizeof(TCHAR));
-              _tcscpy((TCHAR*)((*pPanelItem)->FindData.PANEL_FILENAME),_T(".."));
-              TCHAR **CustomColumnData=(TCHAR **)malloc(sizeof(TCHAR *)*CUSTOM_COLUMN_COUNT);
+              (*pPanelItem)->FindData.PANEL_FILENAME=(wchar_t*)malloc(3*sizeof(wchar_t));
+              wcscpy((wchar_t*)((*pPanelItem)->FindData.PANEL_FILENAME),L"..");
+              wchar_t **CustomColumnData=(wchar_t **)malloc(sizeof(wchar_t *)*CUSTOM_COLUMN_COUNT);
               if(CustomColumnData)
               {
-                CustomColumnData[0]=(TCHAR *)malloc(sizeof(TCHAR));
-                CustomColumnData[1]=(TCHAR *)malloc(sizeof(TCHAR));
-                CustomColumnData[2]=(TCHAR *)malloc(sizeof(TCHAR)*3);
+                CustomColumnData[0]=(wchar_t *)malloc(sizeof(wchar_t));
+                CustomColumnData[1]=(wchar_t *)malloc(sizeof(wchar_t));
+                CustomColumnData[2]=(wchar_t *)malloc(sizeof(wchar_t)*3);
                 if(CustomColumnData[2])
-                  FSF.sprintf(CustomColumnData[2],_T("%s"),_T(".."));
-                CustomColumnData[3]=(TCHAR *)malloc(sizeof(TCHAR));
-                CustomColumnData[4]=(TCHAR *)malloc(sizeof(TCHAR));
-                CustomColumnData[5]=(TCHAR*)_T("");
+                  FSF.sprintf(CustomColumnData[2],L"%s",L"..");
+                CustomColumnData[3]=(wchar_t *)malloc(sizeof(wchar_t));
+                CustomColumnData[4]=(wchar_t *)malloc(sizeof(wchar_t));
+                CustomColumnData[5]=L"";
                 for(int i=0;i<(CUSTOM_COLUMN_COUNT-1);i++)
                   if(!CustomColumnData[i])
-                    CustomColumnData[i]=(TCHAR*)default_column_data;
+                    CustomColumnData[i]=(wchar_t*)default_column_data;
                 (*pPanelItem)->CustomColumnNumber=CUSTOM_COLUMN_COUNT;
               }
               (*pPanelItem)->CustomColumnData=CustomColumnData;
               for(int i=1;i<(*pItemsNumber);i++)
               {
-                ((*pPanelItem)+i)->FindData.PANEL_FILENAME=(TCHAR*)malloc(512*sizeof(TCHAR));
-                FSF.sprintf((TCHAR*)(((*pPanelItem)+i)->FindData.PANEL_FILENAME),_T("%s.%s.%s"),GetMsg(mExtNameError),GetMsg(mExtError),GetMsg(mExtMain));
+                ((*pPanelItem)+i)->FindData.PANEL_FILENAME=(wchar_t*)malloc(512*sizeof(wchar_t));
+                FSF.sprintf((wchar_t*)(((*pPanelItem)+i)->FindData.PANEL_FILENAME),L"%s.%s.%s",GetMsg(mExtNameError),GetMsg(mExtError),GetMsg(mExtMain));
               }
 
               unsigned long long evt_date_time,evt_date_time_local;
-              void *user_data; const TCHAR *suffix;
+              void *user_data; const wchar_t *suffix;
               //read events
               EVENTLOGRECORD *curr_rec;
-              TCHAR *buff=NULL;
+              wchar_t *buff=NULL;
               DWORD buffsize=BIG_BUFFER,readed,needed;
-              buff=(TCHAR *)malloc(buffsize);
+              buff=(wchar_t *)malloc(buffsize);
               if(buff)
               {
                 bool work=true;
@@ -345,7 +345,7 @@ int WINAPI GetFindDataW(HANDLE hPlugin,struct PluginPanelItem **pPanelItem,int *
                     {
                       free(buff);
                       buffsize=needed;
-                      buff=(TCHAR *)malloc(buffsize);
+                      buff=(wchar_t *)malloc(buffsize);
                       if(buff) continue;
                     }
                     else if(!(OpMode&(OPM_FIND)))
@@ -361,15 +361,15 @@ int WINAPI GetFindDataW(HANDLE hPlugin,struct PluginPanelItem **pPanelItem,int *
                       ((*pPanelItem)+i)->Flags=PPIF_USERDATA;
                       memcpy(user_data,curr_rec,curr_rec->Length);
                       ((*pPanelItem)+i)->UserData=(DWORD)user_data;
-                      TCHAR *description=(TCHAR *)(((EVENTLOGRECORD *)user_data)+1);
-                      TCHAR* Description=(TCHAR *)malloc((_tcslen(description)+1)*sizeof(TCHAR));
+                      wchar_t *description=(wchar_t *)(((EVENTLOGRECORD *)user_data)+1);
+                      wchar_t* Description=(wchar_t *)malloc((wcslen(description)+1)*sizeof(wchar_t));
                       if(Description)
                       {
-                        FSF.sprintf(Description,_T("%s"),description);
+                        FSF.sprintf(Description,L"%s",description);
                       }
                       ((*pPanelItem)+i)->Description=Description;
                     }
-                    suffix=_T("");
+                    suffix=L"";
                     switch(curr_rec->EventType)
                     {
                       case EVENTLOG_ERROR_TYPE:
@@ -388,8 +388,8 @@ int WINAPI GetFindDataW(HANDLE hPlugin,struct PluginPanelItem **pPanelItem,int *
                         suffix=GetMsg(mExtAuditFailure);
                         break;
                     }
-                    ((*pPanelItem)+i)->FindData.PANEL_FILENAME=(TCHAR*)malloc(512*sizeof(TCHAR));
-                    FSF.sprintf((TCHAR*)(((*pPanelItem)+i)->FindData.PANEL_FILENAME),_T("%08ld.%s.%s"),curr_rec->RecordNumber,suffix,GetMsg(mExtMain));
+                    ((*pPanelItem)+i)->FindData.PANEL_FILENAME=(wchar_t*)malloc(512*sizeof(wchar_t));
+                    FSF.sprintf((wchar_t*)(((*pPanelItem)+i)->FindData.PANEL_FILENAME),L"%08ld.%s.%s",curr_rec->RecordNumber,suffix,GetMsg(mExtMain));
                     ((*pPanelItem)+i)->FindData.nFileSize=curr_rec->Length;
                     evt_date_time=curr_rec->TimeWritten; evt_date_time=evt_date_time*10000000ULL+EVENT_START_TIME;
   //                  FileTimeToLocalFileTime((FILETIME *)&evt_date_time,(FILETIME *)&evt_date_time_local);
@@ -397,35 +397,35 @@ int WINAPI GetFindDataW(HANDLE hPlugin,struct PluginPanelItem **pPanelItem,int *
                     evt_date_time=curr_rec->TimeGenerated; evt_date_time=evt_date_time*10000000ULL+EVENT_START_TIME;
                     memcpy(&(((*pPanelItem)+i)->FindData.ftCreationTime),&evt_date_time,sizeof(evt_date_time));
                     FileTimeToLocalFileTime((FILETIME *)&evt_date_time,(FILETIME *)&evt_date_time_local);
-                    CustomColumnData=(TCHAR **)malloc(sizeof(TCHAR *)*CUSTOM_COLUMN_COUNT);
+                    CustomColumnData=(wchar_t **)malloc(sizeof(wchar_t *)*CUSTOM_COLUMN_COUNT);
                     if(CustomColumnData)
                     {
-                      CustomColumnData[0]=(TCHAR *)malloc(sizeof(TCHAR)*6);
+                      CustomColumnData[0]=(wchar_t *)malloc(sizeof(wchar_t)*6);
                       if(CustomColumnData[0])
-                        FSF.sprintf(CustomColumnData[0],_T("%5ld"),curr_rec->EventID&0xffff);
-                      const TCHAR *category=GetCategory(curr_rec);
-                      CustomColumnData[1]=(TCHAR *)malloc((_tcslen(category)+1)*sizeof(TCHAR));
+                        FSF.sprintf(CustomColumnData[0],L"%5ld",curr_rec->EventID&0xffff);
+                      const wchar_t *category=GetCategory(curr_rec);
+                      CustomColumnData[1]=(wchar_t *)malloc((wcslen(category)+1)*sizeof(wchar_t));
                       if(CustomColumnData[1])
-                        _tcscpy(CustomColumnData[1],category);
-                      CustomColumnData[2]=(TCHAR *)malloc(sizeof(TCHAR)*20);
+                        wcscpy(CustomColumnData[1],category);
+                      CustomColumnData[2]=(wchar_t *)malloc(sizeof(wchar_t)*20);
                       if(CustomColumnData[2])
                       {
                         SYSTEMTIME time;
                         FileTimeToSystemTime((FILETIME *)&evt_date_time_local,&time);
-                        FSF.sprintf(CustomColumnData[2],_T("%02d.%02d.%04d %02d:%02d:%02d"),time.wDay,time.wMonth,time.wYear,time.wHour,time.wMinute,time.wSecond);
+                        FSF.sprintf(CustomColumnData[2],L"%02d.%02d.%04d %02d:%02d:%02d",time.wDay,time.wMonth,time.wYear,time.wHour,time.wMinute,time.wSecond);
                       }
-                      TCHAR *compname=GetComputerName(curr_rec);
-                      CustomColumnData[3]=(TCHAR *)malloc(sizeof(TCHAR)*(_tcslen(compname)+1));
+                      wchar_t *compname=GetComputerName(curr_rec);
+                      CustomColumnData[3]=(wchar_t *)malloc(sizeof(wchar_t)*(wcslen(compname)+1));
                       if(CustomColumnData[3])
-                        _tcscpy(CustomColumnData[3],compname);
-                      const TCHAR *username=GetUserName(panel->computer_ptr,curr_rec);
-                      CustomColumnData[4]=(TCHAR *)malloc(sizeof(TCHAR)*(_tcslen(username)+1));
+                        wcscpy(CustomColumnData[3],compname);
+                      const wchar_t *username=GetUserName(panel->computer_ptr,curr_rec);
+                      CustomColumnData[4]=(wchar_t *)malloc(sizeof(wchar_t)*(wcslen(username)+1));
                       if(CustomColumnData[4])
-                        _tcscpy(CustomColumnData[4],username);
+                        wcscpy(CustomColumnData[4],username);
                       CustomColumnData[5]=CustomColumnData[2];
                       for(int j=0;j<(CUSTOM_COLUMN_COUNT-1);j++)
                         if(!CustomColumnData[j])
-                          CustomColumnData[j]=(TCHAR*)default_column_data;
+                          CustomColumnData[j]=(wchar_t*)default_column_data;
                       ((*pPanelItem)+i)->CustomColumnNumber=CUSTOM_COLUMN_COUNT;
                     }
                     ((*pPanelItem)+i)->CustomColumnData=CustomColumnData;
@@ -492,7 +492,7 @@ void WINAPI FreeFindDataW(HANDLE hPlugin,struct PluginPanelItem *PanelItem,int I
     free((void*)PanelItem[i].Description);
     if(PanelItem[i].CustomColumnData)
       for(int j=0;j<(CUSTOM_COLUMN_COUNT-1);j++)
-        if(PanelItem[i].CustomColumnData[j]!=(TCHAR*)default_column_data)
+        if(PanelItem[i].CustomColumnData[j]!=(wchar_t*)default_column_data)
           free((void*)PanelItem[i].CustomColumnData[j]);
     free((void*)PanelItem[i].CustomColumnData);
     free((void*)PanelItem[i].FindData.lpwszFileName);
@@ -500,30 +500,30 @@ void WINAPI FreeFindDataW(HANDLE hPlugin,struct PluginPanelItem *PanelItem,int I
   free(PanelItem);
 }
 
-int WINAPI SetDirectoryW(HANDLE hPlugin,const TCHAR *Dir,int OpMode)
+int WINAPI SetDirectoryW(HANDLE hPlugin,const wchar_t *Dir,int OpMode)
 {
   int res=TRUE;
   EventViewer *panel=(EventViewer *)hPlugin;
   if(panel->level==2)
     return TRUE;
-  if(!_tcscmp(Dir,_T("\\")))
+  if(!wcscmp(Dir,L"\\"))
   {
     panel->level=0;
-    _tcscpy(panel->path,_T(""));
+    wcscpy(panel->path,L"");
   }
-  else if(!_tcscmp(Dir,_T("..")))
+  else if(!wcscmp(Dir,L".."))
   {
     if(panel->level==1)
     {
       panel->level=0;
-      _tcscpy(panel->path,_T(""));
+      wcscpy(panel->path,L"");
     }
     else res=FALSE;
   }
   else if((panel->level==0)&&(CheckLogName(panel,Dir)))
   {
     panel->level=1;
-    _tcscpy(panel->path,Dir);
+    wcscpy(panel->path,Dir);
   }
   else res=FALSE;
   return res;
@@ -553,7 +553,7 @@ static int NumberType(int num)
   return Result;
 }
 
-static BOOL GetDestDir(TCHAR *dir,int move)
+static BOOL GetDestDir(wchar_t *dir,int move)
 {
   /*
     0000000000111111111122222222223333333333444444444455555555556666666666777777
@@ -569,21 +569,21 @@ static BOOL GetDestDir(TCHAR *dir,int move)
     0000000000111111111122222222223333333333444444444455555555556666666666777777
     0123456789012345678901234567890123456789012345678901234567890123456789012345
   */
-  static const TCHAR *NTEventCopyHistoryName=_T("NTEventCopy");
+  static const wchar_t *NTEventCopyHistoryName=L"NTEventCopy";
   static struct InitDialogItem InitDlg[]={
-  /*0*/  {DI_DOUBLEBOX,3,1,72,6,0,0,0,0,_T("")},
-  /*1*/  {DI_TEXT,5,2,0,0,0,0,0,0,_T("")},
-  /*2*/  {DI_EDIT,5,3,70,0,1,(DWORD)NTEventCopyHistoryName,DIF_HISTORY,0,_T("")},
-  /*3*/  {DI_TEXT,5,4,0,0,0,0,DIF_BOXCOLOR|DIF_SEPARATOR,0,_T("")},
-  /*4*/  {DI_BUTTON,0,5,0,0,0,0,DIF_CENTERGROUP,1,_T("")},
-  /*5*/  {DI_BUTTON,0,5,0,0,0,0,DIF_CENTERGROUP,0,(TCHAR *)mCpyDlgCancel}
+  /*0*/  {DI_DOUBLEBOX,3,1,72,6,0,0,0,0,L""},
+  /*1*/  {DI_TEXT,5,2,0,0,0,0,0,0,L""},
+  /*2*/  {DI_EDIT,5,3,70,0,1,(DWORD)NTEventCopyHistoryName,DIF_HISTORY,0,L""},
+  /*3*/  {DI_TEXT,5,4,0,0,0,0,DIF_BOXCOLOR|DIF_SEPARATOR,0,L""},
+  /*4*/  {DI_BUTTON,0,5,0,0,0,0,DIF_CENTERGROUP,1,L""},
+  /*5*/  {DI_BUTTON,0,5,0,0,0,0,DIF_CENTERGROUP,0,(wchar_t *)mCpyDlgCancel}
   };
   struct FarDialogItem DialogItems[ArraySize(InitDlg)];
   InitDialogItems(InitDlg,DialogItems,ArraySize(InitDlg));
   PanelInfo PInfo;
   Info.ControlShort(INVALID_HANDLE_VALUE,FCTL_GETPANELINFO,(SECOND_PARAM)&PInfo); //FIXME
   INIT_DLG_DATA(DialogItems[0],GetMsg(mCpyDlgCopyTitle+move));
-  TCHAR CopyText[512];
+  wchar_t CopyText[512];
   FSF.sprintf(CopyText,GetMsg(mCpyDlgCopyToN+3*move+NumberType(PInfo.SelectedItemsNumber)),PInfo.SelectedItemsNumber);
   DialogItems[1].PtrData=CopyText;
   INIT_DLG_DATA(DialogItems[2],dir);
@@ -592,14 +592,14 @@ static BOOL GetDestDir(TCHAR *dir,int move)
   int DlgCode=dialog.Execute(Info.ModuleNumber,-1,-1,76,8,NULL,DialogItems,(ArraySize(InitDlg)),0,0,CopyDialogProc,0);
   if(DlgCode==4)
   {
-    FSF.sprintf(dir,_T("%s"),dialog.Str(2));
+    FSF.sprintf(dir,L"%s",dialog.Str(2));
     return TRUE;
   }
   else
     return FALSE;
 }
 
-static void GetFileAttr(TCHAR *file,unsigned long long *size,SYSTEMTIME *mod)
+static void GetFileAttr(wchar_t *file,unsigned long long *size,SYSTEMTIME *mod)
 {
   *size=0;
   memset(mod,0,sizeof(SYSTEMTIME));
@@ -615,16 +615,16 @@ static void GetFileAttr(TCHAR *file,unsigned long long *size,SYSTEMTIME *mod)
   }
 }
 
-static int CheckRetry(const TCHAR *afrom,const TCHAR *ato)
+static int CheckRetry(const wchar_t *afrom,const wchar_t *ato)
 {
-  TCHAR from[512],to[512],buff[MAX_PATH];
-  FSF.sprintf(buff,_T("%s"),afrom);
+  wchar_t from[512],to[512],buff[MAX_PATH];
+  FSF.sprintf(buff,L"%s",afrom);
   FSF.TruncPathStr(buff,55);
   FSF.sprintf(from,GetMsg(mRetryFrom),buff);
-  FSF.sprintf(buff,_T("%s"),ato);
+  FSF.sprintf(buff,L"%s",ato);
   FSF.TruncPathStr(buff,55);
   FSF.sprintf(to,GetMsg(mRetryTo),buff);
-  const TCHAR *MsgItems[]={GetMsg(mRetryError),from,to,GetMsg(mRetryRetry),GetMsg(mRetrySkip),GetMsg(mRetryCancel)};
+  const wchar_t *MsgItems[]={GetMsg(mRetryError),from,to,GetMsg(mRetryRetry),GetMsg(mRetrySkip),GetMsg(mRetryCancel)};
   return Info.Message(Info.ModuleNumber,FMSG_ERRORTYPE|FMSG_WARNING,NULL,MsgItems,ArraySize(MsgItems),3);
 }
 
@@ -658,11 +658,11 @@ static long WINAPI FileExistsDialogProc(HANDLE hDlg,int Msg,int Param1,long Para
     case DN_ENTERIDLE:
     {
       FarDialogItemData Caption;
-      TCHAR Buff[512]; SYSTEMTIME mod;
+      wchar_t Buff[512]; SYSTEMTIME mod;
       GetLocalTime(&mod);
       FSF.sprintf(Buff,GetMsg(mExistSource),0ULL,mod.wDay,mod.wMonth,mod.wYear,mod.wHour,mod.wMinute,mod.wSecond);
       Caption.PtrData=Buff;
-      Caption.PtrLength=_tcslen(Caption.PtrData);
+      Caption.PtrLength=wcslen(Caption.PtrData);
       Info.SendDlgMessage(hDlg,DM_SETTEXT,3,(long)&Caption);
       //refresh
       Info.SendDlgMessage(hDlg,DM_SETREDRAW,0,0);
@@ -675,43 +675,43 @@ static long WINAPI FileExistsDialogProc(HANDLE hDlg,int Msg,int Param1,long Para
 
 #define _D(p) (*p)
 
-int WINAPI GetFilesW(HANDLE hPlugin,struct PluginPanelItem *PanelItem,int ItemsNumber,int Move,const TCHAR **DestPath,int OpMode)
+int WINAPI GetFilesW(HANDLE hPlugin,struct PluginPanelItem *PanelItem,int ItemsNumber,int Move,const wchar_t **DestPath,int OpMode)
 {
   EventViewer *panel=(EventViewer *)hPlugin;
   int OpMode2=OpMode&(~OPM_TOPLEVEL);
   if((!panel->level)&&(panel->computer_ptr)&&(!TechOpt.NetBackup)) return 0; //no remote backup
-  static TCHAR DestPathReal[MAX_PATH];
-  _tcscpy(DestPathReal,*DestPath);
+  static wchar_t DestPathReal[MAX_PATH];
+  wcscpy(DestPathReal,*DestPath);
   *DestPath=DestPathReal;
 
-  TCHAR Dir[MAX_PATH],Dest[MAX_PATH];
+  wchar_t Dir[MAX_PATH],Dest[MAX_PATH];
   int result=1;
-  FSF.sprintf(Dir,_T("%s"),_D(DestPath));
+  FSF.sprintf(Dir,L"%s",_D(DestPath));
   FSF.AddEndSlash(Dir);
   if(!OpMode2)
   {
     if(!GetDestDir(Dir,Move?1:0))
       return -1;
-    TCHAR *filename;
-    filename=_tcsrchr(Dir,'\\');
+    wchar_t *filename;
+    filename=wcsrchr(Dir,'\\');
     if(!filename)
       filename=Dir;
-    if(!(_tcscmp(filename,_T("."))&&_tcscmp(filename,_T(".."))))
+    if(!(wcscmp(filename,L".")&&wcscmp(filename,L"..")))
     {
-      _tcscat(Dir,_T("\\"));
+      wcscat(Dir,L"\\");
     }
     if(!GetFullPathName(Dir,ArraySize(Dest),Dest,&filename))
     {
       if(!(OpMode&(OPM_SILENT|OPM_FIND|OPM_DESCR)))
       {
-        TCHAR err1[512];
+        wchar_t err1[512];
         FSF.sprintf(err1,GetMsg(mErr1),Dir);
-        const TCHAR *MsgItems[]={GetMsg(mError),err1,GetMsg(mOk)};
+        const wchar_t *MsgItems[]={GetMsg(mError),err1,GetMsg(mOk)};
         Info.Message(Info.ModuleNumber,FMSG_ERRORTYPE|FMSG_WARNING,NULL,MsgItems,ArraySize(MsgItems),1);
       }
       return 0;
     }
-    if(Dest[_tcslen(Dest)-1]!='\\')
+    if(Dest[wcslen(Dest)-1]!='\\')
     {
       WIN32_FIND_DATA find;
       HANDLE hFind=FindFirstFile(Dest,&find);
@@ -720,28 +720,28 @@ int WINAPI GetFilesW(HANDLE hPlugin,struct PluginPanelItem *PanelItem,int ItemsN
         FindClose(hFind);
         if(find.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)
         {
-          _tcscat(Dest,_T("\\"));
+          wcscat(Dest,L"\\");
         }
       }
     }
   }
   else
   {
-    FSF.sprintf(Dest,_T("%s"),_D(DestPath));
+    FSF.sprintf(Dest,L"%s",_D(DestPath));
     FSF.AddEndSlash(Dest);
   }
-  BOOL IsDir=(Dest[_tcslen(Dest)-1]=='\\');
-  TCHAR filename[MAX_PATH]; HANDLE file; DWORD transferred;
-  FSF.AddEndSlash((TCHAR*)_D(DestPath));
+  BOOL IsDir=(Dest[wcslen(Dest)-1]=='\\');
+  wchar_t filename[MAX_PATH]; HANDLE file; DWORD transferred;
+  FSF.AddEndSlash((wchar_t*)_D(DestPath));
   if(panel->level)
   {
     BOOL FlagAll=FALSE; BOOL ActionType=atNone;
-    TCHAR copyname[56],progress[56]; HANDLE screen=NULL,console=INVALID_HANDLE_VALUE;
-    const TCHAR *Items[]={GetMsg(mCpyDlgCopyTitle),copyname,progress};
+    wchar_t copyname[56],progress[56]; HANDLE screen=NULL,console=INVALID_HANDLE_VALUE;
+    const wchar_t *Items[]={GetMsg(mCpyDlgCopyTitle),copyname,progress};
     if(!(OpMode&(OPM_SILENT|OPM_FIND|OPM_DESCR)))
     {
       screen=Info.SaveScreen(0,0,-1,-1);
-      console=CreateFile(_T("CONIN$"),GENERIC_READ|GENERIC_WRITE,FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
+      console=CreateFile(L"CONIN$",GENERIC_READ|GENERIC_WRITE,FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
     }
     bool firsttime=true;
     for(int i=0;i<ItemsNumber;i++)
@@ -751,12 +751,12 @@ int WINAPI GetFilesW(HANDLE hPlugin,struct PluginPanelItem *PanelItem,int ItemsN
       if(IsDir)
       {
         if(OpMode2||(!Opt.StripExt))
-          FSF.sprintf(filename,_T("%s%s"),Dest,PanelItem[i].FindData.PANEL_FILENAME);
+          FSF.sprintf(filename,L"%s%s",Dest,PanelItem[i].FindData.PANEL_FILENAME);
         else
-          FSF.sprintf(filename,_T("%s%08ld.%s"),Dest,curr_rec->RecordNumber,GetMsg(mExtMain));
+          FSF.sprintf(filename,L"%s%08ld.%s",Dest,curr_rec->RecordNumber,GetMsg(mExtMain));
       }
       else
-        FSF.sprintf(filename,_T("%s"),Dest);
+        FSF.sprintf(filename,L"%s",Dest);
 retry_main:
       file=CreateFile(filename,GENERIC_WRITE,0,NULL,CREATE_NEW,FILE_ATTRIBUTE_ARCHIVE|FILE_FLAG_SEQUENTIAL_SCAN|(OpMode&OPM_EDIT?FILE_ATTRIBUTE_READONLY:0),NULL); //FIXME
       if(!(OpMode&(OPM_SILENT|OPM_FIND|OPM_DESCR)))
@@ -784,22 +784,22 @@ retry_main:
               012345678901234567890123456789012345678901234567890123456789012345678
             */
             static struct InitDialogItem InitItems[]={
-            /* 0*/  {DI_DOUBLEBOX,3,1,65,10,0,0,0,0,(TCHAR *)mExistDestAlreadyExists},
-            /* 1*/  {DI_TEXT,5,2,0,0,0,0,0,0,_T("")},
-            /* 2*/  {DI_TEXT,-1,3,0,0,0,0,DIF_SEPARATOR,0,_T("")},
-            /* 3*/  {DI_TEXT,5,4,0,0,0,0,0,0,_T("")},
-            /* 4*/  {DI_TEXT,5,5,0,0,0,0,0,0,_T("")},
-            /* 5*/  {DI_TEXT,-1,6,0,0,0,0,DIF_SEPARATOR,0,_T("")},
-            /* 6*/  {DI_CHECKBOX,5,7,0,0,1,0,0,0,(TCHAR *)mExistAcceptChoice},
-            /* 7*/  {DI_BUTTON,0,9,0,0,0,0,DIF_CENTERGROUP,1,(TCHAR *)mExistOverwrite},
-            /* 8*/  {DI_BUTTON,0,9,0,0,0,0,DIF_CENTERGROUP,0,(TCHAR *)mExistSkip},
-            /* 9*/  {DI_BUTTON,0,9,0,0,0,0,DIF_CENTERGROUP,0,(TCHAR *)mExistAppend},
-            /*10*/  {DI_BUTTON,0,9,0,0,0,0,DIF_CENTERGROUP,0,(TCHAR *)mExistCancel},
+            /* 0*/  {DI_DOUBLEBOX,3,1,65,10,0,0,0,0,(wchar_t *)mExistDestAlreadyExists},
+            /* 1*/  {DI_TEXT,5,2,0,0,0,0,0,0,L""},
+            /* 2*/  {DI_TEXT,-1,3,0,0,0,0,DIF_SEPARATOR,0,L""},
+            /* 3*/  {DI_TEXT,5,4,0,0,0,0,0,0,L""},
+            /* 4*/  {DI_TEXT,5,5,0,0,0,0,0,0,L""},
+            /* 5*/  {DI_TEXT,-1,6,0,0,0,0,DIF_SEPARATOR,0,L""},
+            /* 6*/  {DI_CHECKBOX,5,7,0,0,1,0,0,0,(wchar_t *)mExistAcceptChoice},
+            /* 7*/  {DI_BUTTON,0,9,0,0,0,0,DIF_CENTERGROUP,1,(wchar_t *)mExistOverwrite},
+            /* 8*/  {DI_BUTTON,0,9,0,0,0,0,DIF_CENTERGROUP,0,(wchar_t *)mExistSkip},
+            /* 9*/  {DI_BUTTON,0,9,0,0,0,0,DIF_CENTERGROUP,0,(wchar_t *)mExistAppend},
+            /*10*/  {DI_BUTTON,0,9,0,0,0,0,DIF_CENTERGROUP,0,(wchar_t *)mExistCancel},
             };
             struct FarDialogItem DialogItems[ArraySize(InitItems)];
             InitDialogItems(InitItems,DialogItems,ArraySize(InitItems));
-            TCHAR FilenameText[512],SrcText[512],DstText[512];
-            FSF.sprintf(FilenameText,_T("%s"),filename);
+            wchar_t FilenameText[512],SrcText[512],DstText[512];
+            FSF.sprintf(FilenameText,L"%s",filename);
             FSF.TruncPathStr(FilenameText,56);
             DialogItems[1].PtrData=FilenameText;
             FSF.sprintf(SrcText,GetMsg(mExistSource),0ULL,0,0,0,0,0,0);
@@ -874,49 +874,49 @@ retry_append:
       if(file!=INVALID_HANDLE_VALUE)
       {
 //        WriteFile(file,(void *)(PanelItem[i].UserData),*((DWORD *)(PanelItem[i].UserData)),&transferred,NULL);
-        TCHAR buff[SMALL_BUFFER];
-        FSF.sprintf(buff,_T("%c"),0xfeff);
-        WriteFile(file,buff,_tcslen(buff)*sizeof(TCHAR),&transferred,NULL);
+        wchar_t buff[SMALL_BUFFER];
+        FSF.sprintf(buff,L"%c",0xfeff);
+        WriteFile(file,buff,wcslen(buff)*sizeof(wchar_t),&transferred,NULL);
         if(QVOpt.ShowHeader||!(OpMode&OPM_QUICKVIEW))
         {
           FILETIME localtime;
           SYSTEMTIME time;
           FileTimeToLocalFileTime(&(PanelItem[i].FindData.ftCreationTime),&localtime);
           FileTimeToSystemTime(&localtime,&time);
-          FSF.sprintf(buff,_T("%s: %02d.%02d.%04d\r\n%s: %02d:%02d:%02d\r\n"),GetMsg(mFileDate),time.wDay,time.wMonth,time.wYear,GetMsg(mFileTime),time.wHour,time.wMinute,time.wSecond);
-          WriteFile(file,buff,_tcslen(buff)*sizeof(TCHAR),&transferred,NULL);
-          FSF.sprintf(buff,_T("%s: %s\r\n%s: %s\r\n%s: %ld\r\n"),GetMsg(mFileUser),(PanelItem[i].CustomColumnData?PanelItem[i].CustomColumnData[4]:NULL),GetMsg(mFileComputer),(PanelItem[i].CustomColumnData?PanelItem[i].CustomColumnData[3]:NULL),GetMsg(mFileEventID),curr_rec->EventID&0xffff);
-          WriteFile(file,buff,_tcslen(buff)*sizeof(TCHAR),&transferred,NULL);
-          FSF.sprintf(buff,_T("%s: %s\r\n%s: %s\r\n%s: %s\r\n\r\n"),GetMsg(mFileSource),PanelItem[i].Description,GetMsg(mFileType),GetType(curr_rec->EventType),GetMsg(mFileCategory),(PanelItem[i].CustomColumnData?PanelItem[i].CustomColumnData[1]:NULL));
-          WriteFile(file,buff,_tcslen(buff)*sizeof(TCHAR),&transferred,NULL);
+          FSF.sprintf(buff,L"%s: %02d.%02d.%04d\r\n%s: %02d:%02d:%02d\r\n",GetMsg(mFileDate),time.wDay,time.wMonth,time.wYear,GetMsg(mFileTime),time.wHour,time.wMinute,time.wSecond);
+          WriteFile(file,buff,wcslen(buff)*sizeof(wchar_t),&transferred,NULL);
+          FSF.sprintf(buff,L"%s: %s\r\n%s: %s\r\n%s: %ld\r\n",GetMsg(mFileUser),(PanelItem[i].CustomColumnData?PanelItem[i].CustomColumnData[4]:NULL),GetMsg(mFileComputer),(PanelItem[i].CustomColumnData?PanelItem[i].CustomColumnData[3]:NULL),GetMsg(mFileEventID),curr_rec->EventID&0xffff);
+          WriteFile(file,buff,wcslen(buff)*sizeof(wchar_t),&transferred,NULL);
+          FSF.sprintf(buff,L"%s: %s\r\n%s: %s\r\n%s: %s\r\n\r\n",GetMsg(mFileSource),PanelItem[i].Description,GetMsg(mFileType),GetType(curr_rec->EventType),GetMsg(mFileCategory),(PanelItem[i].CustomColumnData?PanelItem[i].CustomColumnData[1]:NULL));
+          WriteFile(file,buff,wcslen(buff)*sizeof(wchar_t),&transferred,NULL);
         }
         if(QVOpt.ShowDescription||!(OpMode&OPM_QUICKVIEW))
         {
-          FSF.sprintf(buff,_T("%s:\r\n"),GetMsg(mFileDescription));
-          WriteFile(file,buff,_tcslen(buff)*sizeof(TCHAR),&transferred,NULL);
-          TCHAR *msg=FormatLogMessage(panel->path,curr_rec);
-          if(msg) WriteFile(file,msg,_tcslen(msg)*sizeof(TCHAR),&transferred,NULL);
+          FSF.sprintf(buff,L"%s:\r\n",GetMsg(mFileDescription));
+          WriteFile(file,buff,wcslen(buff)*sizeof(wchar_t),&transferred,NULL);
+          wchar_t *msg=FormatLogMessage(panel->path,curr_rec);
+          if(msg) WriteFile(file,msg,wcslen(msg)*sizeof(wchar_t),&transferred,NULL);
           free(msg);
-          FSF.sprintf(buff,_T("\r\n\r\n"));
-          WriteFile(file,buff,_tcslen(buff)*sizeof(TCHAR),&transferred,NULL);
+          FSF.sprintf(buff,L"\r\n\r\n");
+          WriteFile(file,buff,wcslen(buff)*sizeof(wchar_t),&transferred,NULL);
         }
         if(QVOpt.ShowData||!(OpMode&OPM_QUICKVIEW))
         {
           if(curr_rec->DataLength)
           {
-            FSF.sprintf(buff,_T("%s:\r\n"),GetMsg(mFileData));
-            WriteFile(file,buff,_tcslen(buff)*sizeof(TCHAR),&transferred,NULL);
+            FSF.sprintf(buff,L"%s:\r\n",GetMsg(mFileData));
+            WriteFile(file,buff,wcslen(buff)*sizeof(wchar_t),&transferred,NULL);
             int len=curr_rec->DataLength,offset=0;
             const int cols=16;
             while(len>0)
             {
-              FSF.sprintf(buff,_T("%08x: "),offset);
+              FSF.sprintf(buff,L"%08x: ",offset);
               for(int i=0;i<cols;i++)
               {
                 if((len-i)>0)
-                  FSF.sprintf(buff,_T("%s%02X "),buff,*((unsigned char*)curr_rec+curr_rec->DataOffset+offset+i));
+                  FSF.sprintf(buff,L"%s%02X ",buff,*((unsigned char*)curr_rec+curr_rec->DataOffset+offset+i));
                 else
-                  FSF.sprintf(buff,_T("%s   "),buff);
+                  FSF.sprintf(buff,L"%s   ",buff);
               }
               for(int i=0;i<cols;i++)
               {
@@ -924,25 +924,25 @@ retry_append:
                 {
                   unsigned char c=*((unsigned char*)curr_rec+curr_rec->DataOffset+offset+i);
                   if(c<' ') c='.';
-                  FSF.sprintf(buff,_T("%s%c"),buff,c);
+                  FSF.sprintf(buff,L"%s%c",buff,c);
                 }
               }
-              FSF.sprintf(buff,_T("%s\r\n"),buff);
+              FSF.sprintf(buff,L"%s\r\n",buff);
               offset+=cols;
               len-=cols;
-              WriteFile(file,buff,_tcslen(buff)*sizeof(TCHAR),&transferred,NULL);
+              WriteFile(file,buff,wcslen(buff)*sizeof(wchar_t),&transferred,NULL);
             }
-            FSF.sprintf(buff,_T("\r\n"));
-            WriteFile(file,buff,_tcslen(buff)*sizeof(TCHAR),&transferred,NULL);
+            FSF.sprintf(buff,L"\r\n");
+            WriteFile(file,buff,wcslen(buff)*sizeof(wchar_t),&transferred,NULL);
           }
         }
-        if(TechOpt.Separator[0]) WriteFile(file,TechOpt.Separator,_tcslen(TechOpt.Separator)*sizeof(TCHAR),&transferred,NULL);
+        if(TechOpt.Separator[0]) WriteFile(file,TechOpt.Separator,wcslen(TechOpt.Separator)*sizeof(wchar_t),&transferred,NULL);
         CloseHandle(file);
       }
       if(!(OpMode&(OPM_SILENT|OPM_FIND|OPM_DESCR)))
       {
-        FSF.sprintf(copyname,_T("%.55s "),filename);
-        FSF.sprintf(progress,_T("%3d%% "),(i+1)*100/ItemsNumber);
+        FSF.sprintf(copyname,L"%.55s ",filename);
+        FSF.sprintf(progress,L"%3d%% ",(i+1)*100/ItemsNumber);
         for(int j=0;j<50;j++)
           progress[5+j]=BOX1;
         progress[55]=0;
@@ -987,15 +987,15 @@ retry_append:
     for(int i=0;i<ItemsNumber;i++)
     {
       if(IsDir)
-        FSF.sprintf(filename,_T("%s%s.evt"),Dest,PanelItem[i].FindData.PANEL_FILENAME);
+        FSF.sprintf(filename,L"%s%s.evt",Dest,PanelItem[i].FindData.PANEL_FILENAME);
       else
-        FSF.sprintf(filename,_T("%s"),Dest);
-      TCHAR path_ansi[MAX_PATH];
+        FSF.sprintf(filename,L"%s",Dest);
+      wchar_t path_ansi[MAX_PATH];
       t_OemToChar(PanelItem[i].FindData.PANEL_FILENAME,path_ansi);
       HANDLE evt=OpenEventLog(panel->computer_ptr,path_ansi); //REMOTE
       if(evt)
       {
-        TCHAR filename_ansi[MAX_PATH];
+        wchar_t filename_ansi[MAX_PATH];
         t_OemToChar(filename,filename_ansi);
         if(!BackupEventLog(evt,filename_ansi))
           if(!(OpMode&(OPM_SILENT|OPM_FIND|OPM_DESCR)))
@@ -1021,14 +1021,14 @@ int WINAPI DeleteFilesW(HANDLE hPlugin,struct PluginPanelItem *PanelItem,int Ite
       int MsgCode=0;
       if(!(OpMode&(OPM_SILENT)))
       {
-        TCHAR Msg[1024];
+        wchar_t Msg[1024];
         FSF.sprintf(Msg,GetMsg(mClearLog),PanelItem[i].FindData.PANEL_FILENAME);
-        const TCHAR *MsgItems[]={_T(""),Msg,GetMsg(mClearClear),GetMsg(mClearSkip),GetMsg(mClearCancel)};
+        const wchar_t *MsgItems[]={L"",Msg,GetMsg(mClearClear),GetMsg(mClearSkip),GetMsg(mClearCancel)};
         MsgCode=Info.Message(Info.ModuleNumber,0,NULL,MsgItems,ArraySize(MsgItems),3);
       }
       if(MsgCode==0)
       {
-        TCHAR path_ansi[MAX_PATH];
+        wchar_t path_ansi[MAX_PATH];
         t_OemToChar(PanelItem[i].FindData.PANEL_FILENAME,path_ansi);
         HANDLE evt=OpenEventLog(panel->computer_ptr,path_ansi); //REMOTE
         if(evt)
@@ -1059,20 +1059,20 @@ int WINAPI DeleteFilesW(HANDLE hPlugin,struct PluginPanelItem *PanelItem,int Ite
   }
 }
 
-HANDLE WINAPI OpenFilePluginW(const TCHAR *Name,const unsigned char *Data,int DataSize,int OpMode)
+HANDLE WINAPI OpenFilePluginW(const wchar_t *Name,const unsigned char *Data,int DataSize,int OpMode)
 {
   if(!Name)
     return INVALID_HANDLE_VALUE;
   if(!Opt.BrowseEvtFiles)
     return INVALID_HANDLE_VALUE;
-  if(!FSF.ProcessName(_T("*.evt"),(TCHAR*)Name, 0,PN_CMPNAMELIST))
+  if(!FSF.ProcessName(L"*.evt",(wchar_t*)Name, 0,PN_CMPNAMELIST))
     return INVALID_HANDLE_VALUE;
   return RealOpenFilePlugin(Name,Data,DataSize);
 }
 
-static HANDLE RealOpenFilePlugin(const TCHAR *Name,const unsigned char *Data,int DataSize)
+static HANDLE RealOpenFilePlugin(const wchar_t *Name,const unsigned char *Data,int DataSize)
 {
-  TCHAR path_ansi[MAX_PATH];
+  wchar_t path_ansi[MAX_PATH];
   t_OemToChar(Name,path_ansi);
   HANDLE evt=OpenBackupEventLog(NULL,path_ansi); //LOCAL
   if(evt)
@@ -1083,9 +1083,9 @@ static HANDLE RealOpenFilePlugin(const TCHAR *Name,const unsigned char *Data,int
   if(!panel)
     return INVALID_HANDLE_VALUE;
   panel->level=2;
-  _tcscpy(panel->path,Name);
-  _tcscpy(panel->computer,_T(""));
-  _tcscpy(panel->computer_oem,_T(""));
+  wcscpy(panel->path,Name);
+  wcscpy(panel->computer,L"");
+  wcscpy(panel->computer_oem,L"");
   panel->computer_ptr=NULL;
   panel->redraw=FALSE;
   return (HANDLE)panel;
@@ -1117,30 +1117,30 @@ int WINAPI CompareW(HANDLE hPlugin,const struct PluginPanelItem *Item1,const str
 // C4: User
 // C5: Time
 // Z : Source
-static TCHAR *GetTitles(const TCHAR *str)
+static wchar_t *GetTitles(const wchar_t *str)
 {
-  TCHAR *Result=NULL;
-  if((!_tcsncmp(str,_T("C0"),2))&&((!str[2])||(str[2]==',')))
+  wchar_t *Result=NULL;
+  if((!wcsncmp(str,L"C0",2))&&((!str[2])||(str[2]==',')))
   {
     Result=GetMsg(mTitleEvent);
   }
-  else if((!_tcsncmp(str,_T("C1"),2))&&((!str[2])||(str[2]==',')))
+  else if((!wcsncmp(str,L"C1",2))&&((!str[2])||(str[2]==',')))
   {
     Result=GetMsg(mTitleCategory);
   }
-  else if((!_tcsncmp(str,_T("C2"),2))&&((!str[2])||(str[2]==',')))
+  else if((!wcsncmp(str,L"C2",2))&&((!str[2])||(str[2]==',')))
   {
     Result=GetMsg(mTitleTime);
   }
-  else if((!_tcsncmp(str,_T("C3"),2))&&((!str[2])||(str[2]==',')))
+  else if((!wcsncmp(str,L"C3",2))&&((!str[2])||(str[2]==',')))
   {
     Result=GetMsg(mTitleComputer);
   }
-  else if((!_tcsncmp(str,_T("C4"),2))&&((!str[2])||(str[2]==',')))
+  else if((!wcsncmp(str,L"C4",2))&&((!str[2])||(str[2]==',')))
   {
     Result=GetMsg(mTitleUser);
   }
-  else if((!_tcsncmp(str,_T("C5"),2))&&((!str[2])||(str[2]==',')))
+  else if((!wcsncmp(str,L"C5",2))&&((!str[2])||(str[2]==',')))
   {
     Result=GetMsg(mTitleTime);
   }
@@ -1161,28 +1161,28 @@ void WINAPI GetOpenPluginInfoW(HANDLE hPlugin,struct OpenPluginInfo *Info)
   if(panel->level==2)
   {
     Info->HostFile=panel->path;
-    Info->CurDir=_T("");
+    Info->CurDir=L"";
   }
 
   Info->Format=GetMsg(mName);
 
-  static TCHAR Title[MAX_PATH];
+  static wchar_t Title[MAX_PATH];
   switch(panel->level)
   {
     case 0:
       if(panel->computer_ptr)
-        FSF.sprintf(Title,_T(" %s: %s "),panel->computer_oem,GetMsg(mRootName));
+        FSF.sprintf(Title,L" %s: %s ",panel->computer_oem,GetMsg(mRootName));
       else
-        FSF.sprintf(Title,_T(" %s "),GetMsg(mRootName));
+        FSF.sprintf(Title,L" %s ",GetMsg(mRootName));
       break;
     case 1:
       if(panel->computer_ptr)
-        FSF.sprintf(Title,_T(" %s: %s\\%s "),panel->computer_oem,GetMsg(mRootName),panel->path);
+        FSF.sprintf(Title,L" %s: %s\\%s ",panel->computer_oem,GetMsg(mRootName),panel->path);
       else
-        FSF.sprintf(Title,_T(" %s\\%s "),GetMsg(mRootName),panel->path);
+        FSF.sprintf(Title,L" %s\\%s ",GetMsg(mRootName),panel->path);
       break;
     case 2:
-      FSF.sprintf(Title,_T(" %s "),panel->path);
+      FSF.sprintf(Title,L" %s ",panel->path);
       break;
   }
   Info->PanelTitle=Title;
@@ -1194,9 +1194,9 @@ void WINAPI GetOpenPluginInfoW(HANDLE hPlugin,struct OpenPluginInfo *Info)
   Info->DescrFilesNumber=0;
 
   static struct PanelMode PanelModesArray[10];
-  static TCHAR *ColumnTitles[10][32];
+  static wchar_t *ColumnTitles[10][32];
   int msg_start=(panel->level)?mPanelTypeFile0:mPanelTypeDir0;
-  TCHAR *tmp_msg;
+  wchar_t *tmp_msg;
 
   memset(PanelModesArray,0,sizeof(PanelModesArray));
   memset(ColumnTitles,0,sizeof(ColumnTitles));
@@ -1227,14 +1227,14 @@ void WINAPI GetOpenPluginInfoW(HANDLE hPlugin,struct OpenPluginInfo *Info)
     }
     if(panel->level)
     {
-      int j=0; const TCHAR *scan=PanelModesArray[i].ColumnTypes;
+      int j=0; const wchar_t *scan=PanelModesArray[i].ColumnTypes;
       if(scan)
       {
         while(TRUE)
         {
           if(j==32) break;
           ColumnTitles[i][j]=GetTitles(scan);
-          scan=_tcschr(scan,',');
+          scan=wcschr(scan,',');
           if(!scan) break;
           scan++;
           if(!scan[0]) break;
@@ -1249,16 +1249,16 @@ void WINAPI GetOpenPluginInfoW(HANDLE hPlugin,struct OpenPluginInfo *Info)
   Info->StartPanelMode='3';
   static struct KeyBarTitles KeyBar;
   memset(&KeyBar,0,sizeof(KeyBar));
-  KeyBar.Titles[7-1]=(TCHAR*)_T("");
+  KeyBar.Titles[7-1]=(wchar_t*)L"";
 
   if(panel->level==2)
-    KeyBar.Titles[6-1]=(TCHAR*)_T("");
+    KeyBar.Titles[6-1]=(wchar_t*)L"";
   else
     KeyBar.Titles[6-1]=GetMsg(mKeyRemote);
   if(panel->level)
   {
-    KeyBar.Titles[8-1]=(TCHAR*)_T("");
-    KeyBar.ShiftTitles[8-1]=(TCHAR*)_T("");
+    KeyBar.Titles[8-1]=(wchar_t*)L"";
+    KeyBar.ShiftTitles[8-1]=(wchar_t*)L"";
   }
   else
   {
@@ -1269,14 +1269,14 @@ void WINAPI GetOpenPluginInfoW(HANDLE hPlugin,struct OpenPluginInfo *Info)
     }
     else
     {
-      KeyBar.Titles[5-1]=(TCHAR*)_T("");
-      KeyBar.ShiftTitles[5-1]=(TCHAR*)_T("");
+      KeyBar.Titles[5-1]=(wchar_t*)L"";
+      KeyBar.ShiftTitles[5-1]=(wchar_t*)L"";
     }
     KeyBar.Titles[8-1]=GetMsg(mKeyClear);
     KeyBar.ShiftTitles[8-1]=GetMsg(mKeyClear);
   }
-  KeyBar.ShiftTitles[1-1]=(TCHAR*)_T("");
-  KeyBar.ShiftTitles[2-1]=(TCHAR*)_T("");
+  KeyBar.ShiftTitles[1-1]=(wchar_t*)L"";
+  KeyBar.ShiftTitles[2-1]=(wchar_t*)L"";
   if(panel->level>0)
   {
     KeyBar.ShiftTitles[3-1]=GetMsg(mKeyViewData);
@@ -1284,14 +1284,14 @@ void WINAPI GetOpenPluginInfoW(HANDLE hPlugin,struct OpenPluginInfo *Info)
   }
   else
   {
-    KeyBar.ShiftTitles[3-1]=(TCHAR*)_T("");
-    KeyBar.ShiftTitles[4-1]=(TCHAR*)_T("");
+    KeyBar.ShiftTitles[3-1]=(wchar_t*)L"";
+    KeyBar.ShiftTitles[4-1]=(wchar_t*)L"";
   }
   if(panel->level==2)
-    KeyBar.ShiftTitles[6-1]=(TCHAR*)_T("");
+    KeyBar.ShiftTitles[6-1]=(wchar_t*)L"";
   else
     KeyBar.ShiftTitles[6-1]=GetMsg(mKeyLocal);
-  KeyBar.AltTitles[6-1]=(TCHAR*)_T("");
+  KeyBar.AltTitles[6-1]=(wchar_t*)L"";
   Info->KeyBar=&KeyBar;
 
 }
@@ -1317,8 +1317,8 @@ int WINAPI ProcessKeyW(HANDLE hPlugin,int Key,unsigned int ControlState)
       CFarPanel pInfo(hPlugin,FCTL_GETPANELINFO);
       if(pInfo.ItemsNumber()&&(pInfo[pInfo.CurrentItem()].Flags&PPIF_USERDATA))
       {
-        TCHAR temp[MAX_PATH],tempfile[MAX_PATH];
-        if(GetTempPath(MAX_PATH,temp)&&GetTempFileName(temp,_T("evt"),0,tempfile))
+        wchar_t temp[MAX_PATH],tempfile[MAX_PATH];
+        if(GetTempPath(MAX_PATH,temp)&&GetTempFileName(temp,L"evt",0,tempfile))
         {
           HANDLE hdata=CreateFile(tempfile,GENERIC_WRITE,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_ARCHIVE|FILE_FLAG_SEQUENTIAL_SCAN,NULL);
           if(hdata!=INVALID_HANDLE_VALUE)
@@ -1355,12 +1355,12 @@ int WINAPI ProcessKeyW(HANDLE hPlugin,int Key,unsigned int ControlState)
         000000000011111111112222222222333333333344444444
         012345678901234567890123456789012345678901234567
       */
-      static const TCHAR *NTEventComputerHistoryName=_T("NTEventComputer");
+      static const wchar_t *NTEventComputerHistoryName=L"NTEventComputer";
       static struct InitDialogItem InitDlg[]={
-      /*0*/  {DI_DOUBLEBOX,3,1,44,5,0,0,0,0,(TCHAR *)mSelCompTitle},
-      /*1*/  {DI_TEXT,5,2,0,0,0,0,0,0,(TCHAR *)mSelCompLabel},
-      /*2*/  {DI_EDIT,5,3,42,0,1,(DWORD)NTEventComputerHistoryName,DIF_HISTORY,0,_T("")},
-      /*3*/  {DI_TEXT,5,4,0,0,0,0,0,0,(TCHAR *)mSelCompFootnote},
+      /*0*/  {DI_DOUBLEBOX,3,1,44,5,0,0,0,0,(wchar_t *)mSelCompTitle},
+      /*1*/  {DI_TEXT,5,2,0,0,0,0,0,0,(wchar_t *)mSelCompLabel},
+      /*2*/  {DI_EDIT,5,3,42,0,1,(DWORD)NTEventComputerHistoryName,DIF_HISTORY,0,L""},
+      /*3*/  {DI_TEXT,5,4,0,0,0,0,0,0,(wchar_t *)mSelCompFootnote},
       };
       struct FarDialogItem DialogItems[ArraySize(InitDlg)];
       InitDialogItems(InitDlg,DialogItems,ArraySize(InitDlg));
@@ -1371,31 +1371,31 @@ int WINAPI ProcessKeyW(HANDLE hPlugin,int Key,unsigned int ControlState)
       {
         if(dialog.Str(2)[0])
         {
-          TCHAR temp_computer_name[MAX_PATH];
-          if(_tcsncmp(dialog.Str(2),_T("\\\\"),2))
+          wchar_t temp_computer_name[MAX_PATH];
+          if(wcsncmp(dialog.Str(2),L"\\\\",2))
           {
-            TCHAR tmp[512];
-            FSF.sprintf(tmp,_T("\\\\%s"),dialog.Str(2));
-            _tcscpy(temp_computer_name,tmp);
+            wchar_t tmp[512];
+            FSF.sprintf(tmp,L"\\\\%s",dialog.Str(2));
+            wcscpy(temp_computer_name,tmp);
           }
           if(CheckRemoteEventLog(temp_computer_name))
           {
-            _tcscpy(panel->computer,temp_computer_name);
-            _tcscpy(panel->computer_oem,temp_computer_name);
+            wcscpy(panel->computer,temp_computer_name);
+            wcscpy(panel->computer_oem,temp_computer_name);
             panel->computer_ptr=panel->computer;
             Info.ControlShort3(hPlugin,FCTL_UPDATEPANEL,(FIRST_PARAM)0);
             Info.ControlShort(hPlugin,FCTL_REDRAWPANEL,NULL);
           }
           else
           {
-            const TCHAR *MsgItems[]={GetMsg(mError),GetMsg(mErr2),GetMsg(mOk)};
+            const wchar_t *MsgItems[]={GetMsg(mError),GetMsg(mErr2),GetMsg(mOk)};
             Info.Message(Info.ModuleNumber,FMSG_WARNING,NULL,MsgItems,ArraySize(MsgItems),1);
           }
         }
         else
         {
-          _tcscpy(panel->computer,_T(""));
-          _tcscpy(panel->computer_oem,_T(""));
+          wcscpy(panel->computer,L"");
+          wcscpy(panel->computer_oem,L"");
           panel->computer_ptr=NULL;
           Info.ControlShort3(hPlugin,FCTL_UPDATEPANEL,(FIRST_PARAM)0);
           Info.ControlShort(hPlugin,FCTL_REDRAWPANEL,NULL);
@@ -1406,8 +1406,8 @@ int WINAPI ProcessKeyW(HANDLE hPlugin,int Key,unsigned int ControlState)
   }
   if((ControlState==PKF_SHIFT)&&(Key==VK_F6)) //skip Shift-F6
   {
-    _tcscpy(panel->computer,_T(""));
-    _tcscpy(panel->computer_oem,_T(""));
+    wcscpy(panel->computer,L"");
+    wcscpy(panel->computer_oem,L"");
     panel->computer_ptr=NULL;
     Info.ControlShort3(hPlugin,FCTL_UPDATEPANEL,(FIRST_PARAM)0);
     Info.ControlShort(hPlugin,FCTL_REDRAWPANEL,NULL);
@@ -1458,24 +1458,24 @@ int WINAPI ProcessEventW(HANDLE hPlugin,int Event,void *Param)
     State.ViewMode=PInfo.ViewMode;
     State.SortMode=PInfo.SortMode;
     State.SortOrder=PInfo.Flags&PFLAGS_REVERSESORTORDER?1:0;
-    _tcscpy(State.Path,panel->path);
+    wcscpy(State.Path,panel->path);
     if(panel->computer_ptr)
-      _tcscpy(State.Computer,panel->computer_oem);
+      wcscpy(State.Computer,panel->computer_oem);
     else
-      _tcscpy(State.Computer,_T(""));
+      wcscpy(State.Computer,L"");
     if(Opt.Restore)
     {
       HKEY hKey;
       DWORD Disposition;
       if((RegCreateKeyEx(HKEY_CURRENT_USER,PluginRootKey,0,NULL,0,KEY_WRITE,NULL,&hKey,&Disposition))==ERROR_SUCCESS)
       {
-        RegSetValueEx(hKey,_T("StatePath"),0,REG_SZ,(LPBYTE)State.Path,(_tcslen(State.Path)+1)*sizeof(TCHAR));
-        RegSetValueEx(hKey,_T("StateComputer"),0,REG_SZ,(LPBYTE)State.Computer,(_tcslen(State.Computer)+1)*sizeof(TCHAR));
-        RegSetValueEx(hKey,_T("StateCurrent"),0,REG_DWORD,(LPBYTE)&State.Current,sizeof(State.Current));
-        RegSetValueEx(hKey,_T("StateTop"),0,REG_DWORD,(LPBYTE)&State.Top,sizeof(State.Top));
-        RegSetValueEx(hKey,_T("StateViewMode"),0,REG_DWORD,(LPBYTE)&State.ViewMode,sizeof(State.ViewMode));
-        RegSetValueEx(hKey,_T("StateSortMode"),0,REG_DWORD,(LPBYTE)&State.SortMode,sizeof(State.SortMode));
-        RegSetValueEx(hKey,_T("StateSortOrder"),0,REG_DWORD,(LPBYTE)&State.SortOrder,sizeof(State.SortOrder));
+        RegSetValueEx(hKey,L"StatePath",0,REG_SZ,(LPBYTE)State.Path,(wcslen(State.Path)+1)*sizeof(wchar_t));
+        RegSetValueEx(hKey,L"StateComputer",0,REG_SZ,(LPBYTE)State.Computer,(wcslen(State.Computer)+1)*sizeof(wchar_t));
+        RegSetValueEx(hKey,L"StateCurrent",0,REG_DWORD,(LPBYTE)&State.Current,sizeof(State.Current));
+        RegSetValueEx(hKey,L"StateTop",0,REG_DWORD,(LPBYTE)&State.Top,sizeof(State.Top));
+        RegSetValueEx(hKey,L"StateViewMode",0,REG_DWORD,(LPBYTE)&State.ViewMode,sizeof(State.ViewMode));
+        RegSetValueEx(hKey,L"StateSortMode",0,REG_DWORD,(LPBYTE)&State.SortMode,sizeof(State.SortMode));
+        RegSetValueEx(hKey,L"StateSortOrder",0,REG_DWORD,(LPBYTE)&State.SortOrder,sizeof(State.SortOrder));
         RegCloseKey(hKey);
       }
     }

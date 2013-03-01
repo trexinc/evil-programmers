@@ -1,11 +1,10 @@
 #include <windows.h>
-#include <tchar.h>
 #include "memory.h"
 
 struct CacheRecord
 {
   PSID sid;
-  TCHAR *username;
+  wchar_t *username;
   CacheRecord *next;
 };
 
@@ -24,27 +23,27 @@ void free_sid_cache(void)
   }
 };
 
-static const TCHAR *add_sid_cache(TCHAR *computer1,TCHAR *computer2,PSID sid)
+static const wchar_t *add_sid_cache(wchar_t *computer1,wchar_t *computer2,PSID sid)
 {
-  const TCHAR *res=_T("N/A");
-  const TCHAR *account_unknown=_T("Account Unknown");
+  const wchar_t *res=L"N/A";
+  const wchar_t *account_unknown=L"Account Unknown";
   CacheRecord *new_rec=(CacheRecord *)malloc(sizeof(CacheRecord));
   if(new_rec)
   {
     new_rec->sid=(PSID)malloc(GetLengthSid(sid));
     if(new_rec->sid)
     {
-      DWORD name_size=0,domain_size=0; SID_NAME_USE type; TCHAR *computer=computer1;
+      DWORD name_size=0,domain_size=0; SID_NAME_USE type; wchar_t *computer=computer1;
       CopySid(GetLengthSid(sid),new_rec->sid,sid);
 add_sid_cache_retry:
       if(!LookupAccountSid(computer,sid,NULL,&name_size,NULL,&domain_size,&type))
       {
         if(GetLastError()==ERROR_INSUFFICIENT_BUFFER)
         {
-          new_rec->username=(TCHAR *)malloc((name_size+domain_size)*sizeof(TCHAR));
+          new_rec->username=(wchar_t *)malloc((name_size+domain_size)*sizeof(wchar_t));
           if(new_rec->username)
           {
-            TCHAR *domain_ptr=new_rec->username,*user_ptr=new_rec->username+domain_size;
+            wchar_t *domain_ptr=new_rec->username,*user_ptr=new_rec->username+domain_size;
             if(domain_size==1)
             {
               user_ptr=new_rec->username;
@@ -65,10 +64,10 @@ add_sid_cache_retry:
         }
         else
         {
-          new_rec->username=(TCHAR *)malloc((_tcslen(account_unknown)+1)*sizeof(TCHAR));
+          new_rec->username=(wchar_t *)malloc((wcslen(account_unknown)+1)*sizeof(wchar_t));
           if(new_rec->username)
           {
-            _tcscpy(new_rec->username,account_unknown);
+            wcscpy(new_rec->username,account_unknown);
 add_sid_cache_link:
             new_rec->next=sid_cache;
             sid_cache=new_rec;
@@ -86,9 +85,9 @@ add_sid_cache_ok:
   return res;
 }
 
-static TCHAR *get_sid_cache(PSID sid)
+static wchar_t *get_sid_cache(PSID sid)
 {
-  TCHAR *res=NULL;
+  wchar_t *res=NULL;
   CacheRecord *tmp_rec=sid_cache;
   while(tmp_rec)
   {
@@ -102,10 +101,10 @@ static TCHAR *get_sid_cache(PSID sid)
   return res;
 }
 
-const TCHAR *GetUserName(TCHAR *computer,EVENTLOGRECORD *rec)
+const wchar_t *GetUserName(wchar_t *computer,EVENTLOGRECORD *rec)
 {
-  const TCHAR *res=_T("N/A"); PSID sid=(char*)rec+rec->UserSidOffset; TCHAR *computer2=(TCHAR *)(rec+1);
-  computer2+=_tcslen(computer2)+1;
+  const wchar_t *res=L"N/A"; PSID sid=(char*)rec+rec->UserSidOffset; wchar_t *computer2=(wchar_t *)(rec+1);
+  computer2+=wcslen(computer2)+1;
   if(IsValidSid(sid))
   {
     res=get_sid_cache(sid);

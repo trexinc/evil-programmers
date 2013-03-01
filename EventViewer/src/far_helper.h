@@ -19,7 +19,6 @@
 #ifndef __FAR_HELPER_H__
 #define __FAR_HELPER_H__
 
-#include <tchar.h>
 #include "plugin.hpp"
 extern PluginStartupInfo Info;
 #define ArraySize(a) (sizeof(a)/sizeof(a[0]))
@@ -33,7 +32,7 @@ class CFarDialog
   public:
     inline CFarDialog(): iDlg(INVALID_HANDLE_VALUE) {};
     inline ~CFarDialog() {Info.DialogFree(iDlg);};
-    inline int Execute(INT_PTR PluginNumber,int X1,int Y1,int X2,int Y2,const TCHAR* HelpTopic,struct FarDialogItem* Item,int ItemsNumber,DWORD Reserved,DWORD Flags,FARWINDOWPROC DlgProc,LONG_PTR Param)
+    inline int Execute(INT_PTR PluginNumber,int X1,int Y1,int X2,int Y2,const wchar_t* HelpTopic,struct FarDialogItem* Item,int ItemsNumber,DWORD Reserved,DWORD Flags,FARWINDOWPROC DlgProc,LONG_PTR Param)
     {
       iDlg=Info.DialogInit(PluginNumber,X1,Y1,X2,Y2,HelpTopic,Item,ItemsNumber,Reserved,Flags,DlgProc,Param);
       return Info.DialogRun(iDlg);
@@ -56,7 +55,6 @@ class CFarDialog
 };
 #define t_CharToOem(s,d) wcscpy(d,s)
 #define t_OemToChar(s,d) wcscpy(d,s)
-typedef wchar_t UTCHAR;
 #define PANEL_FILENAME lpwszFileName
 #define FIRST_PARAM int
 #define SECOND_PARAM LONG_PTR
@@ -68,7 +66,7 @@ typedef wchar_t UTCHAR;
 #define BOX2 0x2588
 #define OPIF_FINDFOLDERS 0
 
-void Realloc(TCHAR*& aData,int& aLength,int aNewLength);
+void Realloc(wchar_t*& aData,int& aLength,int aNewLength);
 void Realloc(PluginPanelItem*& aData,int& aSize,int aNewSize);
 
 class CFarPanel
@@ -77,7 +75,7 @@ class CFarPanel
     HANDLE iPlugin;
     PanelInfo iInfo;
     int iResult;
-    TCHAR* iCurDir;
+    wchar_t* iCurDir;
     int iCurDirSize;
     PluginPanelItem* iItem;
     int iItemSize;
@@ -93,7 +91,7 @@ class CFarPanel
     inline int SelectedItemsNumber(void) {return iInfo.SelectedItemsNumber;};
     inline int CurrentItem(void) {return iInfo.CurrentItem;};
     inline DWORD Flags(void) {return iInfo.Flags;};
-    TCHAR* CurDir(void);
+    wchar_t* CurDir(void);
     PluginPanelItem& operator[](size_t index);
     PluginPanelItem& Selected(size_t index);
     inline void StartSelection(void) {Info.Control(iPlugin,FCTL_BEGINSELECTION,0,0);};
