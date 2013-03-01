@@ -230,7 +230,7 @@ struct MsgPath
 };
 
 extern void free_sid_cache(void);
-extern TCHAR *GetUserName(TCHAR *computer,EVENTLOGRECORD *rec);
+extern const TCHAR *GetUserName(TCHAR *computer,EVENTLOGRECORD *rec);
 
 extern void free_category_cache(void);
 extern const TCHAR *GetCategory(EVENTLOGRECORD *rec);

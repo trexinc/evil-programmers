@@ -418,7 +418,7 @@ int WINAPI GetFindDataW(HANDLE hPlugin,struct PluginPanelItem **pPanelItem,int *
                       CustomColumnData[3]=(TCHAR *)malloc(sizeof(TCHAR)*(_tcslen(compname)+1));
                       if(CustomColumnData[3])
                         _tcscpy(CustomColumnData[3],compname);
-                      TCHAR *username=GetUserName(panel->computer_ptr,curr_rec);
+                      const TCHAR *username=GetUserName(panel->computer_ptr,curr_rec);
                       CustomColumnData[4]=(TCHAR *)malloc(sizeof(TCHAR)*(_tcslen(username)+1));
                       if(CustomColumnData[4])
                         _tcscpy(CustomColumnData[4],username);
