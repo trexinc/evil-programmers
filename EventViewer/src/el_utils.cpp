@@ -115,7 +115,7 @@ static TCHAR *FormatLogMessage(TCHAR *Class,EVENTLOGRECORD *rec)
         int zero_len=1,back_offset=0;
         while(*endptr)
         {
-          TCHAR *perc_pos=_tcsstr(endptr,_T("%%"));
+          const TCHAR *perc_pos=_tcsstr(endptr,_T("%%"));
           if(!perc_pos) break;
           has_params=true;
           long err=_tcstol(perc_pos+2,&new_endptr,10);
