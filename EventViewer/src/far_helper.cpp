@@ -53,21 +53,30 @@ CFarPanel::~CFarPanel()
 
 wchar_t* CFarPanel::CurDir(void)
 {
+#if 0
   Realloc(iCurDir,iCurDirSize,Info.Control(iPlugin,FCTL_GETPANELDIR,0,0));
   Info.Control(iPlugin,FCTL_GETPANELDIR,iCurDirSize,(LONG_PTR)iCurDir);
   return iCurDir;
+#endif
+  return 0;
 }
 
 PluginPanelItem& CFarPanel::operator[](size_t index)
 {
+#if 0
   Realloc(iItem,iItemSize,Info.Control(iPlugin,FCTL_GETPANELITEM,index,0));
   Info.Control(iPlugin,FCTL_GETPANELITEM,index,(LONG_PTR)iItem);
+  return *iItem;
+#endif
   return *iItem;
 }
 
 PluginPanelItem& CFarPanel::Selected(size_t index)
 {
+#if 0
   Realloc(iItem,iItemSize,Info.Control(iPlugin,FCTL_GETSELECTEDPANELITEM,index,0));
   Info.Control(iPlugin,FCTL_GETSELECTEDPANELITEM,index,(LONG_PTR)iItem);
+  return *iItem;
+#endif
   return *iItem;
 }

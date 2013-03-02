@@ -5,6 +5,17 @@
 #include "evplugin.h"
 #include "memory.h"
 
+#include <initguid.h>
+// {D888455B-4E68-43f8-8D54-9A96913974B2}
+DEFINE_GUID(MainGuid, 0xd888455b, 0x4e68, 0x43f8, 0x8d, 0x54, 0x9a, 0x96, 0x91, 0x39, 0x74, 0xb2);
+// {E08DD543-15F9-4f3d-9517-2C443ADC1E4F}
+DEFINE_GUID(DiskMenuGuid, 0xe08dd543, 0x15f9, 0x4f3d, 0x95, 0x17, 0x2c, 0x44, 0x3a, 0xdc, 0x1e, 0x4f);
+// {0FC3E83E-0F0D-47c9-87C5-11E13F5C5100}
+DEFINE_GUID(PluginMenuGuid, 0xfc3e83e, 0xf0d, 0x47c9, 0x87, 0xc5, 0x11, 0xe1, 0x3f, 0x5c, 0x51, 0x0);
+// {BFDA5B9F-3C7E-4c62-9B89-6BC872E89037}
+DEFINE_GUID(ConfigMenuGuid, 0xbfda5b9f, 0x3c7e, 0x4c62, 0x9b, 0x89, 0x6b, 0xc8, 0x72, 0xe8, 0x90, 0x37);
+
+
 PluginStartupInfo Info;
 FARSTANDARDFUNCTIONS FSF;
 wchar_t PluginRootKey[80];
@@ -44,9 +55,9 @@ struct PluginState
   int SortOrder;
 } State={L"",L"",0,0,-1,-1,-1};
 
-static wchar_t *GetMsg(int MsgId)
+static const wchar_t *GetMsg(int MsgId)
 {
-  return (wchar_t *)Info.GetMsg(Info.ModuleNumber,MsgId);
+  return Info.GetMsg(&MainGuid,MsgId);
 }
 
 static const wchar_t *default_column_data=L"";
@@ -64,6 +75,7 @@ struct InitDialogItem
 
 static void InitDialogItems(InitDialogItem *Init,FarDialogItem *Item,int ItemsNumber)
 {
+#if 0
   for (int i=0;i<ItemsNumber;i++)
   {
     Item[i].Type=Init[i].Type;
@@ -81,10 +93,12 @@ static void InitDialogItems(InitDialogItem *Init,FarDialogItem *Item,int ItemsNu
     else
       Item[i].PtrData=Init[i].Data;
   }
+#endif
 }
 
 static bool CheckRemoteEventLog(wchar_t *computer)
 {
+#if 0
   HANDLE hSScr=Info.SaveScreen(0,0,-1,-1);
   const wchar_t *MsgItems[]={L"",GetMsg(mOtherConnecting)};
   Info.Message(Info.ModuleNumber,0,NULL,MsgItems,ArraySize(MsgItems),0);
@@ -95,6 +109,7 @@ static bool CheckRemoteEventLog(wchar_t *computer)
     CloseEventLog(evt);
     return true;
   }
+#endif
   return false;
 }
 
@@ -109,6 +124,17 @@ static bool CheckRemoteEventLog(wchar_t *computer)
 
 static HANDLE RealOpenFilePlugin(const wchar_t *Name,const unsigned char *Data,int DataSize);
 
+void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
+{
+  Info->StructSize=sizeof(GlobalInfo);
+  Info->MinFarVersion=FARMANAGERVERSION;
+  Info->Version=MAKEFARVERSION(0,5,0,14,VS_ALPHA);
+  Info->Guid=MainGuid;
+  Info->Title=L"NT Events";
+  Info->Description=L"NT Events";
+  Info->Author=L"Vadim Yegorov";
+} 
+
 void WINAPI SetStartupInfoW(const struct PluginStartupInfo *Info)
 {
   memset(&::Info, 0, sizeof(::Info));
@@ -116,7 +142,7 @@ void WINAPI SetStartupInfoW(const struct PluginStartupInfo *Info)
     ::FSF=*Info->FSF;
     ::Info.FSF=&::FSF;
 
-    wcscpy(PluginRootKey,Info->RootKey);
+    wcscpy(PluginRootKey,L"HKEY_CURRENT_USER\\Software\\Far2\\Plugins");
     wcscat(PluginRootKey,L"\\ntevent");
     TechOpt.NetBackup=FALSE;
     TechOpt.Separator[0]=0;
@@ -186,22 +212,26 @@ void WINAPI GetPluginInfoW(struct PluginInfo *Info)
     Info->StructSize=sizeof(*Info);
     Info->Flags=0;
 
-    static wchar_t *DisksMenuStrings[1];
+    static const wchar_t *DisksMenuStrings[1];
     DisksMenuStrings[0]=GetMsg(mNameDisk);
-    Info->DiskMenuStrings=DisksMenuStrings;
-    Info->DiskMenuStringsNumber=Opt.AddToDisksMenu?1:0;
+    Info->DiskMenu.Strings=DisksMenuStrings;
+    Info->DiskMenu.Count=Opt.AddToDisksMenu?1:0;
+		Info->DiskMenu.Guids=&DiskMenuGuid;
 
-    static wchar_t *PluginMenuStrings[1];
+    static const wchar_t *PluginMenuStrings[1];
     PluginMenuStrings[0]=GetMsg(mName);
-    Info->PluginMenuStrings=PluginMenuStrings;
-    Info->PluginMenuStringsNumber=Opt.AddToPluginsMenu?(ArraySize(PluginMenuStrings)):0;
-    Info->PluginConfigStrings=PluginMenuStrings;
-    Info->PluginConfigStringsNumber=Opt.AddToConfigMenu?(ArraySize(PluginMenuStrings)):0;
+    Info->PluginMenu.Strings=PluginMenuStrings;
+    Info->PluginMenu.Count=Opt.AddToPluginsMenu?(ArraySize(PluginMenuStrings)):0;
+		Info->PluginMenu.Guids=&PluginMenuGuid;
+    Info->PluginConfig.Strings=PluginMenuStrings;
+    Info->PluginConfig.Count=Opt.AddToConfigMenu?(ArraySize(PluginMenuStrings)):0;
+    Info->PluginConfig.Guids=&ConfigMenuGuid;
     Info->CommandPrefix=Opt.Prefix;
 }
 
 HANDLE WINAPI OpenPluginW(int OpenFrom,int Item)
 {
+#if 0
   EventViewer *panel=(EventViewer *)malloc(sizeof(EventViewer));
   if(!panel)
     return INVALID_HANDLE_VALUE;
@@ -227,16 +257,20 @@ HANDLE WINAPI OpenPluginW(int OpenFrom,int Item)
     }
   }
   return (HANDLE)panel;
-
+#endif
+  return 0;
 }
 
 void WINAPI ClosePluginW(HANDLE hPlugin)
 {
+#if 0
   free((EventViewer *)hPlugin);
+#endif
 }
 
 int WINAPI GetFindDataW(HANDLE hPlugin,struct PluginPanelItem **pPanelItem,int *pItemsNumber,int OpMode)
 {
+#if 0
     HANDLE hSScr=Info.SaveScreen(0,0,-1,-1),console=INVALID_HANDLE_VALUE;
     if(!(OpMode&(OPM_FIND)))
     {
@@ -480,11 +514,13 @@ int WINAPI GetFindDataW(HANDLE hPlugin,struct PluginPanelItem **pPanelItem,int *
     if(!(OpMode&(OPM_FIND)))
       CloseHandle(console);
     Info.RestoreScreen(hSScr);
+#endif
     return TRUE;
 }
 
 void WINAPI FreeFindDataW(HANDLE hPlugin,struct PluginPanelItem *PanelItem,int ItemsNumber)
 {
+#if 0
   for(int i=0;i<ItemsNumber;i++)
   {
     free((void*)PanelItem[i].UserData);
@@ -498,10 +534,12 @@ void WINAPI FreeFindDataW(HANDLE hPlugin,struct PluginPanelItem *PanelItem,int I
     free((void*)PanelItem[i].FindData.lpwszFileName);
   }
   free(PanelItem);
+#endif
 }
 
 int WINAPI SetDirectoryW(HANDLE hPlugin,const wchar_t *Dir,int OpMode)
 {
+#if 0
   int res=TRUE;
   EventViewer *panel=(EventViewer *)hPlugin;
   if(panel->level==2)
@@ -527,10 +565,13 @@ int WINAPI SetDirectoryW(HANDLE hPlugin,const wchar_t *Dir,int OpMode)
   }
   else res=FALSE;
   return res;
+#endif
+  return false;
 }
 
 static long WINAPI CopyDialogProc(HANDLE hDlg, int Msg,int Param1,long Param2)
 {
+#if 0
   switch(Msg)
   {
     case DN_INITDIALOG:
@@ -538,6 +579,8 @@ static long WINAPI CopyDialogProc(HANDLE hDlg, int Msg,int Param1,long Param2)
       break;
   }
   return Info.DefDlgProc(hDlg,Msg,Param1,Param2);
+#endif
+  return true;
 }
 
 static int NumberType(int num)
@@ -569,6 +612,7 @@ static BOOL GetDestDir(wchar_t *dir,int move)
     0000000000111111111122222222223333333333444444444455555555556666666666777777
     0123456789012345678901234567890123456789012345678901234567890123456789012345
   */
+#if 0
   static const wchar_t *NTEventCopyHistoryName=L"NTEventCopy";
   static struct InitDialogItem InitDlg[]={
   /*0*/  {DI_DOUBLEBOX,3,1,72,6,0,0,0,0,L""},
@@ -597,10 +641,13 @@ static BOOL GetDestDir(wchar_t *dir,int move)
   }
   else
     return FALSE;
+#endif
+  return false;
 }
 
 static void GetFileAttr(wchar_t *file,unsigned long long *size,SYSTEMTIME *mod)
 {
+#if 0
   *size=0;
   memset(mod,0,sizeof(SYSTEMTIME));
   WIN32_FIND_DATA find; HANDLE hFind;
@@ -613,10 +660,12 @@ static void GetFileAttr(wchar_t *file,unsigned long long *size,SYSTEMTIME *mod)
     FileTimeToLocalFileTime(&find.ftLastWriteTime,&local);
     FileTimeToSystemTime(&local,mod);
   }
+#endif
 }
 
 static int CheckRetry(const wchar_t *afrom,const wchar_t *ato)
 {
+#if 0
   wchar_t from[512],to[512],buff[MAX_PATH];
   FSF.sprintf(buff,L"%s",afrom);
   FSF.TruncPathStr(buff,55);
@@ -626,10 +675,12 @@ static int CheckRetry(const wchar_t *afrom,const wchar_t *ato)
   FSF.sprintf(to,GetMsg(mRetryTo),buff);
   const wchar_t *MsgItems[]={GetMsg(mRetryError),from,to,GetMsg(mRetryRetry),GetMsg(mRetrySkip),GetMsg(mRetryCancel)};
   return Info.Message(Info.ModuleNumber,FMSG_ERRORTYPE|FMSG_WARNING,NULL,MsgItems,ArraySize(MsgItems),3);
+#endif
 }
 
 static long WINAPI FileExistsDialogProc(HANDLE hDlg,int Msg,int Param1,long Param2)
 {
+#if 0
   switch(Msg)
   {
     case DN_CTLCOLORDIALOG:
@@ -670,6 +721,7 @@ static long WINAPI FileExistsDialogProc(HANDLE hDlg,int Msg,int Param1,long Para
     }
   }
   return Info.DefDlgProc(hDlg,Msg,Param1,Param2);
+#endif
 }
 
 
@@ -677,6 +729,7 @@ static long WINAPI FileExistsDialogProc(HANDLE hDlg,int Msg,int Param1,long Para
 
 int WINAPI GetFilesW(HANDLE hPlugin,struct PluginPanelItem *PanelItem,int ItemsNumber,int Move,const wchar_t **DestPath,int OpMode)
 {
+#if 0
   EventViewer *panel=(EventViewer *)hPlugin;
   int OpMode2=OpMode&(~OPM_TOPLEVEL);
   if((!panel->level)&&(panel->computer_ptr)&&(!TechOpt.NetBackup)) return 0; //no remote backup
@@ -1008,11 +1061,13 @@ retry_append:
       DeleteFilesW(hPlugin,PanelItem,ItemsNumber,OpMode);
   }
   return result;
-
+#endif
+  return false;
 }
 
 int WINAPI DeleteFilesW(HANDLE hPlugin,struct PluginPanelItem *PanelItem,int ItemsNumber,int OpMode)
 {
+#if 0
   EventViewer *panel=(EventViewer *)hPlugin;
   if(panel->level==0)
   {
@@ -1057,10 +1112,13 @@ int WINAPI DeleteFilesW(HANDLE hPlugin,struct PluginPanelItem *PanelItem,int Ite
     Info.ControlShort(hPlugin,FCTL_REDRAWPANEL,NULL);
     return TRUE;
   }
+#endif
+  return 0;
 }
 
 HANDLE WINAPI OpenFilePluginW(const wchar_t *Name,const unsigned char *Data,int DataSize,int OpMode)
 {
+#if 0
   if(!Name)
     return INVALID_HANDLE_VALUE;
   if(!Opt.BrowseEvtFiles)
@@ -1068,10 +1126,13 @@ HANDLE WINAPI OpenFilePluginW(const wchar_t *Name,const unsigned char *Data,int 
   if(!FSF.ProcessName(L"*.evt",(wchar_t*)Name, 0,PN_CMPNAMELIST))
     return INVALID_HANDLE_VALUE;
   return RealOpenFilePlugin(Name,Data,DataSize);
+#endif
+  return 0;
 }
 
 static HANDLE RealOpenFilePlugin(const wchar_t *Name,const unsigned char *Data,int DataSize)
 {
+#if 0
   wchar_t path_ansi[MAX_PATH];
   t_OemToChar(Name,path_ansi);
   HANDLE evt=OpenBackupEventLog(NULL,path_ansi); //LOCAL
@@ -1089,10 +1150,13 @@ static HANDLE RealOpenFilePlugin(const wchar_t *Name,const unsigned char *Data,i
   panel->computer_ptr=NULL;
   panel->redraw=FALSE;
   return (HANDLE)panel;
+#endif
+  return 0;
 }
 
 int WINAPI CompareW(HANDLE hPlugin,const struct PluginPanelItem *Item1,const struct PluginPanelItem *Item2,unsigned int Mode)
 {
+#if 0
   EventViewer *panel=(EventViewer *)hPlugin;
   if(((Mode==SM_NAME)||(Mode==SM_EXT))&&panel->level)
   {
@@ -1107,6 +1171,7 @@ int WINAPI CompareW(HANDLE hPlugin,const struct PluginPanelItem *Item1,const str
       return res;
     }
   }
+#endif
   return -2;
 }
 
@@ -1119,6 +1184,7 @@ int WINAPI CompareW(HANDLE hPlugin,const struct PluginPanelItem *Item1,const str
 // Z : Source
 static wchar_t *GetTitles(const wchar_t *str)
 {
+#if 0
   wchar_t *Result=NULL;
   if((!wcsncmp(str,L"C0",2))&&((!str[2])||(str[2]==',')))
   {
@@ -1149,10 +1215,12 @@ static wchar_t *GetTitles(const wchar_t *str)
     Result=GetMsg(mTitleSource);
   }
   return Result;
+#endif
 }
 
 void WINAPI GetOpenPluginInfoW(HANDLE hPlugin,struct OpenPluginInfo *Info)
 {
+#if 0
   EventViewer *panel=(EventViewer *)hPlugin;
   Info->StructSize=sizeof(*Info);
   Info->Flags=OPIF_USEHIGHLIGHTING|OPIF_ADDDOTS|OPIF_SHOWNAMESONLY|OPIF_FINDFOLDERS;
@@ -1293,11 +1361,12 @@ void WINAPI GetOpenPluginInfoW(HANDLE hPlugin,struct OpenPluginInfo *Info)
     KeyBar.ShiftTitles[6-1]=GetMsg(mKeyLocal);
   KeyBar.AltTitles[6-1]=(wchar_t*)L"";
   Info->KeyBar=&KeyBar;
-
+#endif
 }
 
 static long WINAPI ComputerDialogProc(HANDLE hDlg, int Msg,int Param1,long Param2)
 {
+#if 0
   switch(Msg)
   {
     case DN_INITDIALOG:
@@ -1305,10 +1374,13 @@ static long WINAPI ComputerDialogProc(HANDLE hDlg, int Msg,int Param1,long Param
       break;
   }
   return Info.DefDlgProc(hDlg,Msg,Param1,Param2);
+#endif
+  return 0;
 }
 
 int WINAPI ProcessKeyW(HANDLE hPlugin,int Key,unsigned int ControlState)
 {
+#if 0
   EventViewer *panel=(EventViewer *)hPlugin;
   if((ControlState==PKF_SHIFT)&&(Key==VK_F4||Key==VK_F3)) //skip Shift-F4
   {
@@ -1421,6 +1493,8 @@ int WINAPI ProcessKeyW(HANDLE hPlugin,int Key,unsigned int ControlState)
       return TRUE;
   }
   return FALSE;
+#endif
+  return false;
 }
 
 int WINAPI ConfigureW(int ItemNumber)
@@ -1435,6 +1509,7 @@ int WINAPI ConfigureW(int ItemNumber)
 
 int WINAPI ProcessEventW(HANDLE hPlugin,int Event,void *Param)
 {
+#if 0
   EventViewer *panel=(EventViewer *)hPlugin;
   if(Event==FE_REDRAW&&panel->redraw)
   {
@@ -1481,11 +1556,16 @@ int WINAPI ProcessEventW(HANDLE hPlugin,int Event,void *Param)
     }
   }
   return FALSE;
+#endif
+  return FALSE;
 }
 
 int WINAPI GetMinFarVersionW(void)
 {
+#if 0
   return FARMANAGERVERSION;
+#endif
+  return 0;
 }
 
 void WINAPI ExitFARW()
