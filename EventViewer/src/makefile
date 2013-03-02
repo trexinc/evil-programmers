@@ -10,7 +10,7 @@ OBJDIR=o$(DIRSURF)
 BINDIR=bin$(DIRSURF)
 BOOTSTRAPDIR=bootstrap$(DIRSURF)
 
-CFLAGS=-c -Os -Wall -fomit-frame-pointer -fstrict-aliasing -fno-exceptions -fno-rtti -fno-threadsafe-statics $(CCWIDE) -I $(COMINC)
+CFLAGS=-c -Os -std=gnu++0x -Wall -fomit-frame-pointer -fstrict-aliasing -fno-exceptions -fno-rtti -fno-threadsafe-statics $(CCWIDE) -I $(COMINC)
 LFLAGS=-s
 LIBS=-lntdll
 

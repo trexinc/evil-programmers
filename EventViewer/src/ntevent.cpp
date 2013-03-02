@@ -4,6 +4,7 @@
 #include "farcolor.hpp"
 #include "evplugin.h"
 #include "memory.h"
+#include "PluginSettings.hpp"
 
 #include <initguid.h>
 // {D888455B-4E68-43f8-8D54-9A96913974B2}
@@ -14,15 +15,14 @@ DEFINE_GUID(DiskMenuGuid, 0xe08dd543, 0x15f9, 0x4f3d, 0x95, 0x17, 0x2c, 0x44, 0x
 DEFINE_GUID(PluginMenuGuid, 0xfc3e83e, 0xf0d, 0x47c9, 0x87, 0xc5, 0x11, 0xe1, 0x3f, 0x5c, 0x51, 0x0);
 // {BFDA5B9F-3C7E-4c62-9B89-6BC872E89037}
 DEFINE_GUID(ConfigMenuGuid, 0xbfda5b9f, 0x3c7e, 0x4c62, 0x9b, 0x89, 0x6b, 0xc8, 0x72, 0xe8, 0x90, 0x37);
-
+// {1A001727-EAEE-4bf9-893C-0FB4246FC483}
+DEFINE_GUID(ConfigGuid, 0x1a001727, 0xeaee, 0x4bf9, 0x89, 0x3c, 0xf, 0xb4, 0x24, 0x6f, 0xc4, 0x83);
 
 PluginStartupInfo Info;
 FARSTANDARDFUNCTIONS FSF;
-wchar_t PluginRootKey[80];
 
 struct Options {
   BOOL AddToDisksMenu;
-  int DisksMenuDigit;
   BOOL AddToPluginsMenu;
   BOOL AddToConfigMenu;
   BOOL BrowseEvtFiles;
@@ -30,13 +30,13 @@ struct Options {
   BOOL Restore;
   DWORD ScanType;
   wchar_t Prefix[16];
-} Opt={FALSE,0,TRUE,TRUE,TRUE,TRUE,TRUE,0,L"evt"};
+} Opt;
 
 struct QVOptions {
   BOOL ShowHeader;
   BOOL ShowDescription;
   BOOL ShowData;
-} QVOpt={FALSE,TRUE,TRUE};
+} QVOpt;
 
 struct TechOptions
 {
@@ -53,7 +53,7 @@ struct PluginState
   int ViewMode;
   int SortMode;
   int SortOrder;
-} State={L"",L"",0,0,-1,-1,-1};
+} State;
 
 static const wchar_t *GetMsg(int MsgId)
 {
@@ -61,40 +61,6 @@ static const wchar_t *GetMsg(int MsgId)
 }
 
 static const wchar_t *default_column_data=L"";
-
-struct InitDialogItem
-{
-  int Type;
-  int X1, Y1, X2, Y2;
-  int Focus;
-  int Selected;
-  unsigned int Flags;
-  int DefaultButton;
-  const wchar_t *Data;
-};
-
-static void InitDialogItems(InitDialogItem *Init,FarDialogItem *Item,int ItemsNumber)
-{
-#if 0
-  for (int i=0;i<ItemsNumber;i++)
-  {
-    Item[i].Type=Init[i].Type;
-    Item[i].X1=Init[i].X1;
-    Item[i].Y1=Init[i].Y1;
-    Item[i].X2=Init[i].X2;
-    Item[i].Y2=Init[i].Y2;
-    Item[i].Focus=Init[i].Focus;
-    Item[i].Selected=Init[i].Selected;
-    Item[i].Flags=Init[i].Flags;
-    Item[i].DefaultButton=Init[i].DefaultButton;
-    Item[i].MaxLen=0;
-    if((unsigned)Init[i].Data<2000)
-      Item[i].PtrData=GetMsg((unsigned int)(DWORD_PTR)Init[i].Data);
-    else
-      Item[i].PtrData=Init[i].Data;
-  }
-#endif
-}
 
 static bool CheckRemoteEventLog(wchar_t *computer)
 {
@@ -139,72 +105,42 @@ void WINAPI SetStartupInfoW(const struct PluginStartupInfo *Info)
 {
   memset(&::Info, 0, sizeof(::Info));
   memmove(&::Info, Info, (Info->StructSize > (int)sizeof(::Info))?sizeof(::Info):Info->StructSize);
-    ::FSF=*Info->FSF;
-    ::Info.FSF=&::FSF;
+  ::FSF=*Info->FSF;
+  ::Info.FSF=&::FSF;
 
-    wcscpy(PluginRootKey,L"HKEY_CURRENT_USER\\Software\\Far2\\Plugins");
-    wcscat(PluginRootKey,L"\\ntevent");
-    TechOpt.NetBackup=FALSE;
-    TechOpt.Separator[0]=0;
-    HKEY hKey;
-    DWORD Type;
-    DWORD DataSize=0;
-    if((RegOpenKeyEx(HKEY_CURRENT_USER,PluginRootKey,0,KEY_QUERY_VALUE,&hKey))==ERROR_SUCCESS)
-    {
-      //tech options
-      DataSize=sizeof(Opt.AddToConfigMenu);
-      RegQueryValueEx(hKey,L"AddToConfigMenu",0,&Type,(LPBYTE)&Opt.AddToConfigMenu,&DataSize);
-      //state options
-      DataSize=sizeof(State.Path);
-      RegQueryValueEx(hKey,L"StatePath",0,&Type,(LPBYTE)State.Path,&DataSize);
-      DataSize=sizeof(State.Computer);
-      RegQueryValueEx(hKey,L"StateComputer",0,&Type,(LPBYTE)State.Computer,&DataSize);
-      DataSize=sizeof(State.Current);
-      RegQueryValueEx(hKey,L"StateCurrent",0,&Type,(LPBYTE)&State.Current,&DataSize);
-      DataSize=sizeof(State.Top);
-      RegQueryValueEx(hKey,L"StateTop",0,&Type,(LPBYTE)&State.Top,&DataSize);
-      DataSize=sizeof(State.ViewMode);
-      RegQueryValueEx(hKey,L"StateViewMode",0,&Type,(LPBYTE)&State.ViewMode,&DataSize);
-      DataSize=sizeof(State.SortMode);
-      RegQueryValueEx(hKey,L"StateSortMode",0,&Type,(LPBYTE)&State.SortMode,&DataSize);
-      DataSize=sizeof(State.SortOrder);
-      RegQueryValueEx(hKey,L"StateSortOrder",0,&Type,(LPBYTE)&State.SortOrder,&DataSize);
-      //main options
-      DataSize=sizeof(Opt.AddToDisksMenu);
-      RegQueryValueEx(hKey,L"AddToDisksMenu",0,&Type,(LPBYTE)&Opt.AddToDisksMenu,&DataSize);
-      DataSize=sizeof(Opt.DisksMenuDigit);
-      RegQueryValueEx(hKey,L"DisksMenuDigit",0,&Type,(LPBYTE)&Opt.DisksMenuDigit,&DataSize);
-      DataSize=sizeof(Opt.AddToPluginsMenu);
-      RegQueryValueEx(hKey,L"AddToPluginsMenu",0,&Type,(LPBYTE)&Opt.AddToPluginsMenu,&DataSize);
-      DataSize=sizeof(Opt.BrowseEvtFiles);
-      RegQueryValueEx(hKey,L"BrowseEvtFiles",0,&Type,(LPBYTE)&Opt.BrowseEvtFiles,&DataSize);
-      DataSize=sizeof(Opt.StripExt);
-      RegQueryValueEx(hKey,L"StripExt",0,&Type,(LPBYTE)&Opt.StripExt,&DataSize);
-      DataSize=sizeof(Opt.ScanType);
-      RegQueryValueEx(hKey,L"ScanType",0,&Type,(LPBYTE)&Opt.ScanType,&DataSize);
-      DataSize=sizeof(Opt.Prefix);
-      RegQueryValueEx(hKey,L"Prefix",0,&Type,(LPBYTE)Opt.Prefix,&DataSize);
-      DataSize=sizeof(Opt.Restore);
-      RegQueryValueEx(hKey,L"Restore",0,&Type,(LPBYTE)&Opt.Restore,&DataSize);
-      //QuickView
-      DataSize=sizeof(QVOpt.ShowHeader);
-      RegQueryValueEx(hKey,L"ShowHeader",0,&Type,(LPBYTE)&QVOpt.ShowHeader,&DataSize);
-      DataSize=sizeof(QVOpt.ShowDescription);
-      RegQueryValueEx(hKey,L"ShowDescription",0,&Type,(LPBYTE)&QVOpt.ShowDescription,&DataSize);
-      DataSize=sizeof(QVOpt.ShowData);
-      RegQueryValueEx(hKey,L"ShowData",0,&Type,(LPBYTE)&QVOpt.ShowData,&DataSize);
-      //Tech
-      DataSize=sizeof(TechOpt.Separator);
-      RegQueryValueEx(hKey,L"Separator",0,&Type,(LPBYTE)TechOpt.Separator,&DataSize);
-      DataSize=sizeof(TechOpt.NetBackup);
-      RegQueryValueEx(hKey,L"NetBackup",0,&Type,(LPBYTE)&TechOpt.NetBackup,&DataSize);
+  PluginSettings settings(MainGuid,::Info.SettingsControl);
+  //tech options
+  Opt.AddToConfigMenu=settings.Get(0,L"AddToConfigMenu",TRUE);
+  //main options
+  Opt.AddToDisksMenu=settings.Get(0,L"AddToDisksMenu",FALSE);
+  Opt.AddToPluginsMenu=settings.Get(0,L"AddToPluginsMenu",TRUE);
+  Opt.BrowseEvtFiles=settings.Get(0,L"BrowseEvtFiles",TRUE);
+  Opt.StripExt=settings.Get(0,L"StripExt",TRUE);
+  Opt.ScanType=settings.Get(0,L"ScanType",0);
+  settings.Get(0,L"Prefix",Opt.Prefix,ArraySize(Opt.Prefix),L"evt");
+  Opt.Restore=settings.Get(0,L"Restore",TRUE);
 
-      RegCloseKey(hKey);
-      if((Opt.ScanType!=0)&&(Opt.ScanType!=1))
-        Opt.ScanType=0;
-      if(!Opt.Prefix[0])
-        FSF.sprintf(Opt.Prefix,L"%s",L"evt");
-    }
+  //state options
+  settings.Get(0,L"StatePath",State.Path,ArraySize(State.Path),L"");
+  settings.Get(0,L"StateComputer",State.Computer,ArraySize(State.Computer),L"");
+  State.Current=settings.Get(0,L"StateCurrent",0);
+  State.Top=settings.Get(0,L"StateTop",0);
+  State.ViewMode=settings.Get(0,L"StateViewMode",-1);
+  State.SortMode=settings.Get(0,L"StateSortMode",-1);
+  State.SortOrder=settings.Get(0,L"StateSortOrder",-1);
+
+  //QuickView
+  QVOpt.ShowHeader=settings.Get(0,L"ShowHeader",FALSE);
+  QVOpt.ShowDescription=settings.Get(0,L"ShowDescription",TRUE);
+  QVOpt.ShowData=settings.Get(0,L"ShowData",TRUE);
+
+  //Tech
+  settings.Get(0,L"Separator",TechOpt.Separator,ArraySize(TechOpt.Separator),L"");
+  TechOpt.NetBackup=settings.Get(0,L"NetBackup",FALSE);
+  if((Opt.ScanType!=0)&&(Opt.ScanType!=1))
+    Opt.ScanType=0;
+  if(!Opt.Prefix[0])
+    FSF.sprintf(Opt.Prefix,L"%s",L"evt");
 }
 
 void WINAPI GetPluginInfoW(struct PluginInfo *Info)
@@ -1497,14 +1433,9 @@ int WINAPI ProcessKeyW(HANDLE hPlugin,int Key,unsigned int ControlState)
   return false;
 }
 
-int WINAPI ConfigureW(int ItemNumber)
+intptr_t WINAPI ConfigureW(const struct ConfigureInfo *Info)
 {
-  switch(ItemNumber)
-  {
-    case 0:
-      return(Config());
-  }
-  return(FALSE);
+  return Config();
 }
 
 int WINAPI ProcessEventW(HANDLE hPlugin,int Event,void *Param)

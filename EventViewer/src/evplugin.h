@@ -46,7 +46,6 @@ enum {
   mCpyDlgMoveToN,
   mClearLog,
   mConfigAddToDisksMenu,
-  mConfigDisksMenuDigit,
   mConfigAddToPluginMenu,
   mConfigBrowseEvtFiles,
   mConfigStripExtension,

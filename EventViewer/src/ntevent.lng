@@ -63,7 +63,6 @@
 "Do you wish to clear \"%s\" log"
 //config
 "&Add to Disks menu"
-"Disks menu &hotkey ('1'-'9'). Leave empty to autoassign"
 "Add to &Plugins menu"
 "Browse .&evt files"
 "&Strip second extension"
