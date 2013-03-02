@@ -32,9 +32,9 @@ class CFarDialog
   public:
     inline CFarDialog(): iDlg(INVALID_HANDLE_VALUE) {};
     inline ~CFarDialog() {Info.DialogFree(iDlg);};
-    inline int Execute(INT_PTR PluginNumber,int X1,int Y1,int X2,int Y2,const wchar_t* HelpTopic,struct FarDialogItem* Item,int ItemsNumber,DWORD Reserved,DWORD Flags,FARWINDOWPROC DlgProc,LONG_PTR Param)
+    inline int Execute(const GUID& PluginId,const GUID& Id,int X1,int Y1,int X2,int Y2,const wchar_t* HelpTopic,struct FarDialogItem* Item,int ItemsNumber,DWORD Reserved,FARDIALOGFLAGS Flags,FARWINDOWPROC DlgProc,void* Param)
     {
-      iDlg=Info.DialogInit(PluginNumber,X1,Y1,X2,Y2,HelpTopic,Item,ItemsNumber,Reserved,Flags,DlgProc,Param);
+      iDlg=Info.DialogInit(&PluginId,&Id,X1,Y1,X2,Y2,HelpTopic,Item,ItemsNumber,Reserved,Flags,DlgProc,Param);
       return Info.DialogRun(iDlg);
     };
     inline HANDLE Handle(void) {return iDlg;};
@@ -43,13 +43,13 @@ class CFarDialog
     inline DWORD Flags(int index)
     {
       FarDialogItem DialogItem;
-      if(Info.SendDlgMessage(iDlg,DM_GETDLGITEMSHORT,index,(LONG_PTR)&DialogItem)) return DialogItem.Flags;
+      if(Info.SendDlgMessage(iDlg,DM_GETDLGITEMSHORT,index,&DialogItem)) return DialogItem.Flags;
       return 0;
     };
     inline DWORD Type(int index)
     {
       FarDialogItem DialogItem;
-      if(Info.SendDlgMessage(iDlg,DM_GETDLGITEMSHORT,index,(LONG_PTR)&DialogItem)) return DialogItem.Type;
+      if(Info.SendDlgMessage(iDlg,DM_GETDLGITEMSHORT,index,&DialogItem)) return DialogItem.Type;
       return 0;
     };
 };
@@ -82,11 +82,11 @@ class CFarPanel
   private:
     CFarPanel();
   public:
-    inline CFarPanel(HANDLE aPlugin,int aCommand): iPlugin(aPlugin),iCurDir(NULL),iCurDirSize(0),iItem(NULL),iItemSize(0) {iResult=Info.Control(aPlugin,aCommand,0,(LONG_PTR)&iInfo);};
+    inline CFarPanel(HANDLE aPlugin,FILE_CONTROL_COMMANDS aCommand): iPlugin(aPlugin),iCurDir(NULL),iCurDirSize(0),iItem(NULL),iItemSize(0) {iResult=Info.PanelControl(aPlugin,aCommand,0,&iInfo);};
     ~CFarPanel();
     inline bool IsOk(void) {return iResult;}
     inline int PanelType(void) {return iInfo.PanelType;};
-    inline int Plugin(void) {return iInfo.Plugin;};
+    inline int Plugin(void) {return iInfo.Flags&PFLAGS_PLUGIN;};
     inline int ItemsNumber(void) {return iInfo.ItemsNumber;};
     inline int SelectedItemsNumber(void) {return iInfo.SelectedItemsNumber;};
     inline int CurrentItem(void) {return iInfo.CurrentItem;};
@@ -94,9 +94,9 @@ class CFarPanel
     wchar_t* CurDir(void);
     PluginPanelItem& operator[](size_t index);
     PluginPanelItem& Selected(size_t index);
-    inline void StartSelection(void) {Info.Control(iPlugin,FCTL_BEGINSELECTION,0,0);};
-    inline void RemoveSelection(size_t index) {Info.Control(iPlugin,FCTL_SETSELECTION,index,0);};
-    inline void CommitSelection(void) {Info.Control(iPlugin,FCTL_ENDSELECTION,0,0);};
+    inline void StartSelection(void) {Info.PanelControl(iPlugin,FCTL_BEGINSELECTION,0,0);};
+    inline void RemoveSelection(size_t index) {Info.PanelControl(iPlugin,FCTL_CLEARSELECTION,index,0);};
+    inline void CommitSelection(void) {Info.PanelControl(iPlugin,FCTL_ENDSELECTION,0,0);};
 };
 
 #endif

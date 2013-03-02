@@ -1,6 +1,8 @@
 static long WINAPI ConfigDialogProc(HANDLE hDlg, int Msg,int Param1,long Param2)
 {
+#if 0
   return Info.DefDlgProc(hDlg,Msg,Param1,Param2);
+#endif
 }
 
 enum
@@ -56,7 +58,7 @@ static int Config()
     0000000000111111111122222222223333333333444444444455555555556666666666777777
     0123456789012345678901234567890123456789012345678901234567890123456789012345
   */
-
+#if 0
   static struct InitDialogItem InitItems[]={
   /* 0*/  {DI_DOUBLEBOX,3,1,72,18,0,0,0,0,(wchar_t *)mName},
   /* 1*/  {DI_CHECKBOX,5,2,0,0,0,0,0,0,(wchar_t *)mConfigAddToDisksMenu},
@@ -139,4 +141,6 @@ static int Config()
     RegCloseKey(hKey);
   }
   return(TRUE);
+#endif
+  return false;
 }

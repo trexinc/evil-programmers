@@ -76,6 +76,7 @@ static void GetMessageFile(wchar_t *Src,struct MsgPath **MsgFile,int *MsgFileCou
 
 static wchar_t *GetMsgAnsi(int MsgId)
 {
+#if 0
   static wchar_t buff[SMALL_BUFFER];
   wchar_t *MsgOem=GetMsg(MsgId);
   if(wcslen(MsgOem)<SMALL_BUFFER)
@@ -83,6 +84,8 @@ static wchar_t *GetMsgAnsi(int MsgId)
   else
     FSF.sprintf(buff,L"%s",L"invalid message");
   return buff;
+#endif
+  return 0;
 }
 
 #define FILL_COUNT 64
@@ -254,6 +257,7 @@ static wchar_t *GetComputerName(EVENTLOGRECORD *rec)
 
 static wchar_t *GetType(DWORD type)
 {
+#if 0
   switch(type)
   {
     case EVENTLOG_ERROR_TYPE:
@@ -268,6 +272,8 @@ static wchar_t *GetType(DWORD type)
       return GetMsg(mTypeFailureAudit);
   }
   return GetMsg(mTypeUnknown);
+#endif
+  return 0;
 }
 
 static BOOL CheckLogName(EventViewer *panel,const wchar_t *LogName)
