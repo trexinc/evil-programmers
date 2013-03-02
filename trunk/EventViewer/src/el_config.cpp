@@ -1,16 +1,12 @@
-static long WINAPI ConfigDialogProc(HANDLE hDlg, int Msg,int Param1,long Param2)
+static intptr_t WINAPI ConfigDialogProc(HANDLE hDlg, intptr_t Msg,intptr_t Param1,void* Param2)
 {
-#if 0
   return Info.DefDlgProc(hDlg,Msg,Param1,Param2);
-#endif
 }
 
 enum
 {
   CONFIG_BORDER=0,
   CONFIG_ADDDISK,
-  CONFIG_DISKHOTKEY,
-  CONFIG_DISKHOTKEYLABEL,
   CONFIG_ADDMENU,
   CONFIG_SEP1,
   CONFIG_BROWSEEVT,
@@ -40,76 +36,66 @@ static int Config()
   00                                                                            00
   01   ÉÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ Event viewer ÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ»   01
   02   º [x] Add to Disks menu                                              º   02
-  03   º   2 Disks menu hotkey ('1'-'9'). Leave empty to autoassign         º   03
-  04   º [ ] Add to Plugins menu                                            º   04
-  05   ÇÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¶   05
-  06   º [ ] Browse .evt files                                              º   06
-  07   º [ ] Strip second extension                                         º   07
-  08   ÇÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¶   08
-  09   º (*) Scan forward                                                   º   09
-  10   º ( ) Scan backward                                                  º   10
-  11   ÇÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¶   11
-  12   º Command line prefix to start the nt events:                        º   12
-  13   º evt                                                                º   13
-  14   ÇÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¶   14
-  15   º                         [ Ok ]  [ Cancel ]                         º   15
-  16   ÈÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼   16
-  17                                                                            17
+  03   º [ ] Add to Plugins menu                                            º   03
+  04   ÇÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¶   04
+  05   º [ ] Browse .evt files                                              º   05
+  06   º [ ] Strip second extension                                         º   06
+  07   ÇÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¶   07
+  08   º (*) Scan forward                                                   º   08
+  09   º ( ) Scan backward                                                  º   09
+  10   ÇÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¶   10
+  11   º Command line prefix to start the nt events:                        º   11
+  12   º evt                                                                º   12
+  13   ÇÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¶   13
+  14   º                         [ Ok ]  [ Cancel ]                         º   14
+  15   ÈÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼   15
+  16                                                                            16
     0000000000111111111122222222223333333333444444444455555555556666666666777777
     0123456789012345678901234567890123456789012345678901234567890123456789012345
   */
-#if 0
-  static struct InitDialogItem InitItems[]={
-  /* 0*/  {DI_DOUBLEBOX,3,1,72,18,0,0,0,0,(wchar_t *)mName},
-  /* 1*/  {DI_CHECKBOX,5,2,0,0,0,0,0,0,(wchar_t *)mConfigAddToDisksMenu},
-  /* 2*/  {DI_FIXEDIT,7,3,7,3,1,0,0,0,L""},
-  /* 3*/  {DI_TEXT,9,3,0,0,0,0,0,0,(wchar_t *)mConfigDisksMenuDigit},
-  /* 4*/  {DI_CHECKBOX,5,4,0,0,0,0,0,0,(wchar_t *)mConfigAddToPluginMenu},
-  /* 5*/  {DI_TEXT,-1,5,0,0,0,0,DIF_SEPARATOR,0,L""},
-  /* 6*/  {DI_CHECKBOX,5,6,0,0,0,0,0,0,(wchar_t *)mConfigBrowseEvtFiles},
-  /* 7*/  {DI_CHECKBOX,5,7,0,0,0,0,0,0,(wchar_t *)mConfigStripExtension},
-  /* 7*/  {DI_CHECKBOX,5,8,0,0,0,0,0,0,(wchar_t *)mConfigRestore},
-  /* 8*/  {DI_TEXT,-1,9,0,0,0,0,DIF_SEPARATOR,0,L""},
-  /* 9*/  {DI_RADIOBUTTON,5,10,0,0,0,0,DIF_GROUP,0,(wchar_t *)mConfigScan1},
-  /*10*/  {DI_RADIOBUTTON,5,11,0,0,0,0,0,0,(wchar_t *)mConfigScan2},
-  /*10*/  {DI_CHECKBOX,39,10,0,0,0,0,0,0,(wchar_t *)mConfigShowHeader},
-  /*10*/  {DI_CHECKBOX,39,11,0,0,0,0,0,0,(wchar_t *)mConfigShowDescription},
-  /*10*/  {DI_CHECKBOX,39,12,0,0,0,0,0,0,(wchar_t *)mConfigShowData},
-  /*11*/  {DI_TEXT,-1,13,0,0,0,0,DIF_SEPARATOR,0,L""},
-  /* 3*/  {DI_VTEXT,37,9,0,0,0,0,0,0,L"xxxxx"},
-  /*12*/  {DI_TEXT,5,14,0,0,0,0,0,0,(wchar_t *)mConfigPrefix},
-  /*13*/  {DI_FIXEDIT,5,15,19,12,0,(int)L"AAAAAAAAAAAAAAA",DIF_MASKEDIT,0,L""},
-  /*14*/  {DI_TEXT,-1,16,0,0,0,0,DIF_SEPARATOR,0,L""},
-  /*15*/  {DI_BUTTON,0,17,0,0,0,0,DIF_CENTERGROUP,1,(wchar_t *)mConfigSave},
-  /*16*/  {DI_BUTTON,0,17,0,0,0,0,DIF_CENTERGROUP,0,(wchar_t *)mConfigCancel}
+  struct FarDialogItem DialogItems[]={
+  //        Type           X1 Y1   X2  Y2 Sel History                     Mask Flags                              Data
+  /* 0*/  {DI_DOUBLEBOX,    3,  1, 72, 17,0,0,                          0,   0,                                 GetMsg(mName),                  0,0},
+  /* 1*/  {DI_CHECKBOX,     5,  2,  0,  0,0,0,                          0,   0,                                 GetMsg(mConfigAddToDisksMenu),  0,0},
+  /* 2*/  {DI_CHECKBOX,     5,  3,  0,  0,0,0,                          0,   0,                                 GetMsg(mConfigAddToPluginMenu), 0,0},
+  /* 3*/  {DI_TEXT,        -1,  4,  0,  0,0,0,                          0,   DIF_SEPARATOR,                     L"",                            0,0},
+  /* 4*/  {DI_CHECKBOX,     5,  5,  0,  0,0,0,                          0,   0,                                 GetMsg(mConfigBrowseEvtFiles),  0,0},
+  /* 5*/  {DI_CHECKBOX,     5,  6,  0,  0,0,0,                          0,   0,                                 GetMsg(mConfigStripExtension),  0,0},
+  /* 6*/  {DI_CHECKBOX,     5,  7,  0,  0,0,0,                          0,   0,                                 GetMsg(mConfigRestore),         0,0},
+  /* 7*/  {DI_TEXT,        -1,  8,  0,  0,0,0,                          0,   DIF_SEPARATOR,                     L"",                            0,0},
+  /* 8*/  {DI_RADIOBUTTON,  5,  9,  0,  0,0,0,                          0,   DIF_GROUP,                         GetMsg(mConfigScan1),           0,0},
+  /* 9*/  {DI_RADIOBUTTON,  5, 10,  0,  0,0,0,                          0,   0,                                 GetMsg(mConfigScan2),           0,0},
+  /*11*/  {DI_CHECKBOX,    39,  9,  0,  0,0,0,                          0,   0,                                 GetMsg(mConfigShowHeader),      0,0},
+  /*12*/  {DI_CHECKBOX,    39, 10,  0,  0,0,0,                          0,   0,                                 GetMsg(mConfigShowDescription), 0,0},
+  /*13*/  {DI_CHECKBOX,    39, 11,  0,  0,0,0,                          0,   0,                                 GetMsg(mConfigShowData),        0,0},
+  /*14*/  {DI_TEXT,        -1, 12,  0,  0,0,0,                          0,   DIF_SEPARATOR,                     L"",                            0,0},
+  /*15*/  {DI_VTEXT,       37,  8,  0,  0,0,0,                          0,   0,                                 L"xxxxx",                       0,0},
+  /*16*/  {DI_TEXT,         5, 13,  0,  0,0,0,                          0,   0,                                 GetMsg(mConfigPrefix),          0,0},
+  /*17*/  {DI_FIXEDIT,      5, 14, 19, 12,0,L"AAAAAAAAAAAAAAA",         0,   DIF_MASKEDIT,                      L"",                            0,0},
+  /*18*/  {DI_TEXT,        -1, 15,  0,  0,0,0,                          0,   DIF_SEPARATOR,                     L"",                            0,0},
+  /*19*/  {DI_BUTTON,       0, 16,  0,  0,0,0,                          0,   DIF_CENTERGROUP|DIF_DEFAULTBUTTON, GetMsg(mConfigSave),            0,0},
+  /*20*/  {DI_BUTTON,       0, 16,  0,  0,0,0,                          0,   DIF_CENTERGROUP,                   GetMsg(mConfigCancel),          0,0}
   };
-  struct FarDialogItem DialogItems[ArraySize(InitItems)];
-  InitDialogItems(InitItems,DialogItems,ArraySize(InitItems));
-  TCHAR DisksMenuDigitText[21],PrefixText[21];
+ 
+  wchar_t PrefixText[21];
 
   DialogItems[CONFIG_ADDDISK].Selected=Opt.AddToDisksMenu;
-  if (Opt.DisksMenuDigit)
-  {
-    FSF.sprintf(DisksMenuDigitText,L"%d",Opt.DisksMenuDigit);
-    DialogItems[CONFIG_DISKHOTKEY].PtrData=DisksMenuDigitText;
-  }
   DialogItems[CONFIG_ADDMENU].Selected=Opt.AddToPluginsMenu;
   DialogItems[CONFIG_BROWSEEVT].Selected=Opt.BrowseEvtFiles;
   DialogItems[CONFIG_STRIPEXT].Selected=Opt.StripExt;
   DialogItems[CONFIG_RESTORE].Selected=Opt.Restore;
   DialogItems[CONFIG_FORWARD+Opt.ScanType].Selected=1;
   FSF.sprintf(PrefixText,L"%s",Opt.Prefix);
-  DialogItems[CONFIG_PREFIX].PtrData=PrefixText;
+  DialogItems[CONFIG_PREFIX].Data=PrefixText;
   DialogItems[CONFIG_SHOWHEADER].Selected=QVOpt.ShowHeader;
   DialogItems[CONFIG_SHOWDESC].Selected=QVOpt.ShowDescription;
   DialogItems[CONFIG_SHOWDATA].Selected=QVOpt.ShowData;
 
   CFarDialog dialog;
-  int DlgCode=dialog.Execute(Info.ModuleNumber,-1,-1,76,20,L"Config",DialogItems,ArraySize(DialogItems),0,0,ConfigDialogProc,0);
+  int DlgCode=dialog.Execute(MainGuid,ConfigGuid,-1,-1,76,19,L"Config",DialogItems,ArraySize(DialogItems),0,0,ConfigDialogProc,0);
   if (DlgCode!=CONFIG_SAVE)
     return(FALSE);
   Opt.AddToDisksMenu=dialog.Check(CONFIG_ADDDISK);
-  Opt.DisksMenuDigit=FSF.atoi(dialog.Str(CONFIG_DISKHOTKEY));
   Opt.AddToPluginsMenu=dialog.Check(CONFIG_ADDMENU);
   Opt.BrowseEvtFiles=dialog.Check(CONFIG_BROWSEEVT);
   Opt.StripExt=dialog.Check(CONFIG_STRIPEXT);
@@ -122,25 +108,18 @@ static int Config()
   int i=CONFIG_FORWARD;
   Opt.ScanType=0;
   while(!dialog.Check(i)) {i++; Opt.ScanType++;}
-  HKEY hKey;
-  DWORD Disposition;
-  if((RegCreateKeyEx(HKEY_CURRENT_USER,PluginRootKey,0,NULL,0,KEY_WRITE,NULL,&hKey,&Disposition))==ERROR_SUCCESS)
-  {
-    RegSetValueEx(hKey,L"AddToDisksMenu",0,REG_DWORD,(LPBYTE)&Opt.AddToDisksMenu,sizeof(Opt.AddToDisksMenu));
-    RegSetValueEx(hKey,L"DisksMenuDigit",0,REG_DWORD,(LPBYTE)&Opt.DisksMenuDigit,sizeof(Opt.DisksMenuDigit));
-    RegSetValueEx(hKey,L"AddToPluginsMenu",0,REG_DWORD,(LPBYTE)&Opt.AddToPluginsMenu,sizeof(Opt.AddToPluginsMenu));
-    RegSetValueEx(hKey,L"BrowseEvtFiles",0,REG_DWORD,(LPBYTE)&Opt.BrowseEvtFiles,sizeof(Opt.BrowseEvtFiles));
-    RegSetValueEx(hKey,L"StripExt",0,REG_DWORD,(LPBYTE)&Opt.StripExt,sizeof(Opt.StripExt));
-    RegSetValueEx(hKey,L"ScanType",0,REG_DWORD,(LPBYTE)&Opt.ScanType,sizeof(Opt.ScanType));
-    RegSetValueEx(hKey,L"Prefix",0,REG_SZ,(LPBYTE)Opt.Prefix,(wcslen(Opt.Prefix)+1)*sizeof(TCHAR));
 
-    RegSetValueEx(hKey,L"Restore",0,REG_DWORD,(LPBYTE)&Opt.Restore,sizeof(Opt.Restore));
-    RegSetValueEx(hKey,L"ShowHeader",0,REG_DWORD,(LPBYTE)&QVOpt.ShowHeader,sizeof(QVOpt.ShowHeader));
-    RegSetValueEx(hKey,L"ShowDescription",0,REG_DWORD,(LPBYTE)&QVOpt.ShowDescription,sizeof(QVOpt.ShowDescription));
-    RegSetValueEx(hKey,L"ShowData",0,REG_DWORD,(LPBYTE)&QVOpt.ShowData,sizeof(QVOpt.ShowData));
-    RegCloseKey(hKey);
-  }
+  PluginSettings settings(MainGuid,Info.SettingsControl);
+  settings.Set(0,L"AddToDisksMenu",Opt.AddToDisksMenu);
+  settings.Set(0,L"AddToPluginsMenu",Opt.AddToPluginsMenu);
+  settings.Set(0,L"BrowseEvtFiles",Opt.BrowseEvtFiles);
+  settings.Set(0,L"StripExt",Opt.StripExt);
+  settings.Set(0,L"ScanType",Opt.ScanType);
+  settings.Set(0,L"Prefix",Opt.Prefix);
+  settings.Set(0,L"Restore",Opt.Restore);
+  settings.Set(0,L"ShowHeader",QVOpt.ShowHeader);
+  settings.Set(0,L"ShowDescription",QVOpt.ShowDescription);
+  settings.Set(0,L"ShowData",QVOpt.ShowData);
+
   return(TRUE);
-#endif
-  return false;
 }
