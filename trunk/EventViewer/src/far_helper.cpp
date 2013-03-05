@@ -63,20 +63,14 @@ wchar_t* CFarPanel::CurDir(void)
 
 PluginPanelItem& CFarPanel::operator[](size_t index)
 {
-#if 0
-  Realloc(iItem,iItemSize,Info.Control(iPlugin,FCTL_GETPANELITEM,index,0));
-  Info.Control(iPlugin,FCTL_GETPANELITEM,index,(LONG_PTR)iItem);
-  return *iItem;
-#endif
+  Realloc(iItem,iItemSize,Info.PanelControl(iPlugin,FCTL_GETPANELITEM,index,0));
+  Info.PanelControl(iPlugin,FCTL_GETPANELITEM,index,iItem);
   return *iItem;
 }
 
 PluginPanelItem& CFarPanel::Selected(size_t index)
 {
-#if 0
-  Realloc(iItem,iItemSize,Info.Control(iPlugin,FCTL_GETSELECTEDPANELITEM,index,0));
-  Info.Control(iPlugin,FCTL_GETSELECTEDPANELITEM,index,(LONG_PTR)iItem);
-  return *iItem;
-#endif
+  Realloc(iItem,iItemSize,Info.PanelControl(iPlugin,FCTL_GETSELECTEDPANELITEM,index,0));
+  Info.PanelControl(iPlugin,FCTL_GETSELECTEDPANELITEM,index,iItem);
   return *iItem;
 }
