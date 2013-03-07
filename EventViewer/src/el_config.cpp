@@ -95,7 +95,7 @@ static int Config()
   DialogItems[CONFIG_SHOWDATA].Selected=QVOpt.ShowData;
 
   CFarDialog dialog;
-  int DlgCode=dialog.Execute(MainGuid,ConfigGuid,-1,-1,76,19,L"Config",DialogItems,ArraySize(DialogItems),0,0,ConfigDialogProc,0);
+  intptr_t DlgCode=dialog.Execute(MainGuid,ConfigGuid,-1,-1,76,19,L"Config",DialogItems,ArraySize(DialogItems),0,0,ConfigDialogProc,0);
   if (DlgCode!=CONFIG_SAVE)
     return(FALSE);
   Opt.AddToDisksMenu=dialog.Check(CONFIG_ADDDISK);

@@ -147,7 +147,7 @@ static wchar_t *FormatLogMessage(wchar_t *Class,EVENTLOGRECORD *rec)
         {
           if(*endptr)
           {
-            int tail_size=wcslen(endptr)+zero_len;
+            size_t tail_size=wcslen(endptr)+zero_len;
             new_params=(wchar_t *)realloc(params,(params_size+tail_size)*sizeof(wchar_t));
             if(new_params)
             {

@@ -30,7 +30,7 @@ class CFarDialog
   public:
     inline CFarDialog(): iDlg(INVALID_HANDLE_VALUE) {};
     inline ~CFarDialog() {Info.DialogFree(iDlg);};
-    inline int Execute(const GUID& PluginId,const GUID& Id,int X1,int Y1,int X2,int Y2,const wchar_t* HelpTopic,struct FarDialogItem* Item,int ItemsNumber,DWORD Reserved,FARDIALOGFLAGS Flags,FARWINDOWPROC DlgProc,void* Param)
+    inline intptr_t Execute(const GUID& PluginId,const GUID& Id,intptr_t X1,intptr_t Y1,intptr_t X2,intptr_t Y2,const wchar_t* HelpTopic,struct FarDialogItem* Item,size_t ItemsNumber,intptr_t Reserved,FARDIALOGFLAGS Flags,FARWINDOWPROC DlgProc,void* Param)
     {
       iDlg=Info.DialogInit(&PluginId,&Id,X1,Y1,X2,Y2,HelpTopic,Item,ItemsNumber,Reserved,Flags,DlgProc,Param);
       return Info.DialogRun(iDlg);
@@ -63,11 +63,11 @@ class CFarPanel
   private:
     HANDLE iPlugin;
     PanelInfo iInfo;
-    int iResult;
+    intptr_t iResult;
     wchar_t* iCurDir;
-    int iCurDirSize;
+    size_t iCurDirSize;
     PluginPanelItem* iItem;
-    int iItemSize;
+    size_t iItemSize;
   private:
     CFarPanel();
   public:
@@ -76,9 +76,9 @@ class CFarPanel
     inline bool IsOk(void) {return !!iResult;}
     inline int PanelType(void) {return iInfo.PanelType;};
     inline int Plugin(void) {return iInfo.Flags&PFLAGS_PLUGIN;};
-    inline int ItemsNumber(void) {return iInfo.ItemsNumber;};
-    inline int SelectedItemsNumber(void) {return iInfo.SelectedItemsNumber;};
-    inline int CurrentItem(void) {return iInfo.CurrentItem;};
+    inline size_t ItemsNumber(void) {return iInfo.ItemsNumber;};
+    inline size_t SelectedItemsNumber(void) {return iInfo.SelectedItemsNumber;};
+    inline size_t CurrentItem(void) {return iInfo.CurrentItem;};
     inline PANELINFOFLAGS Flags(void) {return iInfo.Flags;};
     wchar_t* CurDir(void);
     PluginPanelItem& operator[](size_t index);
