@@ -23,8 +23,6 @@
 extern PluginStartupInfo Info;
 #define ArraySize(a) (sizeof(a)/sizeof(a[0]))
 
-#define INIT_DLG_DATA(item,str) item.PtrData=str
-#define INIT_MENU_TEXT(index,str) MenuItems[index].Text=str
 class CFarDialog
 {
   private:
@@ -40,11 +38,11 @@ class CFarDialog
     inline HANDLE Handle(void) {return iDlg;};
     inline int Check(int index) {return (int)Info.SendDlgMessage(iDlg,DM_GETCHECK,index,0);};
     inline const wchar_t* Str(int index) {return (const wchar_t*)Info.SendDlgMessage(iDlg,DM_GETCONSTTEXTPTR,index,0);};
-    inline DWORD Flags(int index)
+    inline FARDIALOGITEMFLAGS Flags(int index)
     {
       FarDialogItem DialogItem;
       if(Info.SendDlgMessage(iDlg,DM_GETDLGITEMSHORT,index,&DialogItem)) return DialogItem.Flags;
-      return 0;
+      return DIF_NONE;
     };
     inline DWORD Type(int index)
     {
@@ -53,18 +51,9 @@ class CFarDialog
       return 0;
     };
 };
-#define t_CharToOem(s,d) wcscpy(d,s)
-#define t_OemToChar(s,d) wcscpy(d,s)
-#define PANEL_FILENAME lpwszFileName
-#define FIRST_PARAM int
-#define SECOND_PARAM LONG_PTR
-#define ControlShort(a,b,c) Control(a,b,0,c)
-#define ControlShort2(a,b,c) Control(a,b,c,0)
-#define ControlShort3(a,b,c) Control(a,b,c,0)
-#define FCTL_GETPANELSHORTINFO FCTL_GETPANELINFO
+
 #define BOX1 0x2591
 #define BOX2 0x2588
-#define OPIF_FINDFOLDERS 0
 
 void Realloc(wchar_t*& aData,int& aLength,int aNewLength);
 void Realloc(PluginPanelItem*& aData,int& aSize,int aNewSize);
@@ -82,15 +71,15 @@ class CFarPanel
   private:
     CFarPanel();
   public:
-    inline CFarPanel(HANDLE aPlugin,FILE_CONTROL_COMMANDS aCommand): iPlugin(aPlugin),iCurDir(NULL),iCurDirSize(0),iItem(NULL),iItemSize(0) {iResult=Info.PanelControl(aPlugin,aCommand,0,&iInfo);};
+    inline CFarPanel(HANDLE aPlugin,FILE_CONTROL_COMMANDS aCommand): iPlugin(aPlugin),iCurDir(NULL),iCurDirSize(0),iItem(NULL),iItemSize(0) {iInfo.StructSize=sizeof(iInfo);iResult=Info.PanelControl(aPlugin,aCommand,0,&iInfo);};
     ~CFarPanel();
-    inline bool IsOk(void) {return iResult;}
+    inline bool IsOk(void) {return !!iResult;}
     inline int PanelType(void) {return iInfo.PanelType;};
     inline int Plugin(void) {return iInfo.Flags&PFLAGS_PLUGIN;};
     inline int ItemsNumber(void) {return iInfo.ItemsNumber;};
     inline int SelectedItemsNumber(void) {return iInfo.SelectedItemsNumber;};
     inline int CurrentItem(void) {return iInfo.CurrentItem;};
-    inline DWORD Flags(void) {return iInfo.Flags;};
+    inline PANELINFOFLAGS Flags(void) {return iInfo.Flags;};
     wchar_t* CurDir(void);
     PluginPanelItem& operator[](size_t index);
     PluginPanelItem& Selected(size_t index);

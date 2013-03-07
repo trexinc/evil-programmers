@@ -28,7 +28,7 @@ static void parse_filelist(wchar_t *List,struct MsgPath **File,int *FileCount)
       for(int i=0;i<(*FileCount);i++)
       {
         ExpandEnvironmentStrings((*File)[i].path,expanded,ArraySize(expanded));
-        t_CharToOem(expanded,(*File)[i].path);
+        wcscpy((*File)[i].path,expanded);
       }
     }
     else *FileCount=0;
@@ -261,9 +261,8 @@ static const wchar_t *GetType(DWORD type)
 
 static BOOL CheckLogName(EventViewer *panel,const wchar_t *LogName)
 {
-  BOOL res=FALSE; wchar_t LogNameAnsi[SMALL_BUFFER];
-  t_OemToChar(LogName,LogNameAnsi);
-  HANDLE evt=OpenEventLog(panel->computer_ptr,LogNameAnsi); //REMOTE
+  BOOL res=FALSE;
+  HANDLE evt=OpenEventLog(panel->computer_ptr,LogName); //REMOTE
   if(evt)
   {
     CloseEventLog(evt);

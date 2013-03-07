@@ -13,3 +13,7 @@ EXPORTS
    ClosePanelW=ClosePanelW@4
    FreeFindDataW=FreeFindDataW@4
    CompareW=CompareW@4
+   ProcessPanelEventW=ProcessPanelEventW@4
+   DeleteFilesW=DeleteFilesW@4
+   ProcessPanelInputW=ProcessPanelInputW@4
+   AnalyseW=AnalyseW@4

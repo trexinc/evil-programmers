@@ -53,24 +53,36 @@ CFarPanel::~CFarPanel()
 
 wchar_t* CFarPanel::CurDir(void)
 {
-#if 0
-  Realloc(iCurDir,iCurDirSize,Info.Control(iPlugin,FCTL_GETPANELDIR,0,0));
-  Info.Control(iPlugin,FCTL_GETPANELDIR,iCurDirSize,(LONG_PTR)iCurDir);
+  size_t dirSize=Info.PanelControl(iPlugin,FCTL_GETPANELDIRECTORY,0,NULL);
+  FarPanelDirectory* dirInfo=(FarPanelDirectory*)malloc(dirSize);
+  if(dirInfo)
+  {
+    dirInfo->StructSize=sizeof(FarPanelDirectory);
+    Info.PanelControl(iPlugin,FCTL_GETPANELDIRECTORY,dirSize,dirInfo);
+    size_t dirNameSize=(wcslen(dirInfo->Name)+1)*sizeof(wchar_t);
+    Realloc(iCurDir,iCurDirSize,dirNameSize);
+    memcpy(iCurDir,dirInfo->Name,dirNameSize);
+    free(dirInfo);
+  }
   return iCurDir;
-#endif
-  return 0;
 }
 
 PluginPanelItem& CFarPanel::operator[](size_t index)
 {
-  Realloc(iItem,iItemSize,Info.PanelControl(iPlugin,FCTL_GETPANELITEM,index,0));
-  Info.PanelControl(iPlugin,FCTL_GETPANELITEM,index,iItem);
+  FarGetPluginPanelItem piinfo={sizeof(FarGetPluginPanelItem),0,NULL};
+  piinfo.Size=Info.PanelControl(iPlugin,FCTL_GETPANELITEM,index,&piinfo);
+  Realloc(iItem,iItemSize,piinfo.Size);
+  piinfo.Item=iItem;
+  Info.PanelControl(iPlugin,FCTL_GETPANELITEM,index,&piinfo);
   return *iItem;
 }
 
 PluginPanelItem& CFarPanel::Selected(size_t index)
 {
-  Realloc(iItem,iItemSize,Info.PanelControl(iPlugin,FCTL_GETSELECTEDPANELITEM,index,0));
-  Info.PanelControl(iPlugin,FCTL_GETSELECTEDPANELITEM,index,iItem);
+  FarGetPluginPanelItem piinfo={sizeof(FarGetPluginPanelItem),0,NULL};
+  piinfo.Size=Info.PanelControl(iPlugin,FCTL_GETSELECTEDPANELITEM,index,&piinfo);
+  Realloc(iItem,iItemSize,piinfo.Size);
+  piinfo.Item=iItem;
+  Info.PanelControl(iPlugin,FCTL_GETSELECTEDPANELITEM,index,&piinfo);
   return *iItem;
 }

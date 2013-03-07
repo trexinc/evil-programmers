@@ -53,28 +53,28 @@ static int Config()
     0000000000111111111122222222223333333333444444444455555555556666666666777777
     0123456789012345678901234567890123456789012345678901234567890123456789012345
   */
-  struct FarDialogItem DialogItems[]={
+  static struct FarDialogItem DialogItems[]={
   //        Type           X1 Y1   X2  Y2 Sel History                     Mask Flags                              Data
-  /* 0*/  {DI_DOUBLEBOX,    3,  1, 72, 17,0,0,                          0,   0,                                 GetMsg(mName),                  0,0},
-  /* 1*/  {DI_CHECKBOX,     5,  2,  0,  0,0,0,                          0,   0,                                 GetMsg(mConfigAddToDisksMenu),  0,0},
-  /* 2*/  {DI_CHECKBOX,     5,  3,  0,  0,0,0,                          0,   0,                                 GetMsg(mConfigAddToPluginMenu), 0,0},
-  /* 3*/  {DI_TEXT,        -1,  4,  0,  0,0,0,                          0,   DIF_SEPARATOR,                     L"",                            0,0},
-  /* 4*/  {DI_CHECKBOX,     5,  5,  0,  0,0,0,                          0,   0,                                 GetMsg(mConfigBrowseEvtFiles),  0,0},
-  /* 5*/  {DI_CHECKBOX,     5,  6,  0,  0,0,0,                          0,   0,                                 GetMsg(mConfigStripExtension),  0,0},
-  /* 6*/  {DI_CHECKBOX,     5,  7,  0,  0,0,0,                          0,   0,                                 GetMsg(mConfigRestore),         0,0},
-  /* 7*/  {DI_TEXT,        -1,  8,  0,  0,0,0,                          0,   DIF_SEPARATOR,                     L"",                            0,0},
-  /* 8*/  {DI_RADIOBUTTON,  5,  9,  0,  0,0,0,                          0,   DIF_GROUP,                         GetMsg(mConfigScan1),           0,0},
-  /* 9*/  {DI_RADIOBUTTON,  5, 10,  0,  0,0,0,                          0,   0,                                 GetMsg(mConfigScan2),           0,0},
-  /*11*/  {DI_CHECKBOX,    39,  9,  0,  0,0,0,                          0,   0,                                 GetMsg(mConfigShowHeader),      0,0},
-  /*12*/  {DI_CHECKBOX,    39, 10,  0,  0,0,0,                          0,   0,                                 GetMsg(mConfigShowDescription), 0,0},
-  /*13*/  {DI_CHECKBOX,    39, 11,  0,  0,0,0,                          0,   0,                                 GetMsg(mConfigShowData),        0,0},
-  /*14*/  {DI_TEXT,        -1, 12,  0,  0,0,0,                          0,   DIF_SEPARATOR,                     L"",                            0,0},
-  /*15*/  {DI_VTEXT,       37,  8,  0,  0,0,0,                          0,   0,                                 L"xxxxx",                       0,0},
-  /*16*/  {DI_TEXT,         5, 13,  0,  0,0,0,                          0,   0,                                 GetMsg(mConfigPrefix),          0,0},
-  /*17*/  {DI_FIXEDIT,      5, 14, 19, 12,0,L"AAAAAAAAAAAAAAA",         0,   DIF_MASKEDIT,                      L"",                            0,0},
-  /*18*/  {DI_TEXT,        -1, 15,  0,  0,0,0,                          0,   DIF_SEPARATOR,                     L"",                            0,0},
-  /*19*/  {DI_BUTTON,       0, 16,  0,  0,0,0,                          0,   DIF_CENTERGROUP|DIF_DEFAULTBUTTON, GetMsg(mConfigSave),            0,0},
-  /*20*/  {DI_BUTTON,       0, 16,  0,  0,0,0,                          0,   DIF_CENTERGROUP,                   GetMsg(mConfigCancel),          0,0}
+  /* 0*/  {DI_DOUBLEBOX,    3,  1, 72, 17,{0},0,                          0,   0,                                 GetMsg(mName),                  0,0},
+  /* 1*/  {DI_CHECKBOX,     5,  2,  0,  0,{0},0,                          0,   0,                                 GetMsg(mConfigAddToDisksMenu),  0,0},
+  /* 2*/  {DI_CHECKBOX,     5,  3,  0,  0,{0},0,                          0,   0,                                 GetMsg(mConfigAddToPluginMenu), 0,0},
+  /* 3*/  {DI_TEXT,        -1,  4,  0,  0,{0},0,                          0,   DIF_SEPARATOR,                     L"",                            0,0},
+  /* 4*/  {DI_CHECKBOX,     5,  5,  0,  0,{0},0,                          0,   0,                                 GetMsg(mConfigBrowseEvtFiles),  0,0},
+  /* 5*/  {DI_CHECKBOX,     5,  6,  0,  0,{0},0,                          0,   0,                                 GetMsg(mConfigStripExtension),  0,0},
+  /* 6*/  {DI_CHECKBOX,     5,  7,  0,  0,{0},0,                          0,   0,                                 GetMsg(mConfigRestore),         0,0},
+  /* 7*/  {DI_TEXT,        -1,  8,  0,  0,{0},0,                          0,   DIF_SEPARATOR,                     L"",                            0,0},
+  /* 8*/  {DI_RADIOBUTTON,  5,  9,  0,  0,{0},0,                          0,   DIF_GROUP,                         GetMsg(mConfigScan1),           0,0},
+  /* 9*/  {DI_RADIOBUTTON,  5, 10,  0,  0,{0},0,                          0,   0,                                 GetMsg(mConfigScan2),           0,0},
+  /*11*/  {DI_CHECKBOX,    39,  9,  0,  0,{0},0,                          0,   0,                                 GetMsg(mConfigShowHeader),      0,0},
+  /*12*/  {DI_CHECKBOX,    39, 10,  0,  0,{0},0,                          0,   0,                                 GetMsg(mConfigShowDescription), 0,0},
+  /*13*/  {DI_CHECKBOX,    39, 11,  0,  0,{0},0,                          0,   0,                                 GetMsg(mConfigShowData),        0,0},
+  /*14*/  {DI_TEXT,        -1, 12,  0,  0,{0},0,                          0,   DIF_SEPARATOR,                     L"",                            0,0},
+  /*15*/  {DI_VTEXT,       37,  8,  0,  0,{0},0,                          0,   0,                                 L"xxxxx",                       0,0},
+  /*16*/  {DI_TEXT,         5, 13,  0,  0,{0},0,                          0,   0,                                 GetMsg(mConfigPrefix),          0,0},
+  /*17*/  {DI_FIXEDIT,      5, 14, 19, 12,{0},L"AAAAAAAAAAAAAAA",         0,   DIF_MASKEDIT,                      L"",                            0,0},
+  /*18*/  {DI_TEXT,        -1, 15,  0,  0,{0},0,                          0,   DIF_SEPARATOR,                     L"",                            0,0},
+  /*19*/  {DI_BUTTON,       0, 16,  0,  0,{0},0,                          0,   DIF_CENTERGROUP|DIF_DEFAULTBUTTON, GetMsg(mConfigSave),            0,0},
+  /*20*/  {DI_BUTTON,       0, 16,  0,  0,{0},0,                          0,   DIF_CENTERGROUP,                   GetMsg(mConfigCancel),          0,0}
   };
  
   wchar_t PrefixText[21];
@@ -84,6 +84,9 @@ static int Config()
   DialogItems[CONFIG_BROWSEEVT].Selected=Opt.BrowseEvtFiles;
   DialogItems[CONFIG_STRIPEXT].Selected=Opt.StripExt;
   DialogItems[CONFIG_RESTORE].Selected=Opt.Restore;
+  // из-за static нужно обнулить предыдущее состояние 
+  DialogItems[CONFIG_FORWARD].Selected=0;
+  DialogItems[CONFIG_FORWARD+1].Selected=0;
   DialogItems[CONFIG_FORWARD+Opt.ScanType].Selected=1;
   FSF.sprintf(PrefixText,L"%s",Opt.Prefix);
   DialogItems[CONFIG_PREFIX].Data=PrefixText;
