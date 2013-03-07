@@ -17,3 +17,5 @@ EXPORTS
    DeleteFilesW=DeleteFilesW@4
    ProcessPanelInputW=ProcessPanelInputW@4
    AnalyseW=AnalyseW@4
+   CloseAnalyseW=CloseAnalyseW@4
+   ExitFARW=ExitFARW@4
