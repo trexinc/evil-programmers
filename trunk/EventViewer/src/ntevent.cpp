@@ -188,32 +188,44 @@ void WINAPI GetPluginInfoW(struct PluginInfo *Info)
     Info->CommandPrefix=Opt.Prefix;
 }
 
-HANDLE WINAPI OpenW(const struct OpenInfo *Info)
+HANDLE WINAPI OpenW(const struct OpenInfo *oInfo)
 {
-  EventViewer *panel=(EventViewer *)malloc(sizeof(EventViewer));
-  if(!panel)
-    return NULL;
-  panel->level=0;
-  wcscpy(panel->path,L"");
-  wcscpy(panel->computer,L"");
-  wcscpy(panel->computer_oem,L"");
-  panel->computer_ptr=NULL;
-  panel->redraw=Opt.Restore;
-  if(Opt.Restore)
+  if ((oInfo->OpenFrom == OPEN_PLUGINSMENU)||(oInfo->OpenFrom == OPEN_LEFTDISKMENU) 
+    ||(oInfo->OpenFrom == OPEN_RIGHTDISKMENU)||(oInfo->OpenFrom ==OPEN_COMMANDLINE))
   {
-    wcscpy(panel->path,State.Path);
-    if(wcslen(panel->path)) panel->level=1;
-    if(wcslen(State.Computer))
+    EventViewer *panel=(EventViewer *)malloc(sizeof(EventViewer));
+    if(!panel)
+      return NULL;
+    panel->level=0;
+    wcscpy(panel->path,L"");
+    wcscpy(panel->computer,L"");
+    wcscpy(panel->computer_oem,L"");
+    panel->computer_ptr=NULL;
+    panel->redraw=Opt.Restore;
+    if(Opt.Restore)
     {
-      if(CheckRemoteEventLog(State.Computer))
+      wcscpy(panel->path,State.Path);
+      if(wcslen(panel->path)) panel->level=1;
+      if(wcslen(State.Computer))
       {
-        wcscpy(panel->computer,State.Computer);
-        wcscpy(panel->computer_oem,State.Computer);
-        panel->computer_ptr=panel->computer;
+        if(CheckRemoteEventLog(State.Computer))
+        {
+          wcscpy(panel->computer,State.Computer);
+          wcscpy(panel->computer_oem,State.Computer);
+          panel->computer_ptr=panel->computer;
+        }
       }
     }
+    return (HANDLE)panel;
   }
-  return (HANDLE)panel;
+  else 
+  if (oInfo->OpenFrom == OPEN_ANALYSE)
+  {
+    const OpenAnalyseInfo* oai = (const OpenAnalyseInfo*)(oInfo->Data);
+    EventViewer *panel=(EventViewer *)oai->Handle; 
+    return (HANDLE)panel;
+  }
+  return NULL;
 }
 
 void WINAPI ClosePanelW(const struct ClosePanelInfo *pInfo)
@@ -1061,6 +1073,11 @@ intptr_t WINAPI DeleteFilesW(const struct DeleteFilesInfo *fInfo)
   return TRUE;
 }
 
+void WINAPI CloseAnalyseW(const struct CloseAnalyseInfo *aInfo)
+{
+  free((EventViewer *)aInfo->Handle);
+}
+
 HANDLE WINAPI AnalyseW(const struct AnalyseInfo *aInfo)
 {
   if(!aInfo->FileName)
@@ -1509,7 +1526,7 @@ intptr_t WINAPI ProcessPanelEventW(const struct ProcessPanelEventInfo *eInfo)
   return FALSE;
 }
 
-void WINAPI ExitFARW()
+void WINAPI ExitFARW(const struct ExitInfo *Info)
 {
   free_sid_cache();
   free_category_cache();
