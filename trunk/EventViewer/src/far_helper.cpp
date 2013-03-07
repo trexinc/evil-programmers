@@ -19,7 +19,7 @@
 
 #include "far_helper.h"
 
-void Realloc(wchar_t*& aData,int& aLength,int aNewLength)
+void Realloc(wchar_t*& aData,size_t& aLength,size_t aNewLength)
 {
   if(aNewLength>aLength)
   {
@@ -32,7 +32,7 @@ void Realloc(wchar_t*& aData,int& aLength,int aNewLength)
   }
 }
 
-void Realloc(PluginPanelItem*& aData,int& aSize,int aNewSize)
+void Realloc(PluginPanelItem*& aData,size_t& aSize,size_t aNewSize)
 {
   if(aNewSize>aSize)
   {

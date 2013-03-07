@@ -75,12 +75,12 @@ struct PluginState
   wchar_t Computer[MAX_PATH];
   size_t Current;
   size_t Top;
-  int ViewMode;
+  intptr_t ViewMode;
   int SortMode;
   int SortOrder;
 } State;
 
-static const wchar_t *GetMsg(int MsgId)
+static const wchar_t *GetMsg(intptr_t MsgId)
 {
   return Info.GetMsg(&MainGuid,MsgId);
 }
@@ -127,7 +127,7 @@ void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
 void WINAPI SetStartupInfoW(const struct PluginStartupInfo *Info)
 {
   memset(&::Info, 0, sizeof(::Info));
-  memmove(&::Info, Info, (Info->StructSize > (int)sizeof(::Info))?sizeof(::Info):Info->StructSize);
+  memmove(&::Info, Info, (Info->StructSize > sizeof(::Info))?sizeof(::Info):Info->StructSize);
   ::FSF=*Info->FSF;
   ::Info.FSF=&::FSF;
 
@@ -576,7 +576,7 @@ static BOOL GetDestDir(wchar_t *dir,int move)
   DialogItems[2].Data=dir;
   DialogItems[4].Data=GetMsg(mCpyDlgCopyOk+move);
   CFarDialog dialog;
-  int DlgCode=dialog.Execute(MainGuid,CopyDialogGuid,-1,-1,76,8,NULL,DialogItems,(ArraySize(DialogItems)),0,0,CopyDialogProc,0); 
+  intptr_t DlgCode=dialog.Execute(MainGuid,CopyDialogGuid,-1,-1,76,8,NULL,DialogItems,(ArraySize(DialogItems)),0,0,CopyDialogProc,0); 
   if(DlgCode==4)
   {
     FSF.sprintf(dir,L"%s",dialog.Str(2));
@@ -812,7 +812,7 @@ retry_main:
               DialogItems[4].Data=DstText;
             }
             CFarDialog dialog;
-            int DlgCode=dialog.Execute(MainGuid,DlgExistsGuid,-1,-1,69,12,NULL,DialogItems,ArraySize(DialogItems),0,0,FileExistsDialogProc,0);
+            intptr_t DlgCode=dialog.Execute(MainGuid,DlgExistsGuid,-1,-1,69,12,NULL,DialogItems,ArraySize(DialogItems),0,0,FileExistsDialogProc,0);
             if((DlgCode==-1)||(DlgCode==10))
             {
               result=-1;
@@ -940,7 +940,7 @@ retry_append:
         CloseHandle(file);
       }
       if(!(fInfo->OpMode&(OPM_SILENT|OPM_FIND|OPM_DESCR)))
-      {
+      { 
         FSF.sprintf(copyname,L"%.55s ",filename);
         FSF.sprintf(progress,L"%3d%% ",(i+1)*100/fInfo->ItemsNumber);
         for(int j=0;j<50;j++)
@@ -1021,7 +1021,7 @@ intptr_t WINAPI DeleteFilesW(const struct DeleteFilesInfo *fInfo)
   {
     for(size_t i=0;i<fInfo->ItemsNumber;i++)
     {
-      int MsgCode=0;
+      intptr_t MsgCode=0;
       if(!(fInfo->OpMode&(OPM_SILENT)))
       {
         wchar_t Msg[1024];
@@ -1043,7 +1043,7 @@ intptr_t WINAPI DeleteFilesW(const struct DeleteFilesInfo *fInfo)
           {
             CFarPanel pInfo(fInfo->hPanel,FCTL_GETPANELINFO);
             pInfo.StartSelection();
-            for(int j=0;j<pInfo.ItemsNumber();j++)
+            for(size_t j=0;j<pInfo.ItemsNumber();j++)
               if(!FSF.LStricmp(pInfo[j].FileName,fInfo->PanelItem[i].FileName))
                 pInfo.RemoveSelection(j);
             pInfo.CommitSelection();
@@ -1401,7 +1401,7 @@ intptr_t WINAPI ProcessPanelInputW(const struct ProcessPanelInputInfo *ppiInfo)
       };
       DialogItems[2].Data=panel->computer_oem;
       CFarDialog dialog;
-      int DlgCode=dialog.Execute(MainGuid,SelectCompGuid,-1,-1,48,7,NULL,DialogItems,ArraySize(DialogItems),0,0,ComputerDialogProc,0);
+      intptr_t DlgCode=dialog.Execute(MainGuid,SelectCompGuid,-1,-1,48,7,NULL,DialogItems,ArraySize(DialogItems),0,0,ComputerDialogProc,0);
       if(DlgCode!=-1)
       {
         if(dialog.Str(2)[0])
