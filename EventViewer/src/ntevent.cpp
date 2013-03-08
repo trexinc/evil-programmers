@@ -389,7 +389,9 @@ intptr_t WINAPI GetFindDataW(struct GetFindDataInfo *dInfo)
                         suffix=GetMsg(mExtAuditFailure);
                         break;
                     }
-                    (dInfo->PanelItem+i)->FileName=(wchar_t*)malloc(512*sizeof(wchar_t));
+                    if (!(dInfo->PanelItem+i)->FileName){
+                      (dInfo->PanelItem+i)->FileName=(wchar_t*)malloc(512*sizeof(wchar_t));
+                    }
                     FSF.sprintf((wchar_t*)((dInfo->PanelItem+i)->FileName),L"%08ld.%s.%s",curr_rec->RecordNumber,suffix,GetMsg(mExtMain));
                     (dInfo->PanelItem+i)->FileSize=curr_rec->Length;
                     evt_date_time=curr_rec->TimeWritten; evt_date_time=evt_date_time*10000000ULL+EVENT_START_TIME;
