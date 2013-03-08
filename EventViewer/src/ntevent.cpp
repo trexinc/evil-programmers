@@ -117,7 +117,7 @@ void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
 {
   Info->StructSize=sizeof(GlobalInfo);
   Info->MinFarVersion=FARMANAGERVERSION;
-  Info->Version=MAKEFARVERSION(0,5,0,14,VS_ALPHA);
+  Info->Version=MAKEFARVERSION(0,6,2,0,VS_RELEASE);
   Info->Guid=MainGuid;
   Info->Title=L"NT Events";
   Info->Description=L"NT Events";
@@ -1083,11 +1083,11 @@ void WINAPI CloseAnalyseW(const struct CloseAnalyseInfo *aInfo)
 HANDLE WINAPI AnalyseW(const struct AnalyseInfo *aInfo)
 {
   if(!aInfo->FileName)
-    return INVALID_HANDLE_VALUE;
+    return NULL;
   if(!Opt.BrowseEvtFiles)
-    return INVALID_HANDLE_VALUE;
+    return NULL;
   if(!FSF.ProcessName(L"*.evt",(wchar_t*)aInfo->FileName, 0,PN_CMPNAMELIST))
-    return INVALID_HANDLE_VALUE;
+    return NULL;
   return RealOpenFilePlugin(aInfo->FileName,aInfo->Buffer,aInfo->BufferSize);
 }
 
