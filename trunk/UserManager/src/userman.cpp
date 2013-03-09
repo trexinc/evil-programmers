@@ -153,7 +153,7 @@ void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
 {
   Info->StructSize=sizeof(GlobalInfo);
   Info->MinFarVersion=FARMANAGERVERSION;
-  Info->Version=MAKEFARVERSION(VER_MAJOR,VER_MINOR,0,VER_BUILD,VS_ALPHA);
+  Info->Version=MAKEFARVERSION(VER_MAJOR,VER_MINOR,0,VER_BUILD,VS_RELEASE);
   Info->Guid=MainGuid;
   Info->Title=L"User Manager";
   Info->Description=L"User Manager";
@@ -941,7 +941,7 @@ void WINAPI GetOpenPanelInfoW(struct OpenPanelInfo *Info)
               PanelModesArray[i].StatusColumnWidths=(TCHAR*)tmp_msg;
               break;
             case 4:
-              if(tmp_msg[0]-'0') PanelModesArray[i].Flags|PMFLAGS_FULLSCREEN;
+              if(tmp_msg[0]-'0') PanelModesArray[i].Flags|=PMFLAGS_FULLSCREEN;
               break;
           }
       }

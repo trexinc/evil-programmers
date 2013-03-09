@@ -4,7 +4,7 @@ dnl
 `#define VER_MINOR' MINOR
 `#define VER_BUILD' BUILD
 `#define VER_ALLSTR' "MAJOR.MINOR build BUILD TYPE"
-`#define COPYRIGHT "Copyright © 2001-2011, Vadim Yegorov"'
+`#define COPYRIGHT "Copyright © 2001-2013, Vadim Yegorov"'
 
 `#define PLUG_DISPLAYNAME "User Manager Plugin for FAR Manager 3.0."'
 `#define PLUG_INTERNELNAME "userman.dll"'
