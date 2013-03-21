@@ -1,0 +1,10 @@
+REGEDIT4
+
+[-HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\context\net]
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\context\net]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"Keys"="ACCOUNTS COMPUTER CONFIG CONTINUE FILE GROUP HELP HELPMSG LOCALGROUP NAME PAUSE PRINT SEND SESSION SHARE START STATISTICS STOP TIME USE USER VIEW"
+

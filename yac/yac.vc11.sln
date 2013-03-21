@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "yac", "yac.vc11.vcxproj", "{58EDE89C-DF97-441F-91EF-C88F6567C4CB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{58EDE89C-DF97-441F-91EF-C88F6567C4CB}.Debug|Win32.ActiveCfg = Debug Unicode|Win32
+		{58EDE89C-DF97-441F-91EF-C88F6567C4CB}.Debug|Win32.Build.0 = Debug Unicode|Win32
+		{58EDE89C-DF97-441F-91EF-C88F6567C4CB}.Debug|x64.ActiveCfg = Debug Unicode|x64
+		{58EDE89C-DF97-441F-91EF-C88F6567C4CB}.Debug|x64.Build.0 = Debug Unicode|x64
+		{58EDE89C-DF97-441F-91EF-C88F6567C4CB}.Release|Win32.ActiveCfg = Release Unicode|Win32
+		{58EDE89C-DF97-441F-91EF-C88F6567C4CB}.Release|Win32.Build.0 = Release Unicode|Win32
+		{58EDE89C-DF97-441F-91EF-C88F6567C4CB}.Release|x64.ActiveCfg = Release Unicode|x64
+		{58EDE89C-DF97-441F-91EF-C88F6567C4CB}.Release|x64.Build.0 = Release Unicode|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

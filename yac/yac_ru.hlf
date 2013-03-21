@@ -1,0 +1,31 @@
+.Language=English,English
+.PluginContents=Yet Another Completion
+
+@Contents
+$^#Yet Another Completion
+
+^#Справки нет#
+
+@Opt
+$ # #
+~Содержание~@Contents@
+
+@EditDlg
+$ # #
+ ~Содержание~@Contents@
+
+@EditStdOut
+$ # #
+ ~Содержание~@Contents@
+
+@NetScanDlg
+$ # #
+ ~Содержание~@Contents@
+
+@LogonDlg
+$ # #
+ ~Содержание~@Contents@
+
+@CmpResultsDlg
+$ # #
+ ~Содержание~@Contents@
