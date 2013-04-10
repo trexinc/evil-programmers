@@ -1,6 +1,6 @@
 --[[
     Block Indent for Far Manager
-	Version: 2.0
+	Version: 2.1
     Copyright (C) 2001 Alex Yaroslavsky
 
     This program is free software; you can redistribute it and/or modify
@@ -14,7 +14,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
+	along with this program; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
   Features:
@@ -38,7 +38,7 @@ local Indent = function (IndentByTabSize, Forward)
 	local loop = false
 	if ei.BlockType ~= F.BTYPE_NONE then
 		local s = editor.GetString()
-		if s.SelStart ~= -1 then
+		if s.SelStart ~= 0 then
 			loop = true;
 			line = ei.BlockStartLine;
 		end
@@ -47,26 +47,26 @@ local Indent = function (IndentByTabSize, Forward)
 	editor.UndoRedo(nil, F.EUR_BEGIN)
 
 	repeat
-		editor.SetPosition(nil, line, 0, -1, -1, 0, ei.Overtype)
-		local s = editor.GetString(nil, -1, 0)
-		if not s or (loop and ((s.SelStart == -1) or (s.SelStart == s.SelEnd))) then
+		editor.SetPosition(nil, line, 1, 0, 0, 1, ei.Overtype)
+		local s = editor.GetString(nil, 0, 0)
+		if not s or (loop and ((s.SelStart == 0) or (s.SelEnd ~= -1 and s.SelStart > s.SelEnd))) then
 			break
 		end
 		local j = s.StringText:find("[^ \t]")
 		if j and (j>1 or Forward) then
-			local TabPos = editor.RealToTab(nil, -1, j) - 1
+			local TabPos = editor.RealToTab(nil, nil, j) - 1
 			local x = math.floor(TabPos/IndentSize)
 			if ((TabPos%IndentSize) == 0) and not Forward then
 				x = x - 1
 			end
 			x = Forward and x + 1 or x
-			editor.SetString(nil, -1, s.StringText:sub(j), s.StringEOL)
+			editor.SetString(nil, nil, s.StringText:sub(j), s.StringEOL)
 			for i=1,x,1 do editor.InsertText(nil,IndentStr) end
 		end
 		line = line + 1
 	until not loop
 
-	editor.SetPosition(nil, ei.CurLine, ei.CurPos, -1, ei.TopScreenLine, ei.LeftPos, ei.Overtype)
+	editor.SetPosition(nil, ei.CurLine, ei.CurPos, 0, ei.TopScreenLine, ei.LeftPos, ei.Overtype)
 	editor.UndoRedo(nil, F.EUR_END)
 end
 
