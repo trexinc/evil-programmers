@@ -1,6 +1,6 @@
 #path to the common folder from far plugins SVN
 ifndef COMMON
-COMMON = ../../../FAR/fardev/plugins/common
+COMMON = ../../../fardev/plugins/common
 endif
 
 #ifdef WIDE
@@ -40,7 +40,7 @@ MV = mv -f
 MKDIR = mkdir -p
 CCFLAGS  = -Os -I $(COMMON) -I $(COMINC) -Wall -funsigned-char -fomit-frame-pointer -fstrict-aliasing -fno-exceptions $(ADDDEFINES)
 CXXFLAGS = -Os -I $(COMMON) -I $(COMINC) -Wall -funsigned-char -fomit-frame-pointer -fstrict-aliasing -fno-rtti -fno-exceptions $(ADDDEFINES)
-LNKFLAGS = -mdll -s -lwinmm
+LNKFLAGS = -mdll -s -lwinmm -static-libstdc++ -static-libgcc
 
 all: $(DLLFULLNAME)
 
