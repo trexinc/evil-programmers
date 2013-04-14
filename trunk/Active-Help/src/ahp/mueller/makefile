@@ -14,7 +14,7 @@ M4 = m4 -P
 MV = mv -f
 MKDIR = mkdir -p
 CXXFLAGS = -Wall -Os -funsigned-char -fomit-frame-pointer -fstrict-aliasing -fno-rtti -fno-exceptions
-LNKFLAGS = -mdll -s -nostartfiles
+LNKFLAGS = -mdll -s -nostartfiles -static-libstdc++ -static-libgcc
 
 all: $(DLLFULLNAME)
 
