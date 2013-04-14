@@ -16,7 +16,7 @@ MV = mv -f
 MKDIR = mkdir -p
 CCFLAGS = -Wall -D__FARMANAGER__ -D__WINDOWS__ -Os -funsigned-char -fomit-frame-pointer -fstrict-aliasing -fno-exceptions
 CXXFLAGS = -Wall -D__FARMANAGER__ -D__WINDOWS__ -Os -funsigned-char -fomit-frame-pointer -fstrict-aliasing -fno-rtti -fno-exceptions
-LNKFLAGS = -mdll -s -nostartfiles
+LNKFLAGS = -mdll -s -nostartfiles -static-libstdc++ -static-libgcc
 
 all: $(DLLFULLNAME)
 
