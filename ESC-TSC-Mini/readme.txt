@@ -18,7 +18,7 @@ About
 
 What this plugin does, it lets you change the settings of ESC for  the  current
 editor session. To use this plugin you'll need Far version 3.0 or newer and ESC
-plugin version 2.7 or newer. ESC is an excellent creation  by
+plugin version 2.9 or newer. ESC is an excellent creation  by
 Ivan Sintyurin <spinoza@mail.ru> which is currently maintained by me.
 To get hold of your own copy of ESC visit:
 http://plugring.farmanager.com/ - The PlugRinG

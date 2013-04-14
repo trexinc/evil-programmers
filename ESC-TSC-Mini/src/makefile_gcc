@@ -1,5 +1,5 @@
 #path to the Far Manager SVN trunk
-FARDEV ?= ../../../FAR/fardev
+FARDEV ?= ../../../fardev
 COMMON = $(FARDEV)/plugins/common
 
 NAME = esc-tsc-mini
