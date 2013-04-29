@@ -162,6 +162,7 @@ void WINAPI GetPluginInfoW(struct PluginInfo *Info)
 
 void WINAPI ExitFARW(const struct ExitInfo *Info)
 {
+  (void)Info;
   OnExit();
   UnloadPlugs();
   CloseHandle(Mutex);
@@ -250,6 +251,7 @@ intptr_t WINAPI Config1DialogProc(HANDLE hDlg,intptr_t Msg,intptr_t Param1,void*
 
 intptr_t WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
 {
+  (void)anInfo;
   FarMenuItem MenuItems[4];
   memset(MenuItems,0,sizeof(MenuItems));
   TCHAR data[4*128];
@@ -600,5 +602,8 @@ extern "C"{
 
 bool WINAPI DllMainCRTStartup(HANDLE hDll,DWORD dwReason,LPVOID lpReserved)
 {
+  (void)hDll;
+  (void)dwReason;
+  (void)lpReserved;
   return true;
 }

@@ -49,6 +49,7 @@ comment =("//")|("#");
 
 void WINAPI Colorize(int index,struct ColorizeParams *params)
 {
+  (void)index;
   const UTCHAR *commentstart;
   const UTCHAR *line;
   int linelen,startcol;

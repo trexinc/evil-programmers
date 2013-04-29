@@ -854,5 +854,8 @@ extern "C"{
 
 bool WINAPI DllMainCRTStartup(HANDLE hDll,DWORD dwReason,LPVOID lpReserved)
 {
+  (void)hDll;
+  (void)dwReason;
+  (void)lpReserved;
   return true;
 }
