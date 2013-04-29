@@ -156,7 +156,7 @@ int OnEditorEvent(int event,void *param,int editorid)
   if(event==EE_READ)
   {
     EditorSubscribeChangeEvent esce={sizeof(EditorSubscribeChangeEvent),MainGuid};
-    Info.EditorControl(editorid,ECTL_SUBSCRIBECHANGEEVENT,0,&esce);
+    Info.EditorControl(-1,ECTL_SUBSCRIBECHANGEEVENT,0,&esce);
     return 0;
   }
 
