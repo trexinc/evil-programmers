@@ -68,6 +68,7 @@ int WINAPI SetColorizeInfo(ColorizeInfo *AInfo)
 
 int WINAPI GetParams(int index,int command,const char **param)
 {
+  (void)index;
   switch(command)
   {
     case PAR_GET_NAME:
@@ -101,5 +102,8 @@ extern "C"{
 
 bool WINAPI DllMainCRTStartup(HANDLE hDll,DWORD dwReason,LPVOID lpReserved)
 {
+  (void)hDll;
+  (void)dwReason;
+  (void)lpReserved;
   return true;
 }

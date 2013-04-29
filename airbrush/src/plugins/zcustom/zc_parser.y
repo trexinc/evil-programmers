@@ -62,6 +62,7 @@ exp:    CLASS                           { PARAM_MIN=1; PARAM_MAX=1; }
 
 int yyerror(const char *msg)
 {
+  (void)msg;
   return 0;
 }
 

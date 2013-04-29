@@ -153,6 +153,13 @@ int OnEditorEvent(int event,void *param,int editorid)
     return 0;
   }
 
+  if(event==EE_READ)
+  {
+    EditorSubscribeChangeEvent esce={sizeof(EditorSubscribeChangeEvent),MainGuid};
+    Info.EditorControl(editorid,ECTL_SUBSCRIBECHANGEEVENT,0,&esce);
+    return 0;
+  }
+
   TCHAR* editorfilename;
   const TCHAR* filename;
   EditorInfo ei;

@@ -135,6 +135,7 @@ static void CallParser(ColorizeParams *params,CallbackParam *data)
 
 void WINAPI Colorize(int index,struct ColorizeParams *params)
 {
+  (void)index;
   int commentstart,stringstart;
   const TCHAR *line;
   int linelen,startcol;
@@ -308,6 +309,7 @@ colorize_exit:
 
 int WINAPI GetParams(int index,int command,const char **param)
 {
+  (void)index;
   switch(command)
   {
     case PAR_GET_NAME:
@@ -341,5 +343,8 @@ extern "C"{
 
 bool WINAPI DllMainCRTStartup(HANDLE hDll,DWORD dwReason,LPVOID lpReserved)
 {
+  (void)hDll;
+  (void)dwReason;
+  (void)lpReserved;
   return true;
 }
