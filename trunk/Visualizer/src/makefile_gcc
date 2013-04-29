@@ -1,5 +1,5 @@
 #path to the Far Manager SVN trunk
-FARDEV ?= ../../../FAR/fardev
+FARDEV ?= ../../../fardev
 COMMON = $(FARDEV)/plugins/common
 
 NAME = Visualizer
@@ -7,6 +7,7 @@ SRCS = Visualizer.cpp
 DOCS = Visualizer.lng
 
 USERCPP = -fno-threadsafe-statics
+NEEDDEFLIB = 1
 
 include $(FARDEV)/unicode_far/makefile_gcc_common
 
