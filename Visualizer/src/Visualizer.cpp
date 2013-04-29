@@ -55,12 +55,12 @@ static const GUID ConfigCologDialogGuid =
 { 0x8212cf0c, 0x6c2b, 0x4ad9, { 0x89, 0xb7, 0x3b, 0x38, 0x18, 0x57, 0x7c, 0xbc } };
 
 
-struct PluginStartupInfo Info;
-FARSTANDARDFUNCTIONS FSF;
-HMODULE hEsc;
+static struct PluginStartupInfo Info;
+static FARSTANDARDFUNCTIONS FSF;
+static HMODULE hEsc;
 int (WINAPI *GetEditorSettings)(intptr_t EditorID, const wchar_t *szName, void *Param);
 
-struct Options
+static struct Options
 {
   int OnOffSwitch;
   int ShowRightBorderOn;
@@ -163,12 +163,12 @@ enum ENUMLineNumbers
 };
 */
 
-const wchar_t *GetMsg(intptr_t MsgId)
+static const wchar_t *GetMsg(intptr_t MsgId)
 {
   return Info.GetMsg(&MainGuid,MsgId);
 }
 
-void InitDialogItems(const struct InitDialogItem *Init, struct FarDialogItem *Item, int ItemsNumber)
+static void InitDialogItems(const struct InitDialogItem *Init, struct FarDialogItem *Item, int ItemsNumber)
 {
   struct FarDialogItem *PItem=Item;
   const struct InitDialogItem *PInit=Init;
@@ -196,7 +196,7 @@ void InitDialogItems(const struct InitDialogItem *Init, struct FarDialogItem *It
   }
 }
 
-void ConvertColor(FarColor *Color, int Bg)
+static void ConvertColor(FarColor *Color, int Bg)
 {
   Color->Flags = FCF_FG_4BIT|FCF_BG_4BIT;
   Color->ForegroundColor = 0;
@@ -204,7 +204,7 @@ void ConvertColor(FarColor *Color, int Bg)
   Color->Reserved = 0;
 }
 
-void ReadSettings()
+static void ReadSettings()
 {
   PluginSettings settings(MainGuid, Info.SettingsControl);
 
@@ -294,7 +294,7 @@ void ReadSettings()
   //Opt.HotkeyOfCross = settings.Get(0,L"HotkeyOfCross",);
 }
 
-void WriteSettings()
+static void WriteSettings()
 {
   PluginSettings settings(MainGuid, Info.SettingsControl);
 
@@ -362,7 +362,7 @@ void WINAPI SetStartupInfoW(const struct PluginStartupInfo *psi)
   }
 }
 
-void ConfigColor(struct Options *Opt)
+static void ConfigColor(struct Options *Opt)
 {
   enum ENUMDlg
   {
@@ -488,7 +488,7 @@ void ConfigColor(struct Options *Opt)
   }
 }
 
-void InitList(struct FarList *List, int Lng, size_t Sel)
+static void InitList(struct FarList *List, int Lng, size_t Sel)
 {
   memset(List->Items,0,sizeof(struct FarListItem)*List->ItemsNumber);
   for (size_t i=0; i<List->ItemsNumber; i++)
@@ -743,7 +743,7 @@ void WINAPI GetPluginInfoW(struct PluginInfo *Info)
 }
 
 #define __DEF_EDITORCOLOR__ {sizeof(EditorColor), -1, 0, 0, 0, (unsigned)-1, 0, {0}, MainGuid}
-void VisualizeRightBorder(int ShowRightBorder, int RightBorder, int AutoWrap)
+static void VisualizeRightBorder(int ShowRightBorder, int RightBorder, int AutoWrap)
 {
   static struct EditorConvertPos ecp = {sizeof(ecp), -1, 0, 0};
   static struct EditorColor ec = __DEF_EDITORCOLOR__;
@@ -757,7 +757,7 @@ void VisualizeRightBorder(int ShowRightBorder, int RightBorder, int AutoWrap)
   }
 }
 
-void VisualizeEndOfLine(int ShowEOL, intptr_t StringLength, const wchar_t *StringEOL, intptr_t CurLine, intptr_t TotalLines, intptr_t Line, intptr_t LeftPos)
+static void VisualizeEndOfLine(int ShowEOL, intptr_t StringLength, const wchar_t *StringEOL, intptr_t CurLine, intptr_t TotalLines, intptr_t Line, intptr_t LeftPos)
 {
   static struct EditorConvertPos ecp = {sizeof(ecp), -1, 0, 0};
   static struct EditorColor ec = __DEF_EDITORCOLOR__;
@@ -831,7 +831,7 @@ void VisualizeEndOfLine(int ShowEOL, intptr_t StringLength, const wchar_t *Strin
   }
 }
 
-void VisualizeEndOfFile(intptr_t StringLength, intptr_t CurLine, intptr_t TotalLines)
+static void VisualizeEndOfFile(intptr_t StringLength, intptr_t CurLine, intptr_t TotalLines)
 {
   static struct EditorColor ec = __DEF_EDITORCOLOR__;
   if (CurLine==TotalLines-1)
@@ -842,7 +842,7 @@ void VisualizeEndOfFile(intptr_t StringLength, intptr_t CurLine, intptr_t TotalL
   }
 }
 
-void VisualizeTabs(int ShowTabs, int ShowTabSymbol, wchar_t TabSymbol, const wchar_t *StringText, intptr_t StringLength, intptr_t Line, intptr_t LeftPos)
+static void VisualizeTabs(int ShowTabs, int ShowTabSymbol, wchar_t TabSymbol, const wchar_t *StringText, intptr_t StringLength, intptr_t Line, intptr_t LeftPos)
 {
   static struct EditorConvertPos ecp = {sizeof(ecp), -1, 0, 0};
   static struct EditorColor ec = __DEF_EDITORCOLOR__;
@@ -882,7 +882,7 @@ void VisualizeTabs(int ShowTabs, int ShowTabSymbol, wchar_t TabSymbol, const wch
   }
 }
 
-void VisualizeCross(int ShowCross, intptr_t CurLine, intptr_t Line, intptr_t Column, intptr_t LeftPos, intptr_t WindowSizeX)
+static void VisualizeCross(int ShowCross, intptr_t CurLine, intptr_t Line, intptr_t Column, intptr_t LeftPos, intptr_t WindowSizeX)
 {
   static struct EditorConvertPos ecp = {sizeof(ecp), -1, 0, 0};
   static struct EditorColor ec = __DEF_EDITORCOLOR__;
@@ -920,7 +920,7 @@ void VisualizeCross(int ShowCross, intptr_t CurLine, intptr_t Line, intptr_t Col
   }
 }
 
-void VisualizeCursor(intptr_t CurLine, intptr_t Line, intptr_t Column)
+static void VisualizeCursor(intptr_t CurLine, intptr_t Line, intptr_t Column)
 {
   static struct EditorConvertPos ecp = {sizeof(ecp), -1, 0, 0};
   static struct EditorColor ec = __DEF_EDITORCOLOR__;
@@ -935,7 +935,7 @@ void VisualizeCursor(intptr_t CurLine, intptr_t Line, intptr_t Column)
   }
 }
 
-void VisualizeBookmarks(bool bStack)
+static void VisualizeBookmarks(bool bStack)
 {
   size_t iBookmarkCount=0;
   {
@@ -1089,6 +1089,7 @@ intptr_t WINAPI ProcessEditorEventW(const struct ProcessEditorEventInfo *EInfo)
       //restore position
       esp.CurLine = ei.CurLine;
       esp.CurTabPos = ei.CurTabPos;
+      esp.LeftPos = ei.LeftPos;
       Info.EditorControl(-1,ECTL_SETPOSITION,0,&esp);
     }
   }

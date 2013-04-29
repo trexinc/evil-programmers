@@ -1,5 +1,8 @@
 History:
 --------
+V1.4
+----
+- LeftPos could change on long lines.
 
 V1.3
 ----

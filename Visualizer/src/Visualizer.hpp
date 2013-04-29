@@ -19,9 +19,6 @@
 #include <CRT/crt.hpp>
 #include "plugin.hpp"
 
-extern struct PluginStartupInfo Info;
-extern FARSTANDARDFUNCTIONS FSF;
-
 enum
 {
   MTitle,
@@ -105,8 +102,8 @@ struct InitDialogItem
   int Data;
 };
 
-const wchar_t *GetMsg(intptr_t MsgId);
-void InitDialogItems(const struct InitDialogItem *Init, struct FarDialogItem *Item, int ItemsNumber);
+static const wchar_t *GetMsg(intptr_t MsgId);
+static void InitDialogItems(const struct InitDialogItem *Init, struct FarDialogItem *Item, int ItemsNumber);
 
 #define DEFTABSYMBOL 0x25CB
 

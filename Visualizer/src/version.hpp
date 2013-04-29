@@ -1,5 +1,5 @@
 #define PLUGIN_MAJOR 1
-#define PLUGIN_MINOR 3
+#define PLUGIN_MINOR 4
 #define PLUGIN_DESC L"Visualize otherwise not so easily noticed things in Far's internal editor"
 #define PLUGIN_NAME L"Visualizer"
 #define PLUGIN_FILENAME L"Visualizer.dll"
