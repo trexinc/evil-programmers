@@ -100,6 +100,7 @@ colorize_clear:
   "union"|"unsigned"|"using"|
   "virtual"|"void"|"volatile"|
   "wchar_t"|"while"|"xor"|"xor_eq"|
+  "override"|"final"|
   "__int64"|"size_t"
   { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_KEYWORD1,EPriorityNormal); goto colorize_clear; }
   L(L|D)*
