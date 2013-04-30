@@ -129,8 +129,8 @@ static void InitLineBuf()
 {
   CONSOLE_SCREEN_BUFFER_INFO csbi;
   GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE),&csbi);
-  screenwidth=csbi.dwSize.X;
-  screenheight=csbi.dwSize.Y;
+  screenwidth=/*csbi.dwSize.X*/csbi.srWindow.Right-csbi.srWindow.Left+1;
+  screenheight=/*csbi.dwSize.Y*/csbi.srWindow.Bottom-csbi.srWindow.Top+1;
   if(linebufwidth!=screenwidth*4)
   {
     if(linebuf)delete linebuf;
