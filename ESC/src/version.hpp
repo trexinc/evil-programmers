@@ -1,5 +1,5 @@
 #define PLUGIN_MAJOR 2
-#define PLUGIN_MINOR 9
+#define PLUGIN_MINOR 91
 #define PLUGIN_DESC L"Editor's settings changer"
 #define PLUGIN_NAME L"[ESC]"
 #define PLUGIN_FILENAME L"esc.dll"
