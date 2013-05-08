@@ -602,6 +602,7 @@ static intptr_t ProcessEditorEventInternal(intptr_t Event, void *Param, intptr_t
             if((nodedata.Options2&E_Bom_On) || (nodedata.Options2&E_Bom_Off))
             {
               memset(&espar, 0, sizeof(espar));
+              espar.StructSize=sizeof(EditorSetParameter);
               espar.Type=ESPT_SETBOM;
               espar.iParam=(nodedata.Options2&E_Bom_On)?TRUE:FALSE;
               EditorControl(-1, ECTL_SETPARAM, 0, &espar);
