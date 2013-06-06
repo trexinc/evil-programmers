@@ -127,6 +127,7 @@ void DoCase(HANDLE aDlg)
       if(buffer)
       {
         EditorSelect es;
+        es.StructSize=sizeof(EditorSelect);
         es.BlockType=BTYPE_NONE;
         Info.SendDlgMessage(aDlg,DM_GETSELECTION,itemID,&es);
         COORD Pos; Info.SendDlgMessage(aDlg,DM_GETCURSORPOS,itemID,&Pos);
