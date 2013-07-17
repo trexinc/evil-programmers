@@ -31,7 +31,7 @@ bool HunspellSpell(void* handle,const wchar_t* word);
 wchar_t** HunspellSuggest(void* handle,const wchar_t* word);
 int lstrlenW(wchar_t* lpString);
 ]]
-local hunspell=ffi.load("hunspell"..win.GetEnv("PROCESSOR_ARCHITECTURE"))
+local hunspell=ffi.load("hunspell"..(win.GetEnv("PROCESSOR_ARCHITECTURE"):gsub("AMD64","x64")))
 
 local function LoadFile(filename)
   local file=io.open(filename,"rb")
