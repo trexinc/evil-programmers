@@ -130,7 +130,7 @@ local function CheckSpell()
     pos2=pos-slab:len()
     word=slab..tail
   end
-  if word:len() then
+  if word~="" then
     word_data=ToWChar(word)
     for _,v in ipairs(config) do
       if v.active and v.regex:match(word) and not hunspell.HunspellSpell(v.handle,word_data) then
