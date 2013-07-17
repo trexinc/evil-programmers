@@ -23,6 +23,7 @@ local editors={}
 local colorguid=win.Uuid("46CCE102-965A-4e2d-8263-B59F268C74C8")
 local active=false
 local ffi=require("ffi")
+local C=ffi.C
 ffi.cdef[[
 void* HunspellInit(void* affixBuffer,size_t affixBufferSize,void* dictionaryBuffer,size_t dictionaryBufferSize,wchar_t* key);
 void HunspellFree(void* handle);
@@ -31,7 +32,6 @@ wchar_t** HunspellSuggest(void* handle,const wchar_t* word);
 int lstrlenW(wchar_t* lpString);
 ]]
 local hunspell=ffi.load("hunspell"..win.GetEnv("PROCESSOR_ARCHITECTURE"))
-local kernel32=ffi.load("kernel32")
 
 local function LoadFile(filename)
   local file=io.open(filename,"rb")
@@ -137,7 +137,7 @@ local function CheckSpell()
         suggestions=hunspell.HunspellSuggest(v.handle,word_data)
         local ii,items=0,{}
         while suggestions[ii]~=ffi.NULL do
-          table.insert(items,win.Utf16ToUtf8(ffi.string(suggestions[ii],2*kernel32.lstrlenW(suggestions[ii]))))
+          table.insert(items,win.Utf16ToUtf8(ffi.string(suggestions[ii],2*C.lstrlenW(suggestions[ii]))))
           ii=ii+1
         end
         if #items>0 then
