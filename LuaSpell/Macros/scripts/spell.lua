@@ -47,15 +47,18 @@ end
 
 local function ExpandEnv(str) return (str:gsub("%%(.-)%%",win.GetEnv)) end
 
-for _,v in ipairs(config) do
-  v.dict_data,v.dict_len=LoadFile(ExpandEnv(v.dictionary))
-  v.affix_data,v.affix_len=LoadFile(ExpandEnv(v.affix))
-  if v.dict_data and v.affix_data then
-    v.handle=hunspell.HunspellInit(v.affix_data,v.affix_len,v.dict_data,v.dict_len,nil)
-    v.regex=regex.new(v.regexstr)
-  else
-    v.active=false
+local function Init()
+  for _,v in ipairs(config) do
+    v.dict_data,v.dict_len=LoadFile(ExpandEnv(v.dictionary))
+    v.affix_data,v.affix_len=LoadFile(ExpandEnv(v.affix))
+    if v.dict_data and v.affix_data then
+      v.handle=hunspell.HunspellInit(v.affix_data,v.affix_len,v.dict_data,v.dict_len,nil)
+      v.regex=regex.new(v.regexstr)
+    else
+      v.active=false
+    end
   end
+  Init=function() end
 end
 
 function GetData(id)
@@ -119,6 +122,7 @@ local function ShowMenu(strings,wordLen)
 end
 
 local function CheckSpell()
+  Init()
   local pos,pos2=editor.GetInfo(-1).CurPos,0
   local row=editor.GetInfo(-1).CurLine
   local line=editor.GetString(-1,-1)
@@ -174,6 +178,7 @@ local function RemoveColorsAll()
 end
 
 local function CheckSpellAll(ei)
+  Init()
   local data=RemoveColors(ei.EditorID)
   data.start=ei.TopScreenLine
   data.finish=math.min(ei.TopScreenLine+ei.WindowSizeY,ei.TotalLines)
@@ -220,7 +225,7 @@ Event
   action=function()
     RemoveColorsAll()
     for _,v in ipairs(config) do
-      if v.active then
+      if v.active and v.handle then
         hunspell.HunspellFree(v.handle)
       end
     end
