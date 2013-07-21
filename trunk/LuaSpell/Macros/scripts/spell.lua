@@ -79,7 +79,8 @@ end
 
 local function ShowMenu(strings,wordLen)
   local info=editor.GetInfo()
-  local menuOverheadWidth=6 --6 => 2 рамка, 2 тень, 2 место для чекмарка
+  local menuShadowWidth=2
+  local menuOverheadWidth=menuShadowWidth+4 --6 => 2 рамка, 2 тень, 2 место для чекмарка
   local menuOverheadHeight=3 --3 => 2 рамка, 1 тень
   local menuWidth=0
   local listItems={}
@@ -88,9 +89,9 @@ local function ShowMenu(strings,wordLen)
     table.insert(listItems,{Flags=0,Text=v})
   end
   local menuHeight=1
-  local coorX=info.CurPos-info.LeftPos
+  local coorX=info.CurTabPos-info.LeftPos
   local coorY=info.CurLine-info.TopScreenLine
-  local menuX=math.max(0,coorX+1-wordLen-menuWidth-menuOverheadWidth)
+  local menuX=math.max(0,coorX-menuWidth-menuOverheadWidth+menuShadowWidth)
   menuX=(info.WindowSizeX-coorX)>(coorX+2-wordLen) and (coorX+1) or menuX --меню справа или слева от слова?
   local menuY=0
   if (info.WindowSizeY-coorY-1)>coorY+1 then --меню сверху или снизу?
