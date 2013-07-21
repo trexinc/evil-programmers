@@ -64,7 +64,7 @@ end
 function GetData(id)
   local data=editors[id]
   if not data then
-    editors[id]={start=0,finish=0}
+    editors[id]={start=0,finish=-1}
     data=editors[id]
   end
   return data
@@ -159,11 +159,11 @@ end
 
 local function RemoveColors(id)
   local data=GetData(id)
-  for ii=data.start,data.finish-1 do
+  for ii=data.start,data.finish do
     editor.DelColor(id,ii,0,colorguid)
   end
   data.start=0
-  data.finish=0
+  data.finish=-1
   return data
 end
 
@@ -181,9 +181,9 @@ local function CheckSpellAll(ei)
   Init()
   local data=RemoveColors(ei.EditorID)
   data.start=ei.TopScreenLine
-  data.finish=math.min(ei.TopScreenLine+ei.WindowSizeY,ei.TotalLines)
+  data.finish=math.min(ei.TopScreenLine+ei.WindowSizeY-1,ei.TotalLines)
   local regex=regex.new([[/\b\i+\b/]])
-  for ii=data.start,data.finish-1 do
+  for ii=data.start,data.finish do
     local line=editor.GetString(-1,ii).StringText
     local pos=1
     while true do
@@ -206,7 +206,7 @@ Event
   group="EditorEvent";
   action=function(id,event,param)
     if event==F.EE_READ then
-      editors[id]={start=0,finish=0}
+      editors[id]={start=0,finish=-1}
     end
     if event==F.EE_CLOSE then
       editors[id]=nil
