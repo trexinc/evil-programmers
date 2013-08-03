@@ -370,10 +370,6 @@ intptr_t WINAPI PicDialogProc(HANDLE hDlg,intptr_t Msg,intptr_t Param1,void *Par
         }
       }
       break;
-    case 0x3FFF:
-      if(Param1)
-        UpdateImage(DlgParams);
-      break;
     case DN_GOTFOCUS:
       if(DlgParams->SelfKeys)
         Info.SendDlgMessage(hDlg,DM_SETFOCUS,2,0);
@@ -472,6 +468,15 @@ intptr_t WINAPI PicDialogProc(HANDLE hDlg,intptr_t Msg,intptr_t Param1,void *Par
               }
               return TRUE;
           }
+        }
+      }
+      break;
+    case DN_INPUT:
+      {
+        const INPUT_RECORD* record=(const INPUT_RECORD*)Param2;
+        if(record->EventType==FOCUS_EVENT&&record->Event.FocusEvent.bSetFocus)
+        {
+          UpdateImage(DlgParams);
         }
       }
       break;
