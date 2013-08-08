@@ -306,9 +306,3 @@ Event
   action=function()
   end
 }
-
-Macro
-{
-  area="Shell";key="AltShiftF4";description="show picture";
-  action=draw
-}
