@@ -304,5 +304,6 @@ Event
 {
   group="ExitFAR";
   action=function()
+    gdiplus.GdiplusShutdown(handle[0])
   end
 }
