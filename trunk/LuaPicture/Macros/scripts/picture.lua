@@ -252,10 +252,10 @@ local function ShowImage(xpanel)
           if param2.EventType==F.FOCUS_EVENT and param2.SetFocus then
             UpdateImage(params)
           end
-        elseif msg==F.DN_CONTROLINPUT then
+        elseif msg==F.DN_CONTROLINPUT or msg==F.DN_RESIZECONSOLE then
           if not params.Exit then
-            local key=far.InputRecordToName(param2)
-            params.Exit=true;
+            params.Exit=true
+            local key=msg==F.DN_RESIZECONSOLE and "CtrlR" or far.InputRecordToName(param2)
             if params.timer then params.timer:Close() end
             for _,v in ipairs(Refresh) do
               if v==key then
