@@ -167,7 +167,7 @@ void WINAPI GetGlobalInfoW( struct GlobalInfo* Info )
         ZeroMemory( Info, sizeof( *Info ) );
         Info->StructSize = sizeof(*Info);
         Info->MinFarVersion = FARMANAGERVERSION;
-        Info->Version = MAKEFARVERSION(3, 0, 1, 1, VS_RELEASE);
+        Info->Version = MAKEFARVERSION(3, 0, 2, 1, VS_RELEASE);
         Info->Guid = PluginGuid;
         Info->Title = L"Far Call";
         Info->Description = L"Plugin allows execute any batch file & import output environment variables";
@@ -412,7 +412,8 @@ HANDLE WINAPI OpenW(const struct OpenInfo *Info)
         HANDLE ar[] = {pinfo.hProcess, np};
 
         WaitForMultipleObjects( 2, ar, TRUE, INFINITE );
-
+        CloseHandle(pinfo.hProcess);
+        CloseHandle(pinfo.hThread);
         SMALL_RECT src;
         COORD dest;
         CHAR_INFO fill;
