@@ -167,7 +167,7 @@ void WINAPI GetGlobalInfoW( struct GlobalInfo* Info )
         ZeroMemory( Info, sizeof( *Info ) );
         Info->StructSize = sizeof(*Info);
         Info->MinFarVersion = FARMANAGERVERSION;
-        Info->Version = MAKEFARVERSION(3, 0, 0, 1, VS_RELEASE);
+        Info->Version = MAKEFARVERSION(3, 0, 1, 1, VS_RELEASE);
         Info->Guid = PluginGuid;
         Info->Title = L"Far Call";
         Info->Description = L"Plugin allows execute any batch file & import output environment variables";
@@ -266,7 +266,7 @@ static DWORD WINAPI ListenEnv( LPVOID lpParameter )
 
         free( envs );
     }
-
+    DisconnectNamedPipe(pipe);
     return 0;
 }
 
@@ -406,15 +406,12 @@ HANDLE WINAPI OpenW(const struct OpenInfo *Info)
     
     FSFW.GetCurrentDirectory(CUR_DIR_SIZE, curr_dir);
 
-    if( np && CreateProcessW( comspec, cmd, 0, 0, TRUE, 0, 0, curr_dir[0] ? curr_dir : 0, &sinfo, &pinfo ) )
+    if( np && CreateProcessW( NULL, cmd, 0, 0, TRUE, 0, 0, curr_dir[0] ? curr_dir : 0, &sinfo, &pinfo ) )
     {
-        CloseHandle( pinfo.hThread );
 
         HANDLE ar[] = {pinfo.hProcess, np};
 
         WaitForMultipleObjects( 2, ar, TRUE, INFINITE );
-
-        CloseHandle( pinfo.hProcess );
 
         SMALL_RECT src;
         COORD dest;
