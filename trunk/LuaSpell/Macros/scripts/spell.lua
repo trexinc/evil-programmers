@@ -1,4 +1,12 @@
-﻿local F=far.Flags
+﻿-- для работы нужны:
+-- 1. dll от проекта http://nhunspell.sourceforge.net/
+--    отсюда http://sourceforge.net/projects/nhunspell/files/ берётся архив с последней версией и из него нужны либо Hunspellx86.dll, либо Hunspellx64.dll.
+--    именно эти dll чисто нативные, никакого .net-а в них нет. положить их нужно куда-нибудь, откуда они загрузятся, например в папку с фаром.
+-- 2. словари. по умолчанию макрос настроен на вот этот http://extensions.openoffice.org/en/project/russian-dictionary-%D1%91 русский словарь (нужны файлы ru_RU_yo.aff и ru_RU_yo.dic),
+--    и вот этот http://extensions.openoffice.org/en/project/english-dictionaries-apache-openoffice английский словарь (нужны файлы en_US.aff и en_US.dic).
+--    по умолчанию словари ожидаются в %FARPROFILE%\Dictionaries\.
+
+local F=far.Flags
 local config=
 {
   --ru
