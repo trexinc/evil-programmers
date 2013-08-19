@@ -220,6 +220,9 @@ local function ShowImage(xpanel)
         {"DI_USERCONTROL",1,1,width,height,buffer,0,0,0,""}
       }
       local function DlgProc(dlg,msg,param1,param2)
+        local function CloseTimer()
+          if params.timer then params.timer:Close() end
+        end
         if msg==F.DN_INITDIALOG then
           if params.image.frames>1 then
             local function ShowAnimation()
@@ -256,7 +259,7 @@ local function ShowImage(xpanel)
           if not params.Exit then
             params.Exit=true
             local key=msg==F.DN_RESIZECONSOLE and "CtrlR" or far.InputRecordToName(param2)
-            if params.timer then params.timer:Close() end
+            CloseTimer()
             for _,v in ipairs(Refresh) do
               if v==key then
                 key=key.." CtrlR"
@@ -267,6 +270,8 @@ local function ShowImage(xpanel)
           end
         elseif msg==F.DN_DRAGGED then
           return false
+        elseif msg==F.DN_CLOSE then
+          CloseTimer()
         end
       end
       params.DrawRect={}
