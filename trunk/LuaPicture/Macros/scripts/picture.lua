@@ -252,7 +252,7 @@ local function ShowImage(xpanel)
           if param2.EventType==F.FOCUS_EVENT and param2.SetFocus then
             UpdateImage(params)
           end
-        elseif msg==F.DN_CONTROLINPUT or msg==F.DN_RESIZECONSOLE then
+        elseif msg==F.DN_CONTROLINPUT and (param2.EventType==F.KEY_EVENT or param2.EventType==F.FARMACRO_KEY_EVENT) and param2.KeyDown or msg==F.DN_RESIZECONSOLE then
           if not params.Exit then
             params.Exit=true
             local key=msg==F.DN_RESIZECONSOLE and "CtrlR" or far.InputRecordToName(param2)
@@ -265,6 +265,8 @@ local function ShowImage(xpanel)
             end
             far.MacroPost([[Keys("Esc ]]..key..[[")]])
           end
+        elseif msg==F.DN_DRAGGED then
+          return false
         end
       end
       params.DrawRect={}
