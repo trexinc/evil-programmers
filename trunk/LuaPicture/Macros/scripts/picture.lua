@@ -1,4 +1,11 @@
-﻿local Refresh={"CtrlLeft","CtrlRight","CtrlUp","CtrlDown","CtrlClear","CtrlNum4","CtrlNum6","CtrlNum2","CtrlNum8"}
+﻿local function Set(list)
+  local set={}
+  for _,l in ipairs(list) do set[l]=true end
+  return set
+end
+local Refresh=Set{"CtrlLeft","CtrlRight","CtrlUp","CtrlDown","CtrlClear","CtrlNum4","CtrlNum6","CtrlNum2","CtrlNum8"}
+local Mouse1=Set{"MsWheelDown","MsWheelUp"}
+local Mouse2=Set{"MsM1Click"}
 local Delay=100
 local F=far.Flags
 local K=far.Colors
@@ -223,7 +230,20 @@ local function ShowImage(xpanel)
         local function CloseTimer()
           if params.timer then params.timer:Close() end
         end
+        local function CloseDialog(check,key)
+          if not params.Exit then
+            key=key and key or far.InputRecordToName(param2)
+            if not check or check(key) then
+              params.Exit=true
+              CloseTimer()
+              if Refresh[key] then key=key.." CtrlR" end
+              far.MacroPost([[Keys("Esc ]]..key..[[")]])
+              return true
+            end
+          end
+        end
         if msg==F.DN_INITDIALOG then
+          far.SendDlgMessage (dlg,F.DM_SETMOUSEEVENTNOTIFY,1)
           if params.image.frames>1 then
             local function ShowAnimation()
               FillBuffer()
@@ -254,20 +274,14 @@ local function ShowImage(xpanel)
         elseif msg==F.DN_INPUT then
           if param2.EventType==F.FOCUS_EVENT and param2.SetFocus then
             UpdateImage(params)
+          elseif param2.EventType==F.MOUSE_EVENT then
+            return not CloseDialog(function(key) return Mouse2[key] end)
           end
-        elseif msg==F.DN_CONTROLINPUT and (param2.EventType==F.KEY_EVENT or param2.EventType==F.FARMACRO_KEY_EVENT) and param2.KeyDown or msg==F.DN_RESIZECONSOLE then
-          if not params.Exit then
-            params.Exit=true
-            local key=msg==F.DN_RESIZECONSOLE and "CtrlR" or far.InputRecordToName(param2)
-            CloseTimer()
-            for _,v in ipairs(Refresh) do
-              if v==key then
-                key=key.." CtrlR"
-                break
-              end
-            end
-            far.MacroPost([[Keys("Esc ]]..key..[[")]])
-          end
+        elseif msg==F.DN_CONTROLINPUT then
+          if param1==-1 then return true end
+          return CloseDialog(function(key) return ((param2.EventType==F.KEY_EVENT or param2.EventType==F.FARMACRO_KEY_EVENT) and param2.KeyDown or param2.EventType==F.MOUSE_EVENT and Mouse1[key]) end)
+        elseif msg==F.DN_RESIZECONSOLE then
+          CloseDialog(nil,"CtrlR")
         elseif msg==F.DN_DRAGGED then
           return false
         elseif msg==F.DN_CLOSE then
