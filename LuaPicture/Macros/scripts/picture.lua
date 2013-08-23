@@ -6,6 +6,7 @@ end
 local Refresh=Set{"CtrlLeft","CtrlRight","CtrlUp","CtrlDown","CtrlClear","CtrlNum4","CtrlNum6","CtrlNum2","CtrlNum8"}
 local Mouse1=Set{"MsWheelDown","MsWheelUp"}
 local Mouse2=Set{"MsM1Click"}
+local Mouse3=Set{"MsLClick"}
 local Delay=100
 local F=far.Flags
 local K=far.Colors
@@ -126,6 +127,10 @@ local function ToWChar(str)
   local result=ffi.new("wchar_t[?]",#str/2+1)
   ffi.copy(result,str)
   return result
+end
+
+local function PointInRect(point,rect)
+  return point.MousePositionX>=rect.left and point.MousePositionX<=rect.right and point.MousePositionY>=rect.top and point.MousePositionY<=rect.bottom
 end
 
 local function InitImage(filename)
@@ -275,7 +280,7 @@ local function ShowImage(xpanel)
           if param2.EventType==F.FOCUS_EVENT and param2.SetFocus then
             UpdateImage(params)
           elseif param2.EventType==F.MOUSE_EVENT then
-            return not CloseDialog(function(key) return Mouse2[key] end)
+            return not CloseDialog(function(key) return Mouse2[key] or Mouse3[key] and not PointInRect(param2,params.PanelRect) end)
           end
         elseif msg==F.DN_CONTROLINPUT then
           if param1==-1 then return true end
@@ -295,6 +300,7 @@ local function ShowImage(xpanel)
       params.DrawRect.bottom=pinfo.PanelRect.bottom-1
       params.DCRect=InitArea(params)
       params.RangedRect=RangingPic(params)
+      params.PanelRect=pinfo.PanelRect
       local dialog=far.DialogInit(win.Uuid("BFC62A3A-1ED5-4590-AF86-A582F6237E6F"),pinfo.PanelRect.left,pinfo.PanelRect.top,pinfo.PanelRect.right,pinfo.PanelRect.bottom,nil,items,F.FDLG_NODRAWSHADOW,DlgProc)
       far.DialogRun(dialog)
       far.DialogFree(dialog)
