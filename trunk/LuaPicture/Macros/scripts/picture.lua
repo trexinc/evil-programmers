@@ -8,6 +8,7 @@ local Mouse1=Set{"MsWheelDown","MsWheelUp"}
 local Mouse2=Set{"MsM1Click"}
 local Mouse3=Set{"MsLClick"}
 local Delay=100
+local BGColor=function() return 0xff000000 end
 local F=far.Flags
 local K=far.Colors
 local ffi=require("ffi")
@@ -77,6 +78,11 @@ GpStatus GdipImageGetFrameDimensionsCount(void* GpImage,unsigned int*);
 GpStatus GdipImageGetFrameDimensionsList(void* GpImage,GUID*,unsigned int);
 GpStatus GdipImageGetFrameCount(void* GpImage,const GUID*,unsigned int*);
 GpStatus GdipImageSelectActiveFrame(void* GpImage,const GUID*,unsigned int);
+GpStatus GdipFillRectangleI(void* GpGraphics,void* GpBrush,int,int,int,int);
+GpStatus GdipCreateSolidFill(unsigned long,void** GpSolidFill);
+GpStatus GdipDeleteBrush(void* GpBrush);
+GpStatus GdipCreateBitmapFromScan0(int,int,int,int,unsigned char*,void** GpBitmap);
+GpStatus GdipGetImageGraphicsContext(void* GpImage,void** GpGraphics);
 ]]
 safe_cdef("RECT",[[
 typedef struct tagRECT {
@@ -109,10 +115,25 @@ typedef struct _CONSOLE_SCREEN_BUFFER_INFO {
   COORD dwMaximumWindowSize;
 } CONSOLE_SCREEN_BUFFER_INFO;
 ]])
+safe_cdef("CONSOLE_SCREEN_BUFFER_INFOEX",[[
+typedef struct _CONSOLE_SCREEN_BUFFER_INFOEX {
+  unsigned long cbSize;
+  COORD dwSize;
+  COORD dwCursorPosition;
+  unsigned short wAttributes;
+  SMALL_RECT srWindow;
+  COORD dwMaximumWindowSize;
+  unsigned short wPopupAttributes;
+  int bFullscreenSupported;
+  unsigned long ColorTable[16];
+} CONSOLE_SCREEN_BUFFER_INFOEX;
+]])
 ffi.cdef[[
 void* GetDC(void* HWND);
+int ReleaseDC(void* HWND,void* HDC);
 int32_t GetClientRect(void* HWND,RECT* lpRect);
 int32_t GetConsoleScreenBufferInfo(void* hConsoleOutput,CONSOLE_SCREEN_BUFFER_INFO* lpConsoleScreenBufferInfo);
+int32_t GetConsoleScreenBufferInfoEx(void* hConsoleOutput,CONSOLE_SCREEN_BUFFER_INFOEX* lpConsoleScreenBufferInfoEx);
 void* GetStdHandle(uint32_t nStdHandle);
 ]]
 local gdiplus=ffi.load("gdiplus")
@@ -129,8 +150,26 @@ local function ToWChar(str)
   return result
 end
 
+local function BGR2RGB(color)
+  return bit64.bor(bit64.band(bit64.rshift(color,16),0xff),bit64.band(color,0xff00ff00),bit64.band(bit64.lshift(color,16),0xff0000))
+end
+
 local function PointInRect(point,rect)
   return point.MousePositionX>=rect.left and point.MousePositionX<=rect.right and point.MousePositionY>=rect.top and point.MousePositionY<=rect.bottom
+end
+
+local function InitBGColor()
+  local color=far.AdvControl(F.ACTL_GETCOLOR,K.COL_PANELTEXT)
+  local bgcolor
+  if bit64.band(color.Flags,F.FCF_BG_4BIT)~=0 then
+    local info=ffi.new("CONSOLE_SCREEN_BUFFER_INFOEX")
+    info.cbSize=ffi.sizeof(info)
+    C.GetConsoleScreenBufferInfoEx(C.GetStdHandle(-11),info)
+    bgcolor=bit64.bor(BGR2RGB(info.ColorTable[bit64.band(color.BackgroundColor,0xf)]),0xff000000)
+  else
+    bgcolor=BGR2RGB(color.BackgroundColor)
+  end
+  BGColor=function() return bgcolor end
 end
 
 local function InitImage(filename)
@@ -151,7 +190,13 @@ local function InitImage(filename)
     gdiplus.GdipImageGetFrameDimensionsList(image[0],dimensionIDs,count[0])
     local frames=ffi.new("unsigned int[1]")
     gdiplus.GdipImageGetFrameCount(image[0],dimensionIDs,frames);
-    return {wnd=wnd,dc=dc,image=image,graphics=graphics,width=width[0],height=height[0],frames=frames[0]}
+    local brush=ffi.new("void*[1]")
+    gdiplus.GdipCreateSolidFill(BGColor(),brush)
+    local memimage=ffi.new("void*[1]")
+    gdiplus.GdipCreateBitmapFromScan0(width[0],height[0],0,0x26200a,ffi.NULL,memimage)
+    local memgraphics=ffi.new("void*[1]")
+    gdiplus.GdipGetImageGraphicsContext(memimage[0],memgraphics)
+    return {wnd=wnd,dc=dc,image=image,graphics=graphics,brush=brush,width=width[0],height=height[0],frames=frames[0],memory={image=memimage,graphics=memgraphics}}
   end
   return false
 end
@@ -159,6 +204,10 @@ end
 local function DeleteImage(params)
   gdiplus.GdipDisposeImage(params.image.image[0])
   gdiplus.GdipDeleteGraphics(params.image.graphics[0])
+  gdiplus.GdipDeleteBrush(params.image.brush[0])
+  gdiplus.GdipDeleteGraphics(params.image.memory.graphics[0])
+  gdiplus.GdipDisposeImage(params.image.memory.image[0])
+  C.ReleaseDC(params.image.wnd,params.image.dc)
 end
 
 local function InitArea(params)
@@ -199,7 +248,12 @@ local function RangingPic(params)
 end
 
 local function UpdateImage(params)
-  gdiplus.GdipDrawImageRectI(params.image.graphics[0],params.image.image[0],params.RangedRect.left,params.RangedRect.top,params.RangedRect.right,params.RangedRect.bottom)
+  local width=params.RangedRect.right-params.RangedRect.left
+  local height=params.RangedRect.bottom-params.RangedRect.top
+  gdiplus.GdipFillRectangleI(params.image.memory.graphics[0],params.image.brush[0],0,0,params.image.width,params.image.height)
+  --GdipDrawImageI fails on some images
+  gdiplus.GdipDrawImageRectI(params.image.memory.graphics[0],params.image.image[0],0,0,params.image.width,params.image.height)
+  gdiplus.GdipDrawImageRectI(params.image.graphics[0],params.image.memory.image[0],params.RangedRect.left,params.RangedRect.top,params.RangedRect.right,params.RangedRect.bottom)
   if params.timer then
     params.image.frame=params.image.frame+1
     if params.image.frame==params.image.frames then
@@ -251,8 +305,7 @@ local function ShowImage(xpanel)
           far.SendDlgMessage (dlg,F.DM_SETMOUSEEVENTNOTIFY,1)
           if params.image.frames>1 then
             local function ShowAnimation()
-              FillBuffer()
-              far.SendDlgMessage(dlg,F.DM_REDRAW)
+              UpdateImage(params)
             end
             params.timer=far.Timer(Delay,ShowAnimation)
             params.image.frame=0
@@ -322,6 +375,7 @@ Event
         if type==F.PTYPE_QVIEWPANEL then xpanel=1 end
         for ii=0,1 do panel.RedrawPanel(nil,ii) end
       end
+      pcall(InitBGColor)
       ShowImage(xpanel)
     end
   end
