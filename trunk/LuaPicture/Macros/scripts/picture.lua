@@ -7,7 +7,6 @@ local Refresh=Set{"CtrlLeft","CtrlRight","CtrlUp","CtrlDown","CtrlClear","CtrlNu
 local Mouse1=Set{"MsWheelDown","MsWheelUp"}
 local Mouse2=Set{"MsM1Click"}
 local Mouse3=Set{"MsLClick"}
-local Delay=100
 local BGColor=function() return 0xff000000 end
 local F=far.Flags
 local K=far.Colors
@@ -64,6 +63,14 @@ typedef struct {
   unsigned char Data4[8];
 } GUID;
 ]])
+safe_cdef("PropertyItem",[[
+typedef struct PropertyItem {
+  unsigned long id;
+  unsigned long length;
+  unsigned short type;
+  void* value;
+} PropertyItem;
+]])
 ffi.cdef[[
 GpStatus GdiplusStartup(void**,const GdiplusStartupInput*,GdiplusStartupOutput*);
 void GdiplusShutdown(void*);
@@ -83,6 +90,8 @@ GpStatus GdipCreateSolidFill(unsigned long,void** GpSolidFill);
 GpStatus GdipDeleteBrush(void* GpBrush);
 GpStatus GdipCreateBitmapFromScan0(int,int,int,int,unsigned char*,void** GpBitmap);
 GpStatus GdipGetImageGraphicsContext(void* GpImage,void** GpGraphics);
+GpStatus GdipGetPropertyItemSize(void* GpImage,unsigned long,unsigned int*);
+GpStatus GdipGetPropertyItem(void* GpImage,unsigned long,unsigned int,PropertyItem*);
 ]]
 safe_cdef("RECT",[[
 typedef struct tagRECT {
@@ -189,14 +198,25 @@ local function InitImage(filename)
     local dimensionIDs=ffi.new("GUID[?]",count[0])
     gdiplus.GdipImageGetFrameDimensionsList(image[0],dimensionIDs,count[0])
     local frames=ffi.new("unsigned int[1]")
-    gdiplus.GdipImageGetFrameCount(image[0],dimensionIDs,frames);
+    gdiplus.GdipImageGetFrameCount(image[0],dimensionIDs,frames)
+    local delaysize=ffi.new("unsigned int[1]")
+    gdiplus.GdipGetPropertyItemSize(image[0],0x5100,delaysize)
+    local delay={}
+    if delaysize[0]>0 then
+      local delayraw=ffi.cast("PropertyItem*",ffi.new("char[?]",delaysize[0]))
+      gdiplus.GdipGetPropertyItem(image[0],0x5100,delaysize[0],delayraw)
+      for ii=1,frames[0] do
+        local value=ffi.cast("long*",delayraw.value)[ii-1]
+        table.insert(delay,value>0 and value or 1)
+      end
+    end
     local brush=ffi.new("void*[1]")
     gdiplus.GdipCreateSolidFill(BGColor(),brush)
     local memimage=ffi.new("void*[1]")
     gdiplus.GdipCreateBitmapFromScan0(width[0],height[0],0,0x26200a,ffi.NULL,memimage)
     local memgraphics=ffi.new("void*[1]")
     gdiplus.GdipGetImageGraphicsContext(memimage[0],memgraphics)
-    return {wnd=wnd,dc=dc,image=image,graphics=graphics,brush=brush,width=width[0],height=height[0],frames=frames[0],memory={image=memimage,graphics=memgraphics}}
+    return {wnd=wnd,dc=dc,image=image,graphics=graphics,brush=brush,width=width[0],height=height[0],frames=frames[0],delay=delay,memory={image=memimage,graphics=memgraphics}}
   end
   return false
 end
@@ -254,7 +274,11 @@ local function UpdateImage(params)
   --GdipDrawImageI fails on some images
   gdiplus.GdipDrawImageRectI(params.image.memory.graphics[0],params.image.image[0],0,0,params.image.width,params.image.height)
   gdiplus.GdipDrawImageRectI(params.image.graphics[0],params.image.memory.image[0],params.RangedRect.left,params.RangedRect.top,params.RangedRect.right,params.RangedRect.bottom)
-  if params.timer then
+  if params.timer and not params.timer.Closed then
+    if params.image.delay then
+      params.timer.Interval=params.image.delay[params.image.frame+1]*10
+      if not params.timer.Enabled then params.timer.Enabled=true end
+    end
     params.image.frame=params.image.frame+1
     if params.image.frame==params.image.frames then
       params.image.frame=0
@@ -305,9 +329,11 @@ local function ShowImage(xpanel)
           far.SendDlgMessage (dlg,F.DM_SETMOUSEEVENTNOTIFY,1)
           if params.image.frames>1 then
             local function ShowAnimation()
+              if params.timer and not params.timer.Closed then params.timer.Enabled=false end
               UpdateImage(params)
             end
-            params.timer=far.Timer(Delay,ShowAnimation)
+            params.timer=far.Timer(1000000,ShowAnimation)
+            params.timer.Enabled=false
             params.image.frame=0
             params.image.guid=win.Uuid("6aedbd6d-3fb5-418a-83a6-7f45229dc872")
           end
