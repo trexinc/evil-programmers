@@ -172,7 +172,7 @@ void CEditorOptions::ApplyAllOptions()
 //FIXME: надо понять что тут происходит и правильно для юникода сделать
 void CEditorOptions::MakeWordDiv(bool alphanum, const wchar_t *additional, wchar_t *dest)
 {
-  FARSTDLOCALISALPHA alphafunc=alphanum?FSF.LIsAlpha:FSF.LIsAlphanum;
+  FARSTDLOCALISALPHA alphafunc=alphanum?FSF.LIsAlphanum:FSF.LIsAlpha;
   const wchar_t *other=additional?additional:L"";
   for(unsigned int i=1; i<256; ++i)
   {
