@@ -177,9 +177,10 @@ void CEditorOptions::MakeWordDiv(bool alphanum, const wchar_t *additional, wchar
   for(unsigned int i=1; i<256; ++i)
   {
     if(!alphafunc(i) && NULL==wcschr(other, i)
-       && i!=0x20) // если убрать 0x20, т.е. разрешить пробелу быть символом-
+       && i!=0x20  // если убрать 0x20, т.е. разрешить пробелу быть символом-
                    // разделителем слов, то стандартные CtrlT, CtrlBS и CtrlDel
                    // не будут удалять сразу все пробелы, а только по одному
+       && i!=0x09) // VP 2014.01.12: то же и с табуляцией
     {
       *dest=i;
       ++dest;
