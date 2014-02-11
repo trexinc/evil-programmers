@@ -93,14 +93,6 @@ GpStatus GdipGetImageGraphicsContext(void* GpImage,void** GpGraphics);
 GpStatus GdipGetPropertyItemSize(void* GpImage,unsigned long,unsigned int*);
 GpStatus GdipGetPropertyItem(void* GpImage,unsigned long,unsigned int,PropertyItem*);
 ]]
-safe_cdef("RECT",[[
-typedef struct tagRECT {
-  int32_t left;
-  int32_t top;
-  int32_t right;
-  int32_t bottom;
-} RECT;
-]])
 safe_cdef("COORD",[[
 typedef struct _COORD {
   short X;
@@ -137,12 +129,18 @@ typedef struct _CONSOLE_SCREEN_BUFFER_INFOEX {
   unsigned long ColorTable[16];
 } CONSOLE_SCREEN_BUFFER_INFOEX;
 ]])
+safe_cdef("CONSOLE_FONT_INFO",[[
+typedef struct _CONSOLE_FONT_INFO {
+  unsigned long nFont;
+  COORD dwFontSize;
+} CONSOLE_FONT_INFO;
+]])
 ffi.cdef[[
 void* GetDC(void* HWND);
 int ReleaseDC(void* HWND,void* HDC);
-int32_t GetClientRect(void* HWND,RECT* lpRect);
 int32_t GetConsoleScreenBufferInfo(void* hConsoleOutput,CONSOLE_SCREEN_BUFFER_INFO* lpConsoleScreenBufferInfo);
 int32_t GetConsoleScreenBufferInfoEx(void* hConsoleOutput,CONSOLE_SCREEN_BUFFER_INFOEX* lpConsoleScreenBufferInfoEx);
+int32_t GetCurrentConsoleFont(void* hConsoleOutput,int32_t bMaximumWindow,CONSOLE_FONT_INFO* lpConsoleCurrentFont);
 void* GetStdHandle(uint32_t nStdHandle);
 ]]
 local gdiplus=ffi.load("gdiplus")
@@ -231,14 +229,14 @@ local function DeleteImage(params)
 end
 
 local function InitArea(params)
-  local rect=ffi.new("RECT")
   local info=ffi.new("CONSOLE_SCREEN_BUFFER_INFO")
-  C.GetClientRect(params.image.wnd,rect)
-  C.GetConsoleScreenBufferInfo(C.GetStdHandle(-11),info)
+  local font=ffi.new("CONSOLE_FONT_INFO")
+  local handle=C.GetStdHandle(-11)
+  C.GetConsoleScreenBufferInfo(handle,info)
+  C.GetCurrentConsoleFont(handle,false,font)
 
-  local dx=math.floor(rect.right/(info.srWindow.Right-info.srWindow.Left))
-  local dy=math.floor(rect.bottom/(info.srWindow.Bottom-info.srWindow.Top))
-
+  local dx=font.dwFontSize.X
+  local dy=font.dwFontSize.Y
   local DCRect={}
   DCRect.left=math.floor(dx*(params.DrawRect.left-info.srWindow.Left))
   DCRect.right=math.floor(dx*(params.DrawRect.right+1-info.srWindow.Left))
