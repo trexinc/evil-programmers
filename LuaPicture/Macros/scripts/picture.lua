@@ -201,7 +201,8 @@ local function InitImage(filename)
     gdiplus.GdipGetPropertyItemSize(image[0],0x5100,delaysize)
     local delay={}
     if delaysize[0]>0 then
-      local delayraw=ffi.cast("PropertyItem*",ffi.new("char[?]",delaysize[0]))
+      local delayraw_buffer=ffi.new("char[?]",delaysize[0])
+      local delayraw=ffi.cast("PropertyItem*",delayraw_buffer)
       gdiplus.GdipGetPropertyItem(image[0],0x5100,delaysize[0],delayraw)
       for ii=1,frames[0] do
         local value=ffi.cast("long*",delayraw.value)[ii-1]
