@@ -141,6 +141,7 @@ int ReleaseDC(void* HWND,void* HDC);
 int32_t GetConsoleScreenBufferInfo(void* hConsoleOutput,CONSOLE_SCREEN_BUFFER_INFO* lpConsoleScreenBufferInfo);
 int32_t GetConsoleScreenBufferInfoEx(void* hConsoleOutput,CONSOLE_SCREEN_BUFFER_INFOEX* lpConsoleScreenBufferInfoEx);
 int32_t GetCurrentConsoleFont(void* hConsoleOutput,int32_t bMaximumWindow,CONSOLE_FONT_INFO* lpConsoleCurrentFont);
+COORD GetConsoleFontSize(void* hConsoleOutput,unsigned long nFont);
 void* GetStdHandle(uint32_t nStdHandle);
 ]]
 local gdiplus=ffi.load("gdiplus")
@@ -234,7 +235,7 @@ local function InitArea(params)
   local font=ffi.new("CONSOLE_FONT_INFO")
   local handle=C.GetStdHandle(-11)
   C.GetConsoleScreenBufferInfo(handle,info)
-  C.GetCurrentConsoleFont(handle,false,font)
+  if C.GetCurrentConsoleFont(handle,false,font) then font.dwFontSize=C.GetConsoleFontSize(handle,font.nFont) end --xp workaround
 
   local dx=font.dwFontSize.X
   local dy=font.dwFontSize.Y
