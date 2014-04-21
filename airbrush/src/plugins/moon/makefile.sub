@@ -1,0 +1,26 @@
+SYNNAME=moon
+TARGET=../../../$(BINDIR)/Formats/$(SYNNAME).fmt
+DEF=$(SYNNAME).def
+OBJS=../../../$(OBJDIR)/$(SYNNAME).o ../../../$(OBJDIR)/$(SYNNAME)_colorize.o ../../../$(OBJDIR)/$(SYNNAME).res.o
+LIBS=
+
+all: $(TARGET)
+
+$(TARGET): $(OBJS)
+	$(CC) $(LFLAGS) -o $@ -Xlinker --base-file -Xlinker $(TARGET).base $(OBJS) $(LIBS)
+	$(DLLTOOL) --dllname $(TARGET) --base-file $(TARGET).base --output-exp $(TARGET).exp --def $(DEF)
+	$(CC) $(LFLAGS) -o $@ $(OBJS) $(TARGET).exp $(LIBS)
+	$(RM) $(TARGET).base
+	$(RM) $(TARGET).exp
+
+../../../$(OBJDIR)/$(SYNNAME).o: $(SYNNAME).cpp ab$(SYNNAME).h ../../$(BOOTSTRAPDIR)/abplugin.h
+	$(CC) $(CFLAGS) $< -o $@
+
+../../../$(OBJDIR)/$(SYNNAME)_colorize.o: ../../$(BOOTSTRAPDIR)/$(SYNNAME)_colorize.cpp ab$(SYNNAME).h ../../$(BOOTSTRAPDIR)/abplugin.h
+	$(CC) $(CFLAGS) $< -o $@
+
+../../$(BOOTSTRAPDIR)/$(SYNNAME)_colorize.cpp: $(SYNNAME)_colorize.re
+	re2c -u -b $< > $@
+
+../../../$(OBJDIR)/$(SYNNAME).res.o: $(SYNNAME).rc ../../$(BOOTSTRAPDIR)/abversion.h
+	$(WINDRES) -i $< -o $@
