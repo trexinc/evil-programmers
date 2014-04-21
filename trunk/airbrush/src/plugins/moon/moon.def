@@ -1,0 +1,4 @@
+EXPORTS
+   SetColorizeInfo=SetColorizeInfo@4
+   Colorize=Colorize@8
+   GetParams=GetParams@12
