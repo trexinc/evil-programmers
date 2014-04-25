@@ -844,7 +844,7 @@ void WINAPI FreeFindDataW(const struct FreeFindDataInfo *anInfo)
   if(panel->error)
   {
     panel->error=false;
-    SetDirectoryInfo info={sizeof(info),anInfo->hPanel,_T(".."),0,0};
+    SetDirectoryInfo info={sizeof(info),anInfo->hPanel,_T(".."),0,0,{0,0}};
     SetDirectoryW(&info);
     Info.PanelControl(anInfo->hPanel,FCTL_UPDATEPANEL,1,0);
     Info.PanelControl(anInfo->hPanel,FCTL_REDRAWPANEL,0,0);
@@ -1210,11 +1210,13 @@ intptr_t WINAPI ProcessPanelInputW(const struct ProcessPanelInputInfo *anInfo)
 
 intptr_t WINAPI ConfigureW(const struct ConfigureInfo* Info)
 {
+  (void)Info;
   return Config();
 }
 
 void WINAPI ExitFARW(const struct ExitInfo *Info)
 {
+  (void)Info;
   free_sid_cache();
   free_current_user();
 }
