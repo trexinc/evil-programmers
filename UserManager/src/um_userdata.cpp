@@ -32,6 +32,7 @@ struct PluginUserData
 
 static void WINAPI FreeUserData(void* UserData,const FarPanelItemFreeInfo* Info)
 {
+  (void)Info;
   free(UserData);
 }
 

@@ -30,6 +30,7 @@ extern LSA_HANDLE GetPolicyHandle(wchar_t *computer);
 
 bool TakeOwnership(UserManager *panel,bool selection)
 {
+  (void)selection;
   return AddOwnerInternal(panel,current_user());
 }
 

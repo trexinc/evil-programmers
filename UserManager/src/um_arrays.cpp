@@ -472,6 +472,7 @@ PSECURITY_DESCRIPTOR GetRegSD(UserManager *panel,SECURITY_INFORMATION si)
 
 PSECURITY_DESCRIPTOR GetShareSD(UserManager *panel,SECURITY_INFORMATION si)
 {
+  (void)si;
   PSECURITY_DESCRIPTOR SD=NULL;
   SHARE_INFO_502 *info;
   if(NetShareGetInfo(panel->computer_ptr,panel->nonfixed,502,(LPBYTE *)&info)==NERR_Success)
@@ -555,6 +556,7 @@ bool SetRegSD(UserManager *panel,SECURITY_INFORMATION si,PSECURITY_DESCRIPTOR SD
 
 bool SetShareSD(UserManager *panel,SECURITY_INFORMATION si,PSECURITY_DESCRIPTOR SD)
 {
+  (void)si;
   bool res=false;
   SHARE_INFO_502 *info;
   if(NetShareGetInfo(panel->computer_ptr,panel->nonfixed,502,(LPBYTE *)&info)==NERR_Success)
@@ -1721,6 +1723,7 @@ const int panel_modes[]=
 
 TCHAR *get_plain_panel_title(const TCHAR *str)
 {
+  (void)str;
   TCHAR *Result=NULL;
   return Result;
 }
