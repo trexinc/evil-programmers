@@ -26,6 +26,8 @@ ABColor colors[]=
 {
   {ABCF_4BIT,AB_OPAQUE(0x03),AB_OPAQUE(0x00),NULL,false,true },
   {ABCF_4BIT,AB_OPAQUE(0x0F),AB_OPAQUE(0x00),NULL,false,true },
+  {ABCF_4BIT,AB_OPAQUE(0x0C),AB_OPAQUE(0x00),NULL,false,true },
+  {ABCF_4BIT,AB_OPAQUE(0x0D),AB_OPAQUE(0x00),NULL,false,true },
   {ABCF_4BIT,AB_OPAQUE(0x0E),AB_OPAQUE(0x00),NULL,false,true },
   {ABCF_4BIT,AB_OPAQUE(0x0A),AB_OPAQUE(0x00),NULL,false,true },
   {ABCF_4BIT,AB_OPAQUE(0x0A),AB_OPAQUE(0x00),NULL,false,true },
@@ -33,7 +35,7 @@ ABColor colors[]=
   {ABCF_4BIT,AB_OPAQUE(0x0C),AB_OPAQUE(0x00),NULL,false,true },
   {ABCF_4BIT,AB_OPAQUE(0x01),AB_OPAQUE(0x0C),NULL,false,false}
 };
-const TCHAR* colornames[]={_T("Comment"),_T("Keyword"),_T("String"),_T("Number"),_T("Hex Number"),_T("--FIXME"),_T("Pair"),_T("Wrong Pair")};
+const TCHAR* colornames[]={_T("Comment"),_T("Keyword"),_T("Field"),_T("Class"),_T("String"),_T("Number"),_T("Hex Number"),_T("--FIXME"),_T("Pair"),_T("Wrong Pair")};
 
 int WINAPI SetColorizeInfo(ColorizeInfo *AInfo)
 {
