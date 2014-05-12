@@ -84,6 +84,12 @@ colorize_clear:
   "false"|"for"|"from"|"if"|"import"|"in"|"local"|"not"|"or"|"nil"|"return"|
   "self"|"super"|"switch"|"then"|"true"|"unless"|"using"|"when"|"while"|"with"
   { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_KEYWORD1,EPriorityNormal); goto colorize_clear; }
+  (L(L|D)*[ \t]*":")|(":"[ \t]*L(L|D)*)|":"
+  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_FIELD,EPriorityNormal); goto colorize_clear; }
+  [@]{3,}L(L|D)*
+  { goto colorize_clear; }
+  ([@]{1,2}L(L|D)*)|"@"
+  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_CLASS,EPriorityNormal); goto colorize_clear; }
   L(L|D)*
   { goto colorize_clear; }
   ("0"[xX]H+)
@@ -96,8 +102,8 @@ colorize_clear:
   { state[0]=PARSER_STRING2; commentstart=yytok; goto colorize_string2; }
   "+"|"-"|"*"|"/"|"%"|"^"|"#"|
   "=="|"~="|"!="|"<="|">="|"<"|">"|"="|
-  ";"|":"|","|"."|".."|"..."|
-  "->"|"=>"|"!"|"\\"|"@"|"@@"
+  ";"|","|"."|".."|"..."|
+  "->"|"=>"|"!"|"\\"
   {
     if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_KEYWORD1,EPriorityNormal);
     goto colorize_clear;
