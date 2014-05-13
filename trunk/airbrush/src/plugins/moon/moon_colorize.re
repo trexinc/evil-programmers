@@ -41,6 +41,30 @@ ESC1 = [\\] ([abfnrtv"\\] | D{1,3});
 ESC2 = [\\] ([abfnrtv'\\] | D{1,3});
 */
 
+static int GetLevel(const UTCHAR* string)
+{
+  int result=0;
+  while(*string&&*string!=_T('[')) ++string;
+  if(*string)
+  {
+    while(*++string==_T('=')) ++result;
+    if(*string!=_T('[')) result=0;
+  }
+  return result;
+}
+
+static bool MatchLevel(const UTCHAR* string,int level)
+{
+  int count=-1;
+  if(*string==_T(']'))
+  {
+    count=0;
+    while(*++string==_T('=')) ++count;
+    if(*string!=_T(']')) count=-1;
+  }
+  return count==level;
+}
+
 void WINAPI Colorize(int index,struct ColorizeParams *params)
 {
   (void)index;
@@ -48,15 +72,15 @@ void WINAPI Colorize(int index,struct ColorizeParams *params)
   const UTCHAR *line;
   int linelen,startcol;
   int lColorize=0;
-  int state_data=PARSER_CLEAR;
-  int* state=&state_data;
+  MoonState state_data={PARSER_CLEAR,0};
+  MoonState* state=&state_data;
   int state_size=sizeof(state_data);
   const UTCHAR *yycur,*yyend,*yytmp=NULL,*yytok=NULL;
   struct PairStack *hl_state=NULL;
   int hl_row; int hl_col;
   if(params->data_size>=sizeof(state_data))
   {
-    state=(int*)(params->data);
+    state=(MoonState*)(params->data);
     state_size=params->data_size;
   }
   Info.pGetCursor(&hl_row,&hl_col);
@@ -75,8 +99,9 @@ colorize_clear:
     if(yytok) if(params->callback) if(params->callback(0,lno,yytok-line,params->param)) goto colorize_exit;
     yytok=yycur;
     if(params->callback) if(params->callback(1,lno,yytok-line,params->param)) goto colorize_exit;
-    if(state[0]==PARSER_STRING1) goto colorize_string1;
-    if(state[0]==PARSER_STRING2) goto colorize_string2;
+    if(state[0].State==PARSER_STRING1) goto colorize_string1;
+    if(state[0].State==PARSER_STRING2) goto colorize_string2;
+    if(state[0].State==PARSER_STRING3) goto colorize_string3;
 /*!re2c
   "--"
   { commentstart=yytok; goto colorize_comment2; }
@@ -96,10 +121,12 @@ colorize_clear:
   { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_NUMBER2,EPriorityNormal); goto colorize_clear; }
   (D+)|(D+E)|(D*"."D+E?)|(D+"."D*E?)
   { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_NUMBER1,EPriorityNormal); goto colorize_clear; }
+  "[" "="* "["
+  { state[0].State=PARSER_STRING1; state[0].Level=GetLevel(yytok); commentstart=yytok; goto colorize_string1; }
   ["]
-  { state[0]=PARSER_STRING1; commentstart=yytok; goto colorize_string1; }
+  { state[0].State=PARSER_STRING2; state[0].Level=0; commentstart=yytok; goto colorize_string2; }
   [']
-  { state[0]=PARSER_STRING2; commentstart=yytok; goto colorize_string2; }
+  { state[0].State=PARSER_STRING3; state[0].Level=0; commentstart=yytok; goto colorize_string3; }
   "+"|"-"|"*"|"/"|"%"|"^"|"#"|
   "=="|"~="|"!="|"<="|">="|"<"|">"|"="|
   ";"|","|"."|".."|"..."|
@@ -155,37 +182,33 @@ colorize_comment2:
 colorize_string1:
     yytok=yycur;
 /*!re2c
-  ESC1
-  { goto colorize_string1; }
-  ["]
+  "]" "="* "]"
   {
-    if(lColorize) Info.pAddColor(lno,commentstart-line,yycur-commentstart,colors+HC_STRING1,EPriorityNormal);
-    state[0]=PARSER_CLEAR;
-    goto colorize_clear;
-  }
-  [\000]
-  {
-    if(yytok==yyend)
+    if(MatchLevel(yytok,state[0].Level))
     {
       if(lColorize) Info.pAddColor(lno,commentstart-line,yycur-commentstart,colors+HC_STRING1,EPriorityNormal);
-      goto colorize_end;
+      state[0].State=PARSER_CLEAR;
+      state[0].Level=0;
+      goto colorize_clear;
     }
+    yycur=yytok+1;
     goto colorize_string1;
   }
-  [\\][ \t]*[\000]
-  { if((yycur-1)==yyend) goto colorize_end; goto colorize_string1; }
+  [\000]
+  { if(yytok==yyend) goto colorize_end; goto colorize_string1; }
   any
   { goto colorize_string1; }
 */
 colorize_string2:
     yytok=yycur;
 /*!re2c
-  ESC2
+  ESC1
   { goto colorize_string2; }
-  [']
+  ["]
   {
     if(lColorize) Info.pAddColor(lno,commentstart-line,yycur-commentstart,colors+HC_STRING1,EPriorityNormal);
-    state[0]=PARSER_CLEAR;
+    state[0].State=PARSER_CLEAR;
+    state[0].Level=0;
     goto colorize_clear;
   }
   [\000]
@@ -193,7 +216,6 @@ colorize_string2:
     if(yytok==yyend)
     {
       if(lColorize) Info.pAddColor(lno,commentstart-line,yycur-commentstart,colors+HC_STRING1,EPriorityNormal);
-      state[0]=PARSER_CLEAR;
       goto colorize_end;
     }
     goto colorize_string2;
@@ -203,8 +225,36 @@ colorize_string2:
   any
   { goto colorize_string2; }
 */
+colorize_string3:
+    yytok=yycur;
+/*!re2c
+  ESC2
+  { goto colorize_string3; }
+  [']
+  {
+    if(lColorize) Info.pAddColor(lno,commentstart-line,yycur-commentstart,colors+HC_STRING1,EPriorityNormal);
+    state[0].State=PARSER_CLEAR;
+    state[0].Level=0;
+    goto colorize_clear;
+  }
+  [\000]
+  {
+    if(yytok==yyend)
+    {
+      if(lColorize) Info.pAddColor(lno,commentstart-line,yycur-commentstart,colors+HC_STRING1,EPriorityNormal);
+      state[0].State=PARSER_CLEAR;
+      state[0].Level=0;
+      goto colorize_end;
+    }
+    goto colorize_string3;
+  }
+  [\\][ \t]*[\000]
+  { if((yycur-1)==yyend) goto colorize_end; goto colorize_string3; }
+  any
+  { goto colorize_string3; }
+*/
 colorize_end:
-    if(state[0]==PARSER_STRING1||state[0]==PARSER_STRING2)
+    if(state[0].State==PARSER_STRING1||state[0].State==PARSER_STRING2||state[0].State==PARSER_STRING3)
       if(lColorize) Info.pAddColor(lno,commentstart-line,yyend-commentstart,colors+HC_STRING1,EPriorityNormal);
   }
 colorize_exit:
