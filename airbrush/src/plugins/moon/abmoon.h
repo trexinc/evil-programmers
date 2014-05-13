@@ -30,6 +30,13 @@
 #define PARSER_CLEAR   0
 #define PARSER_STRING1 1
 #define PARSER_STRING2 2
+#define PARSER_STRING3 3
+
+struct MoonState
+{
+  int State;
+  int Level;
+};
 
 extern ABColor colors[];
 extern struct ColorizeInfo Info;
