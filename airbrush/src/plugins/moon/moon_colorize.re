@@ -105,6 +105,11 @@ colorize_clear:
 /*!re2c
   "--"
   { commentstart=yytok; goto colorize_comment2; }
+  ("."|"\\")L(L|D)*
+  {
+    if(lColorize) Info.pAddColor(lno,yytok-line,1,colors+HC_KEYWORD1,EPriorityNormal);
+    goto colorize_clear;
+  }
   "and"|"break"|"class"|"continue"|"do"|"else"|"elseif"|"export"|"extends"|
   "false"|"for"|"from"|"if"|"import"|"in"|"local"|"not"|"or"|"nil"|"return"|
   "self"|"super"|"switch"|"then"|"true"|"unless"|"using"|"when"|"while"|"with"
@@ -127,10 +132,12 @@ colorize_clear:
   { state[0].State=PARSER_STRING2; state[0].Level=0; commentstart=yytok; goto colorize_string2; }
   [']
   { state[0].State=PARSER_STRING3; state[0].Level=0; commentstart=yytok; goto colorize_string3; }
+  "."{4,}
+  { goto colorize_clear; }
   "+"|"-"|"*"|"/"|"%"|"^"|"#"|
   "=="|"~="|"!="|"<="|">="|"<"|">"|"="|
-  ";"|","|"."|".."|"..."|
-  "->"|"=>"|"!"|"\\"
+  ";"|","|".."|"..."|
+  "->"|"=>"|"!"
   {
     if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_KEYWORD1,EPriorityNormal);
     goto colorize_clear;
