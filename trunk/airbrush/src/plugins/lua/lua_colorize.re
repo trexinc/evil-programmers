@@ -109,7 +109,7 @@ colorize_clear:
   "--"
   { commentstart=yytok; goto colorize_comment2; }
   "and"|"break"|"do"|"else"|"elseif"|
-  "false"|
+  "false"|"goto"|
   "in"|"local"|"nil"|"not"|"or"|
   "return"|"then"|"true"
   { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_KEYWORD1,EPriorityNormal); goto colorize_clear; }
@@ -119,6 +119,8 @@ colorize_clear:
   "until" {POP_PAIR(4,4)}
   L(L|D)*
   { goto colorize_clear; }
+  "::"L(L|D)*"::"
+  { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_LABEL,EPriorityNormal); goto colorize_clear; }
   ("0"[xX]H+)
   { if(lColorize) Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_NUMBER2,EPriorityNormal); goto colorize_clear; }
   (D+)|(D+E)|(D*"."D+E?)|(D+"."D*E?)
