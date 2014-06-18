@@ -181,7 +181,7 @@ void EnablePrivilege(const TCHAR *name)
   {
     if(OpenProcessToken(GetCurrentProcess(),TOKEN_ADJUST_PRIVILEGES,&token))
     {
-      AdjustTokenPrivileges(token,FALSE,&priv,sizeof(priv),0,0);
+      AdjustTokenPrivileges(token,FALSE,&priv,0,0,0);
       CloseHandle(token);
     }
   }
