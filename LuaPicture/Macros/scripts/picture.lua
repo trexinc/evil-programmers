@@ -289,7 +289,7 @@ end
 
 local function ShowImage(xpanel)
   local vinfo,pinfo=viewer.GetInfo(),panel.GetPanelInfo(nil,xpanel)
-  if vinfo.WindowSizeX==(pinfo.PanelRect.right-pinfo.PanelRect.left-1) and pinfo.PanelType==F.PTYPE_QVIEWPANEL then
+  if pinfo and vinfo.WindowSizeX==(pinfo.PanelRect.right-pinfo.PanelRect.left-1) and pinfo.PanelType==F.PTYPE_QVIEWPANEL then
     local params={CurPanel=bit64.band(pinfo.Flags,F.PFLAGS_FOCUS)~=0,Redraw=false,Key=false,Exit=false}
     params.image=InitImage(viewer.GetFileName())
     if params.image then
