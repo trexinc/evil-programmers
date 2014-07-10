@@ -186,7 +186,11 @@ int OnEditorEvent(int event,void *param,int editorid)
   EditorGetString egs;
   egs.StructSize=sizeof(egs);
   egs.StringNumber=0;
-  Info.EditorControl(-1,ECTL_GETSTRING,0,&egs);
+  if(!Info.EditorControl(-1,ECTL_GETSTRING,0,&egs))
+  {
+    free(editorfilename);
+    return 0;
+  }
 
   if((!curfile)&&Opt.Active&&(ei.TotalLines<=Opt.MaxLines))
   {
