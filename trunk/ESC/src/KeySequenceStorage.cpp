@@ -102,7 +102,7 @@ bool KeySequenceStorage::compile(const wchar_t *BufPtr, bool silent, DWORD total
     _D(SysLog(L"compile: error Buf (unknownKey='%s')", unknownKey.str?unknownKey.str:L"(null)"));
     return false;
   }
-  if(silent) Sequence.Flags=KMFLAGS_DISABLEOUTPUT;
+  Sequence.Flags=silent?0:KMFLAGS_ENABLEOUTPUT;
   Stop=stop;
 
   DWORD tmpSize=lstrlen(BufPtr);
