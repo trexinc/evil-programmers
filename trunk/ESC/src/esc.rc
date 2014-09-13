@@ -1,7 +1,8 @@
 #include <windows.h>
 #include "version.hpp"
 
-#define STR(str) #str
+#define STR2(str) #str
+#define STR(str) STR2(str)
 
 1 VERSIONINFO
 FILEVERSION PLUGIN_MAJOR, PLUGIN_MINOR, 0, 0
