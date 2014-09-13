@@ -1750,7 +1750,7 @@ BOOL WINAPI PostMacroW(const HANDLE Macro, BOOL silent)
    {
       BOOL Stop;
       KeySequence KS=Cmd->GetSequence(Stop);
-      KS.Flags=silent?KMFLAGS_DISABLEOUTPUT:0;
+      KS.Flags=silent?0:KMFLAGS_ENABLEOUTPUT;
       return FARPostMacro(&KS);
    }
    return FALSE;
