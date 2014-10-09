@@ -1,7 +1,7 @@
 /*
     acmpl.cpp
     Copyright (C) 2000-2001 Igor Lyubimov
-    Copyright (C) 2002-2008 zg
+    Copyright (C) 2002-2014 zg
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -140,7 +140,7 @@ int TAutoCompletion::ProcessEditorEvent(int Event,void *Param,int EditorID)
         {
           if(Window->BlockDeleted)
           {
-            if((INT_PTR)Param==1) Window->BlockDeleted=false;
+            Window->BlockDeleted=false;
           }
           else
           {
