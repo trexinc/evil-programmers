@@ -158,6 +158,11 @@ local function ToWChar(str)
   return result
 end
 
+local function LongPath(path)
+  local type=path:match([[^\\(.?.?)]])
+  return type and (([[?\]]==type or [[.\]]==type) and path or [[\\?\UNC]]..path:sub(2)) or [[\\?\]]..path
+end
+
 local function BGR2RGB(color)
   return bit64.bor(bit64.band(bit64.rshift(color,16),0xff),bit64.band(color,0xff00ff00),bit64.band(bit64.lshift(color,16),0xff0000))
 end
@@ -184,7 +189,7 @@ local function InitImage(filename)
   local wnd=far.AdvControl(F.ACTL_GETFARHWND)
   local dc=C.GetDC(wnd)
   local image=ffi.new("void*[1]")
-  local status=gdiplus.GdipLoadImageFromFile(ToWChar(filename),image)
+  local status=gdiplus.GdipLoadImageFromFile(ToWChar(LongPath(filename)),image)
   if status==0 then
     local graphics=ffi.new("void*[1]")
     gdiplus.GdipCreateFromHDC(dc,graphics)
