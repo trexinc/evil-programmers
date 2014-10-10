@@ -12,10 +12,8 @@ local F=far.Flags
 local K=far.Colors
 local ffi=require("ffi")
 local C=ffi.C
-local function safe_cdef(name,def)
-if not pcall(ffi.sizeof,name) then ffi.cdef(def) end
-end
-safe_cdef("GpStatus",[[
+local function safe_cdef(def) pcall(ffi.cdef,def) end
+safe_cdef([[
 typedef enum GpStatus {
   Ok = 0,
   GenericError = 1,
@@ -41,7 +39,7 @@ typedef enum GpStatus {
   ProfileNotFound = 21
 } GpStatus;
 ]])
-safe_cdef("GdiplusStartupInput",[[
+safe_cdef([[
 typedef struct GdiplusStartupInput {
   uint32_t GdiplusVersion;
   void* DebugEventCallback;
@@ -49,13 +47,13 @@ typedef struct GdiplusStartupInput {
   int SuppressExternalCodecs;
 } GdiplusStartupInput;
 ]])
-safe_cdef("GdiplusStartupOutput",[[
+safe_cdef([[
 typedef struct GdiplusStartupOutput {
   void* NotificationHook;
   void* NotificationUnhook;
 } GdiplusStartupOutput;
 ]])
-safe_cdef("GUID",[[
+safe_cdef([[
 typedef struct {
   unsigned long Data1;
   unsigned short Data2;
@@ -63,7 +61,7 @@ typedef struct {
   unsigned char Data4[8];
 } GUID;
 ]])
-safe_cdef("PropertyItem",[[
+safe_cdef([[
 typedef struct PropertyItem {
   unsigned long id;
   unsigned long length;
@@ -93,13 +91,13 @@ GpStatus GdipGetImageGraphicsContext(void* GpImage,void** GpGraphics);
 GpStatus GdipGetPropertyItemSize(void* GpImage,unsigned long,unsigned int*);
 GpStatus GdipGetPropertyItem(void* GpImage,unsigned long,unsigned int,PropertyItem*);
 ]]
-safe_cdef("COORD",[[
+safe_cdef([[
 typedef struct _COORD {
   short X;
   short Y;
 } COORD;
 ]])
-safe_cdef("SMALL_RECT",[[
+safe_cdef([[
 typedef struct _SMALL_RECT {
   short Left;
   short Top;
@@ -107,7 +105,7 @@ typedef struct _SMALL_RECT {
   short Bottom;
 } SMALL_RECT;
 ]])
-safe_cdef("CONSOLE_SCREEN_BUFFER_INFO",[[
+safe_cdef([[
 typedef struct _CONSOLE_SCREEN_BUFFER_INFO {
   COORD dwSize;
   COORD dwCursorPosition;
@@ -116,7 +114,7 @@ typedef struct _CONSOLE_SCREEN_BUFFER_INFO {
   COORD dwMaximumWindowSize;
 } CONSOLE_SCREEN_BUFFER_INFO;
 ]])
-safe_cdef("CONSOLE_SCREEN_BUFFER_INFOEX",[[
+safe_cdef([[
 typedef struct _CONSOLE_SCREEN_BUFFER_INFOEX {
   unsigned long cbSize;
   COORD dwSize;
@@ -129,7 +127,7 @@ typedef struct _CONSOLE_SCREEN_BUFFER_INFOEX {
   unsigned long ColorTable[16];
 } CONSOLE_SCREEN_BUFFER_INFOEX;
 ]])
-safe_cdef("CONSOLE_FONT_INFO",[[
+safe_cdef([[
 typedef struct _CONSOLE_FONT_INFO {
   unsigned long nFont;
   COORD dwFontSize;
