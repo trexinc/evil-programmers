@@ -275,7 +275,10 @@ local function UpdateImage(params)
   local height=params.RangedRect.bottom-params.RangedRect.top
   gdiplus.GdipFillRectangleI(params.image.memory.graphics[0],params.image.brush[0],0,0,params.image.width,params.image.height)
   --GdipDrawImageI fails on some images
-  gdiplus.GdipDrawImageRectI(params.image.memory.graphics[0],params.image.image[0],0,0,params.image.width,params.image.height)
+  --FIXME: какая-то ересь. на некоторых картинках первый вызов GdipDrawImageRectI завершается с ошибкой.
+  for _=0,1 do
+    if C.Win32Error~=gdiplus.GdipDrawImageRectI(params.image.memory.graphics[0],params.image.image[0],0,0,params.image.width,params.image.height) then break end
+  end
   gdiplus.GdipDrawImageRectI(params.image.graphics[0],params.image.memory.image[0],params.RangedRect.left,params.RangedRect.top,params.RangedRect.right,params.RangedRect.bottom)
   if params.timer and not params.timer.Closed then
     if params.image.delay then
