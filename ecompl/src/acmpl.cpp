@@ -286,7 +286,7 @@ bool TAutoCompletion::PutVariant(avl_window_data *Window)
 
 void TAutoCompletion::Colorize(FarColor NewColor,avl_window_data *Window)
 {
-  EditorColor ec;
+  EditorColor ec={};
   ec.StructSize=sizeof(ec);
   ec.StringNumber=Window->row;
   ec.StartPos=Window->col;
