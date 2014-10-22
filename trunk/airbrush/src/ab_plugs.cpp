@@ -60,20 +60,8 @@ static void WINAPI addcolor(int lno,int start,int len,const struct ABColor* colo
       ec.Priority=100;
       break;
   }
-  ec.Flags=0;
+  ec.Flags=ECF_AUTODELETE;
   Info.EditorControl(-1,ECTL_ADDCOLOR,0,&ec);
-  ReleaseMutex(Mutex);
-}
-
-static void WINAPI delcolor(int lno)
-{
-  WaitForSingleObject(Mutex,INFINITE);
-  EditorDeleteColor edc;
-  edc.StructSize=sizeof(edc);
-  edc.Owner=MainGuid;
-  edc.StringNumber=lno;
-  edc.StartPos=-1;
-  Info.EditorControl(-1,ECTL_DELCOLOR,0,&edc);
   ReleaseMutex(Mutex);
 }
 
@@ -194,7 +182,6 @@ void LoadPlugs(const TCHAR* ModuleName)
         lInfo.cachestr=PARSER_CACHESTR;
         lstrcpy(lInfo.folder,PluginsFolder);
         lInfo.pAddColor=addcolor;
-        lInfo.pDelColor=delcolor;
         lInfo.pGetLine=getline;
         lInfo.pAddState=addstate;
         lInfo.pGetCursor=getcursor;

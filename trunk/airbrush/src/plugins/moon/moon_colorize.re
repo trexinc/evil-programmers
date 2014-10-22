@@ -90,7 +90,6 @@ void WINAPI Colorize(int index,struct ColorizeParams *params)
     if(((lno%Info.cachestr)==0)&&(!startcol))
       if(!Info.pAddState(params->eid,lno/Info.cachestr,state_size,(unsigned char *)state)) goto colorize_exit;
     if(lno==params->topline) lColorize=1;
-    if(lColorize&&(!startcol)) Info.pDelColor(lno);
     line=(const UTCHAR*)Info.pGetLine(lno,&linelen);
     commentstart=line+startcol;
     yycur=line+startcol;

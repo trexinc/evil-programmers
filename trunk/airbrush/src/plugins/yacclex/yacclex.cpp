@@ -170,7 +170,6 @@ colorize_start:
       if(!Info.pAddState(params->eid,lno/Info.cachestr,state_size,(unsigned char *)state)) goto colorize_exit;
     commentstart=0;
     if(lno==params->topline) lColorize=1;
-    if(lColorize&&(!startcol)) Info.pDelColor(lno);
     line=Info.pGetLine(lno,&linelen);
     for(int i=startcol;i<linelen;i++)
     {
