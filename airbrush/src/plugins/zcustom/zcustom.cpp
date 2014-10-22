@@ -709,7 +709,6 @@ void WINAPI Colorize(int index,struct ColorizeParams *params)
       if(!Info.pAddState(params->eid,lno/Info.cachestr,state_size,(unsigned char *)state)) return;
     context_start=0;
     if(lno==params->topline) lColorize=1;
-    if(lColorize&&(!startcol)) Info.pDelColor(lno);
     const wchar_t* lineW=Info.pGetLine(lno,&linelen);
     line=(char*)malloc(linelen);
     if(!line) return;

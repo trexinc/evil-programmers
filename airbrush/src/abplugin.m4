@@ -61,7 +61,6 @@ struct ABColor
 };
 
 typedef void (WINAPI* PLUGINADDCOLOR)(int lno,int start,int len,const struct ABColor* color,enum ColorizePriority priority);
-typedef void (WINAPI* PLUGINDELCOLOR)(int lno);
 typedef const TCHAR* (WINAPI *PLUGINGETLINE)(int lno,int* len);
 typedef bool (WINAPI* PLUGINADDSTATE)(int eid,int pos,unsigned long size,unsigned char* data);
 typedef void (WINAPI* PLUGINGETCURSOR)(int* row,int* col);
@@ -76,7 +75,6 @@ struct ColorizeInfo
   TCHAR folder[MAX_PATH];
   void* reserved;
   PLUGINADDCOLOR pAddColor;
-  PLUGINDELCOLOR pDelColor;
   PLUGINGETLINE pGetLine;
   PLUGINADDSTATE pAddState;
   PLUGINGETCURSOR pGetCursor;

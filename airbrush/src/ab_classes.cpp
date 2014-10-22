@@ -286,15 +286,6 @@ int OnEditorEvent(int event,void *param,int editorid)
   if(ei.TotalLines>Opt.MaxLines) curfile->type=-1;
   if((curfile->type<0)||(!Opt.Active))
   {
-    EditorDeleteColor edc;
-    edc.StructSize=sizeof(edc);
-    edc.Owner=MainGuid;
-    edc.StartPos=-1;
-    for(int i=ei.TopScreenLine;i<params.endline;i++)
-    {
-      edc.StringNumber=i;
-      Info.EditorControl(-1,ECTL_DELCOLOR,0,&edc);
-    }
     return 0;
   }
   if(!(curfile->cachesize))
