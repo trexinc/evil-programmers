@@ -256,9 +256,7 @@ void LoadPlugs(const TCHAR* ModuleName)
               int ColorCount; ABColor* Colors;
               if((CurPlugin.Params&PAR_COLORS_STORE)&&CurPlugin.pGetParams(CurPlugin.Index,PAR_GET_COLOR_COUNT,(const char **)&ColorCount)&&CurPlugin.pGetParams(CurPlugin.Index,PAR_GET_COLOR,(const char **)&Colors))
               {
-                CFarSettings settings(MainGuid);
-                settings.Change(PLUGIN_COLOR_KEY);
-                settings.Get(name,(void*)Colors,ColorCount*sizeof(ABColor));
+                LoadColors(name,Colors,ColorCount);
               }
             }
             PluginsData[PluginsCount]=CurPlugin;

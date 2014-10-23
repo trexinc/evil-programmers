@@ -34,10 +34,11 @@ LFLAGS=-mdll -s -nostartfiles
 RCFLAGS=-I ./$(BOOTSTRAPDIR)
 
 TARGET=../$(BINDIR)/airbrush.dll
-OBJS=../$(OBJDIR)/far_settings.o ../$(OBJDIR)/ab_main.o ../$(OBJDIR)/ab_plugs.o ../$(OBJDIR)/ab_classes.o ../$(OBJDIR)/airbrush.res.o
+OBJS=../$(OBJDIR)/far_settings.o ../$(OBJDIR)/ab_main.o ../$(OBJDIR)/ab_plugs.o ../$(OBJDIR)/ab_classes.o ../$(OBJDIR)/ab_colors.o ../$(OBJDIR)/airbrush.res.o
 LIBS=
 SUBDIRS=c pas sql html php re2c yacclex zcustom armgnuasm awk lua xml moon
-DOCTARGET=../file_id.diz ../$(BINDIR)/airbrush.hlf ../$(BINDIR)/airbrush.lng
+DOCTARGET=../$(BINDIR)/file_id.diz ../$(BINDIR)/airbrush.hlf ../$(BINDIR)/airbrush.lng
+MAP = $(patsubst %.dll,%.map,$(TARGET))
 
 all: dirs $(TARGET) $(SUBDIRS) $(DOCTARGET)
 
@@ -52,7 +53,7 @@ dirs:
 $(TARGET): $(OBJS)
 	$(CC) $(LFLAGS) -o $@ -Xlinker --base-file -Xlinker $(TARGET).base $(OBJS) $(LIBS)
 	$(DLLTOOL) --dllname $(TARGET) --base-file $(TARGET).base --output-exp $(TARGET).exp --def $(DEF)
-	$(CC) $(LFLAGS) -o $@ $(OBJS) $(TARGET).exp $(LIBS)
+	$(CC) $(LFLAGS) -o $@ $(OBJS) $(TARGET).exp $(LIBS) -Xlinker -Map -Xlinker $(MAP)
 	$(RM) $(TARGET).base
 	$(RM) $(TARGET).exp
 
@@ -61,7 +62,7 @@ clean:
 	$(RM) ../$(BINDIR)/airbrush.*
 	$(RM) ../$(BINDIR)/Formats/*
 	$(RM) ./$(BOOTSTRAPDIR)/*
-	$(RM) ../file_id.diz
+	$(RM) ../$(BINDIR)/file_id.diz
 
 ../$(OBJDIR)/ab_main.o: ab_main.cpp ab_main.h ./$(BOOTSTRAPDIR)/abplugin.h ./$(BOOTSTRAPDIR)/abversion.h
 	$(CC) $(CFLAGS) $< -o $@
@@ -70,6 +71,9 @@ clean:
 	$(CC) $(CFLAGS) $< -o $@
 
 ../$(OBJDIR)/ab_classes.o: ab_classes.cpp ab_main.h ./$(BOOTSTRAPDIR)/abplugin.h
+	$(CC) $(CFLAGS) $< -o $@
+
+../$(OBJDIR)/ab_colors.o: ab_colors.cpp ab_main.h ./$(BOOTSTRAPDIR)/abplugin.h
 	$(CC) $(CFLAGS) $< -o $@
 
 ../$(OBJDIR)/far_settings.o: far_settings.cpp far_settings.h
@@ -89,7 +93,7 @@ clean:
 $(SUBDIRS):
 	(cd ./plugins/$@ && $(MAKE) CC="$(CC)" RM="$(RM)" CP="$(CP)" DLLTOOL="$(DLLTOOL)" M4="$(M4)" WINDRES="$(WINDRES) $(WINDRESPRE) -I ../../$(BOOTSTRAPDIR)" CFLAGS="$(CFLAGSBASE) -I ../../$(BOOTSTRAPDIR)" LFLAGS="$(LFLAGS)" OBJDIR="o$(DIRSURF)" BINDIR="bin$(DIRSURF)" FORMATDIR="$(BINDIR)/Formats" BOOTSTRAPDIR="bootstrap$(DIRSURF)" -f makefile.sub;)
 
-../file_id.diz: file_id_diz.m4 ab_ver.m4
+../$(BINDIR)/file_id.diz: file_id_diz.m4 ab_ver.m4
 	$(M4) $< > $@
 
 ../$(BINDIR)/airbrush.hlf: airbrush_hlf.m4 ab_ver.m4
