@@ -32,7 +32,7 @@ CFarSettings::~CFarSettings()
 
 void CFarSettings::Change(const wchar_t* aName)
 {
-  FarSettingsValue value={sizeof(FarSettingsValue),0,aName};
+  FarSettingsValue value={sizeof(FarSettingsValue),iRoot,aName};
   iRoot=Info.SettingsControl(iSettings,SCTL_CREATESUBKEY,0,&value);
 }
 
