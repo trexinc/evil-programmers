@@ -58,7 +58,7 @@ int WINAPI SetColorizeInfo(ColorizeInfo *AInfo)
 static int WINAPI c_callback(int from,int row,int col,void *param)
 {
   const TCHAR *line;
-  int linelen;
+  intptr_t linelen;
   line=Info.pGetLine(row,&linelen);
   switch(((CallbackParam *)param)->cache->diff)
   {
@@ -133,12 +133,13 @@ static void CallParser(ColorizeParams *params,CallbackParam *data)
   }
 }
 
-void WINAPI Colorize(int index,struct ColorizeParams *params)
+void WINAPI Colorize(intptr_t index,struct ColorizeParams *params)
 {
   (void)index;
   int commentstart,stringstart;
   const TCHAR *line;
-  int linelen,startcol;
+  intptr_t linelen;
+  int startcol;
   int lColorize=0;
   CallbackParam callback_data;
   CacheParam state_data={INVALID_C_STATE,PARSER_CLEAR,0,0};
@@ -306,7 +307,7 @@ colorize_exit:
   return;
 }
 
-int WINAPI GetParams(int index,int command,const char **param)
+int WINAPI GetParams(intptr_t index,intptr_t command,const char **param)
 {
   (void)index;
   switch(command)

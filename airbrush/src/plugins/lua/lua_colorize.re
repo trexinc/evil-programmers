@@ -65,19 +65,20 @@ static bool MatchLevel(const UTCHAR* string,int level)
   return count==level;
 }
 
-void WINAPI Colorize(int index,struct ColorizeParams *params)
+void WINAPI Colorize(intptr_t index,struct ColorizeParams *params)
 {
   (void)index;
   const UTCHAR *commentstart;
   const UTCHAR *line;
-  int linelen,startcol;
+  intptr_t linelen;
+  int startcol;
   int lColorize=0;
   LuaState state_data={PARSER_CLEAR,0};
   LuaState *state=&state_data;
   int state_size=sizeof(state_data);
   const UTCHAR *yycur,*yyend,*yytmp=NULL,*yytok=NULL;
   struct PairStack *hl_state=NULL;
-  int hl_row; int hl_col;
+  intptr_t hl_row; intptr_t hl_col;
   if(params->data_size>=sizeof(state_data))
   {
     state=(LuaState*)(params->data);

@@ -44,7 +44,7 @@ int WINAPI SetColorizeInfo(ColorizeInfo *AInfo)
   return true;
 };
 
-int WINAPI GetParams(int index,int command,const char **param)
+int WINAPI GetParams(intptr_t index,intptr_t command,const char **param)
 {
   (void)index;
   switch(command)

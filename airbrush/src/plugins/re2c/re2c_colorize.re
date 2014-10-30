@@ -45,7 +45,7 @@ struct CallbackParam
 static int WINAPI c_callback(int from,int row,int col,void *param)
 {
   const TCHAR* line;
-  int linelen;
+  intptr_t linelen;
   line=Info.pGetLine(row,&linelen);
   switch(((CallbackParam *)param)->cache->diff)
   {
@@ -128,12 +128,13 @@ letter = [a-zA-Z];
 digit = [0-9];
 */
 
-void WINAPI Colorize(int index,struct ColorizeParams *params)
+void WINAPI Colorize(intptr_t index,struct ColorizeParams *params)
 {
   (void)index;
   const UTCHAR *commentstart;
   const UTCHAR *line;
-  int linelen,startcol;
+  intptr_t linelen;
+  int startcol;
   int lColorize=0;
   CallbackParam callback_data;
   CacheParam state_data={PARSER_CLEAR,PARSER_RE2C,1,0};

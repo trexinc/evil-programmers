@@ -686,13 +686,14 @@ int WINAPI SetColorizeInfo(ColorizeInfo *AInfo)
   return true;
 };
 
-void WINAPI Colorize(int index,struct ColorizeParams *params)
+void WINAPI Colorize(intptr_t index,struct ColorizeParams *params)
 {
   if((index>=rules_count)||(index<0)) return;
   if(!rules[index].contexts_count) return;
   int context_start;
   const char *line;
-  int linelen,startcol;
+  intptr_t linelen;
+  int startcol;
   int lColorize=0;
   int state_data=0;
   int *state=&state_data;
@@ -808,7 +809,7 @@ void WINAPI Exit(void)
   free_syntax();
 }
 
-int WINAPI GetParams(int index,int command,const char **param)
+int WINAPI GetParams(intptr_t index,intptr_t command,const char **param)
 {
   switch(command)
   {

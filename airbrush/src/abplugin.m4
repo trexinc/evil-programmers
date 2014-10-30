@@ -27,16 +27,16 @@ typedef int (WINAPI *COLORIZECALLBACK)(int from,int row,int col,void* param);
 
 struct ColorizeParams
 {
-  int size;
-  int eid;
-  int startline;
-  int startcolumn;
-  int endline;
-  int topline;
-  unsigned long data_size;
+  size_t size;
+  intptr_t eid;
+  intptr_t startline;
+  intptr_t startcolumn;
+  intptr_t endline;
+  intptr_t topline;
+  size_t data_size;
   unsigned char* data;
   HANDLE LocalHeap;
-  int flags;
+  unsigned __int64 flags;
   COLORIZECALLBACK callback;
   void *param;
 };
@@ -60,19 +60,19 @@ struct ABColor
   bool BackgroundDefault;
 };
 
-typedef void (WINAPI* PLUGINADDCOLOR)(int lno,int start,int len,const struct ABColor* color,enum ColorizePriority priority);
-typedef const TCHAR* (WINAPI *PLUGINGETLINE)(int lno,int* len);
-typedef bool (WINAPI* PLUGINADDSTATE)(int eid,int pos,unsigned long size,unsigned char* data);
-typedef void (WINAPI* PLUGINGETCURSOR)(int* row,int* col);
-typedef void (WINAPI* PLUGINCALLPARSER)(const TCHAR* parser,struct ColorizeParams* params);
+typedef void (WINAPI* PLUGINADDCOLOR)(intptr_t lno,intptr_t start,intptr_t len,const struct ABColor* color,enum ColorizePriority priority);
+typedef const wchar_t* (WINAPI *PLUGINGETLINE)(intptr_t lno,intptr_t* len);
+typedef bool (WINAPI* PLUGINADDSTATE)(intptr_t eid,intptr_t pos,size_t size,unsigned char* data);
+typedef void (WINAPI* PLUGINGETCURSOR)(intptr_t* row,intptr_t* col);
+typedef void (WINAPI* PLUGINCALLPARSER)(const wchar_t* parser,struct ColorizeParams* params);
 
 struct ColorizeInfo
 {
-  int size;
-  int version;
-  int api;
-  int cachestr;
-  TCHAR folder[MAX_PATH];
+  size_t size;
+  intptr_t version;
+  intptr_t api;
+  intptr_t cachestr;
+  wchar_t folder[MAX_PATH];
   void* reserved;
   PLUGINADDCOLOR pAddColor;
   PLUGINGETLINE pGetLine;
@@ -86,11 +86,11 @@ extern "C" {
 #endif
   unsigned long WINAPI LoadSyntaxModule(char* ModuleName,void* Info);
   int WINAPI SetColorizeInfo(struct ColorizeInfo* AInfo);
-  void WINAPI Colorize(int index,struct ColorizeParams* params);
+  void WINAPI Colorize(intptr_t index,struct ColorizeParams* params);
   int WINAPI Input(const INPUT_RECORD* rec);
   unsigned long WINAPI GetSyntaxCount(void);
   void WINAPI Exit(void);
-  int WINAPI GetParams(int index,int command,const char** param);
+  int WINAPI GetParams(intptr_t index,intptr_t command,const char** param);
 #ifdef __cplusplus
 }
 #endif
