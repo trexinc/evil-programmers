@@ -36,7 +36,7 @@ struct CallbackParam
 static int WINAPI code_callback(int from,int row,int col,void *param)
 {
   const TCHAR* line;
-  int linelen;
+  intptr_t linelen;
   line=Info.pGetLine(row,&linelen);
   if(from==1)
   {
@@ -145,12 +145,13 @@ if(!callback_data.ok) goto colorize_exit; \
 goto colorize_start;
 
 
-void WINAPI Colorize(int index,struct ColorizeParams *params)
+void WINAPI Colorize(intptr_t index,struct ColorizeParams *params)
 {
   (void)index;
   const UTCHAR *commentstart;
   const UTCHAR *line;
-  int linelen,startcol;
+  intptr_t linelen;
+  int startcol;
   int lColorize=0;
   CallbackParam callback_data;
   int state_data=PARSER_CLEAR;
@@ -158,7 +159,7 @@ void WINAPI Colorize(int index,struct ColorizeParams *params)
   int state_size=sizeof(state_data);
   const UTCHAR *yycur,*yyend,*yytmp,*yyctxtmp,*yytok=NULL;
   struct PairStack *hl_state=NULL;
-  int hl_row; int hl_col;
+  intptr_t hl_row; intptr_t hl_col;
   if(params->data_size>=sizeof(state_data))
   {
     state=(int *)(params->data);

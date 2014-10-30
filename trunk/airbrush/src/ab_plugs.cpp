@@ -39,7 +39,7 @@ int PluginsCount=0;
 
 static TCHAR UnknownPluginName[20];
 
-static void WINAPI addcolor(int lno,int start,int len,const struct ABColor* color,enum ColorizePriority priority)
+static void WINAPI addcolor(intptr_t lno,intptr_t start,intptr_t len,const struct ABColor* color,enum ColorizePriority priority)
 {
   if((color->ForegroundDefault)&&(color->BackgroundDefault)) return;
   if(len==0) return;
@@ -65,7 +65,7 @@ static void WINAPI addcolor(int lno,int start,int len,const struct ABColor* colo
   ReleaseMutex(Mutex);
 }
 
-static const TCHAR WINAPI *getline(int lno,int *len)
+static const TCHAR WINAPI *getline(intptr_t lno,intptr_t *len)
 {
   EditorGetString egs;
   egs.StructSize=sizeof(egs);
@@ -78,7 +78,7 @@ static const TCHAR WINAPI *getline(int lno,int *len)
   return egs.StringText;
 }
 
-static bool WINAPI addstate(int eid,int pos,unsigned long size,unsigned char *data)
+static bool WINAPI addstate(intptr_t eid,intptr_t pos,size_t size,unsigned char *data)
 {
   bool res=true;
   WaitForSingleObject(Mutex,INFINITE);
@@ -116,7 +116,7 @@ static bool WINAPI addstate(int eid,int pos,unsigned long size,unsigned char *da
   return res;
 }
 
-static void WINAPI getcursor(int *row,int *col)
+static void WINAPI getcursor(intptr_t *row,intptr_t *col)
 {
   EditorInfo ei;
   ei.StructSize=sizeof(ei);
