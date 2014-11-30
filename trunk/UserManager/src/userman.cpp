@@ -309,7 +309,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *anInfo)
       }
       else if(anInfo->OpenFrom==OPEN_COMMANDLINE)
       {
-        TCHAR *cmd=(TCHAR *)anInfo->Data;
+        const TCHAR *cmd=((OpenCommandLineInfo*)anInfo->Data)->CommandLine;
         TCHAR name[MAX_PATH];
         if(_tcslen(cmd))
         {
@@ -844,7 +844,7 @@ void WINAPI FreeFindDataW(const struct FreeFindDataInfo *anInfo)
   if(panel->error)
   {
     panel->error=false;
-    SetDirectoryInfo info={sizeof(info),anInfo->hPanel,_T(".."),0,0,{0,0}};
+    SetDirectoryInfo info={sizeof(info),anInfo->hPanel,_T(".."),0,0,{0,0},0};
     SetDirectoryW(&info);
     Info.PanelControl(anInfo->hPanel,FCTL_UPDATEPANEL,1,0);
     Info.PanelControl(anInfo->hPanel,FCTL_REDRAWPANEL,0,0);
