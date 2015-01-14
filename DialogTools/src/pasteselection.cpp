@@ -61,7 +61,7 @@ void DoPaste(HANDLE aDlg)
                 _tcscpy(buffer,_T("print(\""));
                 _tcscpy(buffer+7,text);
                 _tcscpy(buffer+len*MACRO_LEN+7,_T("\")"));
-                MacroSendMacroText seq={sizeof(MacroSendMacroText),KMFLAGS_DISABLEOUTPUT,{0},buffer};
+                MacroSendMacroText seq={sizeof(MacroSendMacroText),KMFLAGS_NONE,{0},buffer};
                 Info.MacroControl(0,MCTL_SENDSTRING,MSSC_POST,&seq);
                 HeapFree(GetProcessHeap(),0,buffer);
               }
