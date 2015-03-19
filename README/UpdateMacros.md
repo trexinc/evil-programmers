@@ -1,0 +1,1 @@
+Rereads any manual changes to FAR key macros from the registry so no restart of FAR is needed.

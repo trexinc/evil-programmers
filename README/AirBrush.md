@@ -1,0 +1,1 @@
+This plugin provide syntax highlighing capability in internal FAR editor.

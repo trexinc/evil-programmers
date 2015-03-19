@@ -1,0 +1,1 @@
+This plugin allow to copy files and folders using clipboard

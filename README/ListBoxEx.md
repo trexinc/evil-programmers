@@ -1,0 +1,1 @@
+Library for creating list boxes with advanced capabilities in Far.

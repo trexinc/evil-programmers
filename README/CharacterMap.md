@@ -1,0 +1,1 @@
+This is an extended "ASCII Table" plug-in which lets you add characters to an input line before the action you want to do with them. Plus many comfortable features and configurability. And most important, this plug-in lets you create/edit character tables.

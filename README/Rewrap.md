@@ -1,0 +1,1 @@
+Reformat Paragraph for internal editor (needs [ESC](ESC.md) plugin).

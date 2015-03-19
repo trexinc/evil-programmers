@@ -1,0 +1,1 @@
+Sets the value of an environment variable for any processes
