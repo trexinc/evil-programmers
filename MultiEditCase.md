@@ -1,0 +1,1 @@
+This is an extended EditCase plugin (from FAR destribution) that supports case conversion of different languages (configurable) while keeping the same look & feel of the standart EditCase plugin.

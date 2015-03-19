@@ -1,0 +1,1 @@
+Parse and navigate through compiler output on errors and warnings.

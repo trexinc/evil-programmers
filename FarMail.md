@@ -1,0 +1,1 @@
+SMTP/POP3/IMAP4 (with SSL) client for FAR Manager.

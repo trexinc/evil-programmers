@@ -1,0 +1,1 @@
+[Editor Settings Changer](ESC.md) - Temporary Settings Changer - Minimalistic

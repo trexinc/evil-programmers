@@ -1,0 +1,1 @@
+NT Events plugin allows to list/backup/clear NT Event Logs.

@@ -1,0 +1,8 @@
+A very cool and user friendly plugin for opening windows help files from inside FAR and much more including handling of FAR help files and Mueller dictionary. Using file masks, visual configuration and more.
+
+Current version supports the following help file types:
+  * WinHelp (`*`.hlp)
+  * HTMLHelp (`*`.chm, `*`.col)
+  * MS-Help2 (`*`.hxs, ms-help://)
+  * FARHelp (`*`.hlf)
+  * Mueller dictionary
