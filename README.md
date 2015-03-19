@@ -1,35 +1,35 @@
 # Misc. Far plugins and tools by evil programmers
 
-* Active-Help
-* AirBrush
-* BCC Entry Point
-* BackgroundCopy
-* BlockIndent
-* CharacterMap
-* CHMView
-* ClipCopy
-* Crapculator
-* Ctags Source Navigator
-* DialogManager
-* DialogTools
-* EditorCompletion
-* ESC
-* ESC-TSC-Mini
-* EventViewer
-* FarCall
-* FarMail
-* HXSView
-* ListBoxEx
-* MailView
-* MakeIt
+* [Active-Help](README/ActiveHelp.md)
+* [AirBrush](README/AirBrush.md)
+* [BCC Entry Point](README/BCCEntryPoint.md)
+* [BackgroundCopy](README/BackgroundCopy.md)
+* [BlockIndent](README/BlockIndent.md)
+* [CharacterMap](README/CharacterMap.md)
+* [CHMView](README/CHMView.md)
+* [ClipCopy](README/ClipCopy.md)
+* [Crapculator](README/Crapculator.md)
+* [Ctags Source Navigator](README/CtagsSN.md)
+* [DialogManager](README/DialogManager.md)
+* [DialogTools](README/DialogTools.md)
+* [EditorCompletion](README/EditorCompletion.md)
+* [ESC](README/ESC.md)
+* [ESC-TSC-Mini](README/ESCTSCMini.md)
+* [EventViewer](README/EventViewer.md)
+* [FarCall](README/FarCall.md)
+* [FarMail](README/FarMail.md)
+* [HXSView](README/HXSView.md)
+* [ListBoxEx](README/ListBoxEx.md)
+* [MailView](README/MailView.md)
+* [MakeIt](README/MakeIt.md)
 * MineSweeper
-* MultiEditCase
-* PicViewAdvanced
-* PluginManager
-* PositionSaver
-* Rewrap
-* Servelad
-* SetEnv
-* UpdateMacros
-* UserManager
-* Visualizer
+* [MultiEditCase](README/MultiEditCase.md)
+* [PicViewAdvanced](README/PicViewAdvanced.md)
+* [PluginManager](README/PluginManager.md)
+* [PositionSaver](README/PositionSaver.md)
+* [Rewrap](README/Rewrap.md)
+* [Servelad](README/Servelad.md)
+* [SetEnv](README/SetEnv.md)
+* [UpdateMacros](README/UpdateMacros.md)
+* [UserManager](README/UserManager.md)
+* [Visualizer](README/Visualizer.md)
