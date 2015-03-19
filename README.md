@@ -1,5 +1,7 @@
 # Misc. Far plugins and tools by evil programmers
 
+How to build the plugins see [here](README/HowToBuild.md)
+
 * [Active-Help](README/ActiveHelp.md)
 * [AirBrush](README/AirBrush.md)
 * [BCC Entry Point](README/BCCEntryPoint.md)
