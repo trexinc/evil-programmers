@@ -16,9 +16,18 @@
     along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#define _INC_SWPRINTF_INL
 #include "far_helper.h"
 #include "bcplugin.h"
 #include <stdio.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
+_CRTIMP int __cdecl swprintf(wchar_t * __restrict__ _Dest,const wchar_t * __restrict__ _Format,...);
+#ifdef __cplusplus
+}
+#endif
+
 
 void InitDialogItems(InitDialogItem *Init,FarDialogItem *Item,int ItemsNumber)
 {
