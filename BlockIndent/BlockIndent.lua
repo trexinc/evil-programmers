@@ -71,25 +71,25 @@ local Indent = function (IndentByTabSize, Forward)
 end
 
 Macro {
-  area="Editor"; key="ShiftTab"; flags="DisableOutput"; description="Indent right by tab size"; action = function()
+  area="Editor"; key="ShiftTab"; description="Indent right by tab size"; action = function()
 Indent(true, true)
   end;
 }
 
 Macro {
-  area="Editor"; key="ShiftBS"; flags="DisableOutput"; description="Indent left by tab size"; action = function()
+  area="Editor"; key="ShiftBS"; description="Indent left by tab size"; action = function()
 Indent(true, false)
   end;
 }
 
 NoMacro {
-  area="Editor"; key=""; flags="DisableOutput"; description="Indent right by space"; action = function()
+  area="Editor"; key=""; description="Indent right by space"; action = function()
 Indent(false, true)
   end;
 }
 
 NoMacro {
-  area="Editor"; key=""; flags="DisableOutput"; description="Indent left by space"; action = function()
+  area="Editor"; key=""; description="Indent left by space"; action = function()
 Indent(false, false)
   end;
 }
