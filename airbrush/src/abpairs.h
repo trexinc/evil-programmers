@@ -76,9 +76,9 @@ if(lColorize) \
   int flag=PairStackCursor(lno,yytok-line,yycur-yytok,hl_row,hl_col); \
   PairStackPush(params->LocalHeap,&hl_state,LEVEL,lno,yytok-line,yycur-yytok,flag); \
   if(flag) \
-    Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_HIGHLITE,EPriorityBrackets); \
+    Info.pAddColor(params->eid,lno,yytok-line,yycur-yytok,colors+HC_HIGHLITE,EPriorityBrackets); \
   else \
-    Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_KEYWORD1,EPriorityNormal); \
+    Info.pAddColor(params->eid,lno,yytok-line,yycur-yytok,colors+HC_KEYWORD1,EPriorityNormal); \
 } \
 goto colorize_clear;
 
@@ -87,16 +87,16 @@ if(lColorize) \
 { \
   int flag=PairStackCursor(lno,yytok-line,yycur-yytok,hl_row,hl_col); \
   if(flag) \
-    Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_HIGHLITE,EPriorityBrackets); \
+    Info.pAddColor(params->eid,lno,yytok-line,yycur-yytok,colors+HC_HIGHLITE,EPriorityBrackets); \
   else \
-    Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_KEYWORD1,EPriorityNormal); \
+    Info.pAddColor(params->eid,lno,yytok-line,yycur-yytok,colors+HC_KEYWORD1,EPriorityNormal); \
   if(hl_state) \
   { \
     bool err=!((hl_state->index>=LEVEL1)&&(hl_state->index<=LEVEL2)); \
     if(hl_state->flag) \
-      Info.pAddColor(lno,yytok-line,yycur-yytok,colors+HC_HIGHLITE+err,EPriorityBrackets); \
+      Info.pAddColor(params->eid,lno,yytok-line,yycur-yytok,colors+HC_HIGHLITE+err,EPriorityBrackets); \
     if(flag) \
-      Info.pAddColor(hl_state->row,hl_state->col,hl_state->len,colors+HC_HIGHLITE+err,EPriorityBrackets); \
+      Info.pAddColor(params->eid,hl_state->row,hl_state->col,hl_state->len,colors+HC_HIGHLITE+err,EPriorityBrackets); \
   } \
   PairStackPop(params->LocalHeap,&hl_state); \
 } \

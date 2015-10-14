@@ -39,7 +39,7 @@ int PluginsCount=0;
 
 static TCHAR UnknownPluginName[20];
 
-static void WINAPI addcolor(intptr_t lno,intptr_t start,intptr_t len,const struct ABColor* color,enum ColorizePriority priority)
+static void WINAPI addcolor(intptr_t eid,intptr_t lno,intptr_t start,intptr_t len,const struct ABColor* color,enum ColorizePriority priority)
 {
   if((color->ForegroundDefault)&&(color->BackgroundDefault)) return;
   if(len==0) return;
@@ -61,17 +61,17 @@ static void WINAPI addcolor(intptr_t lno,intptr_t start,intptr_t len,const struc
       break;
   }
   ec.Flags=ECF_AUTODELETE;
-  Info.EditorControl(-1,ECTL_ADDCOLOR,0,&ec);
+  Info.EditorControl(eid,ECTL_ADDCOLOR,0,&ec);
   ReleaseMutex(Mutex);
 }
 
-static const TCHAR WINAPI *getline(intptr_t lno,intptr_t *len)
+static const TCHAR WINAPI *getline(intptr_t eid,intptr_t lno,intptr_t *len)
 {
   EditorGetString egs;
   egs.StructSize=sizeof(egs);
   egs.StringNumber=lno;
   WaitForSingleObject(Mutex,INFINITE);
-  Info.EditorControl(-1,ECTL_GETSTRING,0,&egs);
+  Info.EditorControl(eid,ECTL_GETSTRING,0,&egs);
   ReleaseMutex(Mutex);
   if(len)
     *len=egs.StringLength;
@@ -116,12 +116,12 @@ static bool WINAPI addstate(intptr_t eid,intptr_t pos,size_t size,unsigned char 
   return res;
 }
 
-static void WINAPI getcursor(intptr_t *row,intptr_t *col)
+static void WINAPI getcursor(intptr_t eid,intptr_t *row,intptr_t *col)
 {
   EditorInfo ei;
   ei.StructSize=sizeof(ei);
   WaitForSingleObject(Mutex,INFINITE);
-  Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
+  Info.EditorControl(eid,ECTL_GETINFO,0,&ei);
   ReleaseMutex(Mutex);
   *row=ei.CurLine;
   *col=ei.CurPos;

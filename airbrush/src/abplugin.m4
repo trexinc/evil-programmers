@@ -60,10 +60,10 @@ struct ABColor
   bool BackgroundDefault;
 };
 
-typedef void (WINAPI* PLUGINADDCOLOR)(intptr_t lno,intptr_t start,intptr_t len,const struct ABColor* color,enum ColorizePriority priority);
-typedef const wchar_t* (WINAPI *PLUGINGETLINE)(intptr_t lno,intptr_t* len);
+typedef void (WINAPI* PLUGINADDCOLOR)(intptr_t eid,intptr_t lno,intptr_t start,intptr_t len,const struct ABColor* color,enum ColorizePriority priority);
+typedef const wchar_t* (WINAPI *PLUGINGETLINE)(intptr_t eid,intptr_t lno,intptr_t* len);
 typedef bool (WINAPI* PLUGINADDSTATE)(intptr_t eid,intptr_t pos,size_t size,unsigned char* data);
-typedef void (WINAPI* PLUGINGETCURSOR)(intptr_t* row,intptr_t* col);
+typedef void (WINAPI* PLUGINGETCURSOR)(intptr_t eid,intptr_t* row,intptr_t* col);
 typedef void (WINAPI* PLUGINCALLPARSER)(const wchar_t* parser,struct ColorizeParams* params);
 
 struct ColorizeInfo

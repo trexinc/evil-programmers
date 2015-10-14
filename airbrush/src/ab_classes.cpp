@@ -156,7 +156,7 @@ int OnEditorEvent(int event,void *param,int editorid)
   if(event==EE_READ)
   {
     EditorSubscribeChangeEvent esce={sizeof(EditorSubscribeChangeEvent),MainGuid};
-    Info.EditorControl(-1,ECTL_SUBSCRIBECHANGEEVENT,0,&esce);
+    Info.EditorControl(editorid,ECTL_SUBSCRIBECHANGEEVENT,0,&esce);
     return 0;
   }
 
@@ -175,18 +175,18 @@ int OnEditorEvent(int event,void *param,int editorid)
   if(event!=EE_REDRAW) return 0;
 
   // search file in list
-  Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
+  Info.EditorControl(editorid,ECTL_GETINFO,0,&ei);
 
-  size_t editorfilenamesize=Info.EditorControl(-1,ECTL_GETFILENAME,0,NULL);
+  size_t editorfilenamesize=Info.EditorControl(editorid,ECTL_GETFILENAME,0,NULL);
   editorfilename = (TCHAR *)malloc(editorfilenamesize*sizeof(TCHAR));
-  Info.EditorControl(-1,ECTL_GETFILENAME,editorfilenamesize,editorfilename);
+  Info.EditorControl(editorid,ECTL_GETFILENAME,editorfilenamesize,editorfilename);
 
   filename=FSF.PointToName(editorfilename); // deletes path...
 
   EditorGetString egs;
   egs.StructSize=sizeof(egs);
   egs.StringNumber=0;
-  if(!Info.EditorControl(-1,ECTL_GETSTRING,0,&egs))
+  if(!Info.EditorControl(editorid,ECTL_GETSTRING,0,&egs))
   {
     free(editorfilename);
     return 0;
@@ -378,7 +378,7 @@ int OnEditorEvent(int event,void *param,int editorid)
                     WaitForSingleObject(handles[0],INFINITE);
                     poll=false;
                     curfile->type=-1;
-                    Info.EditorControl(-1,ECTL_REDRAW,0,0);
+                    Info.EditorControl(editorid,ECTL_REDRAW,0,0);
                   }
                 }
                 else
