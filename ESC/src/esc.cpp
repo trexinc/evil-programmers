@@ -23,21 +23,6 @@
 #include "guid.h"
 #include "version.hpp"
 
-#if defined(__GNUC__)
-extern "C"
-{
-  BOOL WINAPI DllMainCRTStartup(HANDLE hDll,DWORD dwReason,LPVOID lpReserved);
-};
-
-BOOL WINAPI DllMainCRTStartup(HANDLE hDll,DWORD dwReason,LPVOID lpReserved)
-{
-  (void) hDll;
-  (void) dwReason;
-  (void) lpReserved;
-  return TRUE;
-}
-#endif
-
 #include "KeySequenceStorage.hpp"
 #include "rbtree.cpp"
 #include "TArray.cpp"
