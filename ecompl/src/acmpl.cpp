@@ -104,7 +104,7 @@ int TAutoCompletion::ProcessEditorInput(const INPUT_RECORD *Rec)
         }
       }
     }
-    else if((Rec->EventType==MOUSE_EVENT&&Rec->Event.MouseEvent.dwButtonState)||Rec->EventType==FARMACRO_KEY_EVENT)
+    else if((Rec->EventType==MOUSE_EVENT&&Rec->Event.MouseEvent.dwButtonState))
     {
       DeleteVariant(Window);
     }

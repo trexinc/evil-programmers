@@ -23,21 +23,6 @@
 #include "guid.h"
 #include "version.hpp"
 
-#if defined(__GNUC__)
-extern "C"
-{
-  BOOL WINAPI DllMainCRTStartup(HANDLE hDll,DWORD dwReason,LPVOID lpReserved);
-};
-
-BOOL WINAPI DllMainCRTStartup(HANDLE hDll,DWORD dwReason,LPVOID lpReserved)
-{
-  (void) hDll;
-  (void) dwReason;
-  (void) lpReserved;
-  return TRUE;
-}
-#endif
-
 #include "KeySequenceStorage.hpp"
 #include "rbtree.cpp"
 #include "TArray.cpp"
@@ -661,13 +646,13 @@ static intptr_t ProcessEditorInputInternal(const INPUT_RECORD *Rec)
     static intptr_t CoordX;
 
     if(IsOldFar || isReenter ||
-       (Rec->EventType!=KEY_EVENT && Rec->EventType!=FARMACRO_KEY_EVENT && Rec->EventType!=MOUSE_EVENT))
+       (Rec->EventType!=KEY_EVENT && Rec->EventType!=MOUSE_EVENT))
     {
       //_D(SysLog(L"PEI: 1 return"));
       return 0;
     }
 
-    if((Rec->EventType==KEY_EVENT || Rec->EventType==FARMACRO_KEY_EVENT) && !Rec->Event.KeyEvent.bKeyDown)
+    if(Rec->EventType==KEY_EVENT && !Rec->Event.KeyEvent.bKeyDown)
     {
       //_D(SysLog(L"PEI: 2 return"));
       return 0;
@@ -686,9 +671,7 @@ static intptr_t ProcessEditorInputInternal(const INPUT_RECORD *Rec)
 
     _D(SysLog(L"PEI: EventType=%s",
        (Rec->EventType==KEY_EVENT)?L"KEY_EVENT":
-         ((Rec->EventType==FARMACRO_KEY_EVENT)?L"FARMACRO_KEY_EVENT":
-           (Rec->EventType==MOUSE_EVENT)?L"MOUSE_EVENT":L"UNKNOWN"
-         )
+         ((Rec->EventType==MOUSE_EVENT)?L"MOUSE_EVENT":L"UNKNOWN")
        )
       );
 
@@ -745,7 +728,7 @@ static intptr_t ProcessEditorInputInternal(const INPUT_RECORD *Rec)
       return 0;
     }
 
-    if(Rec->EventType!=KEY_EVENT && Rec->EventType!=FARMACRO_KEY_EVENT)
+    if(Rec->EventType!=KEY_EVENT)
     {
       _D(SysLog(L"PEI: 7 return"));
       return 0;
