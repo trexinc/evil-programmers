@@ -55,7 +55,7 @@ int WINAPI GetParams(intptr_t index,intptr_t command,const char **param)
     case PAR_GET_PARAMS:
       return PAR_MASK_STORE|PAR_MASK_CACHE|PAR_COLORS_STORE|PAR_SHOW_IN_LIST;
     case PAR_GET_MASK:
-      *param=(const char*)_T("*.c,*.h,*.cpp,*.cc,*.m,*.cxx,*.hpp,*.ii");
+      *param=(const char*)_T("*.c,*.h,*.cpp,*.cc,*.m,*.cxx,*.hpp,*.ii,*.as");
       return true;
     case PAR_GET_COLOR_COUNT:
       *(int*)param=sizeof(colornames)/sizeof(colornames[0]);
