@@ -9,6 +9,7 @@ include syntaxes\\cl.syntax
 include syntaxes\\ps.syntax
 include syntaxes\\asm.syntax
 include syntaxes\\gnuasm.syntax
+include syntaxes\\vbs.syntax
 
 file syntax syntax,\*.syntax
 
