@@ -1,11 +1,38 @@
 file cmd\sscript \*.cmd,\*.bat
 context default
 
-#    keyword " yellow
+    keyword " yellow
+
+    keyword /[!]+//[a-zA-Z0-9_-[*]]+/! brightmagenta
+    keyword /[!]+//[a-zA-Z0-9_-[*]]+/ brightmagenta
+    keyword /[%]+//[a-zA-Z0-9_-[*]]+/%%+/ brightmagenta
+    keyword /[%]+//[a-zA-Z0-9_-[*]]+/%+/ brightmagenta
+    keyword /[%]+//[a-zA-Z0-9_-[*]]+/ brightmagenta
+
+    keyword < brightmagenta
+    keyword > brightmagenta
+    keyword | brightmagenta
+    keyword @ brightmagenta
+    keyword ^ brightmagenta
+    keyword $ brightmagenta
+    keyword * brightmagenta
 
     keyword whole == white
     keyword wholeright 0/[Xx]//[0-9]/ green
     keyword /[%~]+//[a-zA-Z0-9_]+/ green
+
+    keyword :/[-~]//[a-zA-Z0-9_]+/,/[-~]//[a-zA-Z0-9_]+/ green
+    keyword :/[-~]//[a-zA-Z0-9_]+/,/[a-zA-Z0-9_]+/ green
+    keyword :/[-~]//[a-zA-Z0-9_]+/ green
+    keyword :/[-~*]/ green
+
+    keyword :/[a-zA-Z0-9_]+//[-~]//[a-zA-Z0-9_]+/ brightgreen
+    keyword :/[a-zA-Z0-9_]+/ brightgreen
+
+    keyword whole /[Hh]//[Tt]{2,2}//[Pp]//[:]/ brightred
+    keyword whole /[Hh]//[Tt]{2,2}//[Pp]//[Ss]/: brightred
+    keyword whole /[Ff]//[Tt]//[Pp]/: brightred
+    keyword wholeright /[Ww]{3,3}//[a-zA-Z0-9_.[\]]+/brightred
 
     keyword whole /[Aa]//[Ss]{2,2}//[Oo]//[Cc]/ white
     keyword whole /[Aa]//[Tt]/ white
@@ -96,31 +123,9 @@ context default
     keyword whole /[Vv]//[Oo]//[Ll]/ white
     keyword whole /[Xx]//[Cc]//[Oo]//[Pp]//[Yy]/ white
 
-    keyword /[!]+//[a-zA-Z0-9_-[*]]+/! brightmagenta
-    keyword /[!]+//[a-zA-Z0-9_-[*]]+/ brightmagenta
-    keyword /[%]+//[a-zA-Z0-9_-[*]]+/%%+/ brightmagenta
-    keyword /[%]+//[a-zA-Z0-9_-[*]]+/%+/ brightmagenta
-    keyword /[%]+//[a-zA-Z0-9_-[*]]+/ brightmagenta
-
-    keyword :/[-~]//[a-zA-Z0-9_]+/,/[-~]//[a-zA-Z0-9_]+/ green
-    keyword :/[-~]//[a-zA-Z0-9_]+/,/[a-zA-Z0-9_]+/ green
-    keyword :/[-~]//[a-zA-Z0-9_]+/ green
-    keyword :/[-~*]/ green
-
-    keyword :/[a-zA-Z0-9_]+//[-~]//[a-zA-Z0-9_]+/ brightgreen
-    keyword :/[a-zA-Z0-9_]+/ brightgreen
-
-    keyword < brightmagenta
-    keyword > brightmagenta
-    keyword | brightmagenta
-    keyword @ brightmagenta
-    keyword ^ brightmagenta
-    keyword $ brightmagenta
-    keyword * brightmagenta
-
     keyword % brightmagenta
     keyword ! brightmagenta
 
-context linestart :: \n cyan
-context linestart /[\s\t]*//[Rr]//[Ee]//[Mm]//[\s\t]+/ \n cyan
+context :: \n cyan
+context /[Rr]//[Ee]//[Mm]/ \n  cyan
 context " " yellow
