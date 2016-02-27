@@ -50,6 +50,7 @@ class py_dict
 {
 public:
 	py_dict(): m_Object(PyDict_New()){}
+	py_dict(PyObject* Object): m_Object(pyobject_ptr_borrowed(Object)){}
 	friend class value_proxy;
 	class value_proxy
 	{

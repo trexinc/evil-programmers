@@ -20,12 +20,26 @@ static void AddToPythonPath(const std::wstring& Path)
 	}
 }
 
+PyObject* AddOrReloadModule(const std::wstring& Name)
+{
+	py_dict ModulesDict(PySys_GetObject("modules"));
+	auto NewModuleName = py_str(Name);
+	auto ExistingModule = ModulesDict.get_at(NewModuleName);
+	auto NewModule = PyImport_Import(NewModuleName.get());
+
+	if (ExistingModule)
+	{
+		NewModule = PyImport_ReloadModule(ExistingModule.get());
+	}
+	return NewModule;
+}
+
 BOOL WINAPI adapter_Initialize(GlobalInfo* Info)
 {
 	Info->StructSize = sizeof(GlobalInfo);
 
 	Info->MinFarVersion = MAKEFARVERSION(3, 0, 0, 3000, VS_RELEASE);
-	Info->Version = MAKEFARVERSION(0, 0, 0, 2, VS_ALPHA);
+	Info->Version = MAKEFARVERSION(0, 0, 0, 3, VS_ALPHA);
 
 	static const UUID PyginID = { 0x66714600, 0xd5fa, 0x4fae, { 0xac, 0x4b, 0x77, 0x25, 0xe5, 0x7a, 0x87, 0x39 } };
 	Info->Guid = PyginID;
@@ -52,7 +66,7 @@ HANDLE WINAPI adapter_CreateInstance(const wchar_t* filename)
 	const std::wstring Path(Dir, 0, PrevSlashPos);
 	const std::wstring ModuleName(Dir, PrevSlashPos + 1);
 	AddToPythonPath(Path);
-	const auto Object = PyImport_Import(py_str(ModuleName).get());
+	const auto Object = AddOrReloadModule(ModuleName);
 	PyErr_Print();
 	return Object? new module(Object) : nullptr;
 }
