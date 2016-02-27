@@ -1,0 +1,9 @@
+LIBRARY PYGIN
+
+EXPORTS
+Initialize = adapter_Initialize
+IsPlugin = adapter_IsPlugin
+CreateInstance = adapter_CreateInstance
+GetFunctionAddress = adapter_GetFunctionAddress
+DestroyInstance = adapter_DestroyInstance
+Free = adapter_Free
