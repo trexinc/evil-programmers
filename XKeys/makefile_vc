@@ -1,0 +1,70 @@
+NAME = XKeys
+DLLNAME = $(NAME).dll
+
+!ifndef DEBUG
+_ODN_=final
+!else
+_ODN_=debug
+!endif
+!ifdef AMD64
+_ODB_=64
+!else
+_ODB_=32
+!endif
+
+OUTDIR=$(_ODN_).$(_ODB_).vc
+
+OBJDIR = $(OUTDIR)\obj
+COMMON = ..\common
+INC=$(COMMON)\unicode
+DLLFULLNAME = $(OUTDIR)\$(DLLNAME)
+DEF = $(NAME).def
+MAP = $(OUTDIR)\$(NAME).map
+
+CPP_PROJ=/nologo /c /Oi- /O1 /J /GS- /Gr /GR- /EHs-c- /LD /Fo"$(OBJDIR)\\" /DUNICODE /D_UNICODE /I "$(INC)"
+
+LIBS=kernel32.lib advapi32.lib
+!ifdef AMD64
+CPP_PROJ=$(CPP_PROJ) /Zp8
+ULOUT=-Tpd+
+!else
+CPP_PROJ=$(CPP_PROJ) /Zp1
+ULOUT=-Tpd -Re
+!endif
+
+!ifndef ULINK
+LNK=$(_LINK_PATH_)link.exe
+LINK_FLAGS=/nologo /dll /release /merge:.rdata=.text /noentry /nodefaultlib /def:"$(DEF)" /map:"$(MAP)" /out:"$(DLLFULLNAME)" $(LIBS)
+!else
+LNK=$(_ULINK_PATH_)ulink.exe +-
+LINK_FLAGS=-q $(ULOUT) -Gz -m- -Gh -Gh- -e- -n /ZD:"$(DEF)" /ZM:"$(MAP)" /ZO:"$(DLLFULLNAME)" $(LIBS)
+!endif
+
+LINK_OBJS = $(OBJDIR)\$(NAME).obj\
+            $(OBJDIR)\$(NAME).res
+
+ALL: $(OUTDIR) $(OBJDIR) lng $(DLLFULLNAME)
+
+.PHONY: lng
+lng: lng.templ
+	@echo generating language files
+	@tools\lng.generator.exe -nc -i lng.ini -ol "$(OUTDIR)" lng.templ
+
+$(DLLFULLNAME) : $(LINK_OBJS)
+	$(LNK) @<<
+	$(LINK_FLAGS) $(LINK_OBJS)
+<<
+
+.cpp{$(OBJDIR)}.obj::
+	cl @<<
+	$(CPP_PROJ) $<
+<<
+
+$(OBJDIR)\$(NAME).res: $(NAME).rc
+	@rc /DUNICODE /fo"$(OBJDIR)\$(NAME).res" $(NAME).rc
+
+$(OBJDIR): $(OUTDIR)
+	@if not exist "$(OBJDIR)\$(NULL)" mkdir "$(OBJDIR)"
+
+$(OUTDIR):
+	@if not exist "$(OUTDIR)\$(NULL)" mkdir "$(OUTDIR)"

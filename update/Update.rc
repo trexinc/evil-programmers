@@ -1,0 +1,34 @@
+#include <winver.h>
+#include "ver.hpp"
+
+1 VERSIONINFO
+FILEVERSION MAJOR_VER,MINOR_VER,0,BUILD
+PRODUCTVERSION MAJOR_VER,MINOR_VER,0,BUILD
+FILEOS VOS_NT_WINDOWS32
+FILETYPE VFT_DLL
+FILESUBTYPE VFT2_UNKNOWN
+
+#ifdef _DEBUG
+FILEFLAGS VS_FF_PRERELEASE|VS_FF_DEBUG
+#else
+FILEFLAGS VS_FF_PRERELEASE
+#endif
+
+{
+ BLOCK L"StringFileInfo"
+ {
+  BLOCK L"000004E4"
+  {
+   VALUE L"FileDescription",L"Update plugin for Far Manager " FARVER
+   VALUE L"FileVersion",ALLSTR
+   VALUE L"ProductVersion",ALLSTR
+   VALUE L"InternalName",L"Update"
+   VALUE L"OriginalFilename",L"update.dll"
+   VALUE L"ProductName",PRODUCTNAME
+  }
+ }
+ BLOCK L"VarFileInfo"
+ {
+   VALUE L"Translation",0,0x4e4
+ }
+}

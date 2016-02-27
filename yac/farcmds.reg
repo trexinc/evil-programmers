@@ -1,0 +1,39 @@
+REGEDIT4
+
+[-HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\far:]
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\far:]
+"Cmd.Param.Completion"=dword:00010000
+"Edt.Param.Completion"=dword:00010000
+"Dlg.Param.Completion"=dword:00010000
+"keys"="view edit goto clip whereis macro link run"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\far:\macro]
+"Cmd.Param.Completion"=dword:00010000
+"Edt.Param.Completion"=dword:00010000
+"Dlg.Param.Completion"=dword:00010000
+"keys"="view edit goto clip whereis macro link run"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\far:\macro\post]
+"Cmd.Param.Completion"=dword:00010000
+"Edt.Param.Completion"=dword:00010000
+"Dlg.Param.Completion"=dword:00010000
+"keys"="$Date $Text $IClip $MMode $Exit $XLat $KbdSwitch $If $Else $While $Rep $End $AKey $SelWord Shell Viewer Editor Dialog Search Disks MainMenu Menu Help Info QView Tree FindFolder UserMenu Other APanel.Bof PPanel.Bof APanel.Eof PPanel.Eof APanel.Empty PPanel.Empty APanel.LFN PPanel.LFN APanel.Selected PPanel.Selected APanel.Root PPanel.Root APanel.Visible PPanel.Visible APanel.Plugin PPanel.Plugin APanel.Folder PPanel.Folder APanel.Left PPanel.Left APanel.FilePanel PPanel.FilePanel CmdLine.Bof CmdLine.Eof CmdLine.Empty CmdLine.Selected Bof Eof Empty Selected IClip Windowed DisableOutput abs max min mod int index rindex replace asc chr itoa atoi len string substr xlat lcase ucase date fsplit fexist fattr panel.fexist panel.fattr panelitem panel.setpos panel.setpath panel.setposidx iif env msave akey clip flock sleep waitkey eval msgbox prompt checkhotkey gethotkey key Menu.Select Dlg.GetValue Editor.Sel Editor.Set BM.Add BM.Clear BM.Del BM.Get BM.Next BM.Prev BM.Stat APanel.ItemCount PPanel.ItemCount APanel.SelCount PPanel.SelCount APanel.CurPos PPanel.CurPos APanel.Current PPanel.Current APanel.Path PPanel.Path APanel.UNCPath PPanel.UNCPath APanel.Width PPanel.Width APanel.Type PPanel.Type APanel.DriveType PPanel.DriveType APanel.OPIFlags PPanel.OPIFlags APanel.ColumnCount PPanel.ColumnCount Dlg.ItemCount Dlg.CurPos Dlg.ItemType CmdLine.ItemCount CmdLine.CurPos CmdLine.Value Editor.FileName Editor.CurLine Editor.CurPos Editor.RealPos Editor.Value Editor.Lines Editor.State Viewer.FileName Viewer.State Drv.ShowPos Drv.ShowMode MacroArea ItemCount CurPos Title Far.Width Far.Height Far.Title Help.FileName Help.Topic Help.SelTopic"
+
+[-HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\macro:]
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\macro:]
+"Cmd.Param.Completion"=dword:00010000
+"Edt.Param.Completion"=dword:00010000
+"Dlg.Param.Completion"=dword:00010000
+"keys"="load save post"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\macro:\post]
+"Cmd.Param.Completion"=dword:00010000
+"Edt.Param.Completion"=dword:00010000
+"Dlg.Param.Completion"=dword:00010000
+"keys"="$Date $Text $IClip $MMode $Exit $XLat $KbdSwitch $If $Else $While $Rep $End $AKey $SelWord Shell Viewer Editor Dialog Search Disks MainMenu Menu Help Info QView Tree FindFolder UserMenu Other APanel.Bof PPanel.Bof APanel.Eof PPanel.Eof APanel.Empty PPanel.Empty APanel.LFN PPanel.LFN APanel.Selected PPanel.Selected APanel.Root PPanel.Root APanel.Visible PPanel.Visible APanel.Plugin PPanel.Plugin APanel.Folder PPanel.Folder APanel.Left PPanel.Left APanel.FilePanel PPanel.FilePanel CmdLine.Bof CmdLine.Eof CmdLine.Empty CmdLine.Selected Bof Eof Empty Selected IClip Windowed DisableOutput abs max min mod int index rindex replace asc chr itoa atoi len string substr xlat lcase ucase date fsplit fexist fattr panel.fexist panel.fattr panelitem panel.setpos panel.setpath panel.setposidx iif env msave akey clip flock sleep waitkey eval msgbox prompt checkhotkey gethotkey key Menu.Select Dlg.GetValue Editor.Sel Editor.Set BM.Add BM.Clear BM.Del BM.Get BM.Next BM.Prev BM.Stat APanel.ItemCount PPanel.ItemCount APanel.SelCount PPanel.SelCount APanel.CurPos PPanel.CurPos APanel.Current PPanel.Current APanel.Path PPanel.Path APanel.UNCPath PPanel.UNCPath APanel.Width PPanel.Width APanel.Type PPanel.Type APanel.DriveType PPanel.DriveType APanel.OPIFlags PPanel.OPIFlags APanel.ColumnCount PPanel.ColumnCount Dlg.ItemCount Dlg.CurPos Dlg.ItemType CmdLine.ItemCount CmdLine.CurPos CmdLine.Value Editor.FileName Editor.CurLine Editor.CurPos Editor.RealPos Editor.Value Editor.Lines Editor.State Viewer.FileName Viewer.State Drv.ShowPos Drv.ShowMode MacroArea ItemCount CurPos Title Far.Width Far.Height Far.Title Help.FileName Help.Topic Help.SelTopic"
+
+
+
+

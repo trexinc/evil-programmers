@@ -1,0 +1,88 @@
+NAME = yac
+DLLNAME = $(NAME).dll
+
+!ifndef DEBUG
+_ODN_=final
+!else
+_ODN_=debug
+!endif                   
+!ifdef AMD64
+_ODB_=64
+!else
+_ODB_=32
+!endif
+
+
+!ifndef NORC
+_RES_=$(OBJDIR)\$(NAME).res
+!else
+_RES_=
+!endif
+
+
+
+
+INC=farapi\ascii
+!ifdef WIDE
+_ODS_=W
+CPP_WIDE = /DUNICODE /D_UNICODE
+RC_WIDE = /dUNICODE
+INC=farapi\unicode
+!endif
+
+OUTDIR=$(_ODN_).$(_ODB_)$(_ODS_).vc
+
+OBJDIR = $(OUTDIR)\obj
+DLLFULLNAME = $(OUTDIR)\$(DLLNAME)
+DEF = $(NAME)$(_ODS_).vc.def
+MAP = $(OUTDIR)\$(NAME).map
+
+!ifdef AMD64
+LIBS = libcmt.lib chkstk.obj kernel32.lib user32.lib advapi32.lib Netapi32.lib Psapi.lib Version.lib
+CPP_PROJ=/MT /W3 /nologo /c /O1i /Os /J /GF /GS- /Gr /GR- /EHs-c- /LD /Fo"$(OBJDIR)\\" $(CPP_WIDE) /I $(INC) /DPROTECTION /Zp8
+!else
+LIBS = libcmt.lib chkstk.obj kernel32.lib user32.lib advapi32.lib Netapi32.lib Psapi.lib Version.lib
+CPP_PROJ=/MT /Wp64 /W3 /nologo /c /O1i /Os /J /GF /GS- /Gr /GR- /EHs-c- /LD /Fo"$(OBJDIR)\\" $(CPP_WIDE) /I $(INC) /DPROTECTION
+!endif
+
+LINK_FLAGS=/nologo /dll /release /merge:.rdata=.text /noentry /nodefaultlib /def:"$(DEF)" /map:"$(MAP)" /out:"$(DLLFULLNAME)" $(LIBS)
+
+LINK_OBJS = $(OBJDIR)\$(NAME).obj\
+            $(OBJDIR)\container.obj\
+            $(OBJDIR)\unicodestring.obj\
+            $(OBJDIR)\tokenizer.obj\
+            $(OBJDIR)\memory.obj\
+            $(OBJDIR)\stringstack.obj\
+            $(OBJDIR)\functions.obj\
+            $(OBJDIR)\registry.obj\
+            $(OBJDIR)\cmdtokens.obj\
+            $(OBJDIR)\winapi.obj\
+            $(_RES_)
+
+ALL: $(OUTDIR) $(OBJDIR) $(DLLFULLNAME)
+
+$(DLLFULLNAME) : $(LINK_OBJS)
+	link @<<
+	$(LINK_FLAGS) $(LINK_OBJS)
+<<
+	@copy /Y *.hlf $(OUTDIR) > nul
+	@copy /Y *.lng $(OUTDIR) > nul
+	@copy /Y readme $(OUTDIR) > nul
+	@copy /Y changelog $(OUTDIR) > nul
+	@copy /Y setmacros.cmd $(OUTDIR) > nul
+	@copy /Y *.reg $(OUTDIR)\context\ > nul
+
+.cpp{$(OBJDIR)}.obj::
+	cl @<<
+	$(CPP_PROJ) $<
+<<
+
+$(OBJDIR)\$(NAME).res: $(NAME).rc
+	@rc $(RC_WIDE) /fo"$(OBJDIR)\$(NAME).res" $(NAME).rc
+
+$(OBJDIR): $(OUTDIR)
+	@if not exist "$(OBJDIR)\$(NULL)" mkdir "$(OBJDIR)"
+
+$(OUTDIR):
+	@if not exist "$(OUTDIR)\$(NULL)" mkdir "$(OUTDIR)"
+	@if not exist "$(OUTDIR)\context" mkdir "$(OUTDIR)\context"

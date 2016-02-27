@@ -1,0 +1,485 @@
+REGEDIT4
+
+[-HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn]
+
+; пример написания правил для дополнения
+
+; Completion - комбинация флагов, определяющая, что надо дописывать, а что нет:
+;  1 0x00000001: files/directories
+;  2 0x00000002: programs in %PATH%
+;  3 0x00000004: hosts
+;  4 0x00000008: shares
+;  5 0x00000010: environment variables
+;  6 0x00000020: logical drives
+;  7 0x00000040: NTFS streams
+;  8 0x00000080: registry
+;  9 0x00000100: named pipes
+; 10 0x00000200: volumes
+; 11 0x00000400: processes
+; 12 0x00000800: services
+; 13 0x00001000: shell commands
+; 14 0x00002000: aliases
+; 15 0x00004000: system aliases
+; 16 0x00008000: plugin prefixes
+; 17 0x00010000: keys/parameters
+; 18 0x00020000: user names
+; 19 0x00040000: panel items
+; 20 0x00080000: input history
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn]
+; 0x10000 - после svn[.ext] будут подставляться только ключи
+"Cmd.Param.Completion"=dword:00010000
+"Edt.Param.Completion"=dword:00010000
+"Dlg.Param.Completion"=dword:00010000
+
+; подставляемые ключи/параметры. В их качестве также будут выступать все подключи
+; основного ключа, т.е. писать сюда, например, co и commit не надо, т.к. они опредены ниже.
+"keys"="--help --version --quiet"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\add]
+; 0x1027d - после строки "svn[.ext] add" будут подставляться
+; файлы/каталоги, хосты, шары, переменные, диски, потоки, тома и ключи.
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+
+; ключи, валидные только для svn[.ext] add:
+"keys"="--help --targets -N --non-recursive -q --quiet --config-dir --force --no-ignore --auto-props --no-auto-props"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\blame]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -r --revision -v --verbose --incremental --xml --force --username --password --no-auth-cache --non-interactive --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\blame\-x]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -u --unified -b --ignore-space-change -w --ignore-all-space --ignore-eol-style"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\praise\--extensions]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -u --unified -b --ignore-space-change -w --ignore-all-space --ignore-eol-style"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\praise]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -r --revision -v --verbose --incremental --xml --force --username --password --no-auth-cache --non-interactive --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\praise\-x]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -u --unified -b --ignore-space-change -w --ignore-all-space --ignore-eol-style"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\praise\--extensions]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -u --unified -b --ignore-space-change -w --ignore-all-space --ignore-eol-style"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\annotate]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -r --revision -v --verbose --incremental --xml --force --username --password --no-auth-cache --non-interactive --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\annotate\-x]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -u --unified -b --ignore-space-change -w --ignore-all-space --ignore-eol-style"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\annotate\--extensions]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -u --unified -b --ignore-space-change -w --ignore-all-space --ignore-eol-style"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\ann]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -r --revision -v --verbose --incremental --xml --force --username --password --no-auth-cache --non-interactive --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\ann\-x]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -u --unified -b --ignore-space-change -w --ignore-all-space --ignore-eol-style"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\ann\--extensions]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -u --unified -b --ignore-space-change -w --ignore-all-space --ignore-eol-style"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\cat]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -r --revision --username --password --no-auth-cache --non-interactive --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\checkout]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -r --revision -q --quiet -N --non-recursive --username arg --password arg --no-auth-cache --non-interactive --config-dir arg --ignore-externals"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\co]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -r --revision -q --quiet -N --non-recursive --username arg --password arg --no-auth-cache --non-interactive --config-dir arg --ignore-externals"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\cleanup]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help --diff3-cmd --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\commit]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -q --quiet -N --non-recursive --targets --no-unlock -m --message -F --file --force-log --editor-cmd --encoding --username --password --no-auth-cache --non-interactive --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\ci]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -q --quiet -N --non-recursive --targets --no-unlock -m --message -F --file --force-log --editor-cmd --encoding --username --password --no-auth-cache --non-interactive --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\copy]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -r --revision -q --quiet -m --message -F --file --force-log --editor-cmd --encoding --username --password --no-auth-cache --non-interactive --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\cp]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -r --revision -q --quiet -m --message -F --file --force-log --editor-cmd --encoding --username --password --no-auth-cache --non-interactive --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\delete]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help --force -q --quiet --targets -m --message -F --file --force-log --editor-cmd --encoding --username --password --no-auth-cache --non-interactive --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\del]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help --force -q --quiet --targets -m --message -F --file --force-log --editor-cmd --encoding --username --password --no-auth-cache --non-interactive --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\remove]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help --force -q --quiet --targets -m --message -F --file --force-log --editor-cmd --encoding --username --password --no-auth-cache --non-interactive --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\rm]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help --force -q --quiet --targets -m --message -F --file --force-log --editor-cmd --encoding --username --password --no-auth-cache --non-interactive --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\diff]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -r --revision -c --change --old --new -N --non-recursive --diff-cmd --no-diff-deleted --notice-ancestry --summarize --force --username --password --no-auth-cache --non-interactive --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\diff\-x]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -u --unified -b --ignore-space-change -w --ignore-all-space --ignore-eol-style"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\diff\--extensions]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -u --unified -b --ignore-space-change -w --ignore-all-space --ignore-eol-style"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\di]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -r --revision -c --change --old --new -N --non-recursive --diff-cmd --no-diff-deleted --notice-ancestry --summarize --force --username --password --no-auth-cache --non-interactive --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\di\-x]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -u --unified -b --ignore-space-change -w --ignore-all-space --ignore-eol-style"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\di\--extensions]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -u --unified -b --ignore-space-change -w --ignore-all-space --ignore-eol-style"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\export]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -r --revision -q --quiet -N --non-recursive --force --username --password --no-auth-cache --non-interactive --config-dir --native-eol --ignore-externals"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\help]
+"Cmd.Param.Completion"=dword:00010000
+"Edt.Param.Completion"=dword:00010000
+"Dlg.Param.Completion"=dword:00010000
+"keys"="--help add blame praise annotate ann cat checkout co cleanup commit ci copy cp delete del remove rm diff di export help ? h import info list ls lock log merge mkdir move mv rename ren propdel pdel pd propedit pedit pe propget pget pg proplist plist pl propset pset ps resolved revert status stat st switch sw unlock update up"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\?]
+"Cmd.Param.Completion"=dword:00010000
+"Edt.Param.Completion"=dword:00010000
+"Dlg.Param.Completion"=dword:00010000
+"keys"="--help --config-dir add blame praise annotate ann cat checkout co cleanup commit ci copy cp delete del remove rm diff di export help ? h import info list ls lock log merge mkdir move mv rename ren propdel pdel pd propedit pedit pe propget pget pg proplist plist pl propset pset ps resolved revert status stat st switch sw unlock update up"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\h]
+"Cmd.Param.Completion"=dword:00010000
+"Edt.Param.Completion"=dword:00010000
+"Dlg.Param.Completion"=dword:00010000
+"keys"="--help --config-dir add blame praise annotate ann cat checkout co cleanup commit ci copy cp delete del remove rm diff di export help ? h import info list ls lock log merge mkdir move mv rename ren propdel pdel pd propedit pedit pe propget pget pg proplist plist pl propset pset ps resolved revert status stat st switch sw unlock update up"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\import]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -q --quiet -N --non-recursive --auto-props --no-auto-props -m --message -F --file --force-log --editor-cmd --encoding --no-ignore --username --password --no-auth-cache --non-interactive --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\info]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -r --revision -R --recursive --targets --incremental --xml --username --password --no-auth-cache --non-interactive --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\list]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -r --revision -v --verbose -R --recursive --incremental --xml --username --password --no-auth-cache --non-interactive --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\ls]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -r --revision -v --verbose -R --recursive --incremental --xml --username --password --no-auth-cache --non-interactive --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\lock]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help --targets -m --message -F --file --force-log --encoding --username --password --no-auth-cache --non-interactive --config-dir --force"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\log]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -r --revision -q --quiet -v --verbose --targets --stop-on-copy --incremental --xml --username --password --no-auth-cache --non-interactive --config-dir --limit"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\merge]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -r --revision -c --change -N --non-recursive -q --quiet --force --dry-run --diff3-cmd --ignore-ancestry --username --password --no-auth-cache --non-interactive --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\merge\-x]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -u --unified -b --ignore-space-change -w --ignore-all-space --ignore-eol-style"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\merge\-extensions]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -u --unified -b --ignore-space-change -w --ignore-all-space --ignore-eol-style"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\mkdir]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -q --quiet -m --message -F --file --force-log --editor-cmd --encoding --username --password --no-auth-cache --non-interactive --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\move]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -r --revision -q --quiet --force -m --message -F --file --force-log --editor-cmd --encoding --username --password --no-auth-cache --non-interactive --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\mv]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -r --revision -q --quiet --force -m --message -F --file --force-log --editor-cmd --encoding --username --password --no-auth-cache --non-interactive --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\rename]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -r --revision -q --quiet --force -m --message -F --file --force-log --editor-cmd --encoding --username --password --no-auth-cache --non-interactive --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\ren]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -r --revision -q --quiet --force -m --message -F --file --force-log --editor-cmd --encoding --username --password --no-auth-cache --non-interactive --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\propdel]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -q --quiet -R --recursive -r --revision --revprop --username --password --no-auth-cache --non-interactive --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\pdel]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -q --quiet -R --recursive -r --revision --revprop --username --password --no-auth-cache --non-interactive --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\pd]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -q --quiet -R --recursive -r --revision --revprop --username --password --no-auth-cache --non-interactive --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\propedit]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -r --revision --revprop --username --password --no-auth-cache --non-interactive --encoding --editor-cmd --force --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\pedit]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -r --revision --revprop --username --password --no-auth-cache --non-interactive --encoding --editor-cmd --force --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\pe]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -r --revision --revprop --username --password --no-auth-cache --non-interactive --encoding --editor-cmd --force --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\propget]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -R --recursive -r --revision --revprop --strict --username --password --no-auth-cache --non-interactive --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\pget]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -R --recursive -r --revision --revprop --strict --username --password --no-auth-cache --non-interactive --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\pg]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -R --recursive -r --revision --revprop --strict --username --password --no-auth-cache --non-interactive --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\proplist]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -v --verbose -R --recursive -r --revision -q --quiet --revprop --username --password --no-auth-cache --non-interactive --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\plist]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -v --verbose -R --recursive -r --revision -q --quiet --revprop --username --password --no-auth-cache --non-interactive --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\pl]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -v --verbose -R --recursive -r --revision -q --quiet --revprop --username --password --no-auth-cache --non-interactive --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\propset]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -F --file --encoding -q --quiet -r --revision --targets -R --recursive --revprop --username --password --no-auth-cache --non-interactive --force --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\pset]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -F --file --encoding -q --quiet -r --revision --targets -R --recursive --revprop --username --password --no-auth-cache --non-interactive --force --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\ps]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -F --file --encoding -q --quiet -r --revision --targets -R --recursive --revprop --username --password --no-auth-cache --non-interactive --force --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\resolved]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help --targets -R --recursive -q --quiet --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\revert]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help --targets -R --recursive -q --quiet --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\status]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -u --show-updates -v --verbose -N --non-recursive -q --quiet --no-ignore --incremental --xml --username --password --no-auth-cache --non-interactive --config-dir --ignore-externals"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\stat]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -u --show-updates -v --verbose -N --non-recursive -q --quiet --no-ignore --incremental --xml --username --password --no-auth-cache --non-interactive --config-dir --ignore-externals"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\st]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -u --show-updates -v --verbose -N --non-recursive -q --quiet --no-ignore --incremental --xml --username --password --no-auth-cache --non-interactive --config-dir --ignore-externals"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\switch]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -r --revision -N --non-recursive -q --quiet --diff3-cmd --relocate --username --password --no-auth-cache --non-interactive --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\sw]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -r --revision -N --non-recursive -q --quiet --diff3-cmd --relocate --username --password --no-auth-cache --non-interactive --config-dir"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\unlock]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help --targets --username --password --no-auth-cache --non-interactive --config-dir --force"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\update]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -r --revision -N --non-recursive -q --quiet --diff3-cmd --username --password --no-auth-cache --non-interactive --config-dir --ignore-externals"
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\svn\up]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="--help -r --revision -N --non-recursive -q --quiet --diff3-cmd --username --password --no-auth-cache --non-interactive --config-dir --ignore-externals"

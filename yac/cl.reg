@@ -1,0 +1,13 @@
+REGEDIT4
+
+[-HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\cl]
+
+[HKEY_CURRENT_USER\Software\Far2\Plugins\YAC\Context\cl]
+"Cmd.Param.Completion"=dword:0001027d
+"Edt.Param.Completion"=dword:0001027d
+"Dlg.Param.Completion"=dword:0001027d
+"keys"="/O1 /O2 /Ob /Od /Og /Oi /Oi- /Os /Ot /Ox /Oy /Oy- /GF /Gm /Gm- /Gy /Gy- /GS /GS- /GR /GR- /GX /GX- /EHs /EHa /EHc /fp:except /fp:except- /fp:fast /fp:precise /fp:strict /Qfast_transcendentals /GL /GL- /GA /Ge /Gs /Gh /GH /GT /RTC1 /RTCc /RTCs /RTCsu /RTCu /clr /clr:pure /clr:safe /clr:oldSyntax /clr:initialAppDomain /clr:noAssembly /Gd /Gr /Gz /GZ /QIfist /QIfist- /hotpatch /arch:SSE /arch:SSE2 /Qimprecise_fwaits /Fa /FA /FAs /FAc /FAu /Fd /Fe /Fm /Fo /Fp /Fr /FR /doc /AI /FU /C /D /E /EP /P /Fx /FI /U /u /I /X /Zi /Z7 /Zp /Za /Ze /Zl /Zg /Zs /vd0 /vd1 /vd2 /vm /Zc:forScope /Zc:forScope- /Zc:wchar_t /Zc:wchar_t- /ZI /openmp @ /? /help /bigobj /c /errorReport:none /errorReport:prompt /errorReport:queue /errorReport:send /FC /H /J /MP /nologo /showIncludes /Tc /Tp /TC /TP /V /w /wd /we /wo /wl1 /wl2 /wl3 /wl4 /w1 /w2 /w3 /w4 /W1 /W2 /W3 /W4 /Wall /WL /WX /Yc /Yd /Yl /Yu /Y- /Zm /Zm% /Wp64 /LD /LDd /LN /F /link /MD /MT /MDd /MTd"
+"filter"="*.cpp,*.hpp,*.c,*.h,*.rc,*.def,*.obj,*.lib"
+
+
+
