@@ -41,7 +41,7 @@ CPP_PROJ=$(CPP_PROJ) /Zp8
 
 !ifndef ULINK
 LNK=$(_LINK_PATH_)link.exe
-LINK_FLAGS=/noentry /nodefaultlib /nologo /dll /release /merge:.rdata=.text /def:"$(DEF)" /map:"$(MAP)" /out:"$(DLLFULLNAME)" $(LIBS)
+LINK_FLAGS=/nologo /dll /release /merge:.rdata=.text /def:"$(DEF)" /map:"$(MAP)" /out:"$(DLLFULLNAME)" $(LIBS)
 !else
 LNK=$(_ULINK_PATH_)ulink.exe +-
 LINK_FLAGS=-q $(ULOUT) -Gz -m- -Gh -Gh- -e- -n /ZD:"$(DEF)" /ZM:"$(MAP)" /ZO:"$(DLLFULLNAME)" $(LIBS)
@@ -53,7 +53,6 @@ LINK_OBJS = $(INTDIR)\$(NAME).obj\
             $(INTDIR)\HideCursor.obj\
             $(INTDIR)\TextColor.obj\
             $(INTDIR)\Imports.obj\
-            $(INTDIR)\Memory.obj\
             $(INTDIR)\Underscore.Archives.obj\
             $(INTDIR)\PropVariant.obj\
             $(INTDIR)\Headers.obj\

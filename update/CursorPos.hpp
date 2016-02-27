@@ -4,8 +4,10 @@
 
 class CursorPos
 {
-	COORD Pos;
 public:
 	CursorPos();
 	~CursorPos();
+
+private:
+	COORD Pos;
 };

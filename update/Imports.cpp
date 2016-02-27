@@ -4,13 +4,12 @@
 
 ImportedFunctions ifn;
 
-VOID ImportedFunctions::Load()
+void ImportedFunctions::Load()
 {
-	HMODULE hKernel32=GetModuleHandle(L"kernel32.dll");
-	if(hKernel32)
+	if (const auto hKernel32 = GetModuleHandle(L"kernel32.dll"))
 	{
-		pAttachConsole=reinterpret_cast<ATTACHCONSOLE>(GetProcAddress(hKernel32,"AttachConsole"));
-		pIsWow64Process=reinterpret_cast<ISWOW64PROCESS>(GetProcAddress(hKernel32,"IsWow64Process"));
+		pAttachConsole = reinterpret_cast<ATTACHCONSOLE>(GetProcAddress(hKernel32,"AttachConsole"));
+		pIsWow64Process = reinterpret_cast<ISWOW64PROCESS>(GetProcAddress(hKernel32,"IsWow64Process"));
 	}
 }
 

@@ -1,28 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug ANSI|Win32">
-      <Configuration>Debug ANSI</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Debug ANSI|x64">
-      <Configuration>Debug ANSI</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release ANSI|Win32">
-      <Configuration>Release ANSI</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release ANSI|x64">
-      <Configuration>Release ANSI</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|Win32">
@@ -40,61 +24,35 @@
     <Keyword>Win32Proj</Keyword>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release ANSI|Win32'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <CharacterSet>NotSet</CharacterSet>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug ANSI|Win32'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <CharacterSet>NotSet</CharacterSet>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release ANSI|x64'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <CharacterSet>NotSet</CharacterSet>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug ANSI|x64'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <CharacterSet>NotSet</CharacterSet>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release ANSI|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug ANSI|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release ANSI|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug ANSI|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
@@ -110,52 +68,24 @@
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(OutDir)obj\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
     <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</GenerateManifest>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">debug.64W.vc</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">debug.64W.vc\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)obj\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</GenerateManifest>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">final.32W.vc</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">final.32W.vc\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(OutDir)obj\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
     <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</GenerateManifest>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">final.64W.vc</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">final.64W.vc\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)obj\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
     <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</GenerateManifest>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug ANSI|Win32'">debug.32A.vc</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug ANSI|Win32'">$(OutDir)obj\</IntDir>
-    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug ANSI|Win32'">true</LinkIncremental>
-    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug ANSI|Win32'">false</GenerateManifest>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug ANSI|x64'">debug.64A.vc</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug ANSI|x64'">$(OutDir)obj\</IntDir>
-    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug ANSI|x64'">true</LinkIncremental>
-    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug ANSI|x64'">false</GenerateManifest>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release ANSI|Win32'">final.32A.vc</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release ANSI|Win32'">$(OutDir)obj\</IntDir>
-    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release ANSI|Win32'">false</LinkIncremental>
-    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release ANSI|Win32'">false</GenerateManifest>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release ANSI|x64'">final.64A.vc</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release ANSI|x64'">$(OutDir)obj\</IntDir>
-    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release ANSI|x64'">false</LinkIncremental>
-    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release ANSI|x64'">false</GenerateManifest>
-    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug ANSI|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug ANSI|Win32'" />
-    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug ANSI|Win32'" />
-    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug ANSI|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug ANSI|x64'" />
-    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug ANSI|x64'" />
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
-    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release ANSI|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release ANSI|Win32'" />
-    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release ANSI|Win32'" />
-    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release ANSI|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release ANSI|x64'" />
-    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release ANSI|x64'" />
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
@@ -192,7 +122,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>chkstk.obj;kernel32.lib;user32.lib;version.lib;shlwapi.lib;wininet.lib;oleaut32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <ModuleDefinitionFile>updateW.vc.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>update.vc.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <LinkTimeCodeGeneration>
@@ -238,7 +168,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>chkstk.obj;kernel32.lib;user32.lib;version.lib;shlwapi.lib;wininet.lib;oleaut32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <ModuleDefinitionFile>updateW.vc.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>update.vc.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <LinkTimeCodeGeneration>
@@ -279,7 +209,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>chkstk.obj;kernel32.lib;user32.lib;version.lib;shlwapi.lib;wininet.lib;oleaut32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <ModuleDefinitionFile>updateW.vc.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>update.vc.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -325,185 +255,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>chkstk.obj;kernel32.lib;user32.lib;version.lib;shlwapi.lib;wininet.lib;oleaut32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <ModuleDefinitionFile>updateW.vc.def</ModuleDefinitionFile>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <SubSystem>Windows</SubSystem>
-      <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <LinkTimeCodeGeneration>
-      </LinkTimeCodeGeneration>
-      <DataExecutionPrevention>
-      </DataExecutionPrevention>
-      <TargetMachine>MachineX64</TargetMachine>
-    </Link>
-    <PostBuildEvent>
-      <Command>
-      </Command>
-    </PostBuildEvent>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug ANSI|Win32'">
-    <PreBuildEvent>
-      <Command>tools\lng.generator.exe -nc -i lng.ini -ol $(OutDir) lng.templ
-%40copy /b ".\$(ProjectName).dll.config" "$(OutDir)$(TargetFileName).config"
-%40copy /b 7zxr.dll.32 "$(OutDir)7zxr.dll"
-</Command>
-    </PreBuildEvent>
-    <ClCompile>
-      <AdditionalOptions>/GR- /J %(AdditionalOptions)</AdditionalOptions>
-      <Optimization>Disabled</Optimization>
-      <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>..\common\ascii;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;UPDATE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <StringPooling>true</StringPooling>
-      <MinimalRebuild>false</MinimalRebuild>
-      <ExceptionHandling>
-      </ExceptionHandling>
-      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
-      <RuntimeTypeInfo>false</RuntimeTypeInfo>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>headers.hpp</PrecompiledHeaderFile>
-      <WarningLevel>Level3</WarningLevel>
-      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <CallingConvention>FastCall</CallingConvention>
-    </ClCompile>
-    <Link>
-      <AdditionalDependencies>chkstk.obj;kernel32.lib;user32.lib;version.lib;shlwapi.lib;wininet.lib;oleaut32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <ModuleDefinitionFile>updateA.vc.def</ModuleDefinitionFile>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <SubSystem>Windows</SubSystem>
-      <LinkTimeCodeGeneration>
-      </LinkTimeCodeGeneration>
-      <DataExecutionPrevention>
-      </DataExecutionPrevention>
-      <TargetMachine>MachineX86</TargetMachine>
-    </Link>
-    <PostBuildEvent>
-      <Command>
-      </Command>
-    </PostBuildEvent>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug ANSI|x64'">
-    <PreBuildEvent>
-      <Command>tools\lng.generator.exe -nc -i lng.ini -ol $(OutDir) lng.templ
-%40copy /b ".\$(ProjectName).dll.config" "$(OutDir)$(TargetFileName).config"
-%40copy /b 7zxr.dll.64 "$(OutDir)7zxr.dll"
-</Command>
-    </PreBuildEvent>
-    <Midl>
-      <TargetEnvironment>X64</TargetEnvironment>
-    </Midl>
-    <ClCompile>
-      <AdditionalOptions>/GR- /J %(AdditionalOptions)</AdditionalOptions>
-      <Optimization>Disabled</Optimization>
-      <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>..\common\ascii;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;UPDATE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <StringPooling>true</StringPooling>
-      <MinimalRebuild>false</MinimalRebuild>
-      <ExceptionHandling>
-      </ExceptionHandling>
-      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
-      <RuntimeTypeInfo>false</RuntimeTypeInfo>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>headers.hpp</PrecompiledHeaderFile>
-      <WarningLevel>Level3</WarningLevel>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <CallingConvention>FastCall</CallingConvention>
-    </ClCompile>
-    <Link>
-      <AdditionalDependencies>chkstk.obj;kernel32.lib;user32.lib;version.lib;shlwapi.lib;wininet.lib;oleaut32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <ModuleDefinitionFile>updateA.vc.def</ModuleDefinitionFile>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <SubSystem>Windows</SubSystem>
-      <LinkTimeCodeGeneration>
-      </LinkTimeCodeGeneration>
-      <DataExecutionPrevention>
-      </DataExecutionPrevention>
-      <TargetMachine>MachineX64</TargetMachine>
-    </Link>
-    <PostBuildEvent>
-      <Command>
-      </Command>
-    </PostBuildEvent>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release ANSI|Win32'">
-    <PreBuildEvent>
-      <Command>tools\lng.generator.exe -nc -i lng.ini -ol $(OutDir) lng.templ
-%40copy /b ".\$(ProjectName).dll.config" "$(OutDir)$(TargetFileName).config"
-%40copy /b 7zxr.dll.32 "$(OutDir)7zxr.dll"
-</Command>
-    </PreBuildEvent>
-    <ClCompile>
-      <AdditionalOptions>/GR- /J %(AdditionalOptions)</AdditionalOptions>
-      <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>..\common\ascii;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;UPDATE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <StringPooling>true</StringPooling>
-      <MinimalRebuild>false</MinimalRebuild>
-      <ExceptionHandling>
-      </ExceptionHandling>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
-      <RuntimeTypeInfo>false</RuntimeTypeInfo>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>headers.hpp</PrecompiledHeaderFile>
-      <WarningLevel>Level3</WarningLevel>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <CallingConvention>FastCall</CallingConvention>
-    </ClCompile>
-    <Link>
-      <AdditionalDependencies>chkstk.obj;kernel32.lib;user32.lib;version.lib;shlwapi.lib;wininet.lib;oleaut32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <ModuleDefinitionFile>updateA.vc.def</ModuleDefinitionFile>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <SubSystem>Windows</SubSystem>
-      <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <LinkTimeCodeGeneration>
-      </LinkTimeCodeGeneration>
-      <DataExecutionPrevention>
-      </DataExecutionPrevention>
-      <TargetMachine>MachineX86</TargetMachine>
-    </Link>
-    <PostBuildEvent>
-      <Command>
-      </Command>
-    </PostBuildEvent>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release ANSI|x64'">
-    <PreBuildEvent>
-      <Command>tools\lng.generator.exe -nc -i lng.ini -ol $(OutDir) lng.templ
-%40copy /b ".\$(ProjectName).dll.config" "$(OutDir)$(TargetFileName).config"
-%40copy /b 7zxr.dll.64 "$(OutDir)7zxr.dll"
-</Command>
-    </PreBuildEvent>
-    <Midl>
-      <TargetEnvironment>X64</TargetEnvironment>
-    </Midl>
-    <ClCompile>
-      <AdditionalOptions>/GR- /J %(AdditionalOptions)</AdditionalOptions>
-      <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>..\common\ascii;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;UPDATE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <StringPooling>true</StringPooling>
-      <MinimalRebuild>false</MinimalRebuild>
-      <ExceptionHandling>
-      </ExceptionHandling>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
-      <RuntimeTypeInfo>false</RuntimeTypeInfo>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>headers.hpp</PrecompiledHeaderFile>
-      <WarningLevel>Level3</WarningLevel>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <CallingConvention>FastCall</CallingConvention>
-    </ClCompile>
-    <Link>
-      <AdditionalDependencies>chkstk.obj;kernel32.lib;user32.lib;version.lib;shlwapi.lib;wininet.lib;oleaut32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <ModuleDefinitionFile>updateA.vc.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>update.vc.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -523,12 +275,8 @@
     <ClCompile Include="Console.cpp" />
     <ClCompile Include="CursorPos.cpp" />
     <ClCompile Include="headers.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug ANSI|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug ANSI|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release ANSI|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release ANSI|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
@@ -537,7 +285,7 @@
     <ClCompile Include="PropVariant.cpp" />
     <ClCompile Include="TextColor.cpp" />
     <ClCompile Include="Underscore.Archives.cpp" />
-    <ClCompile Include="update.cpp" />
+    <ClCompile Include="Update.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Console.hpp" />
@@ -545,7 +293,6 @@
     <ClInclude Include="headers.hpp" />
     <ClInclude Include="HideCursor.hpp" />
     <ClInclude Include="Imports.hpp" />
-    <ClInclude Include="memory.hpp" />
     <ClInclude Include="PropVariant.h" />
     <ClInclude Include="TextColor.hpp" />
     <ClInclude Include="Underscore.Archives.h" />
@@ -558,37 +305,17 @@
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="lng.templ">
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug ANSI|Win32'">Generating language files based on %(Filename)%(Extension)...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug ANSI|Win32'">.\tools\lng.generator.exe -nc -i .\lng.ini -ol $(OutDir) %(Filename)%(Extension)
-</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug ANSI|Win32'">lng.ini;lng.hpp;$(OutDir)update_en.lng;$(OutDir)update_ru.lng;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug ANSI|x64'">Generating language files based on %(Filename)%(Extension)...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug ANSI|x64'">.\tools\lng.generator.exe -nc -i .\lng.ini -ol $(OutDir) %(Filename)%(Extension)
-</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug ANSI|x64'">lng.ini;lng.hpp;$(OutDir)update_en.lng;$(OutDir)update_ru.lng;%(Outputs)</Outputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Generating language files based on %(Filename)%(Extension)...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\tools\lng.generator.exe -nc -i .\lng.ini -ol $(OutDir) %(Filename)%(Extension)
-</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\tools\lng.generator.exe -nc -i .\lng.ini -ol $(OutDir) %(Filename)%(Extension)</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">lng.ini;lng.hpp;$(OutDir)update_en.lng;$(OutDir)update_ru.lng;%(Outputs)</Outputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Generating language files based on %(Filename)%(Extension)...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\tools\lng.generator.exe -nc -i .\lng.ini -ol $(OutDir) %(Filename)%(Extension)
-</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\tools\lng.generator.exe -nc -i .\lng.ini -ol $(OutDir) %(Filename)%(Extension)</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">lng.ini;lng.hpp;$(OutDir)update_en.lng;$(OutDir)update_ru.lng;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release ANSI|Win32'">Generating language files based on %(Filename)%(Extension)...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release ANSI|Win32'">.\tools\lng.generator.exe -nc -i .\lng.ini -ol $(OutDir) %(Filename)%(Extension)
-</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release ANSI|Win32'">lng.ini;lng.hpp;$(OutDir)update_en.lng;$(OutDir)update_ru.lng;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release ANSI|x64'">Generating language files based on %(Filename)%(Extension)...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release ANSI|x64'">.\tools\lng.generator.exe -nc -i .\lng.ini -ol $(OutDir) %(Filename)%(Extension)
-</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release ANSI|x64'">lng.ini;lng.hpp;$(OutDir)update_en.lng;$(OutDir)update_ru.lng;%(Outputs)</Outputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Generating language files based on %(Filename)%(Extension)...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\tools\lng.generator.exe -nc -i .\lng.ini -ol $(OutDir) %(Filename)%(Extension)
-</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\tools\lng.generator.exe -nc -i .\lng.ini -ol $(OutDir) %(Filename)%(Extension)</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">lng.ini;lng.hpp;$(OutDir)update_en.lng;$(OutDir)update_ru.lng;%(Outputs)</Outputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Generating language files based on %(Filename)%(Extension)...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\tools\lng.generator.exe -nc -i .\lng.ini -ol $(OutDir) %(Filename)%(Extension)
-</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\tools\lng.generator.exe -nc -i .\lng.ini -ol $(OutDir) %(Filename)%(Extension)</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">lng.ini;lng.hpp;$(OutDir)update_en.lng;$(OutDir)update_ru.lng;%(Outputs)</Outputs>
     </CustomBuild>
   </ItemGroup>

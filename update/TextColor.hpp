@@ -4,8 +4,10 @@
 
 class TextColor
 {
-	WORD InitialColor;
 public:
 	TextColor(WORD NewColor);
 	~TextColor();
+
+private:
+	WORD InitialColor;
 };

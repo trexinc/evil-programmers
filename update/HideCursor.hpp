@@ -4,8 +4,10 @@
 
 class HideCursor
 {
-	CONSOLE_CURSOR_INFO cci;
 public:
 	HideCursor();
 	~HideCursor();
+
+private:
+	CONSOLE_CURSOR_INFO cci;
 };

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cwchar>
+
 #undef WINVER
 #define WINVER 0x0600
 
@@ -10,7 +12,6 @@
 #include <shlwapi.h>
 #include <shellapi.h>
 #include <wininet.h>
-#include "memory.hpp"
 
 extern PluginStartupInfo Info;
 

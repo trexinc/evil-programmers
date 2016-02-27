@@ -12,7 +12,7 @@ private:
 	ISWOW64PROCESS pIsWow64Process;
 
 public:
-	VOID Load();
+	void Load();
 	BOOL AttachConsole(DWORD dwProcessId);
 	BOOL IsWow64Process(HANDLE hProcess,PBOOL Wow64Process);
 };
