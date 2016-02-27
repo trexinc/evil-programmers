@@ -101,5 +101,17 @@ private:
 	pyobject_ptr m_Object;
 };
 
+class py_list
+{
+public:
+	py_list(PyObject* Object): m_List(pyobject_ptr_borrowed(Object)) {}
+	size_t size() const { return PyList_Size(m_List.get()); }
+	PyObject* operator[](size_t index) { return PyList_GetItem(m_List.get(), index); }
+	void push_back(pyobject_ptr Object) { PyList_Append(m_List.get(), Object.get()); }
+	void insert(pyobject_ptr Object, size_t index) { PyList_Insert(m_List.get(), index, Object.get()); }
+private:
+	pyobject_ptr m_List;
+};
+
 pyobject_ptr Call(const pyobject_ptr& Module, const char* Name, const py_dict& InfoArg);
 

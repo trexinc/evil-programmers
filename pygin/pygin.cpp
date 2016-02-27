@@ -1,12 +1,31 @@
 #include "stdafx.h"
 #include "module.h"
 
+static void AddToPythonPath(const std::wstring& Path)
+{
+	py_list PathList(PySys_GetObject("path"));
+	auto NewItem = py_str(Path);
+	bool Found = false;
+
+	for (size_t i = 0, size = PathList.size();  i != size; ++i)
+	{
+		if (!PyUnicode_Compare(PathList[i], NewItem.get()))
+		{
+			Found = true;
+		}
+	}
+	if (!Found)
+	{
+		PathList.push_back(NewItem);
+	}
+}
+
 BOOL WINAPI adapter_Initialize(GlobalInfo* Info)
 {
 	Info->StructSize = sizeof(GlobalInfo);
 
 	Info->MinFarVersion = MAKEFARVERSION(3, 0, 0, 3000, VS_RELEASE);
-	Info->Version = MAKEFARVERSION(0, 0, 0, 1, VS_ALPHA);
+	Info->Version = MAKEFARVERSION(0, 0, 0, 2, VS_ALPHA);
 
 	static const UUID PyginID = { 0x66714600, 0xd5fa, 0x4fae, { 0xac, 0x4b, 0x77, 0x25, 0xe5, 0x7a, 0x87, 0x39 } };
 	Info->Guid = PyginID;
@@ -28,13 +47,12 @@ HANDLE WINAPI adapter_CreateInstance(const wchar_t* filename)
 {
 	std::wstring Dir(filename);
 	const auto SlashPos = Dir.rfind(L'\\');
-	auto Name = Dir.substr(SlashPos + 1);
-	Name.resize(Name.size() - 3);
 	Dir.resize(SlashPos);
-
-	PyList_Append(PySys_GetObject("path"), py_str(Dir).get());
-
-	const auto Object = PyImport_Import(py_str(Name).get());
+	const auto PrevSlashPos = Dir.rfind(L'\\');
+	const std::wstring Path(Dir, 0, PrevSlashPos);
+	const std::wstring ModuleName(Dir, PrevSlashPos + 1);
+	AddToPythonPath(Path);
+	const auto Object = PyImport_Import(py_str(ModuleName).get());
 	PyErr_Print();
 	return Object? new module(Object) : nullptr;
 }
