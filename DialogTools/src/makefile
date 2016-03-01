@@ -17,7 +17,7 @@ DEF=dt$(DIRSURF).def
 OBJS=$(patsubst %.cpp,../$(OBJDIR)/%.o,$(filter %.cpp,$(SRCS)))
 DEPS=$(patsubst %.cpp,../$(OBJDIR)/%.d,$(filter %.cpp,$(SRCS)))
 LIBS=-lmsvcrt
-DOCTARGET=../$(BINDIR)/dtEng.lng ../$(BINDIR)/dtRus.lng
+DOCTARGET=../$(BINDIR)/dtEng.lng ../$(BINDIR)/dtRus.lng ../$(BINDIR)/Dialog_DialogTools.lua
 
 all: dirs $(TARGET) $(DOCTARGET)
 
@@ -56,6 +56,9 @@ $(TARGET): $(OBJS)
 	$(CP) $< $@
 
 ../$(BINDIR)/%.hlf: %.hlf
+	$(CP) $< $@
+
+../$(BINDIR)/%.lua: %.lua
 	$(CP) $< $@
 
 clear:
