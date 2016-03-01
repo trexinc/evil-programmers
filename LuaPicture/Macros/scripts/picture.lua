@@ -169,6 +169,100 @@ local function PointInRect(point,rect)
   return point.MousePositionX>=rect.left and point.MousePositionX<=rect.right and point.MousePositionY>=rect.top and point.MousePositionY<=rect.bottom
 end
 
+local function getDNG(filename)
+  local function intBE(b)
+    local result=0
+    for _,v in ipairs(b) do
+      if not v then break end
+      result=result*256+v
+    end
+    return result
+  end
+  local result,thumbs,int,fix=false,{},function(b) return (b[1] or 0)+(b[2] or 0)*256+(b[3] or 0)*65536+(b[4] or 0)*16777216 end,function(a) return a end
+  local function get(file,bytes) return int({string.byte(file:read(bytes),1,bytes)}) end
+  local function get2(file) return get(file,2) end
+  local function get4(file) return get(file,4) end
+  local function parse_ifd(file,base,process)
+    local entries,index=get2(file),#thumbs+1
+    thumbs[index]={size=0,compression=6}
+    for _=1,entries do
+      local d={f=file,process=process,value=thumbs[index],base=base,tag=get2(file),type=get2(file),count=get4(file),offset=get4(file)}
+      process(d)
+    end
+  end
+  local f=io.open(filename,"rb")
+  if f then
+    local tag=f:read(2)
+    if tag=="II" or tag=="MM" then
+      if tag=="MM" then
+        int=intBE
+        fix=function(a) return a/65536 end
+      end
+      get2(f)
+      while true do
+        local offset=get4(f)
+        if offset==0 then break end
+        f:seek('set',offset)
+        parse_ifd(f,0,function(d)
+          if d.tag==46 then d.value.data,d.value.size=(d.base+d.offset),d.count
+          elseif d.tag==259 then d.value.compression=fix(d.offset)
+          elseif (d.tag==273 or d.tag==513) and d.offset~=0xffffffff then d.value.data=d.base+d.offset
+          elseif d.tag==277 then d.value.samples=fix(d.offset)
+          elseif (d.tag==279 or d.tag==514) and d.offset>0 then d.value.size=d.offset
+          elseif d.tag==330 then
+            local size,pos=4*d.count,d.f:seek()
+            for ii=1,d.count do
+              d.f:seek('set',d.base+d.offset+(ii-1)*4)
+              if size>4 then d.f:seek('set',get4(d.f)) end
+              parse_ifd(d.f,d.base,d.process)
+            end
+            d.f:seek('set',pos)
+          elseif d.tag==34665 then
+            local pos=d.f:seek()
+            d.f:seek('set',d.base+d.offset)
+            parse_ifd(d.f,d.base,function(d)
+              if d.tag==37500 then
+                local pos=d.f:seek()
+                d.f:seek('set',d.base+d.offset)
+                local new_base=d.f:seek()
+                local maker=d.f:read(10)
+                if maker=="OLYMPUS\0II" then
+                  get2(d.f)
+                  parse_ifd(d.f,new_base,function(d)
+                    if d.tag==8224 then
+                      local pos=d.f:seek()
+                      d.f:seek('set',d.base+d.offset)
+                      parse_ifd(d.f,d.base,function(d) if d.tag==257 then d.value.data=d.base+d.offset elseif d.tag==258 then d.value.size=d.offset end end)
+                      d.f:seek('set',pos)
+                    end
+                  end)
+                end
+                d.f:seek('set',pos)
+              end
+            end)
+            d.f:seek('set',pos)
+          elseif d.tag==50752 then d.value.raw=true end
+        end)
+      end
+    end
+    table.sort(thumbs,function(a,b) return a.size>b.size end)
+    for _,v in ipairs(thumbs) do
+      if v.data and not v.raw and (v.compression==6 or (v.samples==3 and v.compression==7)) then
+        result=far.MkTemp()
+        local w=io.open(result,"wb")
+        if w then
+          f:seek('set',v.data)
+          w:write(f:read(v.size))
+          w:close()
+        end
+        break
+      end
+    end
+    f:close()
+  end
+  return result
+end
+
 local function InitBGColor()
   local color=far.AdvControl(F.ACTL_GETCOLOR,K.COL_PANELTEXT)
   local bgcolor
@@ -184,10 +278,11 @@ local function InitBGColor()
 end
 
 local function InitImage(filename)
+  local delete=far.ProcessName(F.PN_CMPNAMELIST,"*.dng,*.pef,*.nef,*.cr2,*.sr2,*.arw,*.orf,*.rw2,*.srw",filename,F.PN_SKIPPATH) and getDNG(filename)
   local wnd=far.AdvControl(F.ACTL_GETFARHWND)
   local dc=C.GetDC(wnd)
   local image=ffi.new("void*[1]")
-  local status=gdiplus.GdipLoadImageFromFile(ToWChar(LongPath(filename)),image)
+  local status=gdiplus.GdipLoadImageFromFile(ToWChar(LongPath(delete or filename)),image)
   if status==0 then
     local graphics=ffi.new("void*[1]")
     gdiplus.GdipCreateFromHDC(dc,graphics)
@@ -219,7 +314,7 @@ local function InitImage(filename)
     gdiplus.GdipCreateBitmapFromScan0(width[0],height[0],0,0x26200a,ffi.NULL,memimage)
     local memgraphics=ffi.new("void*[1]")
     gdiplus.GdipGetImageGraphicsContext(memimage[0],memgraphics)
-    return {wnd=wnd,dc=dc,image=image,graphics=graphics,brush=brush,width=width[0],height=height[0],frames=frames[0],delay=delay,memory={image=memimage,graphics=memgraphics}}
+    return {wnd=wnd,dc=dc,image=image,graphics=graphics,brush=brush,width=width[0],height=height[0],frames=frames[0],delay=delay,delete=delete,memory={image=memimage,graphics=memgraphics}}
   end
   return false
 end
@@ -231,6 +326,7 @@ local function DeleteImage(params)
   gdiplus.GdipDeleteGraphics(params.image.memory.graphics[0])
   gdiplus.GdipDisposeImage(params.image.memory.image[0])
   C.ReleaseDC(params.image.wnd,params.image.dc)
+  if params.image.delete then win.DeleteFile(params.image.delete) end
 end
 
 local function InitArea(params)
@@ -299,7 +395,6 @@ local function ShowImage(xpanel)
     local params={CurPanel=bit64.band(pinfo.Flags,F.PFLAGS_FOCUS)~=0,Redraw=false,Key=false,Exit=false}
     params.image=InitImage(viewer.GetFileName())
     if params.image then
-      local dialog
       local width,height=pinfo.PanelRect.right-pinfo.PanelRect.left-1,pinfo.PanelRect.bottom-pinfo.PanelRect.top-1
       local buffer=far.CreateUserControl(width,height)
       local function FillBuffer()

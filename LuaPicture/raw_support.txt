@@ -1,0 +1,101 @@
+﻿raw-файлы следующих камер протестированы и должны показываться макросом:
+canon
+  1000d
+  1dm2n
+  1dmark3
+  1dsm3
+  30d
+  400d
+  40d
+  450d
+  50d
+  5d
+  5dmark2
+  6d
+  eos-m
+  eos-m3
+  eos 100d
+  eos 1100d
+  eos 1dm4
+  eos 1dx
+  eos 550d
+  eos 5dmark3
+  eos 5ds
+  eos 600d
+  eos 60d
+  eos 700d
+  eos 760d
+  eos 7d
+  eos1200d
+  eos650d
+  eos70d
+  eos750d
+nikon
+  d2x
+  d3
+  d3x
+  d4s
+  df
+  ds200
+olympus
+  e-m10
+  e-m10markii
+  e-m5markii
+  e3
+  e30
+  e5
+  em1
+  em5
+panasonic
+  lx100
+  lx3
+  lx3
+  lx5
+  lx7
+pentax
+  k-r
+  k10d
+  k30
+  k50
+  k-3-ii
+  k-7
+  k-m
+  k-s1
+  k100
+  k100dsuper
+  k10d
+  k200d
+  k20d
+  k3
+  k5
+  k5iis
+  kx
+  star dl
+  star dl2
+  star ds
+  staristd
+samsung
+  GX20
+  WB2000
+  EX2F
+  NX100
+  NX300
+  NX300M
+  NX500
+  NX500N
+sony
+  rx100m2
+  ilca-77m2
+  ilce-7rm2
+  rx10
+  rx100
+  rx100m3
+  rx100m4
+  rx10m2
+  slt-a35
+  slt-a58
+  slt-a77v
+  slt-a99v
+  slta55v
+  slta65v
+  r1
