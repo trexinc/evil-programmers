@@ -145,7 +145,7 @@ colorize_comment:
   {
     if(yytok==yyend)
     {
-      if(lColorize) Info.pAddColor(params->eid,lno,commentstart-line,yycur-commentstart,colors+HC_COMMENT,EPriorityNormal);
+      if(lColorize) Info.pAddColor(params->eid,lno,commentstart-line,yycur-commentstart-1,colors+HC_COMMENT,EPriorityNormal);
       goto colorize_end;
     }
     goto colorize_comment;

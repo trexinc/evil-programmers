@@ -168,7 +168,7 @@ colorize_comment2:
   {
     if(yytok==yyend)
     {
-      if(lColorize) Info.pAddColor(params->eid,lno,commentstart-line,yycur-commentstart,colors+HC_COMMENT,EPriorityNormal);
+      if(lColorize) Info.pAddColor(params->eid,lno,commentstart-line,yycur-commentstart-1,colors+HC_COMMENT,EPriorityNormal);
       goto colorize_end;
     }
     goto colorize_comment2;
@@ -222,7 +222,7 @@ colorize_string2:
   {
     if(yytok==yyend)
     {
-      if(lColorize) Info.pAddColor(params->eid,lno,commentstart-line,yycur-commentstart,colors+HC_STRING1,EPriorityNormal);
+      if(lColorize) Info.pAddColor(params->eid,lno,commentstart-line,yycur-commentstart-1,colors+HC_STRING1,EPriorityNormal);
       goto colorize_end;
     }
     goto colorize_string2;
@@ -248,7 +248,7 @@ colorize_string3:
   {
     if(yytok==yyend)
     {
-      if(lColorize) Info.pAddColor(params->eid,lno,commentstart-line,yycur-commentstart,colors+HC_STRING1,EPriorityNormal);
+      if(lColorize) Info.pAddColor(params->eid,lno,commentstart-line,yycur-commentstart-1,colors+HC_STRING1,EPriorityNormal);
       state[0].State=PARSER_CLEAR;
       state[0].Level=0;
       goto colorize_end;
