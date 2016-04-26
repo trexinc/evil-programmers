@@ -18,16 +18,7 @@
 */
 
 #include "dt.hpp"
-#include "guid.hpp"
 #include <stdio.h>
-
-inline TCHAR hex(TCHAR c)
-{
-  if (c<10) return ('0'+c);
-  return ('A'+c-10);
-}
-
-#define MACRO_LEN 1
 
 void DoPaste(HANDLE aDlg)
 {
@@ -45,26 +36,21 @@ void DoPaste(HANDLE aDlg)
       if(egs.SelStart>=0&&egs.SelStart<egs.StringLength)
       {
         int len=(egs.SelEnd>=0)?(egs.SelEnd-egs.SelStart):(egs.StringLength-egs.SelStart);
-        if (len)
+        if(len)
         {
           TCHAR *text=(TCHAR *)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,(len+1)*sizeof(TCHAR));
-          if (text)
+          if(text)
           {
             memcpy(text,egs.StringText+egs.SelStart,len*sizeof(TCHAR));
             text[len]=0;
             len=_tcslen(text);
-            if (len)
+            if(len)
             {
-              TCHAR *buffer=(TCHAR *)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,(len*MACRO_LEN+8+1)*sizeof(TCHAR));
-              if (buffer)
-              {
-                _tcscpy(buffer,_T("print(\""));
-                _tcscpy(buffer+7,text);
-                _tcscpy(buffer+len*MACRO_LEN+7,_T("\")"));
-                MacroSendMacroText seq={sizeof(MacroSendMacroText),KMFLAGS_NONE,{0},buffer};
-                Info.MacroControl(0,MCTL_SENDSTRING,MSSC_POST,&seq);
-                HeapFree(GetProcessHeap(),0,buffer);
-              }
+              FarMacroValue value;
+              value.Type=FMVT_STRING;
+              value.String=text;
+              MacroExecuteString seq={sizeof(MacroExecuteString),KMFLAGS_NONE,_T("local name='B2EC2264-0F55-4b86-87F7-F1392B8FC5DC';_G[name]=...;far.MacroPost([[print(_G[']]..name..[[']);_G[']]..name..[[']=nil]])"),1,&value,0,NULL};
+              Info.MacroControl(0,MCTL_EXECSTRING,0,&seq);
             }
             HeapFree(GetProcessHeap(),0,text);
           }
