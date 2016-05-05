@@ -1,4 +1,5 @@
-﻿local function Set(list)
+﻿-- See http://forum.farmanager.com/viewtopic.php?p=112243#p112243
+local function Set(list)
   local set={}
   for _,l in ipairs(list) do set[l]=true end
   return set
@@ -407,7 +408,7 @@ local function ShowImage(xpanel)
       end
       FillBuffer()
       local items={
-        {"DI_DOUBLEBOX",0,0,width+1,height+1,0,0,0,0,params.image.width.." x "..params.image.height},
+        {"DI_DOUBLEBOX",0,0,width+1,height+1,0,0,0,0,params.image.width.." x "..params.image.height.." * "..params.image.frames},
         {"DI_USERCONTROL",1,1,width,height,buffer,0,0,0,""}
       }
       local function DlgProc(dlg,msg,param1,param2)
