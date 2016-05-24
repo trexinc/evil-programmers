@@ -13,7 +13,7 @@ void ImportedFunctions::Load()
 	}
 }
 
-BOOL ImportedFunctions::AttachConsole(DWORD dwProcessId)
+BOOL ImportedFunctions::AttachConsole(DWORD dwProcessId) const
 {
 	BOOL Ret=FALSE;
 	if(pAttachConsole)
@@ -27,7 +27,7 @@ BOOL ImportedFunctions::AttachConsole(DWORD dwProcessId)
 	return Ret;
 }
 
-BOOL ImportedFunctions::IsWow64Process(HANDLE hProcess,PBOOL Wow64Process)
+BOOL ImportedFunctions::IsWow64Process(HANDLE hProcess,PBOOL Wow64Process) const
 {
 	BOOL Ret=0;
 	if(pIsWow64Process)

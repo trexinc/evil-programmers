@@ -13,8 +13,8 @@ private:
 
 public:
 	void Load();
-	BOOL AttachConsole(DWORD dwProcessId);
-	BOOL IsWow64Process(HANDLE hProcess,PBOOL Wow64Process);
+	BOOL AttachConsole(DWORD dwProcessId) const;
+	BOOL IsWow64Process(HANDLE hProcess,PBOOL Wow64Process) const;
 };
 
 extern ImportedFunctions ifn;
