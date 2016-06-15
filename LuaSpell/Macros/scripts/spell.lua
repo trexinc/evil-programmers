@@ -69,7 +69,7 @@ local function Init()
   Init=function() end
 end
 
-function GetData(id)
+local function GetData(id)
   local data=editors[id]
   if not data then
     editors[id]={start=0,finish=-1}
@@ -124,7 +124,7 @@ local function ShowMenu(strings,wordLen)
   }
   local function DlgProc(dlg,msg,param1,param2)
   end
-  dialog=far.DialogInit(win.Uuid("ECD10910-8CC6-4685-AA8D-7D7413DD7D06"),menuX,menuY,menuX+menuWidth+3,menuY+menuHeight+1,nil,items,0,DlgProc)
+  local dialog=far.DialogInit(win.Uuid("ECD10910-8CC6-4685-AA8D-7D7413DD7D06"),menuX,menuY,menuX+menuWidth+3,menuY+menuHeight+1,nil,items,0,DlgProc)
   local result=far.DialogRun(dialog)>0 and far.SendDlgMessage(dialog,F.DM_LISTGETCURPOS,1).SelectPos or nil
   far.DialogFree(dialog)
   return result
@@ -133,7 +133,6 @@ end
 local function CheckSpell()
   Init()
   local pos,pos2=editor.GetInfo(-1).CurPos,0
-  local row=editor.GetInfo(-1).CurLine
   local line=editor.GetString(-1,-1)
   local linestr=line.StringText
   local word=""
@@ -144,10 +143,10 @@ local function CheckSpell()
     word=slab..tail
   end
   if word~="" then
-    word_data=ToWChar(word)
+    local word_data=ToWChar(word)
     for _,v in ipairs(config) do
       if v.active and v.regex:match(word) and not hunspell.HunspellSpell(v.handle,word_data) then
-        suggestions=hunspell.HunspellSuggest(v.handle,word_data)
+        local suggestions=hunspell.HunspellSuggest(v.handle,word_data)
         local ii,items=0,{}
         while suggestions[ii]~=ffi.NULL do
           table.insert(items,win.Utf16ToUtf8(ffi.string(suggestions[ii],2*C.lstrlenW(suggestions[ii]))))
@@ -166,34 +165,12 @@ local function CheckSpell()
   end
 end
 
-local function RemoveColors(id)
-  local data=GetData(id)
-  for ii=data.start,data.finish do
-    editor.DelColor(id,ii,0,colorguid)
-  end
-  data.start=0
-  data.finish=-1
-  return data
-end
-
-local function RemoveColorsAll()
-  local wincount=far.AdvControl(F.ACTL_GETWINDOWCOUNT,0,0)
-  for ii=1,wincount do
-    local info=far.AdvControl(F.ACTL_GETWINDOWINFO,ii,0)
-    if info and F.WTYPE_EDITOR==info.Type then
-      RemoveColors(info.Id)
-    end
-  end
-end
-
 local function CheckSpellAll(ei)
   Init()
-  local data=RemoveColors(ei.EditorID)
-  data.start=ei.TopScreenLine
-  data.finish=math.min(ei.TopScreenLine+ei.WindowSizeY-1,ei.TotalLines)
+  local start,finish=ei.TopScreenLine,math.min(ei.TopScreenLine+ei.WindowSizeY-1,ei.TotalLines)
   local regex=regex.new([[/\b\i+\b/]])
-  for ii=data.start,data.finish do
-    local line=editor.GetString(-1,ii).StringText
+  for ii=start,finish do
+    local line=editor.GetString(ei.EditorID,ii).StringText
     local pos=1
     while true do
       local sbegin,send=regex:find(line,pos)
@@ -202,7 +179,7 @@ local function CheckSpellAll(ei)
       local word=line:sub(sbegin,send)
       for _,v in ipairs(config) do
         if v.active and v.regex:match(word) and not hunspell.HunspellSpell(v.handle,ToWChar(word)) then
-          editor.AddColor(ei.EditorID,ii,sbegin,send,F.ECF_TABMARKCURRENT,v.color,199,colorguid)
+          editor.AddColor(ei.EditorID,ii,sbegin,send,F.ECF_AUTODELETE,v.color,199,colorguid)
           break
         end
       end
@@ -222,7 +199,7 @@ Event
     end
     if event==F.EE_REDRAW then
       if active then
-        CheckSpellAll(editor.GetInfo())
+        CheckSpellAll(editor.GetInfo(id))
       end
     end
   end
@@ -232,7 +209,6 @@ Event
 {
   group="ExitFAR";
   action=function()
-    RemoveColorsAll()
     for _,v in ipairs(config) do
       if v.active and v.handle then
         hunspell.HunspellFree(v.handle)
@@ -252,9 +228,6 @@ Macro
   area="Editor";key="ShiftF3";description="highlight spell errors";
   action=function()
     active=not active
-    if not active then
-      RemoveColorsAll()
-    end
     editor.Redraw(-1)
   end
 }
