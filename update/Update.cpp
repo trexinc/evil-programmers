@@ -26,7 +26,6 @@ enum class update_status
 enum EVENT
 {
 	E_ASKLOAD,
-	E_CONNECTFAIL,
 	E_DOWNLOADED,
 };
 
@@ -589,12 +588,6 @@ void update_plugin::ThreadProc()
 
 				case update_status::S_CANTCONNECT:
 					{
-						const auto hEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-						auto Cancel = false;
-						EventStruct es = { E_CONNECTFAIL, hEvent, !i, &Cancel };
-						PsInfo.AdvControl(&MainGuid, ACTL_SYNCHRO, 0, &es);
-						WaitForSingleObject(hEvent, INFINITE);
-						CloseHandle(hEvent);
 						Clean();
 					}
 					break;
@@ -809,16 +802,7 @@ extern "C" intptr_t WINAPI ProcessSynchroEventW(const ProcessSynchroEventInfo *p
 				SetEvent(reinterpret_cast<HANDLE>(es->Data));
 			}
 			break;
-			case E_CONNECTFAIL:
-			{
-				const wchar_t* Items[] = { MSG(MName), MSG(MCantConnect) };
-				if (PsInfo.Message(&MainGuid, nullptr, FMSG_MB_RETRYCANCEL | FMSG_LEFTALIGN | FMSG_WARNING, nullptr, Items, ARRAYSIZE(Items), 2))
-				{
-					*es->Result = true;
-				}
-				SetEvent(reinterpret_cast<HANDLE>(es->Data));
-			}
-			break;
+
 			case E_DOWNLOADED:
 			{
 				const wchar_t* Items[] = { MSG(MName), MSG(MUpdatesDownloaded), MSG(MExitFAR) };
