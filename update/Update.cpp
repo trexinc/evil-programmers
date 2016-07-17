@@ -414,40 +414,42 @@ update_status update_plugin::CheckUpdates(bool Self)
 
 bool update_plugin::DownloadUpdates(bool Self, bool Silent)
 {
-	wchar_t URL[1024], arc[MAX_PATH];
+	wchar_t URL[1024], File[2][MAX_PATH];
 	if (Self)
 	{
-		GetPrivateProfileString(SelfSection, L"arc", L"", arc, ARRAYSIZE(arc), ipc.SelfUpdateList);
+		GetPrivateProfileString(SelfSection, L"arc", L"", File[0], ARRAYSIZE(File[0]), ipc.SelfUpdateList);
+		GetPrivateProfileString(SelfSection, L"pdb", L"", File[1], ARRAYSIZE(File[1]), ipc.FarUpdateList);
 	}
 	else
 	{
-		GetPrivateProfileString(FarSection, ipc.UseMsi ? L"msi" : L"arc", L"", arc, ARRAYSIZE(arc), ipc.FarUpdateList);
+		GetPrivateProfileString(FarSection, ipc.UseMsi ? L"msi" : L"arc", L"", File[0], ARRAYSIZE(File[0]), ipc.FarUpdateList);
+		GetPrivateProfileString(FarSection, L"pdb", L"", File[1], ARRAYSIZE(File[1]), ipc.FarUpdateList);
 	}
-	FSF.sprintf(URL, L"%s/%s", Self ? SelfRemotePath : FarRemotePath, arc);
-	if (!Silent)
-	{
-		mprintf(L"%s %-50s", MSG(MLoad), Self ? L"Update" : L"Far");
-	}
-	if (DownloadFile(Self, URL, nullptr, m_UseProxy, !Silent))
+	for (size_t i = 0; i != ARRAYSIZE(File); ++i)
 	{
 		if (!Silent)
 		{
-			TextColor color(FOREGROUND_GREEN | FOREGROUND_INTENSITY);
-			mprintf(L"OK");
+			mprintf(L"%s %s %-50s", MSG(MLoad), Self ? L"Update" : L"Far", !i? L"" : L"pdb");
 		}
-		NeedRestart = true;
-	}
-	else
-	{
-		if (!Silent)
+		FSF.sprintf(URL, L"%s/%s", Self ? SelfRemotePath : FarRemotePath, File[i]);
+		if (DownloadFile(Self, URL, nullptr, m_UseProxy, !Silent))
 		{
-			TextColor color(FOREGROUND_RED | FOREGROUND_INTENSITY);
-			mprintf(L"download error %d", GetLastError());
+			if (!Silent)
+			{
+				TextColor color(FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+				mprintf(L"OK\n");
+			}
+			NeedRestart = true;
 		}
-	}
-	if (!Silent)
-	{
-		mprintf(L"\n");
+		else
+		{
+			if (!Silent)
+			{
+				TextColor color(FOREGROUND_RED | FOREGROUND_INTENSITY);
+				mprintf(L"download error %d\n", GetLastError());
+			}
+			return false;
+		}
 	}
 	return true;
 }
@@ -870,55 +872,59 @@ extern "C" void WINAPI RestartFARW(HWND, HINSTANCE, const wchar_t* lpCmd, DWORD)
 
 				mprintf(L"\n\n\n");
 
-				wchar_t arc[MAX_PATH];
-				GetPrivateProfileString(L"far", ipc.UseMsi ? L"msi" : L"arc", L"", arc, ARRAYSIZE(arc), ipc.Self ? ipc.SelfUpdateList : ipc.FarUpdateList);
-				if (*arc)
+				wchar_t File[2][MAX_PATH];
+				GetPrivateProfileString(L"far", ipc.UseMsi ? L"msi" : L"arc", L"", File[0], ARRAYSIZE(File[0]), ipc.Self ? ipc.SelfUpdateList : ipc.FarUpdateList);
+				GetPrivateProfileString(L"far", L"pdb", L"", File[1], ARRAYSIZE(File[1]), ipc.Self ? ipc.SelfUpdateList : ipc.FarUpdateList);
+				for(size_t i = 0; i != ARRAYSIZE(File); ++i)
 				{
-					const auto local_arc = std::wstring(ipc.TempDirectory) + arc;
-					if (GetFileAttributes(local_arc.data()) != INVALID_FILE_ATTRIBUTES)
+					if (*File[i])
 					{
-						bool Result = false;
-						while (!Result)
+						const auto local_file = std::wstring(ipc.TempDirectory) + File[i];
+						if (GetFileAttributes(local_file.data()) != INVALID_FILE_ATTRIBUTES)
 						{
-							mprintf(L"Unpacking %-50s", arc);
-							if (!Extract(ipc.SevenZip, local_arc.data(), ipc.FarDirectory))
+							bool Result = false;
+							while (!Result)
 							{
+								mprintf(L"Unpacking %-50s", File[i]);
+								if (!Extract(ipc.SevenZip, local_file.data(), ipc.FarDirectory))
 								{
-									TextColor color(FOREGROUND_RED | FOREGROUND_INTENSITY);
-									mprintf(L"\nUnpack error. Retry? (Y/N) ");
-								}
-								INPUT_RECORD ir = { 0 };
-								while (!(ir.EventType == KEY_EVENT && !ir.Event.KeyEvent.bKeyDown && (ir.Event.KeyEvent.wVirtualKeyCode == L'Y' || ir.Event.KeyEvent.wVirtualKeyCode == L'N')))
-								{
-									DWORD BytesRead;
-									ReadConsoleInput(GetStdHandle(STD_INPUT_HANDLE), &ir, 1, &BytesRead);
-									Sleep(1);
-								}
-								if (ir.Event.KeyEvent.wVirtualKeyCode == L'N')
-								{
+									{
+										TextColor color(FOREGROUND_RED | FOREGROUND_INTENSITY);
+										mprintf(L"\nUnpack error. Retry? (Y/N) ");
+									}
+									INPUT_RECORD ir = { 0 };
+									while (!(ir.EventType == KEY_EVENT && !ir.Event.KeyEvent.bKeyDown && (ir.Event.KeyEvent.wVirtualKeyCode == L'Y' || ir.Event.KeyEvent.wVirtualKeyCode == L'N')))
+									{
+										DWORD BytesRead;
+										ReadConsoleInput(GetStdHandle(STD_INPUT_HANDLE), &ir, 1, &BytesRead);
+										Sleep(1);
+									}
+									if (ir.Event.KeyEvent.wVirtualKeyCode == L'N')
+									{
+										mprintf(L"\n");
+										break;
+									}
 									mprintf(L"\n");
-									break;
 								}
-								mprintf(L"\n");
+								else
+								{
+									Result = true;
+								}
+							}
+							if (Result)
+							{
+								TextColor color(FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+								mprintf(L"OK\n");
+								if (GetPrivateProfileInt(L"Update", L"Delete", 1, ipc.Config))
+								{
+									DeleteFile(local_file.data());
+								}
 							}
 							else
 							{
-								Result = true;
+								TextColor color(FOREGROUND_RED | FOREGROUND_INTENSITY);
+								mprintf(L"error\n");
 							}
-						}
-						if (Result)
-						{
-							TextColor color(FOREGROUND_GREEN | FOREGROUND_INTENSITY);
-							mprintf(L"OK\n");
-							if (GetPrivateProfileInt(L"Update", L"Delete", 1, ipc.Config))
-							{
-								DeleteFile(local_arc.data());
-							}
-						}
-						else
-						{
-							TextColor color(FOREGROUND_RED | FOREGROUND_INTENSITY);
-							mprintf(L"error\n");
 						}
 					}
 				}
