@@ -1,5 +1,5 @@
-#include "stdafx.h"
-#include "module.h"
+#include "headers.hpp"
+#include "module.hpp"
 
 static UUID UuidFromString(const std::wstring& Str)
 {
@@ -29,7 +29,7 @@ bool module::CheckFunction(const wchar_t* FunctionName)
 
 HANDLE module::AnalyseW(const struct AnalyseInfo *Info)
 {
-	return 0;
+	return nullptr;
 }
 
 void module::CloseAnalyseW(const struct CloseAnalyseInfo *Info)
@@ -138,7 +138,7 @@ HANDLE module::OpenW(const struct OpenInfo *Info)
 	// BUGBUG
 	m_Psi.PanelControl(PANEL_NONE, FCTL_SETUSERSCREEN, 0, nullptr);
 
-	return 0;
+	return nullptr;
 }
 
 intptr_t module::ProcessDialogEventW(const struct ProcessDialogEventInfo *Info)

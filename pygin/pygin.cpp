@@ -1,5 +1,5 @@
-#include "stdafx.h"
-#include "module.h"
+#include "headers.hpp"
+#include "module.hpp"
 
 static void AddToPythonPath(const std::wstring& Path)
 {
@@ -20,7 +20,7 @@ static void AddToPythonPath(const std::wstring& Path)
 	}
 }
 
-PyObject* AddOrReloadModule(const std::wstring& Name)
+static PyObject* AddOrReloadModule(const std::wstring& Name)
 {
 	py_dict ModulesDict(PySys_GetObject("modules"));
 	auto NewModuleName = py_str(Name);
@@ -33,6 +33,30 @@ PyObject* AddOrReloadModule(const std::wstring& Name)
 	}
 	return NewModule;
 }
+
+static void DebugPrintTracebackIfAny()
+{
+	if (!PyErr_Occurred())
+		return;
+
+	PyErr_Print();
+}
+
+HANDLE WINAPI adapter_CreateInstance(const wchar_t* filename)
+{
+	std::wstring Dir(filename);
+	const auto SlashPos = Dir.rfind(L'\\');
+	Dir.resize(SlashPos);
+	const auto PrevSlashPos = Dir.rfind(L'\\');
+	const std::wstring Path(Dir, 0, PrevSlashPos);
+	const std::wstring ModuleName(Dir, PrevSlashPos + 1);
+	AddToPythonPath(Path);
+	const auto Object = AddOrReloadModule(ModuleName);
+	DebugPrintTracebackIfAny();
+	return Object ? new module(Object) : nullptr;
+}
+
+extern "C" IMAGE_DOS_HEADER __ImageBase;
 
 BOOL WINAPI adapter_Initialize(GlobalInfo* Info)
 {
@@ -49,26 +73,18 @@ BOOL WINAPI adapter_Initialize(GlobalInfo* Info)
 	Info->Description = L"Python language support for Far Manager";
 
 	Py_Initialize();
+
+	wchar_t AdaptherPath[MAX_PATH];
+	GetModuleFileNameW(reinterpret_cast<HINSTANCE>(&__ImageBase), AdaptherPath, static_cast<DWORD>(std::size(AdaptherPath)));
+	*(wcsrchr(AdaptherPath, L'\\') + 1) = 0;
+	auto PythonModule(reinterpret_cast<PyObject*>(adapter_CreateInstance((AdaptherPath + L"__init__.py"s).data())));
+
 	return TRUE;
 }
 
 BOOL WINAPI adapter_IsPlugin(const wchar_t* filename)
 {
 	return !wcscmp(wcsrchr(filename, L'\\') + 1, L"__init__.py");
-}
-
-HANDLE WINAPI adapter_CreateInstance(const wchar_t* filename)
-{
-	std::wstring Dir(filename);
-	const auto SlashPos = Dir.rfind(L'\\');
-	Dir.resize(SlashPos);
-	const auto PrevSlashPos = Dir.rfind(L'\\');
-	const std::wstring Path(Dir, 0, PrevSlashPos);
-	const std::wstring ModuleName(Dir, PrevSlashPos + 1);
-	AddToPythonPath(Path);
-	const auto Object = AddOrReloadModule(ModuleName);
-	PyErr_Print();
-	return Object? new module(Object) : nullptr;
 }
 
 FARPROC WINAPI adapter_GetFunctionAddress(HANDLE Instance, const wchar_t* functionname)

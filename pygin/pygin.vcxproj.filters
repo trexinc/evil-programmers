@@ -18,23 +18,20 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="stdafx.h">
+    <ClInclude Include="module.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="targetver.h">
+    <ClInclude Include="python_cpp.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="python_cpp.h">
+    <ClInclude Include="headers.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="module.h">
+    <ClInclude Include="targetver.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="stdafx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="pygin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -47,9 +44,15 @@
     <ClCompile Include="module.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="headers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="pygin.def">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="pugin.py">
       <Filter>Source Files</Filter>
     </None>
   </ItemGroup>

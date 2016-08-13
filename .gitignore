@@ -1,0 +1,7 @@
+.vs
+ipch
+artefacts
+__pycache__
+*.db
+*.opendb
+*.vcxproj.user
