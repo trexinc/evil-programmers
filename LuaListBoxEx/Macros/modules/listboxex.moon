@@ -214,7 +214,7 @@ class ListBox
     else
       param1
     table.insert params,NormalizeItem item
-    table.insert table.unpack params
+    table.insert unpack params
     Normalize @
   Delete:(index)=>
     table.remove @Items,index
