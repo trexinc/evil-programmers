@@ -33,6 +33,9 @@ struct ColorizeParams
   intptr_t startcolumn;
   intptr_t endline;
   intptr_t topline;
+  intptr_t leftpos;
+  intptr_t rightpos;
+  intptr_t tabsize;
   size_t data_size;
   unsigned char* data;
   HANDLE LocalHeap;

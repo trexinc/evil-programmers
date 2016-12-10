@@ -270,6 +270,9 @@ int OnEditorEvent(int event,void *param,int editorid)
   params.eid=ei.EditorID;
   params.startcolumn=0;
   params.topline=ei.TopScreenLine;
+  params.leftpos=ei.LeftPos;
+  params.rightpos=ei.LeftPos+ei.WindowSizeX;
+  params.tabsize=ei.TabSize;
   params.data_size=0;
   params.data=NULL;
   params.flags=0;
