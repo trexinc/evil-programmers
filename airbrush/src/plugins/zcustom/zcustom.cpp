@@ -694,7 +694,6 @@ void WINAPI Colorize(intptr_t index,struct ColorizeParams *params)
   const char *line;
   intptr_t linelen;
   int startcol;
-  int lColorize=0;
   int state_data=0;
   int *state=&state_data;
   int state_size=sizeof(state_data);
@@ -709,7 +708,6 @@ void WINAPI Colorize(intptr_t index,struct ColorizeParams *params)
     if(((lno%Info.cachestr)==0)&&(!startcol))
       if(!Info.pAddState(params->eid,lno/Info.cachestr,state_size,(unsigned char *)state)) return;
     context_start=0;
-    if(lno==params->topline) lColorize=1;
     const wchar_t* lineW=Info.pGetLine(params->eid,lno,&linelen);
     line=(char*)malloc(linelen);
     if(!line) return;
@@ -727,8 +725,8 @@ void WINAPI Colorize(intptr_t index,struct ColorizeParams *params)
             pos_next=0;
           else
           {
-            if(lColorize) Info.pAddColor(params->eid,lno,context_start,pos-context_start,&rules[index].contexts[state[0]].color,EPriorityNormal);
-            if(lColorize) Info.pAddColor(params->eid,lno,pos,pos_next-pos,&rules[index].contexts[state[0]].keywords[i].color,EPriorityNormal);
+            Info.pAddColor(params,lno,context_start,pos-context_start,&rules[index].contexts[state[0]].color,EPriorityNormal);
+            Info.pAddColor(params,lno,pos,pos_next-pos,&rules[index].contexts[state[0]].keywords[i].color,EPriorityNormal);
             pos=pos_next-1;
             context_start=pos_next;
           }
@@ -748,12 +746,12 @@ void WINAPI Colorize(intptr_t index,struct ColorizeParams *params)
               end_temp=pos;
               if(rules[index].contexts[state[0]].exclusive_right>=0)
               {
-                if(lColorize) Info.pAddColor(params->eid,lno,pos,pos_next-pos,&rules[index].contexts[0].keywords[rules[index].contexts[state[0]].exclusive_right].color,EPriorityNormal);
+                Info.pAddColor(params,lno,pos,pos_next-pos,&rules[index].contexts[0].keywords[rules[index].contexts[state[0]].exclusive_right].color,EPriorityNormal);
               }
               else
                 start_temp=pos;
             }
-            if(lColorize) Info.pAddColor(params->eid,lno,context_start,end_temp-context_start,&rules[index].contexts[state[0]].color,EPriorityNormal);
+            Info.pAddColor(params,lno,context_start,end_temp-context_start,&rules[index].contexts[state[0]].color,EPriorityNormal);
             context_start=start_temp;
             state[0]=0;
             pos=pos_next-1;
@@ -771,13 +769,13 @@ void WINAPI Colorize(intptr_t index,struct ColorizeParams *params)
               {
                 if(rules[index].contexts[i].exclusive_left>=0)
                 {
-                  if(lColorize) Info.pAddColor(params->eid,lno,pos,pos_next-pos,&rules[index].contexts[0].keywords[rules[index].contexts[i].exclusive_left].color,EPriorityNormal);
+                  Info.pAddColor(params,lno,pos,pos_next-pos,&rules[index].contexts[0].keywords[rules[index].contexts[i].exclusive_left].color,EPriorityNormal);
                 }
                 else
                   end_temp=pos_next;
                 start_temp=pos_next;
               }
-              if(lColorize) Info.pAddColor(params->eid,lno,context_start,end_temp-context_start,&rules[index].contexts[state[0]].color,EPriorityNormal);
+              Info.pAddColor(params,lno,context_start,end_temp-context_start,&rules[index].contexts[state[0]].color,EPriorityNormal);
               context_start=start_temp;
               state[0]=i;
               pos=pos_next-1;
@@ -794,7 +792,7 @@ void WINAPI Colorize(intptr_t index,struct ColorizeParams *params)
         }
       pos++;
     }
-    if(lColorize) Info.pAddColor(params->eid,lno,context_start,linelen-context_start,&rules[index].contexts[state[0]].color,EPriorityNormal);
+    Info.pAddColor(params,lno,context_start,linelen-context_start,&rules[index].contexts[state[0]].color,EPriorityNormal);
     free((void*)line); line=NULL;
   }
 }

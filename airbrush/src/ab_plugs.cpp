@@ -39,30 +39,38 @@ int PluginsCount=0;
 
 static TCHAR UnknownPluginName[20];
 
-static void WINAPI addcolor(intptr_t eid,intptr_t lno,intptr_t start,intptr_t len,const struct ABColor* color,enum ColorizePriority priority)
+static void WINAPI addcolor(struct ColorizeParams* params,intptr_t lno,intptr_t start,intptr_t len,const struct ABColor* color,enum ColorizePriority priority)
 {
   if((color->ForegroundDefault)&&(color->BackgroundDefault)) return;
   if(len==0) return;
-  WaitForSingleObject(Mutex,INFINITE);
-  EditorColor ec;
-  ec.StructSize=sizeof(ec);
-  ec.StringNumber=lno;
-  ec.StartPos=start;
-  ec.EndPos=start+len-1;
-  ConvertColor(*color,ec.Color);
-  ec.Owner=MainGuid;
-  switch(priority)
+  intptr_t finish=start+len-1;
+  if(lno>=params->topline)
   {
-    case EPriorityNormal:
-      ec.Priority=0;
-      break;
-    case EPriorityBrackets:
-      ec.Priority=100;
-      break;
+    intptr_t left=params->margins[lno-params->topline].left,right=params->margins[lno-params->topline].right;
+    if(start>=left&&start<right||finish>=left&&finish<right)
+    {
+      WaitForSingleObject(Mutex,INFINITE);
+      EditorColor ec;
+      ec.StructSize=sizeof(ec);
+      ec.StringNumber=lno;
+      ec.StartPos=start;
+      ec.EndPos=start+len-1;
+      ConvertColor(*color,ec.Color);
+      ec.Owner=MainGuid;
+      switch(priority)
+      {
+        case EPriorityNormal:
+          ec.Priority=0;
+          break;
+        case EPriorityBrackets:
+          ec.Priority=100;
+          break;
+      }
+      ec.Flags=ECF_AUTODELETE;
+      Info.EditorControl(params->eid,ECTL_ADDCOLOR,0,&ec);
+      ReleaseMutex(Mutex);
+    }
   }
-  ec.Flags=ECF_AUTODELETE;
-  Info.EditorControl(eid,ECTL_ADDCOLOR,0,&ec);
-  ReleaseMutex(Mutex);
 }
 
 static const TCHAR WINAPI *getline(intptr_t eid,intptr_t lno,intptr_t *len)

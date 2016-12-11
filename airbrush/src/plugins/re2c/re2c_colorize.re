@@ -38,8 +38,7 @@ struct CallbackParam
   int ok;
   int row;
   int col;
-  int topline;
-  intptr_t eid;
+  ColorizeParams* params;
   CacheParam *cache;
 };
 
@@ -47,7 +46,7 @@ static int WINAPI c_callback(int from,int row,int col,void *param)
 {
   const TCHAR* line;
   intptr_t linelen;
-  line=Info.pGetLine(((CallbackParam *)param)->eid,row,&linelen);
+  line=Info.pGetLine(((CallbackParam *)param)->params->eid,row,&linelen);
   switch(((CallbackParam *)param)->cache->diff)
   {
     case 1:
@@ -55,7 +54,7 @@ static int WINAPI c_callback(int from,int row,int col,void *param)
       {
         if(!_tcsncmp(line+col,_T("\057\052!re2c"),7))
         {
-          if(((CallbackParam *)param)->topline<=row) Info.pAddColor(((CallbackParam *)param)->eid,row,col,7,colors+HC_RE2C,EPriorityNormal);
+          Info.pAddColor(((CallbackParam *)param)->params,row,col,7,colors+HC_RE2C,EPriorityNormal);
           ((CallbackParam *)param)->ok=1;
           ((CallbackParam *)param)->row=row;
           ((CallbackParam *)param)->col=col+7;
@@ -93,14 +92,14 @@ static void CallParser(ColorizeParams *params,CallbackParam *data)
   c_params.startline=data->row;
   c_params.startcolumn=data->col;
   c_params.endline=params->endline;
-  c_params.topline=(params->topline>c_params.startline)?params->topline:c_params.startline;
+  c_params.topline=params->topline;
+  c_params.margins=params->margins;
   c_params.data_size=params->data_size;
   c_params.data=params->data;
   c_params.LocalHeap=params->LocalHeap;
   c_params.callback=c_callback;
   c_params.param=data;
   data->ok=0;
-  data->topline=params->topline;
   Info.pCallParser(_T("c/c++"),&c_params);
   if(data->ok)
   {
@@ -108,7 +107,6 @@ static void CallParser(ColorizeParams *params,CallbackParam *data)
     params->startcolumn=data->col;
     data->cache->re2c_state=PARSER_RE2C;
     data->cache->c_state=INVALID_C_STATE;
-    params->topline=(params->topline>params->startline)?params->topline:params->startline;
   }
 }
 
@@ -136,7 +134,6 @@ void WINAPI Colorize(intptr_t index,struct ColorizeParams *params)
   const UTCHAR *line;
   intptr_t linelen;
   int startcol;
-  int lColorize=0;
   CallbackParam callback_data;
   CacheParam state_data={PARSER_CLEAR,PARSER_RE2C,1,0};
   CacheParam *state=&state_data;
@@ -154,7 +151,7 @@ void WINAPI Colorize(intptr_t index,struct ColorizeParams *params)
     params->data_size=state_size;
   }
   callback_data.cache=state;
-  callback_data.eid=params->eid;
+  callback_data.params=params;
   if(state[0].c_state>INVALID_C_STATE)
   {
     callback_data.row=params->startline;
@@ -168,7 +165,6 @@ colorize_start:
     startcol=(lno==params->startline)?params->startcolumn:0;
     if(((lno%Info.cachestr)==0)&&(!startcol))
       if(!Info.pAddState(params->eid,lno/Info.cachestr,state_size,(unsigned char *)state)) goto colorize_exit;
-    if(lno==params->topline) lColorize=1;
     line=(const UTCHAR*)Info.pGetLine(params->eid,lno,&linelen);
     commentstart=line+startcol;
     yycur=line+startcol;
@@ -192,7 +188,7 @@ colorize_clear:
   { state[0].re2c_state=PARSER_COMMENT; commentstart=yytok; goto colorize_comment; }
   "*/"
   {
-    if(lColorize) Info.pAddColor(params->eid,lno,yytok-line,yycur-yytok,colors+HC_RE2C,EPriorityNormal);
+    Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_RE2C,EPriorityNormal);
     callback_data.row=lno;
     callback_data.col=yycur-line;
     state[0].c_state=PARSER_CLEAR;
@@ -203,22 +199,22 @@ colorize_clear:
   }
   dstring
   {
-    if(lColorize) Info.pAddColor(params->eid,lno,yytok-line,yycur-yytok,colors+HC_STRING,EPriorityNormal);
+    Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_STRING,EPriorityNormal);
     goto colorize_clear;
   }
   cstring|istring
   {
-    if(lColorize) Info.pAddColor(params->eid,lno,yytok-line,yycur-yytok,colors+HC_STRING,EPriorityNormal);
+    Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_STRING,EPriorityNormal);
     goto colorize_clear;
   }
   [()|=;/\\*+?]
   {
-    if(lColorize) Info.pAddColor(params->eid,lno,yytok-line,yycur-yytok,colors+HC_KEYWORD,EPriorityNormal);
+    Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_KEYWORD,EPriorityNormal);
     goto colorize_clear;
   }
   letter (letter|digit)*
   {
-    if(lColorize) Info.pAddColor(params->eid,lno,yytok-line,yycur-yytok,colors+HC_RE2C,EPriorityNormal);
+    Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_RE2C,EPriorityNormal);
     goto colorize_clear;
   }
   [ \t]+
@@ -240,7 +236,7 @@ colorize_comment:
 /*!re2c
   "*/"
   {
-    if(lColorize) Info.pAddColor(params->eid,lno,commentstart-line,yycur-commentstart,colors+HC_COMMENT,EPriorityNormal);
+    Info.pAddColor(params,lno,commentstart-line,yycur-commentstart,colors+HC_COMMENT,EPriorityNormal);
     state[0].re2c_state=PARSER_RE2C;
     goto colorize_clear;
   }
@@ -251,7 +247,7 @@ colorize_comment:
 */
 colorize_end:
     if(state[0].re2c_state==PARSER_COMMENT)
-      if(lColorize) Info.pAddColor(params->eid,lno,commentstart-line,yyend-commentstart,colors+HC_COMMENT,EPriorityNormal);
+      Info.pAddColor(params,lno,commentstart-line,yyend-commentstart,colors+HC_COMMENT,EPriorityNormal);
   }
 colorize_exit:
   return;

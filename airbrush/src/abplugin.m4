@@ -25,6 +25,12 @@ include(`ab_ver.m4')dnl
 
 typedef int (WINAPI *COLORIZECALLBACK)(int from,int row,int col,void* param);
 
+struct ColorizeMargin
+{
+  intptr_t left;
+  intptr_t right;
+};
+
 struct ColorizeParams
 {
   size_t size;
@@ -33,9 +39,7 @@ struct ColorizeParams
   intptr_t startcolumn;
   intptr_t endline;
   intptr_t topline;
-  intptr_t leftpos;
-  intptr_t rightpos;
-  intptr_t tabsize;
+  struct ColorizeMargin* margins;
   size_t data_size;
   unsigned char* data;
   HANDLE LocalHeap;
@@ -63,7 +67,7 @@ struct ABColor
   bool BackgroundDefault;
 };
 
-typedef void (WINAPI* PLUGINADDCOLOR)(intptr_t eid,intptr_t lno,intptr_t start,intptr_t len,const struct ABColor* color,enum ColorizePriority priority);
+typedef void (WINAPI* PLUGINADDCOLOR)(struct ColorizeParams* params,intptr_t lno,intptr_t start,intptr_t len,const struct ABColor* color,enum ColorizePriority priority);
 typedef const wchar_t* (WINAPI *PLUGINGETLINE)(intptr_t eid,intptr_t lno,intptr_t* len);
 typedef bool (WINAPI* PLUGINADDSTATE)(intptr_t eid,intptr_t pos,size_t size,unsigned char* data);
 typedef void (WINAPI* PLUGINGETCURSOR)(intptr_t eid,intptr_t* row,intptr_t* col);

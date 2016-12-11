@@ -270,9 +270,6 @@ int OnEditorEvent(int event,void *param,int editorid)
   params.eid=ei.EditorID;
   params.startcolumn=0;
   params.topline=ei.TopScreenLine;
-  params.leftpos=ei.LeftPos;
-  params.rightpos=ei.LeftPos+ei.WindowSizeX;
-  params.tabsize=ei.TabSize;
   params.data_size=0;
   params.data=NULL;
   params.flags=0;
@@ -323,6 +320,28 @@ int OnEditorEvent(int event,void *param,int editorid)
   fatal=false;
   if(PluginsData[curfile->type].pColorize)
   {
+    intptr_t visiblelines=params.endline-params.topline; //FIXME
+    params.margins=(struct ColorizeMargin*)malloc(sizeof(*params.margins)*(visiblelines));
+    if(params.margins)
+    {
+      for(intptr_t ii=0;ii<visiblelines;++ii)
+      {
+        egs.StringNumber=ii+params.topline;
+        if(Info.EditorControl(ei.EditorID,ECTL_GETSTRING,0,&egs))
+        {
+          intptr_t left=-1,right=egs.StringLength,pos=0;
+          for(intptr_t jj=0;jj<egs.StringLength;++jj)
+          {
+            if(left<0&&pos>=ei.LeftPos) left=jj;
+            if(right>jj&&pos>=ei.LeftPos+ei.WindowSizeX) right=jj;
+            if(egs.StringText[jj]=='\t') pos+=ei.TabSize-(pos%ei.TabSize);
+            else ++pos;
+          }
+          params.margins[ii].left=left;
+          params.margins[ii].right=right;
+        }
+      }
+    }
     DWORD ThreadID;
     ColorizeThreadData ctd;
     HANDLE handles[2];
@@ -403,6 +422,7 @@ int OnEditorEvent(int event,void *param,int editorid)
       CloseHandle(handles[1]);
     }
     HeapDestroy(params.LocalHeap);
+    free(params.margins);
   }
   free(cache_data);
   if(fatal) RaiseException(0,0,0,NULL);
