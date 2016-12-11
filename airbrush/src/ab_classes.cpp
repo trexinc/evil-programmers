@@ -320,25 +320,34 @@ int OnEditorEvent(int event,void *param,int editorid)
   fatal=false;
   if(PluginsData[curfile->type].pColorize)
   {
-    intptr_t visiblelines=params.endline-params.topline; //FIXME
+    intptr_t visiblelines=params.endline-params.topline;
     params.margins=(struct ColorizeMargin*)malloc(sizeof(*params.margins)*(visiblelines));
     if(params.margins)
     {
+      intptr_t lefttab=ei.LeftPos,righttab=ei.LeftPos+ei.WindowSizeX;
       for(intptr_t ii=0;ii<visiblelines;++ii)
       {
-        egs.StringNumber=ii+params.topline;
-        if(Info.EditorControl(ei.EditorID,ECTL_GETSTRING,0,&egs))
+        if(ei.Options&EOPT_EXPANDALLTABS)
         {
-          intptr_t left=-1,right=egs.StringLength,pos=0;
-          for(intptr_t jj=0;jj<egs.StringLength;++jj)
+          params.margins[ii].left=lefttab;
+          params.margins[ii].right=righttab;
+        }
+        else
+        {
+          egs.StringNumber=ii+params.topline;
+          if(Info.EditorControl(ei.EditorID,ECTL_GETSTRING,0,&egs))
           {
-            if(left<0&&pos>=ei.LeftPos) left=jj;
-            if(right>jj&&pos>=ei.LeftPos+ei.WindowSizeX) right=jj;
-            if(egs.StringText[jj]=='\t') pos+=ei.TabSize-(pos%ei.TabSize);
-            else ++pos;
+            intptr_t left=-1,right=egs.StringLength,pos=0;
+            for(intptr_t jj=0;jj<egs.StringLength;++jj)
+            {
+              if(left<0&&pos>=lefttab) left=jj;
+              if(right>jj&&pos>=righttab) right=jj;
+              if(egs.StringText[jj]=='\t') pos+=ei.TabSize-(pos%ei.TabSize);
+              else ++pos;
+            }
+            params.margins[ii].left=left;
+            params.margins[ii].right=right;
           }
-          params.margins[ii].left=left;
-          params.margins[ii].right=right;
         }
       }
     }
