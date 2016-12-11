@@ -459,7 +459,7 @@ static int Config()
 
       HKEY hKey; DWORD Type,DataSize; DWORD Value; DWORD Disposition;
       TCHAR dataerrors[7],datathreads[7],dataqueues[7];
-      if((RegOpenKeyEx(HKEY_LOCAL_MACHINE,_T("SYSTEM\\CurrentControlSet\\Services\\"SVC_NAME"\\Parameters"),0,KEY_QUERY_VALUE,&hKey))==ERROR_SUCCESS)
+      if((RegOpenKeyEx(HKEY_LOCAL_MACHINE,_T("SYSTEM\\CurrentControlSet\\Services\\" SVC_NAME "\\Parameters"),0,KEY_QUERY_VALUE,&hKey))==ERROR_SUCCESS)
       {
         DataSize=sizeof(Value); Value=20;
         RegQueryValueEx(hKey,_T("MaxError"),0,&Type,(LPBYTE)&Value,&DataSize);
@@ -491,7 +491,7 @@ static int Config()
       int DlgCode=dialog.Execute(Info.ModuleNumber,-1,-1,77,12,_T("Config3"),DialogItems,sizeofa(DialogItems),0,0,Config3DialogProc,(LONG_PTR)&data);
       if(DlgCode==CONFIGDLG3_SAVE)
       {
-        if((RegCreateKeyEx(HKEY_LOCAL_MACHINE,_T("SYSTEM\\CurrentControlSet\\Services\\"SVC_NAME"\\Parameters"),0,NULL,0,KEY_WRITE,NULL,&hKey,&Disposition))==ERROR_SUCCESS)
+        if((RegCreateKeyEx(HKEY_LOCAL_MACHINE,_T("SYSTEM\\CurrentControlSet\\Services\\" SVC_NAME "\\Parameters"),0,NULL,0,KEY_WRITE,NULL,&hKey,&Disposition))==ERROR_SUCCESS)
         {
           Value=_ttoi(dialog.Str(CONFIGDLG3_EMAXERROR));
           RegSetValueEx(hKey,_T("MaxError"),0,REG_DWORD,(LPBYTE)&Value,sizeof(Value));

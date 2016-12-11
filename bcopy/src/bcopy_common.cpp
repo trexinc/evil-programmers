@@ -39,7 +39,7 @@ void InitDialogItems(InitDialogItem *Init,FarDialogItem *Item,int ItemsNumber)
     Item[i].X2=Init[i].X2;
     Item[i].Y2=Init[i].Y2;
     Item[i].Focus=Init[i].Focus;
-    Item[i].Selected=Init[i].Selected;
+    Item[i].Reserved=Init[i].Selected;
     Item[i].Flags=Init[i].Flags;
     Item[i].DefaultButton=Init[i].DefaultButton;
 #ifdef UNICODE

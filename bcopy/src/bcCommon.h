@@ -23,8 +23,8 @@
 #define ACCESS_NAME SVC_NAME".access"
 #define ACCESS_NAMEW TEXTW(SVC_NAME)L".access"
 #define SVC_NAMEW TEXTW(SVC_NAME)
-#define PIPE_NAME "\\\\.\\pipe\\"SVC_NAME
-#define PIPE_NAMEW L"\\\\.\\pipe\\"SVC_NAMEW
+#define PIPE_NAME "\\\\.\\pipe\\" SVC_NAME
+#define PIPE_NAMEW L"\\\\.\\pipe\\" SVC_NAMEW
 #define PIPE_NAMEP _T(PIPE_NAME)
 #define NOTIFY_NAMEW L"bcn.dll"
 
