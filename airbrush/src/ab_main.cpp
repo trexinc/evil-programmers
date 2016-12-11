@@ -53,10 +53,8 @@ DEFINE_GUID(Config7MenuGuid, 0x83992d56, 0xb22b, 0x417a, 0xa3, 0x92, 0xa1, 0x7f,
 
 PluginStartupInfo Info;
 FARSTANDARDFUNCTIONS FSF;
-HANDLE Mutex=NULL;
 
 struct Options Opt={true,50000,true};
-bool fatal;
 
 #define GetCheck(i) (int)Info.SendDlgMessage(hDlg,DM_GETCHECK,i,0)
 #define GetDataPtr(i) ((const TCHAR *)Info.SendDlgMessage(hDlg,DM_GETCONSTTEXTPTR,i,0))
@@ -133,7 +131,6 @@ void WINAPI SetStartupInfoW(const struct PluginStartupInfo *Info)
 
   ::FSF=*Info->FSF;
   ::Info.FSF=&::FSF;
-  Mutex=CreateMutex(NULL,FALSE,NULL);
 
   {
     CFarSettings settings(MainGuid);
@@ -165,7 +162,6 @@ void WINAPI ExitFARW(const struct ExitInfo *Info)
   (void)Info;
   OnExit();
   UnloadPlugs();
-  CloseHandle(Mutex);
 }
 
 HANDLE WINAPI OpenW(const struct OpenInfo *Info)

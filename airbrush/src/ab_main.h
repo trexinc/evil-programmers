@@ -114,11 +114,9 @@ extern int OnEditorEvent(int event, void *param,int editorid);
 extern int OnEditorInput(const INPUT_RECORD *Rec);
 
 #define PARSER_CACHESTR 50
-#define FAR165_INFO_SIZE 336
 
 extern PluginStartupInfo Info;
 extern FARSTANDARDFUNCTIONS FSF;
-extern HANDLE Mutex;
 #define PLUGIN_MASK_KEY _T("masks")
 #define PLUGIN_COLOR_KEY _T("colors")
 #define PLUGIN_START_KEY _T("starts")
@@ -138,7 +136,6 @@ struct Options
 };
 
 extern struct Options Opt;
-extern bool fatal;
 
 #define FG_MASK (~FCF_BG_4BIT)
 #define BG_MASK (FCF_BG_4BIT)

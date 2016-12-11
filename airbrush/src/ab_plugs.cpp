@@ -49,7 +49,6 @@ static void WINAPI addcolor(struct ColorizeParams* params,intptr_t lno,intptr_t 
     intptr_t left=params->margins[lno-params->topline].left,right=params->margins[lno-params->topline].right;
     if(start>=left&&start<right||finish>=left&&finish<right)
     {
-      WaitForSingleObject(Mutex,INFINITE);
       EditorColor ec;
       ec.StructSize=sizeof(ec);
       ec.StringNumber=lno;
@@ -68,7 +67,6 @@ static void WINAPI addcolor(struct ColorizeParams* params,intptr_t lno,intptr_t 
       }
       ec.Flags=ECF_AUTODELETE;
       Info.EditorControl(params->eid,ECTL_ADDCOLOR,0,&ec);
-      ReleaseMutex(Mutex);
     }
   }
 }
@@ -78,9 +76,7 @@ static const TCHAR WINAPI *getline(intptr_t eid,intptr_t lno,intptr_t *len)
   EditorGetString egs;
   egs.StructSize=sizeof(egs);
   egs.StringNumber=lno;
-  WaitForSingleObject(Mutex,INFINITE);
   Info.EditorControl(eid,ECTL_GETSTRING,0,&egs);
-  ReleaseMutex(Mutex);
   if(len)
     *len=egs.StringLength;
   return egs.StringText;
@@ -89,7 +85,6 @@ static const TCHAR WINAPI *getline(intptr_t eid,intptr_t lno,intptr_t *len)
 static bool WINAPI addstate(intptr_t eid,intptr_t pos,size_t size,unsigned char *data)
 {
   bool res=true;
-  WaitForSingleObject(Mutex,INFINITE);
   PEditFile fl=ef_getfile(eid);
   if(fl)
   {
@@ -119,8 +114,7 @@ static bool WINAPI addstate(intptr_t eid,intptr_t pos,size_t size,unsigned char 
       Info.Message(&MainGuid,&MessageFatalGuid,FMSG_WARNING,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),1);
     }
   }
-  if(!res) fatal=true;
-  ReleaseMutex(Mutex);
+  if(!res) RaiseException(0,0,0,NULL);
   return res;
 }
 
@@ -128,9 +122,7 @@ static void WINAPI getcursor(intptr_t eid,intptr_t *row,intptr_t *col)
 {
   EditorInfo ei;
   ei.StructSize=sizeof(ei);
-  WaitForSingleObject(Mutex,INFINITE);
   Info.EditorControl(eid,ECTL_GETINFO,0,&ei);
-  ReleaseMutex(Mutex);
   *row=ei.CurLine;
   *col=ei.CurPos;
 }

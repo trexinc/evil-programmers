@@ -317,7 +317,6 @@ int OnEditorEvent(int event,void *param,int editorid)
   }
   curfile->cachesize=cacheindex-1;
   params.startline=(cacheindex-1)*PARSER_CACHESTR;
-  fatal=false;
   if(PluginsData[curfile->type].pColorize)
   {
     intptr_t visiblelines=params.endline-params.topline;
@@ -351,90 +350,12 @@ int OnEditorEvent(int event,void *param,int editorid)
         }
       }
     }
-    DWORD ThreadID;
-    ColorizeThreadData ctd;
-    HANDLE handles[2];
     params.LocalHeap=HeapCreate(HEAP_NO_SERIALIZE,0,0);
-    ctd.pColorize=PluginsData[curfile->type].pColorize;
-    ctd.index=PluginsData[curfile->type].Index;
-    ctd.params=&params;
-    handles[1]=CreateFile(_T("CONIN$"),GENERIC_READ|GENERIC_WRITE,FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
-    handles[0]=CreateThread(NULL,0,ColorizeThread,&ctd,CREATE_SUSPENDED,&ThreadID);
-    if(handles[0])
-    {
-      ResumeThread(handles[0]);
-      if(WaitForSingleObject(handles[0],200)==WAIT_TIMEOUT)
-      {
-        bool poll=true;
-        INPUT_RECORD *AllEvents=NULL,CurEvent;
-        unsigned long AllEventsCount=0,CurEventCount;
-        while(poll)
-        {
-          DWORD wfmo=WaitForMultipleObjects(sizeof(handles)/sizeof(handles[0]),handles,FALSE,INFINITE);
-          switch(wfmo)
-          {
-            case WAIT_OBJECT_0:
-              poll=false;
-              break;
-            case WAIT_OBJECT_0+1:
-              WaitForSingleObject(Mutex,INFINITE);
-              ReadConsoleInput(handles[1],&CurEvent,1,&CurEventCount);
-              ReleaseMutex(Mutex);
-              if(CurEventCount==1)
-              {
-                if((CurEvent.EventType==KEY_EVENT)&&(CurEvent.Event.KeyEvent.bKeyDown)&&(CurEvent.Event.KeyEvent.wVirtualKeyCode==VK_ESCAPE))
-                {
-                  WaitForSingleObject(Mutex,INFINITE);
-                  const TCHAR* MsgItems[]={GetMsg(mError),GetMsg(mStopQuestion),GetMsg(mButtonYes),GetMsg(mButtonNo)};
-                  stop_colorize=true;
-                  bool ContinueThread=Info.Message(&MainGuid,&MessageStopGuid,FMSG_WARNING,NULL,MsgItems,sizeof(MsgItems)/sizeof(MsgItems[0]),2);
-                  stop_colorize=false;
-                  ReleaseMutex(Mutex);
-                  if(!ContinueThread)
-                  {
-                    CONTEXT c;
-                    WaitForSingleObject(Mutex,INFINITE);
-                    SuspendThread(handles[0]);
-                    c.ContextFlags=CONTEXT_CONTROL;
-                    GetThreadContext(handles[0],&c);
-#ifdef _AMD64_
-                    c.Rip
-#else
-                    c.Eip
-#endif
-                    =(DWORD_PTR)ColorizeThreadExit;
-                    SetThreadContext(handles[0],&c);
-                    ResumeThread(handles[0]);
-                    ReleaseMutex(Mutex);
-                    WaitForSingleObject(handles[0],INFINITE);
-                    poll=false;
-                    curfile->type=-1;
-                    Info.EditorControl(editorid,ECTL_REDRAW,0,0);
-                  }
-                }
-                else
-                {
-                  WaitForSingleObject(Mutex,INFINITE);
-                  AllEvents=(INPUT_RECORD *)realloc(AllEvents,(AllEventsCount+1)*sizeof(INPUT_RECORD));
-                  AllEvents[AllEventsCount++]=CurEvent;
-                  ReleaseMutex(Mutex);
-                }
-              }
-              break;
-          }
-        }
-        if(AllEvents)
-          WriteConsoleInput(handles[1],AllEvents,AllEventsCount,&CurEventCount);
-        free(AllEvents);
-      }
-      CloseHandle(handles[0]);
-      CloseHandle(handles[1]);
-    }
+    PluginsData[curfile->type].pColorize(PluginsData[curfile->type].Index,&params);
     HeapDestroy(params.LocalHeap);
     free(params.margins);
   }
   free(cache_data);
-  if(fatal) RaiseException(0,0,0,NULL);
   return 0;
 }
 
