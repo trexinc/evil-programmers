@@ -336,11 +336,15 @@ int OnEditorEvent(int event,void *param,int editorid)
           egs.StringNumber=ii+params.topline;
           if(Info.EditorControl(ei.EditorID,ECTL_GETSTRING,0,&egs))
           {
-            intptr_t left=-1,right=egs.StringLength,pos=0;
-            for(intptr_t jj=0;jj<egs.StringLength;++jj)
+            intptr_t left=-1,right=egs.StringLength;
+            for(intptr_t jj=0,pos=0;jj<egs.StringLength;++jj)
             {
               if(left<0&&pos>=lefttab) left=jj;
-              if(right>jj&&pos>=righttab) right=jj;
+              if(right>jj&&pos>=righttab)
+              {
+                right=jj;
+                break;
+              }
               if(egs.StringText[jj]=='\t') pos+=ei.TabSize-(pos%ei.TabSize);
               else ++pos;
             }
