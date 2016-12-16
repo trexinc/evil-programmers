@@ -16,16 +16,17 @@
     along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define HC_COMMENT  0
-#define HC_KEYWORD1 1
-#define HC_FIELD    2
-#define HC_CLASS    3
-#define HC_STRING1  4
-#define HC_NUMBER1  5
-#define HC_NUMBER2  6
-#define HC_FIXME    7
-#define HC_HIGHLITE 8
-#define HC_HL_ERROR 9
+#define HC_COMMENT   0
+#define HC_KEYWORD1  1
+#define HC_FIELD     2
+#define HC_CLASS     3
+#define HC_STRING1   4
+#define HC_NUMBER1   5
+#define HC_NUMBER2   6
+#define HC_FIXME     7
+#define HC_HIGHLITE  8
+#define HC_HL_ERROR  9
+#define HC_INTERPOL 10
 
 #define PARSER_CLEAR   0
 #define PARSER_STRING1 1

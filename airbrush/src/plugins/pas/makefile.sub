@@ -16,7 +16,7 @@ $(TARGET): $(OBJS)
 ../../../$(OBJDIR)/$(SYNNAME).o: $(SYNNAME).cpp ab$(SYNNAME).h ../../$(BOOTSTRAPDIR)/abplugin.h
 	$(CC) $(CFLAGS) $< -o $@
 
-../../../$(OBJDIR)/$(SYNNAME)_colorize.o: ../../$(BOOTSTRAPDIR)/$(SYNNAME)_colorize.cpp ab$(SYNNAME).h ../../$(BOOTSTRAPDIR)/abplugin.h
+../../../$(OBJDIR)/$(SYNNAME)_colorize.o: ../../$(BOOTSTRAPDIR)/$(SYNNAME)_colorize.cpp ab$(SYNNAME).h ../../$(BOOTSTRAPDIR)/abplugin.h ../../abpairs.h
 	$(CC) $(CFLAGS) $< -o $@
 
 ../../$(BOOTSTRAPDIR)/$(SYNNAME)_colorize.cpp: $(SYNNAME)_colorize.re

@@ -65,44 +65,106 @@ static bool MatchLevel(const UTCHAR* string,int level)
   return count==level;
 }
 
-void WINAPI Colorize(intptr_t index,struct ColorizeParams *params)
+static const UTCHAR* ParseInterpolation(const UTCHAR* begin,const UTCHAR* end)
 {
-  (void)index;
-  const UTCHAR *commentstart;
-  const UTCHAR *line;
-  intptr_t linelen;
-  int startcol;
-  MoonState state_data={PARSER_CLEAR,0};
-  MoonState* state=&state_data;
-  int state_size=sizeof(state_data);
+  MoonState state={PARSER_CLEAR,0};
   const UTCHAR *yycur,*yyend,*yytmp=NULL,*yytok=NULL;
-  struct PairStack *hl_state=NULL;
-  intptr_t hl_row; intptr_t hl_col;
-  if(params->data_size>=sizeof(state_data))
-  {
-    state=(MoonState*)(params->data);
-    state_size=params->data_size;
-  }
-  Info.pGetCursor(params->eid,&hl_row,&hl_col);
-  for(int lno=params->startline;lno<params->endline;lno++,yytok=NULL)
-  {
-    startcol=(lno==params->startline)?params->startcolumn:0;
-    if(((lno%Info.cachestr)==0)&&(!startcol))
-      if(!Info.pAddState(params->eid,lno/Info.cachestr,state_size,(unsigned char *)state)) goto colorize_exit;
-    line=(const UTCHAR*)Info.pGetLine(params->eid,lno,&linelen);
-    commentstart=line+startcol;
-    yycur=line+startcol;
-    yyend=line+linelen;
+  intptr_t brackets=0;
+  yycur=begin;
+  yyend=end;
 colorize_clear:
-    if(yytok) if(params->callback) if(params->callback(0,lno,yytok-line,params->param)) goto colorize_exit;
-    yytok=yycur;
-    if(params->callback) if(params->callback(1,lno,yytok-line,params->param)) goto colorize_exit;
-    if(state[0].State==PARSER_STRING1) goto colorize_string1;
-    if(state[0].State==PARSER_STRING2) goto colorize_string2;
-    if(state[0].State==PARSER_STRING3) goto colorize_string3;
+  yytok=yycur;
+/*!re2c
+  "[" "="* "[" { state.State=PARSER_STRING1; state.Level=GetLevel(yytok); goto colorize_string1; }
+  ["] { state.State=PARSER_STRING2; goto colorize_string2; }
+  ['] { state.State=PARSER_STRING3; goto colorize_string3; }
+  "{" { ++brackets; goto colorize_clear; }
+  "}" { --brackets; if(brackets==-1) return yycur; goto colorize_clear; }
+  [\000] { if(yytok==yyend) goto colorize_end; goto colorize_clear; }
+  any { goto colorize_clear; }
+*/
+colorize_string1:
+  yytok=yycur;
+/*!re2c
+  "]" "="* "]"
+  {
+    if(MatchLevel(yytok,state.Level))
+    {
+      state.State=PARSER_CLEAR;
+      state.Level=0;
+      goto colorize_clear;
+    }
+    yycur=yytok+1;
+    goto colorize_string1;
+  }
+  [\000]
+  { if(yytok==yyend) goto colorize_end; goto colorize_string1; }
+  any
+  { goto colorize_string1; }
+*/
+colorize_string2:
+  yytok=yycur;
+/*!re2c
+  ESC1
+  { goto colorize_string2; }
+  "#{" /*}*/
+  {
+    const UTCHAR* newcur=ParseInterpolation(yycur,yyend);
+    if(newcur) yycur=newcur;
+    goto colorize_string2;
+  }
+  ["]
+  {
+    state.State=PARSER_CLEAR;
+    goto colorize_clear;
+  }
+  [\000]
+  {
+    if(yytok==yyend) goto colorize_end;
+    goto colorize_string2;
+  }
+  any
+  { goto colorize_string2; }
+*/
+colorize_string3:
+  yytok=yycur;
+/*!re2c
+  ESC2
+  { goto colorize_string3; }
+  [']
+  {
+    state.State=PARSER_CLEAR;
+    goto colorize_clear;
+  }
+  [\000]
+  {
+    if(yytok==yyend) goto colorize_end;
+    goto colorize_string3;
+  }
+  any
+  { goto colorize_string3; }
+*/
+colorize_end:
+  return NULL;
+}
+
+bool ColorizeInternal(intptr_t lno,const UTCHAR* line,intptr_t startcol,intptr_t linelen,intptr_t hl_row,intptr_t hl_col,PairStack* hl_state,MoonState* state,ColorizeParams* params,bool Interpolation)
+{
+  const UTCHAR* yycur,*yyend,*yytmp=NULL,*yytok=NULL;
+  const UTCHAR* commentstart=line+startcol;
+  intptr_t brackets=0;
+  yycur=line+startcol;
+  yyend=line+linelen;
+colorize_clear:
+  if(yytok) if(params->callback) if(params->callback(0,lno,yytok-line,params->param)) return true;
+  yytok=yycur;
+  if(params->callback) if(params->callback(1,lno,yytok-line,params->param)) return true;
+  if(state[0].State==PARSER_STRING1) goto colorize_string1;
+  if(state[0].State==PARSER_STRING2) goto colorize_string2;
+  if(state[0].State==PARSER_STRING3) goto colorize_string3;
 /*!re2c
   "--"
-  { commentstart=yytok; goto colorize_comment2; }
+  { if(Interpolation) { Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_KEYWORD1,EPriorityNormal); goto colorize_clear; } else { commentstart=yytok; goto colorize_comment2; } }
   ("."|"\\")L(L|D)*
   {
     Info.pAddColor(params,lno,yytok-line,1,colors+HC_KEYWORD1,EPriorityNormal);
@@ -144,8 +206,8 @@ colorize_clear:
   ")" {POP_PAIR(0,0)}
   "[" {PUSH_PAIR(1)}
   "]" {POP_PAIR(1,1)}
-  "{" {PUSH_PAIR(2)}
-  "}" {POP_PAIR(2,2)}
+  "{" { ++brackets; PUSH_PAIR(2)}
+  "}" {--brackets; if(Interpolation&&brackets==-1) return yycur; POP_PAIR(2,2)}
   [ \t\v\f]+ { goto colorize_clear; }
 
   [\000]
@@ -160,7 +222,7 @@ colorize_clear:
 */
 
 colorize_comment2:
-    yytok=yycur;
+  yytok=yycur;
 /*!re2c
   [\000]
   {
@@ -182,7 +244,7 @@ colorize_comment2:
   { goto colorize_comment2; }
 */
 colorize_string1:
-    yytok=yycur;
+  yytok=yycur;
 /*!re2c
   "]" "="* "]"
   {
@@ -202,10 +264,28 @@ colorize_string1:
   { goto colorize_string1; }
 */
 colorize_string2:
-    yytok=yycur;
+  yytok=yycur;
 /*!re2c
   ESC1
   { goto colorize_string2; }
+  "#{" /*}*/
+  {
+    const UTCHAR* newcur=ParseInterpolation(yycur,yyend);
+    if(newcur)
+    {
+      Info.pAddColor(params,lno,commentstart-line,yytok-commentstart,colors+HC_STRING1,EPriorityNormal);
+      PUSH_PAIR_0(3,HC_INTERPOL)
+      MoonState newstate={PARSER_CLEAR,0};
+      ColorizeParams newparams=*params;
+      newparams.callback=NULL;
+      ColorizeInternal(lno,line,yycur-line,linelen,hl_row,hl_col,hl_state,&newstate,&newparams,true);
+      yytok=newcur-1;
+      yycur=newcur;
+      POP_PAIR_0(3,3,HC_INTERPOL)
+      commentstart=yycur;
+    }
+    goto colorize_string2;
+  }
   ["]
   {
     Info.pAddColor(params,lno,commentstart-line,yycur-commentstart,colors+HC_STRING1,EPriorityNormal);
@@ -222,13 +302,11 @@ colorize_string2:
     }
     goto colorize_string2;
   }
-  [\\][ \t]*[\000]
-  { if((yycur-1)==yyend) goto colorize_end; goto colorize_string2; }
   any
   { goto colorize_string2; }
 */
 colorize_string3:
-    yytok=yycur;
+  yytok=yycur;
 /*!re2c
   ESC2
   { goto colorize_string3; }
@@ -244,21 +322,43 @@ colorize_string3:
     if(yytok==yyend)
     {
       Info.pAddColor(params,lno,commentstart-line,yycur-commentstart-1,colors+HC_STRING1,EPriorityNormal);
-      state[0].State=PARSER_CLEAR;
-      state[0].Level=0;
       goto colorize_end;
     }
     goto colorize_string3;
   }
-  [\\][ \t]*[\000]
-  { if((yycur-1)==yyend) goto colorize_end; goto colorize_string3; }
   any
   { goto colorize_string3; }
 */
 colorize_end:
-    if(state[0].State==PARSER_STRING1||state[0].State==PARSER_STRING2||state[0].State==PARSER_STRING3)
-      Info.pAddColor(params,lno,commentstart-line,yyend-commentstart,colors+HC_STRING1,EPriorityNormal);
+  if(state[0].State==PARSER_STRING1||state[0].State==PARSER_STRING2||state[0].State==PARSER_STRING3)
+    Info.pAddColor(params,lno,commentstart-line,yyend-commentstart,colors+HC_STRING1,EPriorityNormal);
+  return false;
+}
+
+void WINAPI Colorize(intptr_t index,struct ColorizeParams *params)
+{
+  (void)index;
+  const UTCHAR *line;
+  intptr_t linelen;
+  intptr_t startcol;
+  MoonState state_data={PARSER_CLEAR,0};
+  MoonState* state=&state_data;
+  int state_size=sizeof(state_data);
+  struct PairStack *hl_state=NULL;
+  intptr_t hl_row; intptr_t hl_col;
+  if(params->data_size>=sizeof(state_data))
+  {
+    state=(MoonState*)(params->data);
+    state_size=params->data_size;
   }
-colorize_exit:
+  Info.pGetCursor(params->eid,&hl_row,&hl_col);
+  for(int lno=params->startline;lno<params->endline;lno++)
+  {
+    startcol=(lno==params->startline)?params->startcolumn:0;
+    if(((lno%Info.cachestr)==0)&&(!startcol))
+      if(!Info.pAddState(params->eid,lno/Info.cachestr,state_size,(unsigned char *)state)) break;
+    line=(const UTCHAR*)Info.pGetLine(params->eid,lno,&linelen);
+    if(ColorizeInternal(lno,line,startcol,linelen,hl_row,hl_col,hl_state,state,params,false)) break;
+  }
   PairStackClear(params->LocalHeap,&hl_state);
 }
