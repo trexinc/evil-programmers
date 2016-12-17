@@ -45,7 +45,7 @@ struct Context
 
 struct Rules
 {
-  TCHAR *name;
+  ABName name;
   TCHAR *mask;
   TCHAR *start;
   struct Context *contexts;

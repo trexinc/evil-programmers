@@ -22,6 +22,8 @@
 #include "abplugin.h"
 #include "../abpairs.h"
 #include "../plugins/html/abhtml.h"
+#include <initguid.h>
+#include "../plugins/php/guid.h"
 
 typedef unsigned short UTCHAR;
 
@@ -69,7 +71,7 @@ static void CallParser(ColorizeParams *params,CallbackParam *data)
   code_params.callback=code_callback;
   code_params.param=data;
   data->ok=0;
-  Info.pCallParser(_T("php"),&code_params);
+  Info.pCallParser(&PhpGUID,&code_params);
   if(data->ok)
   {
     params->data[0]=(unsigned char)(params->data[0]&PARSER_HTML);

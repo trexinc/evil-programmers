@@ -387,7 +387,7 @@ intptr_t WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
                 {
                   CFarSettings settings(MainGuid);
                   settings.Change(PLUGIN_MASK_KEY);
-                  settings.Set(PluginsData[ids[MenuCode]].Name,GetDataPtr(1));
+                  settings.Set(PluginsData[ids[MenuCode]].IdStr,GetDataPtr(1));
                 }
                 free(PluginsData[ids[MenuCode]].Mask);
                 PluginsData[ids[MenuCode]].Mask=(TCHAR*)malloc((lstrlen(GetDataPtr(1))+1)*sizeof(TCHAR));
@@ -465,7 +465,7 @@ intptr_t WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
                 {
                   CFarSettings settings(MainGuid);
                   settings.Change(PLUGIN_START_KEY);
-                  settings.Set(PluginsData[ids[MenuCode]].Name,GetDataPtr(1));
+                  settings.Set(PluginsData[ids[MenuCode]].IdStr,GetDataPtr(1));
                 }
                 free(PluginsData[ids[MenuCode]].Start);
                 PluginsData[ids[MenuCode]].Start=(TCHAR*)malloc((lstrlen(GetDataPtr(1))+1)*sizeof(TCHAR));
@@ -560,7 +560,7 @@ intptr_t WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
 
                       Colors[ColorCode].ForegroundDefault=(Colors[ColorCode].ForegroundColor==defColor.ForegroundColor&&(Colors[ColorCode].Flags&FG_MASK)==(defColor.Flags&FG_MASK));
                       Colors[ColorCode].BackgroundDefault=(Colors[ColorCode].BackgroundColor==defColor.BackgroundColor&&(Colors[ColorCode].Flags&FG_MASK)==(defColor.Flags&FG_MASK));
-                      SaveColors(PluginsData[ids[MenuCode]].Name,Colors,ColorCount);
+                      SaveColors(PluginsData[ids[MenuCode]].IdStr,Colors,ColorCount);
                     }
                   }
                 }

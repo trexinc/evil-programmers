@@ -1,6 +1,6 @@
 /*
     guid.hpp
-    Copyright (C) 2011 zg
+    Copyright (C) 2016 zg
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,12 +16,10 @@
     along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __GUID_H__
-#define __GUID_H__
+#ifndef __GUID_HTML_H__
+#define __GUID_HTML_H__
 
-// {9860393A-918D-450f-A3EA-84186F21B0A2}
-DEFINE_GUID(MainGuid,0x9860393a,0x918d,0x450f,0xa3,0xea,0x84,0x18,0x6f,0x21,0xb0,0xa2);
-// {00000000-0000-0000-0000-000000000000}
-DEFINE_GUID(FakeGuid,0,0,0,0,0,0,0,0,0,0,0);
+// {E408256A-42AC-47EA-82F3-C7208AEBCECD}
+DEFINE_GUID(HtmlGUID,0xe408256a,0x42ac,0x47ea,0x82,0xf3,0xc7,0x20,0x8a,0xeb,0xce,0xcd);
 
 #endif

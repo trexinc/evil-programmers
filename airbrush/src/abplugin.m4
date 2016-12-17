@@ -71,7 +71,7 @@ typedef void (WINAPI* PLUGINADDCOLOR)(struct ColorizeParams* params,intptr_t lno
 typedef const wchar_t* (WINAPI *PLUGINGETLINE)(intptr_t eid,intptr_t lno,intptr_t* len);
 typedef bool (WINAPI* PLUGINADDSTATE)(intptr_t eid,intptr_t pos,size_t size,unsigned char* data);
 typedef void (WINAPI* PLUGINGETCURSOR)(intptr_t eid,intptr_t* row,intptr_t* col);
-typedef void (WINAPI* PLUGINCALLPARSER)(const wchar_t* parser,struct ColorizeParams* params);
+typedef void (WINAPI* PLUGINCALLPARSER)(const GUID* parser,struct ColorizeParams* params);
 
 struct ColorizeInfo
 {
@@ -101,6 +101,12 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
+struct ABName
+{
+  GUID Id;
+  const wchar_t* Name;
+};
 
 #define PAR_GET_NAME              0
 #define PAR_GET_PARAMS            1

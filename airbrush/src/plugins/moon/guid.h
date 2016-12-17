@@ -1,6 +1,6 @@
 /*
     guid.hpp
-    Copyright (C) 2011 zg
+    Copyright (C) 2016 zg
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,12 +16,10 @@
     along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __GUID_H__
-#define __GUID_H__
+#ifndef __GUID_MOON_H__
+#define __GUID_MOON_H__
 
-// {9860393A-918D-450f-A3EA-84186F21B0A2}
-DEFINE_GUID(MainGuid,0x9860393a,0x918d,0x450f,0xa3,0xea,0x84,0x18,0x6f,0x21,0xb0,0xa2);
-// {00000000-0000-0000-0000-000000000000}
-DEFINE_GUID(FakeGuid,0,0,0,0,0,0,0,0,0,0,0);
+// {88DFA357-4B2A-4401-A12C-493202247396}
+DEFINE_GUID(MoonScriptGUID,0x88dfa357,0x4b2a,0x4401,0xa1,0x2c,0x49,0x32,0x02,0x24,0x73,0x96);
 
 #endif

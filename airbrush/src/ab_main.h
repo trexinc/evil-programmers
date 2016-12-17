@@ -59,6 +59,8 @@ struct PluginItem
   HMODULE hModule;
   int Index;
   int Type;
+  GUID Id;
+  TCHAR IdStr[37];
   const TCHAR* Name;
   TCHAR* Mask;
   TCHAR* Start;

@@ -20,6 +20,8 @@
 #include <tchar.h>
 #include "abplugin.h"
 #include "abpas.h"
+#include <initguid.h>
+#include "guid.h"
 
 ColorizeInfo Info;
 ABColor colors[]=
@@ -46,10 +48,11 @@ int WINAPI SetColorizeInfo(ColorizeInfo *AInfo)
 int WINAPI GetParams(intptr_t index,intptr_t command,const char **param)
 {
   (void)index;
+  static const ABName name={PascalGUID,_T("pascal")};
   switch(command)
   {
     case PAR_GET_NAME:
-      *param=(const char*)_T("pascal");
+      *param=(const char*)&name;
       return true;
     case PAR_GET_PARAMS:
       return PAR_MASK_STORE|PAR_MASK_CACHE|PAR_COLORS_STORE|PAR_SHOW_IN_LIST;

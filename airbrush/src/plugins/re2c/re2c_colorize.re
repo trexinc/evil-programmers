@@ -22,6 +22,8 @@
 #include "abplugin.h"
 #include "../abpairs.h"
 #include "../plugins/re2c/abre2c.h"
+#include <initguid.h>
+#include "../plugins/c/guid.h"
 
 typedef unsigned short UTCHAR;
 
@@ -100,7 +102,7 @@ static void CallParser(ColorizeParams *params,CallbackParam *data)
   c_params.callback=c_callback;
   c_params.param=data;
   data->ok=0;
-  Info.pCallParser(_T("c/c++"),&c_params);
+  Info.pCallParser(&CplusplusGUID,&c_params);
   if(data->ok)
   {
     params->startline=data->row;

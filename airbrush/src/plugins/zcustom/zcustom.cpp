@@ -370,9 +370,9 @@ static void load_syntax_from_file(char *dirname,char *filename,char *whole_chars
             Rules *new_rules=(Rules *)realloc(rules,(rules_count+1)*sizeof(Rules));
             if(!new_rules) goto line_end;
             rules=new_rules;
-            rules[rules_count].name=(TCHAR*)malloc((strlen(argv[1])+1)*sizeof(TCHAR));
-            if(!rules[rules_count].name) goto line_end;
-            MultiByteToWideChar(CP_OEMCP,0,argv[1],-1,rules[rules_count].name,strlen(argv[1])+1);
+            rules[rules_count].name.Name=(TCHAR*)malloc((strlen(argv[1])+1)*sizeof(TCHAR));
+            if(!rules[rules_count].name.Name) goto line_end;
+            MultiByteToWideChar(CP_OEMCP,0,argv[1],-1,(wchar_t*)rules[rules_count].name.Name,strlen(argv[1])+1);
             rules[rules_count].mask=(TCHAR*)malloc((strlen(argv[2])+1)*sizeof(TCHAR));
             if(!rules[rules_count].mask) goto line_end;
             MultiByteToWideChar(CP_OEMCP,0,argv[2],-1,rules[rules_count].mask,strlen(argv[2])+1);
@@ -670,7 +670,7 @@ static void free_syntax(void)
       free(rules[i].contexts[j].whole_chars_right);
       free(rules[i].contexts[j].keywords);
     }
-    free(rules[i].name);
+    free((void*)rules[i].name.Name);
     free(rules[i].mask);
     free(rules[i].start);
     free(rules[i].contexts);
@@ -813,7 +813,7 @@ int WINAPI GetParams(intptr_t index,intptr_t command,const char **param)
   {
     case PAR_GET_NAME:
       if((index>=rules_count)||(index<0)) *param=(const char*)_T("");
-      else *param=(const char*)rules[index].name;
+      else *param=(const char*)&rules[index].name;
       return true;
     case PAR_GET_PARAMS:
       return PAR_MASK_CACHE|PAR_SHOW_IN_LIST;

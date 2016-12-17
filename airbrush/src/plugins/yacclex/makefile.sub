@@ -13,7 +13,7 @@ $(TARGET): $(OBJS)
 	$(RM) $(TARGET).base
 	$(RM) $(TARGET).exp
 
-../../../$(OBJDIR)/$(SYNNAME).o: $(SYNNAME).cpp ab$(SYNNAME).h ../../$(BOOTSTRAPDIR)/abplugin.h
+../../../$(OBJDIR)/$(SYNNAME).o: $(SYNNAME).cpp ab$(SYNNAME).h ../../$(BOOTSTRAPDIR)/abplugin.h guid.h ../c/guid.h
 	$(CC) $(CFLAGS) $< -o $@
 
 ../../../$(OBJDIR)/$(SYNNAME).res.o: $(SYNNAME).rc ../../$(BOOTSTRAPDIR)/abversion.h

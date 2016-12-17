@@ -25,8 +25,8 @@
 #include "ab_main.h"
 #include "abversion.h"
 #include "guid.h"
-#include <initguid.h>
 #include "far_settings.h"
+#include <initguid.h>
 // {55828A68-CBF7-4695-B1E3-26C16116C2AF}
 DEFINE_GUID(MessageFatalGuid, 0x55828a68, 0xcbf7, 0x4695, 0xb1, 0xe3, 0x26, 0xc1, 0x61, 0x16, 0xc2, 0xaf);
 // {40B98695-3971-4c4c-88A9-F3E5BAC777EB}
@@ -127,12 +127,13 @@ static void WINAPI getcursor(intptr_t eid,intptr_t *row,intptr_t *col)
   *col=ei.CurPos;
 }
 
-static void WINAPI callparser(const TCHAR *parser,struct ColorizeParams *params)
+static void WINAPI callparser(const GUID *parser,struct ColorizeParams *params)
 {
-  for(int i=0;i<PluginsCount;i++)
-    if(!lstrcmpi(parser,PluginsData[i].Name))
-      if(PluginsData[i].pColorize)
-        PluginsData[i].pColorize(PluginsData[i].Index,params);
+  if(FakeGuid!=*parser)
+    for(int i=0;i<PluginsCount;i++)
+      if(*parser==PluginsData[i].Id)
+        if(PluginsData[i].pColorize)
+          PluginsData[i].pColorize(PluginsData[i].Index,params);
 }
 
 void LoadPlugs(const TCHAR* ModuleName)
@@ -208,13 +209,15 @@ void LoadPlugs(const TCHAR* ModuleName)
             CurPlugin.Start=NULL;
             CurPlugin.Params=0;
             const TCHAR *mask,*start,*name=NULL;
+            const ABName* data=NULL;
             TCHAR buff_mask[2048],buff_start[2048];
             lstrcpy(buff_mask,_T("")); lstrcpy(buff_start,_T(""));
             if(CurPlugin.pGetParams)
             {
               CurPlugin.Params=CurPlugin.pGetParams(CurPlugin.Index,PAR_GET_PARAMS,NULL);
-              CurPlugin.pGetParams(CurPlugin.Index,PAR_GET_NAME,(const char**)&name);
+              CurPlugin.pGetParams(CurPlugin.Index,PAR_GET_NAME,(const char**)&data);
               //load mask
+              if(data) if(RPC_S_OK!=UuidToString((UUID*)&data->Id,(RPC_WSTR*)&name)) name=NULL;
               if(name&&(CurPlugin.Params&PAR_MASK_CACHE))
               {
                 if(!CurPlugin.pGetParams(CurPlugin.Index,PAR_GET_MASK,(const char**)&mask))
@@ -241,8 +244,14 @@ void LoadPlugs(const TCHAR* ModuleName)
                 }
               }
             }
-            if(name) CurPlugin.Name=name;
+            if(data)
+            {
+              CurPlugin.Id=data->Id;
+              CurPlugin.Name=data->Name;
+            }
             else CurPlugin.Name=UnknownPluginName;
+            lstrcpy(CurPlugin.IdStr,name?name:UnknownPluginName);
+            RpcStringFree((RPC_WSTR*)&name);
             if(lstrlen(buff_mask))
               CurPlugin.Mask=(TCHAR*)malloc((lstrlen(buff_mask)+1)*sizeof(TCHAR));
             if(CurPlugin.Mask)
@@ -256,7 +265,7 @@ void LoadPlugs(const TCHAR* ModuleName)
               int ColorCount; ABColor* Colors;
               if((CurPlugin.Params&PAR_COLORS_STORE)&&CurPlugin.pGetParams(CurPlugin.Index,PAR_GET_COLOR_COUNT,(const char **)&ColorCount)&&CurPlugin.pGetParams(CurPlugin.Index,PAR_GET_COLOR,(const char **)&Colors))
               {
-                LoadColors(name,Colors,ColorCount);
+                LoadColors(CurPlugin.IdStr,Colors,ColorCount);
               }
             }
             PluginsData[PluginsCount]=CurPlugin;

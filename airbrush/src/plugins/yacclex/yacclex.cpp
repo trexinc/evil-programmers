@@ -20,6 +20,9 @@
 #include <tchar.h>
 #include "abplugin.h"
 #include "abyacclex.h"
+#include <initguid.h>
+#include "guid.h"
+#include "../plugins/c/guid.h"
 
 ColorizeInfo Info;
 ABColor colors[]=
@@ -119,7 +122,7 @@ static void CallParser(ColorizeParams *params,CallbackParam *data)
     c_params.param=NULL;
   }
   data->ok=0;
-  Info.pCallParser(_T("c/c++"),&c_params);
+  Info.pCallParser(&CplusplusGUID,&c_params);
   if(data->ok)
   {
     params->startline=data->row;
@@ -308,10 +311,11 @@ colorize_exit:
 int WINAPI GetParams(intptr_t index,intptr_t command,const char **param)
 {
   (void)index;
+  static const ABName name={YaccLexGUID,_T("lex/yacc")};
   switch(command)
   {
     case PAR_GET_NAME:
-      *param=(const char*)_T("lex/yacc");
+      *param=(const char*)&name;
       return true;
     case PAR_GET_PARAMS:
       return PAR_MASK_STORE|PAR_MASK_CACHE|PAR_COLORS_STORE|PAR_SHOW_IN_LIST;
