@@ -136,6 +136,33 @@ static void WINAPI callparser(const GUID *parser,struct ColorizeParams *params)
           PluginsData[i].pColorize(PluginsData[i].Index,params);
 }
 
+static bool WINAPI interpolation(const wchar_t* str,intptr_t len)
+{
+  static bool recurse=false;
+  bool res=true;
+  if(!recurse)
+  {
+    recurse=true;
+    wchar_t* text=(wchar_t*)malloc((len+1)*sizeof(*str));
+    if(text)
+    {
+      memcpy(text,str,len*sizeof(*str));
+      text[len]=0;
+      if(len)
+      {
+        FarMacroValue value;
+        value.Type=FMVT_STRING;
+        value.String=text;
+        MacroExecuteString seq={sizeof(MacroExecuteString),KMFLAGS_MOONSCRIPT,_T("{:build_grammar}=require\"moonscript.parse\"\ng=build_grammar!\nr=g\\match [[\"]]..(...)..[[\"]]\nr and r[1] and r[1][3] and r[1][3][1]=='interpolate'"),1,&value,0,NULL};
+        if(Info.MacroControl(0,MCTL_EXECSTRING,0,&seq)&&seq.OutCount>0&&FMVT_BOOLEAN==seq.OutValues[0].Type&&!seq.OutValues[0].Boolean) res=false;
+      }
+      free(text);
+    }
+    recurse=false;
+  }
+  return res;
+}
+
 void LoadPlugs(const TCHAR* ModuleName)
 {
   HANDLE hSScr=Info.SaveScreen(0,0,-1,-1);
@@ -187,6 +214,7 @@ void LoadPlugs(const TCHAR* ModuleName)
         lInfo.pAddState=addstate;
         lInfo.pGetCursor=getcursor;
         lInfo.pCallParser=callparser;
+        lInfo.pInterpolation=interpolation;
         accept_plug=CurPlugin.pSetColorizeInfo(&lInfo);
       }
 

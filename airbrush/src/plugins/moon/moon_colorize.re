@@ -29,6 +29,7 @@ typedef unsigned short UTCHAR;
 #define YYCURSOR yycur
 #define YYLIMIT yyend
 #define YYMARKER yytmp
+#define YYCTXMARKER yyctxtmp
 #define YYFILL(n)
 
 /*!re2c
@@ -150,7 +151,7 @@ colorize_end:
 
 bool ColorizeInternal(intptr_t lno,const UTCHAR* line,intptr_t startcol,intptr_t linelen,intptr_t hl_row,intptr_t hl_col,PairStack* hl_state,MoonState* state,ColorizeParams* params,bool Interpolation)
 {
-  const UTCHAR* yycur,*yyend,*yytmp=NULL,*yytok=NULL;
+  const UTCHAR* yycur,*yyend,*yytmp=NULL,*yyctxtmp,*yytok=NULL;
   const UTCHAR* commentstart=line+startcol;
   intptr_t brackets=0;
   yycur=line+startcol;
@@ -184,6 +185,8 @@ colorize_clear:
   { goto colorize_clear; }
   ("0"[xX]H+)
   { Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_NUMBER2,EPriorityNormal); goto colorize_clear; }
+  D+/".."
+  { Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_NUMBER1,EPriorityNormal); goto colorize_clear; }
   (D+)|(D+E)|(D*"."D+E?)|(D+"."D*E?)
   { Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_NUMBER1,EPriorityNormal); goto colorize_clear; }
   "[" "="* "["
@@ -194,6 +197,11 @@ colorize_clear:
   { state[0].State=PARSER_STRING3; state[0].Level=0; commentstart=yytok; goto colorize_string3; }
   "."{4,}
   { goto colorize_clear; }
+  ".."/"."D
+  {
+    Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_KEYWORD1,EPriorityNormal);
+    goto colorize_clear;
+  }
   "+"|"-"|"*"|"/"|"%"|"^"|"#"|
   "=="|"~="|"!="|"<="|">="|"<"|">"|"="|
   ";"|","|".."|"..."|
@@ -271,7 +279,7 @@ colorize_string2:
   "#{" /*}*/
   {
     const UTCHAR* newcur=ParseInterpolation(yycur,yyend);
-    if(newcur)
+    if(newcur&&Info.pInterpolation((const wchar_t*)yytok,newcur-yytok))
     {
       Info.pAddColor(params,lno,commentstart-line,yytok-commentstart,colors+HC_STRING1,EPriorityNormal);
       PUSH_PAIR_0(3,HC_INTERPOL)
