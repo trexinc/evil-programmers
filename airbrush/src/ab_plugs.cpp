@@ -217,7 +217,7 @@ void LoadPlugs(const TCHAR* ModuleName)
               CurPlugin.Params=CurPlugin.pGetParams(CurPlugin.Index,PAR_GET_PARAMS,NULL);
               CurPlugin.pGetParams(CurPlugin.Index,PAR_GET_NAME,(const char**)&data);
               //load mask
-              if(data) if(RPC_S_OK!=UuidToString((UUID*)&data->Id,(RPC_WSTR*)&name)) name=NULL;
+              if(data) if(RPC_S_OK!=UuidToString((UUID*)&data->Id,(unsigned short**)&name)) name=NULL;
               if(name&&(CurPlugin.Params&PAR_MASK_CACHE))
               {
                 if(!CurPlugin.pGetParams(CurPlugin.Index,PAR_GET_MASK,(const char**)&mask))
@@ -251,7 +251,7 @@ void LoadPlugs(const TCHAR* ModuleName)
             }
             else CurPlugin.Name=UnknownPluginName;
             lstrcpy(CurPlugin.IdStr,name?name:UnknownPluginName);
-            RpcStringFree((RPC_WSTR*)&name);
+            RpcStringFree((unsigned short**)&name);
             if(lstrlen(buff_mask))
               CurPlugin.Mask=(TCHAR*)malloc((lstrlen(buff_mask)+1)*sizeof(TCHAR));
             if(CurPlugin.Mask)
