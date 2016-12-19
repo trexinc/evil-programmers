@@ -68,6 +68,7 @@ void WINAPI Colorize(intptr_t index,struct ColorizeParams *params)
     state_size=params->data_size;
   }
   Info.pGetCursor(params->eid,&hl_row,&hl_col);
+  Info.pSetBracket(params->eid,-1,-1);
   for(int lno=params->startline;lno<params->endline;lno++,yytok=NULL)
   {
     startcol=(lno==params->startline)?params->startcolumn:0;

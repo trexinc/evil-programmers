@@ -164,6 +164,29 @@ void WINAPI ExitFARW(const struct ExitInfo *Info)
   UnloadPlugs();
 }
 
+static void WINAPI MacroCallback(void* CallbackData,FarMacroValue* Values,size_t Count)
+{
+  (void)Values;
+  (void)Count;
+  FarMacroCall* fmc=(FarMacroCall*)CallbackData;
+  for(size_t ii=0;ii<fmc->Count;++ii)
+  {
+    FarMacroValue* value=fmc->Values+ii;
+    if(value->Type==FMVT_STRING) free((void*)value->String);
+  }
+  free(CallbackData);
+}
+
+static intptr_t GetValue(FarMacroValue* value,intptr_t def=0)
+{
+  intptr_t result=def;
+  if(FMVT_INTEGER==value->Type)
+    result=value->Integer;
+  else if(FMVT_DOUBLE==value->Type)
+    result=(intptr_t)value->Double;
+  return result;
+}
+
 HANDLE WINAPI OpenW(const struct OpenInfo *Info)
 {
   if((Info->OpenFrom==OPEN_EDITOR)&&(PluginsCount))
@@ -235,6 +258,50 @@ HANDLE WINAPI OpenW(const struct OpenInfo *Info)
         free(SyntaxTypes);
       }
       free(ids);
+    }
+  }
+  else if(Info->OpenFrom==OPEN_FROMMACRO)
+  {
+    OpenMacroInfo* mi=(OpenMacroInfo*)Info->Data;
+    if(mi->Count)
+    {
+      intptr_t op=GetValue(mi->Values);
+      if(op==1)
+      {
+        intptr_t eid=-1;
+        if(mi->Count>1) eid=GetValue(mi->Values+1,-1);
+        if(-1==eid)
+        {
+          EditorInfo ei;
+          ei.StructSize=sizeof(ei);
+          ::Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
+          eid=ei.EditorID;
+        }
+        PEditFile fl=ef_getfile(eid);
+        if(fl&&fl->type>=0&&PluginsData[fl->type].Params&PAR_BRACKETS)
+        {
+          fl->full=true;
+          ::Info.EditorControl(eid,ECTL_REDRAW,0,NULL);
+          if(fl->bracketx>=0&&fl->brackety>=0)
+          {
+            FarMacroCall* fmc=(FarMacroCall*)malloc(sizeof(FarMacroCall)+3*sizeof(FarMacroValue));
+            if(fmc)
+            {
+              fmc->StructSize=sizeof(*fmc);
+              fmc->Count=3;
+              fmc->Values=(FarMacroValue*)(fmc+1);
+              fmc->Callback=MacroCallback;
+              fmc->CallbackData=fmc;
+              fmc->Values[0].Type=FMVT_BOOLEAN;
+              fmc->Values[0].Boolean=true;
+              fmc->Values[1].Type=fmc->Values[2].Type=FMVT_INTEGER;
+              fmc->Values[1].Integer=fl->bracketx+1;
+              fmc->Values[2].Integer=fl->brackety+1;
+              return fmc;
+            }
+          }
+        }
+      }
     }
   }
   return NULL;

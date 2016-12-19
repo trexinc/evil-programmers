@@ -40,6 +40,9 @@ PEditFile ef_create(bool m)
   result->cachesize=0;
   result->cache=NULL;
   result->topline=0;
+  result->full=false;
+  result->bracketx=-1;
+  result->brackety=-1;
   return result;
 }
 
@@ -269,18 +272,29 @@ int OnEditorEvent(int event,void *param,int editorid)
   params.size=sizeof(ColorizeParams);
   params.eid=ei.EditorID;
   params.startcolumn=0;
-  params.topline=ei.TopScreenLine;
+  params.topmargin=ei.TopScreenLine;
+  params.bottommargin=ei.TopScreenLine+ei.WindowSizeY;
+  if(params.bottommargin>ei.TotalLines) params.bottommargin=ei.TotalLines;
   params.data_size=0;
   params.data=NULL;
   params.flags=0;
   params.callback=NULL;
   params.param=NULL;
 
-  params.startline=ei.TopScreenLine;
-  if(curfile->topline<params.startline)
-    params.startline=curfile->topline;
-  params.endline=ei.TopScreenLine+ei.WindowSizeY;
-  if(params.endline>ei.TotalLines) params.endline=ei.TotalLines;
+  if(curfile->full)
+  {
+    curfile->full=false;
+    params.startline=0;
+    params.endline=ei.TotalLines;
+  }
+  else
+  {
+    params.startline=ei.TopScreenLine;
+    if(curfile->topline<params.startline)
+      params.startline=curfile->topline;
+    params.endline=ei.TopScreenLine+ei.WindowSizeY;
+    if(params.endline>ei.TotalLines) params.endline=ei.TotalLines;
+  }
   curfile->topline=INT_MAX;
 
   if(ei.TotalLines>Opt.MaxLines) curfile->type=-1;
@@ -319,7 +333,7 @@ int OnEditorEvent(int event,void *param,int editorid)
   params.startline=(cacheindex-1)*PARSER_CACHESTR;
   if(PluginsData[curfile->type].pColorize)
   {
-    intptr_t visiblelines=params.endline-params.topline;
+    intptr_t visiblelines=params.bottommargin-params.topmargin;
     params.margins=(struct ColorizeMargin*)malloc(sizeof(*params.margins)*(visiblelines));
     if(params.margins)
     {
@@ -333,7 +347,7 @@ int OnEditorEvent(int event,void *param,int editorid)
         }
         else
         {
-          egs.StringNumber=ii+params.topline;
+          egs.StringNumber=ii+params.topmargin;
           if(Info.EditorControl(ei.EditorID,ECTL_GETSTRING,0,&egs))
           {
             intptr_t left=-1,right=egs.StringLength;

@@ -62,7 +62,8 @@ static void CallParser(ColorizeParams *params,CallbackParam *data)
   code_params.startline=data->row;
   code_params.startcolumn=data->col;
   code_params.endline=params->endline;
-  code_params.topline=params->topline;
+  code_params.topmargin=params->topmargin;
+  code_params.bottommargin=params->bottommargin;
   code_params.margins=params->margins;
   code_params.data_size=params->data_size;
   if(params->data[0]<PARSER_PHP) params->data[0]|=PARSER_PHP;

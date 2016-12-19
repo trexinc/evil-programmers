@@ -38,7 +38,8 @@ struct ColorizeParams
   intptr_t startline;
   intptr_t startcolumn;
   intptr_t endline;
-  intptr_t topline;
+  intptr_t topmargin;
+  intptr_t bottommargin;
   struct ColorizeMargin* margins;
   size_t data_size;
   unsigned char* data;
@@ -72,6 +73,7 @@ typedef const wchar_t* (WINAPI *PLUGINGETLINE)(intptr_t eid,intptr_t lno,intptr_
 typedef bool (WINAPI* PLUGINADDSTATE)(intptr_t eid,intptr_t pos,size_t size,unsigned char* data);
 typedef void (WINAPI* PLUGINGETCURSOR)(intptr_t eid,intptr_t* row,intptr_t* col);
 typedef void (WINAPI* PLUGINCALLPARSER)(const GUID* parser,struct ColorizeParams* params);
+typedef void (WINAPI* PLUGINSETBRACKET)(intptr_t eid,intptr_t row,intptr_t col);
 typedef bool (WINAPI* PLUGININTERPOLATION)(const wchar_t* str,intptr_t len);
 
 struct ColorizeInfo
@@ -87,6 +89,7 @@ struct ColorizeInfo
   PLUGINADDSTATE pAddState;
   PLUGINGETCURSOR pGetCursor;
   PLUGINCALLPARSER pCallParser;
+  PLUGINSETBRACKET pSetBracket;
   PLUGININTERPOLATION pInterpolation;
 };
 
@@ -128,5 +131,6 @@ struct ABName
 #define PAR_COLORS_STORE         16
 #define PAR_COLORS_CACHE         32 //not used
 #define PAR_SHOW_IN_LIST         64
+#define PAR_BRACKETS            128
 
 #endif

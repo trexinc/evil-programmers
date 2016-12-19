@@ -109,7 +109,8 @@ static void CallParser(ColorizeParams *params,CallbackParam *data)
   c_params.startline=data->row;
   c_params.startcolumn=data->col;
   c_params.endline=params->endline;
-  c_params.topline=params->topline;
+  c_params.topmargin=params->topmargin;
+  c_params.bottommargin=params->bottommargin;
   c_params.margins=params->margins;
   c_params.data_size=params->data_size;
   c_params.data=params->data;

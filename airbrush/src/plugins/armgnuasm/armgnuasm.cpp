@@ -78,7 +78,7 @@ int WINAPI GetParams(intptr_t index,intptr_t command,const char **param)
       *param=(const char*)&name;
       return true;
     case PAR_GET_PARAMS:
-      return PAR_MASK_STORE|PAR_MASK_CACHE|PAR_COLORS_STORE|PAR_SHOW_IN_LIST;
+      return PAR_MASK_STORE|PAR_MASK_CACHE|PAR_COLORS_STORE|PAR_SHOW_IN_LIST|PAR_BRACKETS;
     case PAR_GET_MASK:
       *param=(const char*)_T("*.s");
       return true;

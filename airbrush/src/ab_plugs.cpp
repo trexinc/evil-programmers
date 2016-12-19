@@ -44,9 +44,9 @@ static void WINAPI addcolor(struct ColorizeParams* params,intptr_t lno,intptr_t 
   if((color->ForegroundDefault)&&(color->BackgroundDefault)) return;
   if(len==0) return;
   intptr_t finish=start+len-1;
-  if(lno>=params->topline)
+  if(lno>=params->topmargin&&lno<params->bottommargin)
   {
-    intptr_t left=params->margins[lno-params->topline].left,right=params->margins[lno-params->topline].right;
+    intptr_t left=params->margins[lno-params->topmargin].left,right=params->margins[lno-params->topmargin].right;
     if(start>=left&&start<right||finish>=left&&finish<right)
     {
       EditorColor ec;
@@ -136,6 +136,16 @@ static void WINAPI callparser(const GUID *parser,struct ColorizeParams *params)
           PluginsData[i].pColorize(PluginsData[i].Index,params);
 }
 
+static void WINAPI setbracket(intptr_t eid,intptr_t row,intptr_t col)
+{
+  PEditFile fl=ef_getfile(eid);
+  if(fl)
+  {
+    fl->bracketx=col;
+    fl->brackety=row;
+  }
+}
+
 static bool WINAPI interpolation(const wchar_t* str,intptr_t len)
 {
   static bool recurse=false;
@@ -214,6 +224,7 @@ void LoadPlugs(const TCHAR* ModuleName)
         lInfo.pAddState=addstate;
         lInfo.pGetCursor=getcursor;
         lInfo.pCallParser=callparser;
+        lInfo.pSetBracket=setbracket;
         lInfo.pInterpolation=interpolation;
         accept_plug=CurPlugin.pSetColorizeInfo(&lInfo);
       }

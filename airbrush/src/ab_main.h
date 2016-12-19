@@ -93,9 +93,12 @@ struct CEditFile
   PEditFile next, prev;
 //
   StateCache *cache;
-  int cachesize;
-  int type;
-  int topline;
+  intptr_t cachesize;
+  intptr_t type;
+  intptr_t topline;
+  bool full;
+  intptr_t bracketx;
+  intptr_t brackety;
 };
 
 //struct CEditFile methods
