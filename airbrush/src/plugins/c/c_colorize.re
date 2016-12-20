@@ -108,7 +108,7 @@ colorize_clear:
   (D+E FS?)|(D*"."D+E?FS?)|(D+"."D*E?FS?)
   { Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_NUMBER1,EPriorityNormal); goto colorize_clear; }
   STR?["]
-  { state[0]=PARSER_STRING; commentstart=yytok; goto colorize_string; }
+  { PUSH_PAIR_S(3); state[0]=PARSER_STRING; commentstart=yytok; goto colorize_string; }
   (STR?['] (ESC|any\[\\'])* ['])
   { Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_STRING1,EPriorityNormal); goto colorize_clear; }
   "..."|">>="|"<<="|"+="|"-="|"*="|"/="|"%="|"&="|"^="|"|="|">>"|"<<"|"++"|"--"|"->"|"&&"|"||"|
@@ -119,11 +119,11 @@ colorize_clear:
     goto colorize_clear;
   }
   "(" {PUSH_PAIR(0)}
-  ")" {POP_PAIR(0,0)}
+  ")" {POP_PAIR(0)}
   "[" {PUSH_PAIR(1)}
-  "]" {POP_PAIR(1,1)}
+  "]" {POP_PAIR(1)}
   "{" {PUSH_PAIR(2)}
-  "}" {POP_PAIR(2,2)}
+  "}" {POP_PAIR(2)}
   ";" { Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_KEYWORD3,EPriorityNormal); goto colorize_clear; }
   [ \t]*"#"[ \t]*[a-zA-Z]+
   {
@@ -188,6 +188,7 @@ colorize_string:
   {
     Info.pAddColor(params,lno,commentstart-line,yycur-commentstart,colors+HC_STRING1,EPriorityNormal);
     state[0]=PARSER_CLEAR;
+    POP_PAIR_S(3);
     goto colorize_clear;
   }
   [\000]

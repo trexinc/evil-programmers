@@ -170,9 +170,9 @@ colorize_clear:
   ('work')|('write')|('year')|('yearday')
   { Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_KEYWORD1,EPriorityNormal); goto colorize_clear; }
   'begin' {PUSH_PAIR(1)}
-  'end' {POP_PAIR(1,1)}
+  'end' {POP_PAIR(1)}
   'if' {PUSH_PAIR(2)}
-  'then' {POP_PAIR(2,2)}
+  'then' {POP_PAIR(2)}
   ":"L L2*
   { Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_KEYWORD2,EPriorityNormal); goto colorize_clear; }
   L L2*
@@ -185,7 +185,7 @@ colorize_clear:
     goto colorize_clear;
   }
   "(" {PUSH_PAIR(0)}
-  ")" {POP_PAIR(0,0)}
+  ")" {POP_PAIR(0)}
   ";" { Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_KEYWORD3,EPriorityNormal); goto colorize_clear; }
   [ \t\v\f]+ { goto colorize_clear; }
   [\000]

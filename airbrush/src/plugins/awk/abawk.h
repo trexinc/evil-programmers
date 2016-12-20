@@ -19,7 +19,7 @@
 #define HC_COMMENT  0
 #define HC_KEYWORD1 1
 #define HC_KEYWORD2 2
-#define HC_STRING   3
+#define HC_STRING1  3
 #define HC_REGEXPS  4
 #define HC_REGEXP   5
 #define HC_NUMBER   6

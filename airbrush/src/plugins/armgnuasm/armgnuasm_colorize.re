@@ -134,12 +134,12 @@ colorize_clear:
     Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_KEYWORD1,EPriorityNormal);
     goto colorize_clear;
   }
-  "[" {PUSH_PAIR(1)}
-  "]" {POP_PAIR(1,1)}
-  "{" {PUSH_PAIR(2)}
-  "}" {POP_PAIR(2,2)}
+  "[" {PUSH_PAIR(PAIR_SQ_BRACKETS)}
+  "]" {POP_PAIR(PAIR_SQ_BRACKETS)}
+  "{" {PUSH_PAIR(PAIR_BRACES)}
+  "}" {POP_PAIR(PAIR_BRACES)}
   ["]
-  { state[0]=PARSER_STRING1; commentstart=yytok; goto colorize_string1; }
+  { PUSH_PAIR_S(PAIR_STRING); state[0]=PARSER_STRING1; commentstart=yytok; goto colorize_string1; }
   [ \t\v\f]+ { goto colorize_clear; }
   [\000]
   {
@@ -196,6 +196,7 @@ colorize_string1:
   {
     Info.pAddColor(params,lno,commentstart-line,yycur-commentstart,colors+HC_STRING1,EPriorityNormal);
     state[0]=state[0]-PARSER_STRING1;
+    POP_PAIR_S(PAIR_STRING);
     goto colorize_clear;
   }
   [\000]
@@ -249,12 +250,12 @@ colorize_thumb:
     Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_KEYWORD1,EPriorityNormal);
     goto colorize_clear;
   }
-  "[" {PUSH_PAIR(1)}
-  "]" {POP_PAIR(1,1)}
-  "{" {PUSH_PAIR(2)}
-  "}" {POP_PAIR(2,2)}
+  "[" {PUSH_PAIR(PAIR_SQ_BRACKETS)}
+  "]" {POP_PAIR(PAIR_SQ_BRACKETS)}
+  "{" {PUSH_PAIR(PAIR_BRACES)}
+  "}" {POP_PAIR(PAIR_BRACES)}
   ["]
-  { state[0]=PARSER_STRING2; commentstart=yytok; goto colorize_string1; }
+  { PUSH_PAIR_S(PAIR_STRING); state[0]=PARSER_STRING2; commentstart=yytok; goto colorize_string1; }
   [ \t\v\f]+ { goto colorize_clear; }
   [\000]
   { if(yytok==yyend) goto colorize_end; goto colorize_clear; }

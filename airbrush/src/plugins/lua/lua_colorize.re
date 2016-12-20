@@ -113,9 +113,9 @@ colorize_clear:
   "return"|"then"|"true"
   { Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_KEYWORD1,EPriorityNormal); goto colorize_clear; }
   "for"|"function"|"if"|"while" {PUSH_PAIR(3)}
-  "end" {POP_PAIR(3,3)}
+  "end" {POP_PAIR(3)}
   "repeat" {PUSH_PAIR(4)}
-  "until" {POP_PAIR(4,4)}
+  "until" {POP_PAIR(4)}
   L(L|D)*
   { goto colorize_clear; }
   "::"L(L|D)*"::"
@@ -125,11 +125,11 @@ colorize_clear:
   (D+)|(D+E)|(D*"."D+E?)|(D+"."D*E?)
   { Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_NUMBER1,EPriorityNormal); goto colorize_clear; }
   "[" "="* "["
-  { state[0].State=PARSER_STRING1; state[0].Level=GetLevel(yytok); commentstart=yytok; goto colorize_string1; }
+  { PUSH_PAIR_S(5); state[0].State=PARSER_STRING1; state[0].Level=GetLevel(yytok); commentstart=yytok; goto colorize_string1; }
   ["]
-  { state[0].State=PARSER_STRING2; state[0].Level=0; commentstart=yytok; goto colorize_string2; }
+  { PUSH_PAIR_S(6); state[0].State=PARSER_STRING2; state[0].Level=0; commentstart=yytok; goto colorize_string2; }
   [']
-  { state[0].State=PARSER_STRING3; state[0].Level=0; commentstart=yytok; goto colorize_string3; }
+  { PUSH_PAIR_S(7); state[0].State=PARSER_STRING3; state[0].Level=0; commentstart=yytok; goto colorize_string3; }
   "+"|"-"|"*"|"/"|"%"|"^"|"#"|
   "=="|"~="|"<="|">="|"<"|">"|"="|
   ";"|":"|","|"."|".."|"..."
@@ -138,11 +138,11 @@ colorize_clear:
     goto colorize_clear;
   }
   "(" {PUSH_PAIR(0)}
-  ")" {POP_PAIR(0,0)}
+  ")" {POP_PAIR(0)}
   "[" {PUSH_PAIR(1)}
-  "]" {POP_PAIR(1,1)}
+  "]" {POP_PAIR(1)}
   "{" {PUSH_PAIR(2)}
-  "}" {POP_PAIR(2,2)}
+  "}" {POP_PAIR(2)}
   [ \t\v\f]+ { goto colorize_clear; }
 
   [\000]
@@ -208,6 +208,7 @@ colorize_string1:
       Info.pAddColor(params,lno,commentstart-line,yycur-commentstart,colors+HC_STRING1,EPriorityNormal);
       state[0].State=PARSER_CLEAR;
       state[0].Level=0;
+      POP_PAIR_S(5);
       goto colorize_clear;
     }
     yycur=yytok+1;
@@ -228,6 +229,7 @@ colorize_string2:
     Info.pAddColor(params,lno,commentstart-line,yycur-commentstart,colors+HC_STRING1,EPriorityNormal);
     state[0].State=PARSER_CLEAR;
     state[0].Level=0;
+    POP_PAIR_S(6);
     goto colorize_clear;
   }
   [\000]
@@ -256,6 +258,7 @@ colorize_string3:
     Info.pAddColor(params,lno,commentstart-line,yycur-commentstart,colors+HC_STRING1,EPriorityNormal);
     state[0].State=PARSER_CLEAR;
     state[0].Level=0;
+    POP_PAIR_S(7);
     goto colorize_clear;
   }
   [\000]

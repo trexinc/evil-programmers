@@ -135,9 +135,9 @@ colorize_clear:
   ('object') {PUSH_PAIR(7)}
   ('class') {PUSH_PAIR(8)}
   ('try') {PUSH_PAIR(9)}
-  ('end') {POP_PAIR(2,9)}
+  ('end') {POP_PAIR_EXT(2,9)}
   ('repeat') {PUSH_PAIR(10)}
-  ('until') {POP_PAIR(10,10)}
+  ('until') {POP_PAIR(10)}
   L(L|D)*
   { goto colorize_clear; }
   /*D+
@@ -172,9 +172,9 @@ colorize_clear:
     goto colorize_clear;
   }
   "(" {PUSH_PAIR(0)}
-  ")" {POP_PAIR(0,0)}
+  ")" {POP_PAIR(0)}
   "[" {PUSH_PAIR(1)}
-  "]" {POP_PAIR(1,1)}
+  "]" {POP_PAIR(1)}
   ";"
   { Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_KEYWORD3,EPriorityNormal); goto colorize_clear; }
 

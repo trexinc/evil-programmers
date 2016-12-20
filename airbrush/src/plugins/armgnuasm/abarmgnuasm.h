@@ -54,5 +54,9 @@
 #define PARSER_COMMENT3 4
 #define PARSER_STRING2  5
 
+#define PAIR_SQ_BRACKETS 1
+#define PAIR_BRACES      2
+#define PAIR_STRING      3
+
 extern ABColor colors[];
 extern struct ColorizeInfo Info;

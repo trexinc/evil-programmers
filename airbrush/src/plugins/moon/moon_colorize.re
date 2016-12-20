@@ -190,11 +190,11 @@ colorize_clear:
   (D+)|(D+E)|(D*"."D+E?)|(D+"."D*E?)
   { Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_NUMBER1,EPriorityNormal); goto colorize_clear; }
   "[" "="* "["
-  { state[0].State=PARSER_STRING1; state[0].Level=GetLevel(yytok); commentstart=yytok; goto colorize_string1; }
+  { PUSH_PAIR_S(4); state[0].State=PARSER_STRING1; state[0].Level=GetLevel(yytok); commentstart=yytok; goto colorize_string1; }
   ["]
-  { state[0].State=PARSER_STRING2; state[0].Level=0; commentstart=yytok; goto colorize_string2; }
+  { PUSH_PAIR_S(5); state[0].State=PARSER_STRING2; state[0].Level=0; commentstart=yytok; goto colorize_string2; }
   [']
-  { state[0].State=PARSER_STRING3; state[0].Level=0; commentstart=yytok; goto colorize_string3; }
+  { PUSH_PAIR_S(6); state[0].State=PARSER_STRING3; state[0].Level=0; commentstart=yytok; goto colorize_string3; }
   "."{4,}
   { goto colorize_clear; }
   ".."/"."D
@@ -211,11 +211,11 @@ colorize_clear:
     goto colorize_clear;
   }
   "(" {PUSH_PAIR(0)}
-  ")" {POP_PAIR(0,0)}
+  ")" {POP_PAIR(0)}
   "[" {PUSH_PAIR(1)}
-  "]" {POP_PAIR(1,1)}
+  "]" {POP_PAIR(1)}
   "{" { ++brackets; PUSH_PAIR(2)}
-  "}" {--brackets; if(Interpolation&&brackets==-1) return yycur; POP_PAIR(2,2)}
+  "}" {--brackets; if(Interpolation&&brackets==-1) return yycur; POP_PAIR(2)}
   [ \t\v\f]+ { goto colorize_clear; }
 
   [\000]
@@ -261,6 +261,7 @@ colorize_string1:
       Info.pAddColor(params,lno,commentstart-line,yycur-commentstart,colors+HC_STRING1,EPriorityNormal);
       state[0].State=PARSER_CLEAR;
       state[0].Level=0;
+      POP_PAIR_S(4);
       goto colorize_clear;
     }
     yycur=yytok+1;
@@ -282,14 +283,14 @@ colorize_string2:
     if(newcur&&Info.pInterpolation((const wchar_t*)yytok,newcur-yytok))
     {
       Info.pAddColor(params,lno,commentstart-line,yytok-commentstart,colors+HC_STRING1,EPriorityNormal);
-      PUSH_PAIR_0(3,HC_INTERPOL)
+      PUSH_PAIR_1(3,HC_INTERPOL)
       MoonState newstate={PARSER_CLEAR,0};
       ColorizeParams newparams=*params;
       newparams.callback=NULL;
       ColorizeInternal(lno,line,yycur-line,linelen,hl_row,hl_col,hl_state,&newstate,&newparams,true);
       yytok=newcur-1;
       yycur=newcur;
-      POP_PAIR_0(3,3,HC_INTERPOL)
+      POP_PAIR_1(3,HC_INTERPOL)
       commentstart=yycur;
     }
     goto colorize_string2;
@@ -299,6 +300,7 @@ colorize_string2:
     Info.pAddColor(params,lno,commentstart-line,yycur-commentstart,colors+HC_STRING1,EPriorityNormal);
     state[0].State=PARSER_CLEAR;
     state[0].Level=0;
+    POP_PAIR_S(5);
     goto colorize_clear;
   }
   [\000]
@@ -323,6 +325,7 @@ colorize_string3:
     Info.pAddColor(params,lno,commentstart-line,yycur-commentstart,colors+HC_STRING1,EPriorityNormal);
     state[0].State=PARSER_CLEAR;
     state[0].Level=0;
+    POP_PAIR_S(6);
     goto colorize_clear;
   }
   [\000]

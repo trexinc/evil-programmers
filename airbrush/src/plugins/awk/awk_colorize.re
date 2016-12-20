@@ -83,7 +83,7 @@ colorize_clear:
   "#"
   { commentstart=yytok; goto colorize_comment; }
   ["]
-  { state[0]=PARSER_STRING; commentstart=yytok; goto colorize_string; }
+  { PUSH_PAIR_S(3); state[0]=PARSER_STRING; commentstart=yytok; goto colorize_string; }
   [/]
   {
     Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_REGEXPS,EPriorityNormal);
@@ -120,11 +120,11 @@ colorize_clear:
   "\"" ( "/dev/" ("stdin"|"stdout"|"stderr"|"fd/" D|"pid"|"ppid"|"pgrpid"|"user") | "/inet/" ("tcp"|"udp"|"raw") "/" (D|L)+ "/" [0-9a-zA-Z._-]+ "/" (D|L)+ ) "\""
   { Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_IO,EPriorityNormal); goto colorize_clear; }
   "(" {PUSH_PAIR(0)}
-  ")" {POP_PAIR(0,0)}
+  ")" {POP_PAIR(0)}
   "[" {PUSH_PAIR(1)}
-  "]" {POP_PAIR(1,1)}
+  "]" {POP_PAIR(1)}
   "{" {PUSH_PAIR(2)}
-  "}" {POP_PAIR(2,2)}
+  "}" {POP_PAIR(2)}
   [ \t\v\f]+ { goto colorize_clear; }
   [\000]
   {
@@ -159,8 +159,9 @@ colorize_string:
   { goto colorize_string; }
   ["]
   {
-    Info.pAddColor(params,lno,commentstart-line,yycur-commentstart,colors+HC_STRING,EPriorityNormal);
+    Info.pAddColor(params,lno,commentstart-line,yycur-commentstart,colors+HC_STRING1,EPriorityNormal);
     state[0]=PARSER_CLEAR;
+    POP_PAIR_S(3);
     goto colorize_clear;
   }
   [\000]
@@ -187,7 +188,7 @@ colorize_regexp:
 */
 colorize_end:
     if(state[0]==PARSER_STRING)
-      Info.pAddColor(params,lno,commentstart-line,yyend-commentstart,colors+HC_STRING,EPriorityNormal);
+      Info.pAddColor(params,lno,commentstart-line,yyend-commentstart,colors+HC_STRING1,EPriorityNormal);
     if(state[0]==PARSER_REGEXP)
       Info.pAddColor(params,lno,commentstart-line,yyend-commentstart,colors+HC_REGEXP,EPriorityNormal);
   }
