@@ -27,6 +27,8 @@
 #define HC_SUBSET     8
 #define HC_PI         9
 #define HC_CDATA     10
+#define HC_HIGHLITE  11
+#define HC_HL_ERROR  12
 
 #define PARSER_CLEAR    0x00
 #define PARSER_COMMENT  0x01

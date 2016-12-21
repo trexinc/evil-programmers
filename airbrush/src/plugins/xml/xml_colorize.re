@@ -42,6 +42,17 @@ Name                    = NameStartChar (NameChar)*;
 SystemLiteral           = ("\"" [^"\000]* "\"")|("'" [^'\000]* "'");
 */
 
+static unsigned hash(const UTCHAR* str,size_t len)
+{
+  unsigned b=378551u,a=63689u,result=0u;
+  for(size_t ii=0;ii<len;++ii,++str)
+  {
+    result=result*a+*str;
+    a*=b;
+  }
+  return result;
+}
+
 void WINAPI Colorize(intptr_t index,struct ColorizeParams *params)
 {
   (void)index;
@@ -55,12 +66,14 @@ void WINAPI Colorize(intptr_t index,struct ColorizeParams *params)
   const UTCHAR *yycur,*yyend,*yytmp,*yyctxtmp,*yytok=NULL;
   struct PairStack *hl_state=NULL;
   intptr_t hl_row; intptr_t hl_col;
+  unsigned pair_hash=0;
   if(params->data_size>=sizeof(state_data))
   {
     state=(int *)(params->data);
     state_size=params->data_size;
   }
   Info.pGetCursor(params->eid,&hl_row,&hl_col);
+  Info.pSetBracket(params->eid,-1,-1);
   for(int lno=params->startline;lno<params->endline;lno++,yytok=NULL)
   {
     startcol=(lno==params->startline)?params->startcolumn:0;
@@ -115,6 +128,8 @@ colorize_clear:
   /* open tag */
   "<" Name
   {
+    pair_hash=hash(yytok+1,yycur-yytok-1);
+    PUSH_PAIR_0((int)pair_hash,0,0);
     state[0]=PARSER_OPENTAG;
     Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_OPENTAG,EPriorityNormal);
     goto colorize_opentag;
@@ -122,6 +137,8 @@ colorize_clear:
   /* close tag */
   "</" Name
   {
+
+    POP_PAIR_00((int)hash(yytok+2,yycur-yytok-2),0,0);
     state[0]=PARSER_CLOSETAG;
     Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_CLOSETAG,EPriorityNormal);
     goto colorize_closetag;
@@ -222,6 +239,7 @@ colorize_opentag:
   {
     Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_CLOSETAG,EPriorityNormal);
     state[0]=PARSER_CLEAR;
+    POP_PAIR_00((int)pair_hash,0,0);
     goto colorize_clear;
   }
   ">"

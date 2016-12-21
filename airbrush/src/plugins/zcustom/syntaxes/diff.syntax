@@ -1,4 +1,4 @@
- file diff\soutput \*.diff,\*.rej,\*.patch Index:/[\s\t]+/
+file diff\soutput \*.diff,\*.rej,\*.patch Index:/[\s\t]+/
 context default
     keyword linestart @@*@@ cyan
     keyword linestart Index:\s brown

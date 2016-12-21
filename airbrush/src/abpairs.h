@@ -104,6 +104,8 @@ inline int PairStackCursor(int row,int col,int len,int cursor_row,int cursor_col
   PairStackPop(params->LocalHeap,&hl_state); \
 }
 
+#define POP_PAIR_00(LEVEL1,COLOR,SIMPLE) POP_PAIR_0(LEVEL1,LEVEL1,COLOR,SIMPLE)
+
 #define PUSH_PAIR_1(LEVEL,COLOR) PUSH_PAIR_0(LEVEL,COLOR,1)
 #define POP_PAIR_1(LEVEL1,COLOR) POP_PAIR_0(LEVEL1,LEVEL1,COLOR,1)
 

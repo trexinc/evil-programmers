@@ -36,9 +36,11 @@ ABColor colors[]=
   {ABCF_4BIT,AB_OPAQUE(0x07),AB_OPAQUE(0x00),NULL,false,true },
   {ABCF_4BIT,AB_OPAQUE(0x03),AB_OPAQUE(0x00),NULL,false,true },
   {ABCF_4BIT,AB_OPAQUE(0x07),AB_OPAQUE(0x00),NULL,false,true },
-  {ABCF_4BIT,AB_OPAQUE(0x0A),AB_OPAQUE(0x00),NULL,false,true }
+  {ABCF_4BIT,AB_OPAQUE(0x0A),AB_OPAQUE(0x00),NULL,false,true },
+  {ABCF_4BIT,AB_OPAQUE(0x0C),AB_OPAQUE(0x00),NULL,false,true },
+  {ABCF_4BIT,AB_OPAQUE(0x01),AB_OPAQUE(0x0C),NULL,false,false}
 };
-const TCHAR* colornames[]={_T("Error"),_T("Comment"),_T("Open Tag"),_T("Close Tag"),_T("Reference"),_T("Attribute Name"),_T("Attribute Value"),_T("Markup Declarations"),_T("Declaration Subset"),_T("Processing Instruction"),_T("CDATA")};
+const TCHAR* colornames[]={_T("Error"),_T("Comment"),_T("Open Tag"),_T("Close Tag"),_T("Reference"),_T("Attribute Name"),_T("Attribute Value"),_T("Markup Declarations"),_T("Declaration Subset"),_T("Processing Instruction"),_T("CDATA"),_T("Pair"),_T("Wrong Pair")};
 
 int WINAPI SetColorizeInfo(ColorizeInfo *AInfo)
 {
@@ -57,7 +59,7 @@ int WINAPI GetParams(intptr_t index,intptr_t command,const char **param)
       *param=(const char*)&name;
       return true;
     case PAR_GET_PARAMS:
-      return PAR_MASK_STORE|PAR_MASK_CACHE|PAR_COLORS_STORE|PAR_SHOW_IN_LIST|PAR_FILESTART_STORE|PAR_FILESTART_CACHE;
+      return PAR_MASK_STORE|PAR_MASK_CACHE|PAR_COLORS_STORE|PAR_SHOW_IN_LIST|PAR_FILESTART_STORE|PAR_FILESTART_CACHE|PAR_BRACKETS;
     case PAR_GET_MASK:
       *param=(const char*)_T("*.xml,*.xsd,*.xsl,*.xslt,*.dtd,*.hrc");
       return true;
