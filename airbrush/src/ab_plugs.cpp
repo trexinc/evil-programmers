@@ -43,11 +43,9 @@ static void WINAPI addcolor(struct ColorizeParams* params,intptr_t lno,intptr_t 
 {
   if((color->ForegroundDefault)&&(color->BackgroundDefault)) return;
   if(len==0) return;
-  intptr_t finish=start+len-1;
   if(lno>=params->topmargin&&lno<params->bottommargin)
   {
-    intptr_t left=params->margins[lno-params->topmargin].left,right=params->margins[lno-params->topmargin].right;
-    if(start>=left&&start<right||finish>=left&&finish<right)
+    if(!(start>=params->margins[lno-params->topmargin].right||(start+len-1)<params->margins[lno-params->topmargin].left))
     {
       EditorColor ec;
       ec.StructSize=sizeof(ec);

@@ -363,7 +363,7 @@ int OnEditorEvent(int event,void *param,int editorid)
               else ++pos;
             }
             params.margins[ii].left=left;
-            params.margins[ii].right=right;
+            params.margins[ii].right=(left<0)?-1:right;
           }
         }
       }
