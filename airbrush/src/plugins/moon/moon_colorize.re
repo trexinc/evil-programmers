@@ -149,7 +149,7 @@ colorize_end:
   return NULL;
 }
 
-bool ColorizeInternal(intptr_t lno,const UTCHAR* line,intptr_t startcol,intptr_t linelen,intptr_t hl_row,intptr_t hl_col,PairStack* hl_state,MoonState* state,ColorizeParams* params,bool Interpolation)
+static bool ColorizeInternal(intptr_t lno,const UTCHAR* line,intptr_t startcol,intptr_t linelen,intptr_t hl_row,intptr_t hl_col,PairStack*& hl_state,MoonState* state,ColorizeParams* params,bool Interpolation)
 {
   const UTCHAR* yycur,*yyend,*yytmp=NULL,*yyctxtmp,*yytok=NULL;
   const UTCHAR* commentstart=line+startcol;
