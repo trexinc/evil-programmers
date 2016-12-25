@@ -146,6 +146,7 @@ static void WINAPI setbracket(intptr_t eid,intptr_t row,intptr_t col)
 
 static bool WINAPI interpolation(const wchar_t* str,intptr_t len)
 {
+#if 0
   static bool recurse=false;
   bool res=true;
   if(!recurse)
@@ -169,6 +170,9 @@ static bool WINAPI interpolation(const wchar_t* str,intptr_t len)
     recurse=false;
   }
   return res;
+#else
+  return true;
+#endif
 }
 
 void LoadPlugs(const TCHAR* ModuleName)
