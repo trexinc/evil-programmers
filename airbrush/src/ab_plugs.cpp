@@ -144,35 +144,68 @@ static void WINAPI setbracket(intptr_t eid,intptr_t row,intptr_t col)
   }
 }
 
+struct InterpolationItem{uint64_t key;bool value;};
+const size_t InterpolationCacheMaxSize=256;
+static size_t InterpolationCacheSize=0;
+static InterpolationItem InterpolationCache[InterpolationCacheMaxSize];
+
+static uint64_t hash(const wchar_t* str,size_t len)
+{
+  uint64_t b=378551u,a=63689u,result=0u;
+  for(size_t ii=0;ii<len;++ii,++str)
+  {
+    result=result*a+*str;
+    a*=b;
+  }
+  return result;
+}
+
+int compare(const void* a,const void* b)
+{
+  InterpolationItem* a1=(InterpolationItem*)a,*b1=(InterpolationItem*)b;
+  if(a1->key<b1->key) return -1;
+  if(a1->key>b1->key) return 1;
+  return 0;
+}
+
 static bool WINAPI interpolation(const wchar_t* str,intptr_t len)
 {
-#if 0
   static bool recurse=false;
   bool res=true;
   if(!recurse)
   {
     recurse=true;
-    wchar_t* text=(wchar_t*)malloc((len+1)*sizeof(*str));
-    if(text)
+    InterpolationItem key={hash(str,len),false};
+    InterpolationItem* item=(InterpolationItem*)bsearch(&key,InterpolationCache,InterpolationCacheSize,sizeof(InterpolationItem),compare);
+    if(item)
     {
-      memcpy(text,str,len*sizeof(*str));
-      text[len]=0;
-      if(len)
+      res=item->value;
+    }
+    else
+    {
+      wchar_t* text=(wchar_t*)malloc((len+1)*sizeof(*str));
+      if(text)
       {
-        FarMacroValue value;
-        value.Type=FMVT_STRING;
-        value.String=text;
-        MacroExecuteString seq={sizeof(MacroExecuteString),KMFLAGS_MOONSCRIPT,_T("{:build_grammar}=require\"moonscript.parse\"\ng=build_grammar!\nr=g\\match [[\"]]..(...)..[[\"]]\nr and r[1] and r[1][3] and r[1][3][1]=='interpolate'"),1,&value,0,NULL};
-        if(Info.MacroControl(0,MCTL_EXECSTRING,0,&seq)&&seq.OutCount>0&&FMVT_BOOLEAN==seq.OutValues[0].Type&&!seq.OutValues[0].Boolean) res=false;
+        memcpy(text,str,len*sizeof(*str));
+        text[len]=0;
+        if(len)
+        {
+          FarMacroValue value;
+          value.Type=FMVT_STRING;
+          value.String=text;
+          MacroExecuteString seq={sizeof(MacroExecuteString),KMFLAGS_MOONSCRIPT,_T("{:build_grammar}=require\"moonscript.parse\"\ng=build_grammar!\nr=g\\match [[\"]]..(...)..[[\"]]\nr and r[1] and r[1][3] and r[1][3][1]=='interpolate'"),1,&value,0,NULL};
+          if(Info.MacroControl(0,MCTL_EXECSTRING,0,&seq)&&seq.OutCount>0&&FMVT_BOOLEAN==seq.OutValues[0].Type&&!seq.OutValues[0].Boolean) res=false;
+        }
+        free(text);
+        key.value=res;
+        if(InterpolationCacheSize==InterpolationCacheMaxSize) InterpolationCacheSize=0;
+        InterpolationCache[InterpolationCacheSize++]=key;
+        qsort(InterpolationCache,InterpolationCacheSize,sizeof(InterpolationItem),compare);
       }
-      free(text);
     }
     recurse=false;
   }
   return res;
-#else
-  return true;
-#endif
 }
 
 void LoadPlugs(const TCHAR* ModuleName)
