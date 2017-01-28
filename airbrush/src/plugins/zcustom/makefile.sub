@@ -23,6 +23,7 @@ $(TARGET): $(OBJS)
 
 SYNTAX:
 	$(CP) syntax ../../../$(BINDIR)/Formats/syntax
+	$(MKDIR) ../../../$(BINDIR)/Formats/syntaxes
 	$(CP) syntaxes/* ../../../$(BINDIR)/Formats/syntaxes
 
 ../../$(BOOTSTRAPDIR)/zc_lexer.cpp: zc_lexer.re

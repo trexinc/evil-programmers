@@ -36,7 +36,7 @@ RCFLAGS=-I ./$(BOOTSTRAPDIR)
 TARGET=../$(BINDIR)/airbrush.dll
 OBJS=../$(OBJDIR)/far_settings.o ../$(OBJDIR)/ab_main.o ../$(OBJDIR)/ab_plugs.o ../$(OBJDIR)/ab_classes.o ../$(OBJDIR)/ab_colors.o ../$(OBJDIR)/airbrush.res.o
 LIBS=-lrpcrt4
-SUBDIRS=c pas sql html php re2c yacclex zcustom armgnuasm awk lua xml moon
+SUBDIRS=c pas sql html php re2c yacclex armgnuasm awk lua xml moon $(CUSTOM)
 DOCTARGET=../$(BINDIR)/file_id.diz ../$(BINDIR)/airbrush.hlf ../$(BINDIR)/airbrush.lng
 MAP = $(patsubst %.dll,%.map,$(TARGET))
 
@@ -47,7 +47,6 @@ dirs:
 	@$(MKDIR) ../$(OBJDIR)
 	@$(MKDIR) ../$(BINDIR)
 	@$(MKDIR) ../$(FORMATDIR)
-	@$(MKDIR) ../$(FORMATDIR)/syntaxes
 	@$(MKDIR) ./$(BOOTSTRAPDIR)
 
 $(TARGET): $(OBJS)
@@ -91,7 +90,7 @@ clean:
 .PHONY: $(SUBDIRS)
 
 $(SUBDIRS):
-	(cd ./plugins/$@ && $(MAKE) CC="$(CC)" RM="$(RM)" CP="$(CP)" DLLTOOL="$(DLLTOOL)" M4="$(M4)" WINDRES="$(WINDRES) $(WINDRESPRE) -I ../../$(BOOTSTRAPDIR)" CFLAGS="$(CFLAGSBASE) -I ../../$(BOOTSTRAPDIR)" LFLAGS="$(LFLAGS)" OBJDIR="o$(DIRSURF)" BINDIR="bin$(DIRSURF)" FORMATDIR="$(BINDIR)/Formats" BOOTSTRAPDIR="bootstrap$(DIRSURF)" -f makefile.sub;)
+	(cd ./plugins/$@ && $(MAKE) CC="$(CC)" RM="$(RM)" MKDIR="$(MKDIR)" CP="$(CP)" DLLTOOL="$(DLLTOOL)" M4="$(M4)" WINDRES="$(WINDRES) $(WINDRESPRE) -I ../../$(BOOTSTRAPDIR)" CFLAGS="$(CFLAGSBASE) -I ../../$(BOOTSTRAPDIR)" LFLAGS="$(LFLAGS)" OBJDIR="o$(DIRSURF)" BINDIR="bin$(DIRSURF)" FORMATDIR="$(BINDIR)/Formats" BOOTSTRAPDIR="bootstrap$(DIRSURF)" -f makefile.sub;)
 
 ../$(BINDIR)/file_id.diz: file_id_diz.m4 ab_ver.m4
 	$(M4) $< > $@
