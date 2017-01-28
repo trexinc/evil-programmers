@@ -73,7 +73,7 @@ typedef const wchar_t* (WINAPI *PLUGINGETLINE)(intptr_t eid,intptr_t lno,intptr_
 typedef bool (WINAPI* PLUGINADDSTATE)(intptr_t eid,intptr_t pos,size_t size,unsigned char* data);
 typedef void (WINAPI* PLUGINGETCURSOR)(intptr_t eid,intptr_t* row,intptr_t* col);
 typedef void (WINAPI* PLUGINCALLPARSER)(const GUID* parser,struct ColorizeParams* params);
-typedef void (WINAPI* PLUGINSETBRACKET)(intptr_t eid,intptr_t row,intptr_t col);
+typedef void (WINAPI* PLUGINSETBRACKET)(intptr_t eid,intptr_t row1,intptr_t col1,intptr_t len1,bool active1,intptr_t row2,intptr_t col2,intptr_t len2,bool active2);
 typedef bool (WINAPI* PLUGININTERPOLATION)(const wchar_t* str,intptr_t len);
 
 struct ColorizeInfo

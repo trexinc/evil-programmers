@@ -64,16 +64,16 @@ clean:
 	$(RM) ./$(BOOTSTRAPDIR)/*
 	$(RM) ../$(BINDIR)/file_id.diz
 
-../$(OBJDIR)/ab_main.o: ab_main.cpp ab_main.h ./$(BOOTSTRAPDIR)/abplugin.h ./$(BOOTSTRAPDIR)/abversion.h
+../$(OBJDIR)/ab_main.o: ab_main.cpp ab_main.h far_settings.h ./$(BOOTSTRAPDIR)/abplugin.h ./$(BOOTSTRAPDIR)/abversion.h
 	$(CC) $(CFLAGS) $< -o $@
 
-../$(OBJDIR)/ab_plugs.o: ab_plugs.cpp ab_main.h ./$(BOOTSTRAPDIR)/abplugin.h ./$(BOOTSTRAPDIR)/abversion.h
+../$(OBJDIR)/ab_plugs.o: ab_plugs.cpp ab_main.h far_settings.h ./$(BOOTSTRAPDIR)/abplugin.h ./$(BOOTSTRAPDIR)/abversion.h
 	$(CC) $(CFLAGS) $< -o $@
 
-../$(OBJDIR)/ab_classes.o: ab_classes.cpp ab_main.h ./$(BOOTSTRAPDIR)/abplugin.h
+../$(OBJDIR)/ab_classes.o: ab_classes.cpp ab_main.h far_settings.h ./$(BOOTSTRAPDIR)/abplugin.h
 	$(CC) $(CFLAGS) $< -o $@
 
-../$(OBJDIR)/ab_colors.o: ab_colors.cpp ab_main.h ./$(BOOTSTRAPDIR)/abplugin.h
+../$(OBJDIR)/ab_colors.o: ab_colors.cpp ab_main.h far_settings.h ./$(BOOTSTRAPDIR)/abplugin.h
 	$(CC) $(CFLAGS) $< -o $@
 
 ../$(OBJDIR)/far_settings.o: far_settings.cpp far_settings.h

@@ -18,7 +18,7 @@
 
 #include <tchar.h>
 #include <limits.h>
-#include "plugin.hpp"
+#include "far_settings.h"
 #include "memory.h"
 #include "abplugin.h"
 #include "ab_main.h"
@@ -41,8 +41,13 @@ PEditFile ef_create(bool m)
   result->cache=NULL;
   result->topline=0;
   result->full=false;
-  result->bracketx=-1;
-  result->brackety=-1;
+  for(size_t ii=0;ii<ArraySize(result->bracket);++ii)
+  {
+    result->bracket[ii].x=-1;
+    result->bracket[ii].y=-1;
+    result->bracket[ii].len=-1;
+    result->bracket[ii].active=false;
+  }
   return result;
 }
 

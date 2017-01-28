@@ -70,6 +70,7 @@ inline int PairStackCursor(int row,int col,int len,int cursor_row,int cursor_col
 
 //pair highlite stuff
 
+#define INIT_PAIR Info.pSetBracket(params->eid,-1,-1,-1,false,-1,-1,-1,false)
 #define PUSH_PAIR_0(LEVEL,COLOR,SIMPLE) \
 { \
   int flag=PairStackCursor(lno,yytok-line,yycur-yytok,hl_row,hl_col); \
@@ -90,16 +91,9 @@ inline int PairStackCursor(int row,int col,int len,int cursor_row,int cursor_col
   if(hl_state) \
   { \
     bool err=!((hl_state->index>=LEVEL1)&&(hl_state->index<=LEVEL2)); \
-    if(hl_state->flag) \
-    { \
-      Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_HIGHLITE+err,EPriorityBrackets); \
-      Info.pSetBracket(params->eid,lno,yytok-line); \
-    } \
-    if(flag) \
-    { \
-      Info.pAddColor(params,hl_state->row,hl_state->col,hl_state->len,colors+HC_HIGHLITE+err,EPriorityBrackets); \
-      Info.pSetBracket(params->eid,hl_state->row,hl_state->col); \
-    } \
+    if(hl_state->flag) Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_HIGHLITE+err,EPriorityBrackets); \
+    if(flag) Info.pAddColor(params,hl_state->row,hl_state->col,hl_state->len,colors+HC_HIGHLITE+err,EPriorityBrackets); \
+    if(flag||hl_state->flag) Info.pSetBracket(params->eid,hl_state->row,hl_state->col,hl_state->len,hl_state->flag,lno,yytok-line,yycur-yytok,flag); \
   } \
   PairStackPop(params->LocalHeap,&hl_state); \
 }

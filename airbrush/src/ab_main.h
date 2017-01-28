@@ -97,8 +97,13 @@ struct CEditFile
   intptr_t type;
   intptr_t topline;
   bool full;
-  intptr_t bracketx;
-  intptr_t brackety;
+  struct
+  {
+    intptr_t x;
+    intptr_t y;
+    intptr_t len;
+    bool active;
+  } bracket[2];
 };
 
 //struct CEditFile methods

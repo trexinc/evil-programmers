@@ -18,11 +18,9 @@
 
 #include <algorithm>
 #include <stdio.h>
-#include <tchar.h>
-#include "plugin.hpp"
+#include "far_settings.h"
 #include "abplugin.h"
 #include "ab_main.h"
-#include "far_settings.h"
 #include "guid.h"
 
 class CColors

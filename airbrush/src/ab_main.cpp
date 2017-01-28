@@ -19,14 +19,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <tchar.h>
-#include "plugin.hpp"
+#include "far_settings.h"
 #include "farcolor.hpp"
 #include "memory.h"
 #include "abplugin.h"
 #include "ab_main.h"
 #include "abversion.h"
-#include "far_settings.h"
 #include <initguid.h>
 #include "guid.h"
 // {2C20419A-CBA1-4a15-AB4C-AFF61510DA0C}
@@ -282,21 +280,29 @@ HANDLE WINAPI OpenW(const struct OpenInfo *Info)
         {
           fl->full=true;
           ::Info.EditorControl(eid,ECTL_REDRAW,0,NULL);
-          if(fl->bracketx>=0&&fl->brackety>=0)
+          if(fl->bracket[0].active||fl->bracket[1].active)
           {
-            FarMacroCall* fmc=(FarMacroCall*)malloc(sizeof(FarMacroCall)+3*sizeof(FarMacroValue));
+            const size_t count=(1+4*ArraySize(fl->bracket));
+            FarMacroCall* fmc=(FarMacroCall*)malloc(sizeof(FarMacroCall)+count*sizeof(FarMacroValue));
             if(fmc)
             {
               fmc->StructSize=sizeof(*fmc);
-              fmc->Count=3;
+              fmc->Count=count;
               fmc->Values=(FarMacroValue*)(fmc+1);
               fmc->Callback=MacroCallback;
               fmc->CallbackData=fmc;
               fmc->Values[0].Type=FMVT_BOOLEAN;
               fmc->Values[0].Boolean=true;
-              fmc->Values[1].Type=fmc->Values[2].Type=FMVT_INTEGER;
-              fmc->Values[1].Integer=fl->bracketx+1;
-              fmc->Values[2].Integer=fl->brackety+1;
+              for(size_t ii=0;ii<ArraySize(fl->bracket);++ii)
+              {
+                size_t jj=ii*4;
+                fmc->Values[jj+1].Type=fmc->Values[jj+2].Type=fmc->Values[jj+3].Type=FMVT_INTEGER;
+                fmc->Values[jj+4].Type=FMVT_BOOLEAN;
+                fmc->Values[jj+1].Integer=fl->bracket[ii].x+1;
+                fmc->Values[jj+2].Integer=fl->bracket[ii].y+1;
+                fmc->Values[jj+3].Integer=fl->bracket[ii].len;
+                fmc->Values[jj+4].Boolean=fl->bracket[ii].active;
+              }
               return fmc;
             }
           }

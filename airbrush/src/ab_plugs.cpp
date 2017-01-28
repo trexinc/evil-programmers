@@ -17,15 +17,13 @@
 */
 
 #include <stdio.h>
-#include <tchar.h>
-#include "plugin.hpp"
+#include "far_settings.h"
 #include "farcolor.hpp"
 #include "memory.h"
 #include "abplugin.h"
 #include "ab_main.h"
 #include "abversion.h"
 #include "guid.h"
-#include "far_settings.h"
 #include <initguid.h>
 // {55828A68-CBF7-4695-B1E3-26C16116C2AF}
 DEFINE_GUID(MessageFatalGuid, 0x55828a68, 0xcbf7, 0x4695, 0xb1, 0xe3, 0x26, 0xc1, 0x61, 0x16, 0xc2, 0xaf);
@@ -134,13 +132,19 @@ static void WINAPI callparser(const GUID *parser,struct ColorizeParams *params)
           PluginsData[i].pColorize(PluginsData[i].Index,params);
 }
 
-static void WINAPI setbracket(intptr_t eid,intptr_t row,intptr_t col)
+static void WINAPI setbracket(intptr_t eid,intptr_t row1,intptr_t col1,intptr_t len1,bool active1,intptr_t row2,intptr_t col2,intptr_t len2,bool active2)
 {
   PEditFile fl=ef_getfile(eid);
   if(fl)
   {
-    fl->bracketx=col;
-    fl->brackety=row;
+    fl->bracket[0].x=col1;
+    fl->bracket[0].y=row1;
+    fl->bracket[0].len=len1;
+    fl->bracket[0].active=active1;
+    fl->bracket[1].x=col2;
+    fl->bracket[1].y=row2;
+    fl->bracket[1].len=len2;
+    fl->bracket[1].active=active2;
   }
 }
 
