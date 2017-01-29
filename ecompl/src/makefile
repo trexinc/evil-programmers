@@ -24,7 +24,7 @@ MAP = $(patsubst %.dll,%.map,$(TARGET))
 all: dirs $(TARGET) $(DOCTARGET)
 
 #size
-CFLAGS=-c -Os -Wall -Werror -Wno-unused -fno-rtti -fno-exceptions -fno-builtin -fomit-frame-pointer -fstrict-aliasing $(CCWIDE) -I $(COMINC)
+CFLAGS=-c -Os -std=gnu++03 -Wall -Werror -Wno-unused -fno-rtti -fno-exceptions -fno-builtin -fomit-frame-pointer -fstrict-aliasing $(CCWIDE) -I $(COMINC)
 #speed
 #CFLAGS=-c -mcpu=pentiumpro -O3 -Wall -Werror -Wno-unused -fno-rtti -fno-exceptions -fomit-frame-pointer -fstrict-aliasing $(CCWIDE) -I $(COMINC)
 LFLAGS=-mdll -s -nostartfiles
