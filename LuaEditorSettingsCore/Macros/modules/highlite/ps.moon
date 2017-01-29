@@ -1,0 +1,19 @@
+import P,R from lpeg
+digit=R'09'
+{
+  Keywords:{
+    {P'-'^-1*digit^1*P'.'^-1*digit^0,Color:10}
+    {'{',Color:15,Open:1}
+    {'}',Color:15,Close:1}
+    {'%[',Color:15,Open:2}
+    {'%]',Color:15,Close:2}
+    {'/[-*?^._%w]+',Color:8}
+    {'[%w_]+'}
+  }
+  Pairs:{Color:12}
+  Regions:{
+    {Left:'%(',Right:'%)',Color:14}
+    {Left:'<',Right:'>',Color:3}
+    {Left:'%%',Color:3}
+  }
+}

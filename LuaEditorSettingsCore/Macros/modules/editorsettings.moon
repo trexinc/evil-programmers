@@ -80,6 +80,10 @@ class Resources
   Title:"Resource file"
   Type:"*.rc"
   Highlite:require'highlite.rc'
+class Postscript
+  Title:"PostScript"
+  Type:"*.ps,*.eps,*ai"
+  Highlite:require'highlite.ps'
 class Binaries
   LockMode: true
   TabSize: 8
@@ -161,7 +165,7 @@ class Default
   CFarSources,CSources,PasSources,LuaSources,Sql
   Makefile,MFour,LexAndYacc,Syntax
   JavaScript,FarMail,BatFile,RegFile
-  Diff,Resources
+  Diff,Resources,Postscript
   Executables,Archives,Pictures,Video,Audio,OtherBinaries
   Messages,FarHelp,NtEvents,PlainText,History,ChangeLogFar,ChangeLog,Roadmap
   Xml,Html
