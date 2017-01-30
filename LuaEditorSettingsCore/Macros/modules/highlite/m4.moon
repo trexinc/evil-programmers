@@ -1,4 +1,4 @@
-import P,R,S,V,C,Ct,Cg from lpeg
+﻿import P,R,S,V,C,Ct,Cg from lpeg
 wordend=#-(R'az'+R'AZ'+R'09'+S'_')
 {
   Keywords:{

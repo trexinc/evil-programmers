@@ -1,4 +1,4 @@
-import P,S,B from lpeg
+﻿import P,S,B from lpeg
 variables={{Left:'$?${',Right:'}',Color:10},{Left:'$?$%(',Right:'%)',Color:14}}
 mt_variables=__index:{Regions:variables}
 syntax={

@@ -1,4 +1,4 @@
-{
+﻿{
   Keywords:{
     {"%s",Color:{0,0xf},Start:true}
     {"%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*",Color:0x3,Start:true}

@@ -1,4 +1,4 @@
-import P,S,V from lpeg
+﻿import P,S,V from lpeg
 {
   Keywords:{{"%S+%(%)",Color:13}}
   Regions:{
