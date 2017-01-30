@@ -114,13 +114,14 @@ FixSchemes=(Sch)->
     if regions
       for r in *regions
         fix r
-    if region.Keywords
-      region.Keywords.ColorFull or=decodeK region.Keywords.Color
-      for ii=1,#region.Keywords
-        region.Keywords[ii]={region.Keywords[ii]} if 'string'==type region.Keywords[ii]
-        region.Keywords[ii].ColorFull or=(decodeK region.Keywords[ii].Color) or region.Keywords.ColorFull
-    region.ColorFull or=decodeR region.Color
-    if region.Left and region.Right and 'nil'==type region.Pair then region.Pair=true
+    with region
+      if .Keywords
+        .Keywords.ColorFull or=decodeK .Keywords.Color
+        for ii=1,#.Keywords
+          .Keywords[ii]={.Keywords[ii]} if 'string'==type .Keywords[ii]
+          .Keywords[ii].ColorFull or=(decodeK .Keywords[ii].Color) or .Keywords.ColorFull
+      .ColorFull or=decodeR .Color
+      if .Left and .Right and 'nil'==type .Pair then .Pair=true
   for s in *Sch
     s.First={s.First} if 'string'==type s.First
     if s.Highlite
