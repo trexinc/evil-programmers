@@ -133,7 +133,7 @@ FixSchemes=(Sch)->
 FixSchemes Schemes
 
 Highlite=(id,tt)->
-  if tt.Highlite
+  if tt.o.Highlite
     tocache=(v)->1+math.floor v/50
     fromcache=(v)->(v-1)*50+1
     clone=(t)->{k,('table'==type v) and (clone v) or v for k,v in pairs t}
@@ -155,7 +155,7 @@ Highlite=(id,tt)->
     {CurPos:curpos,CurLine:curline}=editor.GetInfo id
     checkCursor=(line,pos,len)->(line==curline) and curpos>=pos and curpos<(pos+len)
     getRegion=->
-      r=tt.Highlite
+      r=tt.o.Highlite
       for s in *state
         if 0==s then break
         r=r.Regions[s]
@@ -171,8 +171,8 @@ Highlite=(id,tt)->
           if region.Pair
             pair=remove pairs
             if curpair or (pair and pair.cur)
-              addcolor pair.line,pair.pos1,pair.pos2,tt.Highlite.Pairs.ColorFull,100 if pair and curpair
-              add tt.Highlite.Pairs.ColorFull,100
+              addcolor pair.line,pair.pos1,pair.pos2,tt.o.Highlite.Pairs.ColorFull,100 if pair and curpair
+              add tt.o.Highlite.Pairs.ColorFull,100
           pos+=len
       if 0==state[#state]
         if 0==s
@@ -194,7 +194,7 @@ Highlite=(id,tt)->
         add region.ColorFull[1]
         if region.Pair
           if curpair
-            add tt.Highlite.Pairs.ColorFull,100
+            add tt.o.Highlite.Pairs.ColorFull,100
         regionstart+=len
     match=(str,patt,init)->
       switch type patt
@@ -261,12 +261,12 @@ Highlite=(id,tt)->
                   if keyword.Open
                     insert pairs,{line:ii,pos1:posU,pos2:posU+stepU-1,cur:curpair,type:keyword.Open}
                     if curpair
-                      add tt.Highlite.Pairs.ColorFull,100
+                      add tt.o.Highlite.Pairs.ColorFull,100
                   else
                     pair=remove pairs
                     if curpair or (pair and pair.cur)
-                      addcolor pair.line,pair.pos1,pair.pos2,pair.type==keyword.Close and tt.Highlite.Pairs.ColorFull or tt.Highlite.Pairs.ColorErrorFull,100 if pair and curpair
-                      add (pair and pair.cur and pair.type~=keyword.Close) and tt.Highlite.Pairs.ColorErrorFull or tt.Highlite.Pairs.ColorFull,100
+                      addcolor pair.line,pair.pos1,pair.pos2,pair.type==keyword.Close and tt.o.Highlite.Pairs.ColorFull or tt.o.Highlite.Pairs.ColorErrorFull,100 if pair and curpair
+                      add (pair and pair.cur and pair.type~=keyword.Close) and tt.o.Highlite.Pairs.ColorErrorFull or tt.o.Highlite.Pairs.ColorFull,100
                 break
         if not skip and region.Regions
           for kk=1,#region.Regions
@@ -283,6 +283,8 @@ Highlite=(id,tt)->
       else addcolor ii,regionstart,len,region.ColorFull[2]
     tt.startline=fromcache #tt.cache
 
+InitType=(obj)->{o:obj,cache:{{state:{0},data:{},pairs:{}}},startline:1}
+
 GetType1=(FileName,FirstLine)->
   for scheme in *Schemes
     tt=type scheme.Type
@@ -298,8 +300,7 @@ GetType1=(FileName,FirstLine)->
 GetType=(id,FileName)->
   tt=editors[id]
   if not tt
-    tt=GetType1 FileName,editor.GetString id,1,3
-    if tt then tt.cache,tt.startline={{state:{0},data:{},pairs:{}}},1
+    tt=InitType GetType1 FileName,editor.GetString id,1,3
     editors[id]=tt
   tt
 
@@ -317,7 +318,7 @@ ApplyType=(id,tt,startup,fn)->
     {F.ESPT_SHOWWHITESPACE  ,"ShowWhiteSpace"}
     {F.ESPT_SETBOM          ,"SetBOM",true}
   }
-  for param in *params do if type(tt[param[2]])~='nil' and (not param[3] or (startup and not mf.fexist fn)) then editor.SetParam id,param[1],tt[param[2]]
+  for param in *params do if type(tt.o[param[2]])~='nil' and (not param[3] or (startup and not mf.fexist fn)) then editor.SetParam id,param[1],tt.o[param[2]]
 
 redraw=0
 Event
@@ -331,8 +332,8 @@ Event
       if tt
         ab=->mf.postmacro ->tt.airbrush=Plugin.Call(airbrushguid,2,id)
         if Event==F.EE_SAVE
-          if tt.KillSpaces or tt.Eol then KillSpaces id,tt.MinusMinusSpace,tt.KillSpaces,tt.Eol
-          if tt.KillEmptyLines then KillEmptyLines id
+          if tt.o.KillSpaces or tt.o.Eol then KillSpaces id,tt.o.MinusMinusSpace,tt.o.KillSpaces,tt.o.Eol
+          if tt.o.KillEmptyLines then KillEmptyLines id
         elseif Event==F.EE_READ
           ApplyType id,tt,true,fn
           ab!
@@ -341,7 +342,7 @@ Event
         elseif Event==F.EE_REDRAW and redraw==0
           redraw+=1
           Highlite id,tt if not tt.airbrush
-          if tt.WhiteSpaceColor
+          if tt.o.WhiteSpaceColor
             ei=editor.GetInfo id
             if 0~=bit64.band ei.Options,F.EOPT_SHOWWHITESPACE
               start,finish=ei.TopScreenLine,math.min ei.TopScreenLine+ei.WindowSizeY,ei.TotalLines
@@ -350,9 +351,9 @@ Event
                 while true
                   jj,kk=line.StringText\cfind("([%s]+)",pos)
                   if not jj then break
-                  editor.AddColor id,ii,jj,kk,F.ECF_AUTODELETE,tt.WhiteSpaceColor,100,colorguid
+                  editor.AddColor id,ii,jj,kk,F.ECF_AUTODELETE,tt.o.WhiteSpaceColor,100,colorguid
                   pos=kk+1
-                if 0~=bit64.band ei.Options,F.EOPT_SHOWLINEBREAK then editor.AddColor id,ii,line.StringLength+1,line.StringLength+line.StringEOL\len!,F.ECF_AUTODELETE,tt.WhiteSpaceColor,100,colorguid
+                if 0~=bit64.band ei.Options,F.EOPT_SHOWLINEBREAK then editor.AddColor id,ii,line.StringLength+1,line.StringLength+line.StringEOL\len!,F.ECF_AUTODELETE,tt.o.WhiteSpaceColor,100,colorguid
           redraw-=1
 
 
@@ -395,7 +396,7 @@ Event
       for key in *KeyData
         if (cc==0 or (bit.band(cc,key.Shift)~=0 and bit.band(cc,bit.bnot(key.Shift))==0)) and rec.VirtualKeyCode==key.Key
           tt=GetType editor.GetInfo!.EditorID,editor.GetFileName!
-          if tt and tt[key.Option] then return key.Action tt.Lines or 10,tt.MinusMinusSpace
+          if tt and tt.o[key.Option] then return key.Action tt.o.Lines or 10,tt.o.MinusMinusSpace
     false
 
 MenuItem
@@ -407,10 +408,10 @@ MenuItem
     id=editor.GetInfo!.EditorID
     tt=editors[id]
     if tt
-      check=(c)->c.__name==tt.__name
+      check=(c)->c.__name==tt.o.__name
       hotkeys="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
       gethotkey=->(if hotkeys\len!>0 then "&"..(hotkeys\sub 1,1)..". " else "   "),do hotkeys=hotkeys\sub 2
-      result=far.Menu{Id:win.Uuid"34BB1EE6-E7E1-44F4-A8DC-D51CF1B85E4C"},[{text:gethotkey!..scheme.Title,checked:check(scheme),selected:check(scheme),value:scheme} for scheme in *Schemes]
+      result=far.Menu{Id:win.Uuid"34BB1EE6-E7E1-44F4-A8DC-D51CF1B85E4C"},[{text:gethotkey!..scheme.Title,checked:check(scheme),selected:check(scheme),value:InitType scheme} for scheme in *Schemes]
       if result
         editors[id]=result.value
         ApplyType id,result.value

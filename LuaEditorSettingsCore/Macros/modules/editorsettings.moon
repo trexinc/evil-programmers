@@ -47,6 +47,11 @@ class MFour extends UnixSources
   Title: "m4"
   Type: "*.m4"
   Highlite:require'highlite.m4'
+class Bash extends UnixSources
+  Title: "bash"
+  Type: "*.sh"
+  First:{"#![%s]*/bin/[%l]-sh","#![%s]*/usr/bin/env[%s]+[%l]-sh"}
+  Highlite:require'highlite.bash'
 class LexAndYacc extends UnixSources
   Title: "lex/yacc"
   Type: "*.l,*.y"
@@ -163,7 +168,7 @@ class Default
   Type: "*"
 {
   CFarSources,CSources,PasSources,LuaSources,Sql
-  Makefile,MFour,LexAndYacc,Syntax
+  Makefile,MFour,Bash,LexAndYacc,Syntax
   JavaScript,FarMail,BatFile,RegFile
   Diff,Resources,Postscript
   Executables,Archives,Pictures,Video,Audio,OtherBinaries
