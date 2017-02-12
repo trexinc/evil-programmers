@@ -21,6 +21,7 @@
 enum class update_status
 {
 	S_CANTCONNECT,
+	S_INCOMPATIBLE,
 	S_UPTODATE,
 	S_REQUIRED,
 };
@@ -189,7 +190,7 @@ public:
 	}
 
 private:
-	update_status CheckUpdates(bool Self) const;
+	update_status CheckUpdates(bool Self, bool Manual) const;
 	bool DownloadUpdates(bool Self, bool Silent);
 	bool DownloadFile(bool Self, const wchar_t* RemoteFile, const wchar_t* LocalName, bool UseProxy, bool UseCallBack, bool DownloadAlways) const;
 	DWORD WinInetDownload(const wchar_t* ServerName, const wchar_t* Url, const wchar_t* FileName, bool UseProxy, download_callback Callback) const;
@@ -259,6 +260,47 @@ int mprintf_impl(const wchar_t* Format, ...)
 	return n;
 }
 
+static bool confirm_retry()
+{
+	{
+		text_color color(color::yellow);
+		mprintf(L"\nRetry? (Y/N) ");
+	}
+
+	INPUT_RECORD ir = { 0 };
+	while (!(ir.EventType == KEY_EVENT && !ir.Event.KeyEvent.bKeyDown && (ir.Event.KeyEvent.wVirtualKeyCode == L'Y' || ir.Event.KeyEvent.wVirtualKeyCode == L'N')))
+	{
+		DWORD BytesRead;
+		ReadConsoleInput(GetStdHandle(STD_INPUT_HANDLE), &ir, 1, &BytesRead);
+		Sleep(1);
+	}
+
+	mprintf(L"\n");
+	return ir.Event.KeyEvent.wVirtualKeyCode == L'Y';
+}
+
+static bool CallbackHandler(callback_mode Type, const wchar_t* Str)
+{
+	switch (Type)
+	{
+	case notification:
+		//mprintf(L"%s", Str);
+		return true;
+
+	case error:
+		{
+			text_color color(color::red);
+			mprintf(L"%s", Str);
+		}
+		return true;
+
+	case retry_confirmation:
+		return confirm_retry();
+
+	default:
+		return true;
+	}
+}
 void GetNewModuleVersion(bool Self, wchar_t* Str, DWORD& NewMajor, DWORD& NewMinor, DWORD& NewBuild)
 {
 	const auto UpdateList = Self? ipc.SelfUpdateList : ipc.FarUpdateList;
@@ -410,8 +452,24 @@ DWORD update_plugin::WinInetDownload(const wchar_t* ServerName, const wchar_t* U
 	if (!File)
 		return GetLastError();
 
-	DWORD Size = 0;
-	DWORD SizeSize = sizeof Size;
+	DWORD Status;
+	DWORD StatusSize = sizeof(Status);
+	if (!HttpQueryInfo(Request.get(), HTTP_QUERY_STATUS_CODE | HTTP_QUERY_FLAG_NUMBER, &Status, &StatusSize, nullptr))
+		return GetLastError();
+
+	switch(Status)
+	{
+	case 200:
+		break;
+	case 404:
+		return ERROR_INTERNET_ITEM_NOT_FOUND;
+	case 500:
+	default:
+		return ERROR_GEN_FAILURE;
+	}
+
+	DWORD Size;
+	DWORD SizeSize = sizeof(Size);
 	if (!HttpQueryInfo(Request.get(), HTTP_QUERY_CONTENT_LENGTH | HTTP_QUERY_FLAG_NUMBER, &Size, &SizeSize, nullptr))
 		return GetLastError();
 
@@ -437,20 +495,42 @@ DWORD update_plugin::WinInetDownload(const wchar_t* ServerName, const wchar_t* U
 			Callback(BytesDone * 100 / Size);
 		}
 	}
+
+	if (Callback)
+		Callback(0);
+
 	return 0;
 }
 
-bool update_plugin::DownloadFile(bool Self, const wchar_t* RemoteFile, const wchar_t* LocalName, bool UseProxy, bool UseCallBack, bool DownloadAlways) const
+bool update_plugin::DownloadFile(bool Self, const wchar_t* RemoteFile, const wchar_t* LocalName, bool UseProxy, bool UseCallback, bool DownloadAlways) const
 {
-	const auto LocalFile = std::wstring(ipc.TempDirectory) + (LocalName? LocalName : FSF.PointToName(RemoteFile));
+	const auto FileName = LocalName? LocalName : FSF.PointToName(RemoteFile);
+	const auto LocalFile = std::wstring(ipc.TempDirectory) + FileName;
 	if (DownloadAlways && GetFileAttributes(LocalFile.data()) != INVALID_FILE_ATTRIBUTES)
 	{
 		DeleteFile(LocalFile.data());
 	}
-	return WinInetDownload(Self? SelfRemoteSrv : FarRemoteSrv, RemoteFile, LocalFile.data(), UseProxy, UseCallBack? DownloadProc : nullptr) == 0;
+
+	DWORD DownloadResult;
+	for (;;)
+	{
+		DownloadResult = WinInetDownload(Self? SelfRemoteSrv : FarRemoteSrv, RemoteFile, LocalFile.data(), UseProxy, UseCallback? DownloadProc : nullptr);
+		if (DownloadResult == ERROR_SUCCESS)
+			break;
+
+		if (!UseCallback)
+			break;
+
+		auto Message = L" Error downloading "s + FileName + L":\n  "s + GetLastErrorMessage(DownloadResult) + L"\n"s;
+		CallbackHandler(error, Message.data());
+		if (!CallbackHandler(retry_confirmation, L""))
+			break;
+	}
+
+	return DownloadResult == ERROR_SUCCESS;
 }
 
-update_status update_plugin::CheckUpdates(bool Self) const
+update_status update_plugin::CheckUpdates(bool Self, bool Manual) const
 {
 	CreateDirectory(ipc.TempDirectory, nullptr);
 
@@ -458,13 +538,13 @@ update_status update_plugin::CheckUpdates(bool Self) const
 		SelfRemotePath + L"/"s + SelfUpdateFile :
 		FarRemotePath + L"/"s + FarUpdateFile + phpRequest;
 
-	if (!DownloadFile(Self, Url.data(), Self ? SelfUpdateFile : FarUpdateFile, m_UseProxy, false, true))
+	if (!DownloadFile(Self, Url.data(), Self? SelfUpdateFile : FarUpdateFile, m_UseProxy, Manual, true))
 		return update_status::S_CANTCONNECT;
 
 	const auto Version = GetPrivateProfileString(L"info", L"version", L"", Self? ipc.SelfUpdateList : ipc.FarUpdateList);
-	if (Version != strVer) // BUGBUG
+	if (Version != strVer)
 	{
-		return update_status::S_CANTCONNECT;
+		return update_status::S_INCOMPATIBLE;
 	}
 	if (NeedUpdate(Self))
 	{
@@ -492,9 +572,9 @@ bool update_plugin::DownloadUpdates(bool Self, bool Silent)
 	{
 		if (!Silent)
 		{
-			mprintf(L"%s %s %-50s", MSG(MLoad), Self ? L"Update" : L"Far", !i? L"" : L"pdb");
+			mprintf(L"%-60s", (MSG(MLoad) + L" "s + (Self? L"Update"s : L"Far"s) + (!i? L""s : L" pdb"s)).data());
 		}
-		Url = (Self ? SelfRemotePath : FarRemotePath) + L"/"s + File[i];
+		Url = (Self? SelfRemotePath : FarRemotePath) + L"/"s + File[i];
 		if (DownloadFile(Self, Url.data(), nullptr, m_UseProxy, !Silent, false))
 		{
 			if (!Silent)
@@ -559,7 +639,7 @@ void update_plugin::StartUpdate(bool Self, bool Silent)
 		GetWindowsDirectory(WinDir, ARRAYSIZE(WinDir));
 		BOOL IsWow64 = FALSE;
 		ipc.Self = Self;
-		FSF.sprintf(cmdline, L"%s\\%s\\rundll32.exe \"%s\", RestartFAR %I64d %I64d", WinDir, ifn.IsWow64Process(GetCurrentProcess(), &IsWow64) && IsWow64 ? L"SysWOW64" : L"System32", ipc.PluginModule, reinterpret_cast<INT64>(ProcDup), reinterpret_cast<INT64>(&ipc));
+		FSF.sprintf(cmdline, L"%s\\%s\\rundll32.exe \"%s\", RestartFAR %I64d %I64d", WinDir, ifn.IsWow64Process(GetCurrentProcess(), &IsWow64) && IsWow64? L"SysWOW64" : L"System32", ipc.PluginModule, reinterpret_cast<INT64>(ProcDup), reinterpret_cast<INT64>(&ipc));
 
 		STARTUPINFO si = { sizeof si };
 		PROCESS_INFORMATION pi;
@@ -621,7 +701,7 @@ void update_plugin::ThreadProc()
 			//for(int i=0;i<2;i++)
 			int i = 1;
 			{
-				switch (CheckUpdates(!i))
+				switch (CheckUpdates(!i, false))
 				{
 				case update_status::S_REQUIRED:
 					{
@@ -651,6 +731,12 @@ void update_plugin::ThreadProc()
 					break;
 
 				case update_status::S_CANTCONNECT:
+					{
+						Clean();
+					}
+					break;
+
+				case update_status::S_INCOMPATIBLE:
 					{
 						Clean();
 					}
@@ -764,9 +850,15 @@ void update_plugin::ManualCheck()
 	//for(int i=0;i<2;i++)
 	int i = 1;
 	{
-		switch (CheckUpdates(!i))
+		mprintf(L"%-60s", (MSG(MChecking) + L" "s + (!i? L"Update"s : L"Far"s)).data());
+
+		switch (CheckUpdates(!i, true))
 		{
 		case update_status::S_REQUIRED:
+			{
+				text_color color(color::green);
+				mprintf(L"OK\n");
+			}
 			{
 				DWORD NewMajor, NewMinor, NewBuild;
 				wchar_t Str[128];
@@ -782,7 +874,12 @@ void update_plugin::ManualCheck()
 					MSG(MAsk)
 				};
 
-				if (!PsInfo.Message(&MainGuid, nullptr, FMSG_MB_YESNO | FMSG_LEFTALIGN, nullptr, Items, ARRAYSIZE(Items), 2))
+				bool Download;
+				{
+					cursor_pos CursorPos;
+					Download = !PsInfo.Message(&MainGuid, nullptr, FMSG_MB_YESNO | FMSG_LEFTALIGN, nullptr, Items, ARRAYSIZE(Items), 2);
+				}
+				if (Download)
 				{
 					if (DownloadUpdates(!i, false))
 					{
@@ -801,7 +898,11 @@ void update_plugin::ManualCheck()
 		case update_status::S_UPTODATE:
 			{
 				text_color color(color::green);
-				mprintf(L"%s %s\n", MSG(MSystem), MSG(MUpToDate));
+				mprintf(L"OK\n");
+			}
+			{
+				text_color color(color::green);
+				mprintf(L"%s %s\n", MSG(!i? MPlugin : MFar), MSG(MUpToDate));
 				Clean();
 			}
 			break;
@@ -809,32 +910,28 @@ void update_plugin::ManualCheck()
 		case update_status::S_CANTCONNECT:
 			{
 				text_color color(color::red);
+				mprintf(L"Failed\n");
+			}
+			{
+				text_color color(color::red);
 				mprintf(L"%s\n", MSG(MCantConnect));
+			}
+			break;
+
+		case update_status::S_INCOMPATIBLE:
+			{
+				text_color color(color::green);
+				mprintf(L"OK\n");
+			}
+			{
+				text_color color(color::red);
+				mprintf(L"%s\n", MSG(MIncompatible));
 			}
 			break;
 		}
 	}
 
 	SetEvent(m_SingletonEvent.get());
-}
-
-static bool confirm_retry()
-{
-	{
-		text_color color(color::yellow);
-		mprintf(L"Retry? (Y/N) ");
-	}
-
-	INPUT_RECORD ir = { 0 };
-	while (!(ir.EventType == KEY_EVENT && !ir.Event.KeyEvent.bKeyDown && (ir.Event.KeyEvent.wVirtualKeyCode == L'Y' || ir.Event.KeyEvent.wVirtualKeyCode == L'N')))
-	{
-		DWORD BytesRead;
-		ReadConsoleInput(GetStdHandle(STD_INPUT_HANDLE), &ir, 1, &BytesRead);
-		Sleep(1);
-	}
-
-	mprintf(L"\n");
-	return ir.Event.KeyEvent.wVirtualKeyCode == L'Y';
 }
 
 bool Extract(const wchar_t* Arc, const wchar_t* Path, const wchar_t* DestDir)
@@ -844,28 +941,7 @@ bool Extract(const wchar_t* Arc, const wchar_t* Path, const wchar_t* DestDir)
 	{
 		mprintf(L"\n");
 		text_color color(color::dark_grey);
-		Result = seven_zip_module_manager(Arc).extract(Path, DestDir, [](callback_mode Type, const wchar_t* Str)
-		{
-			switch (Type)
-			{
-			case notification:
-				//mprintf(L"%s", Str);
-				return true;
-
-			case error:
-				{
-					text_color color(color::red);
-					mprintf(L"%s", Str);
-				}
-				return true;
-
-			case retry_confirmation:
-					return confirm_retry();
-
-			default:
-				return true;
-			}
-		});
+		Result = seven_zip_module_manager(Arc).extract(Path, DestDir, CallbackHandler);
 	}
 	else
 	{
@@ -966,15 +1042,7 @@ extern "C" void WINAPI RestartFARW(HWND, HINSTANCE, const wchar_t* Cmd, DWORD)
 			{
 				WaitForSingleObject(hFar.get(), INFINITE);
 
-				CONSOLE_SCREEN_BUFFER_INFO csbi;
-				GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
-				while (csbi.dwSize.Y--)
-				{
-					mprintf(L"\n");
-				}
 				hFar.reset();
-
-				mprintf(L"\n\n\n");
 
 				std::wstring File[2];
 				File[0] = GetPrivateProfileString(L"far", ipc.UseMsi? L"msi" : L"arc", L"", ipc.Self? ipc.SelfUpdateList : ipc.FarUpdateList);
@@ -988,7 +1056,7 @@ extern "C" void WINAPI RestartFARW(HWND, HINSTANCE, const wchar_t* Cmd, DWORD)
 						{
 							for (;;)
 							{
-								mprintf(L"\nUnpacking %-50s", File[i].data());
+								mprintf(L"\n%-60s", (L"Processing "s + File[i]).data());
 								const auto Result = Extract(ipc.SevenZip, local_file.data(), ipc.FarDirectory);
 								mprintf(L"\n%-60s", File[i].data());
 								text_color color(Result? color::green : color::red);
@@ -1015,7 +1083,7 @@ extern "C" void WINAPI RestartFARW(HWND, HINSTANCE, const wchar_t* Cmd, DWORD)
 					PROCESS_INFORMATION pi;
 					{
 						text_color color(color::white);
-						mprintf(L"\nExecuting %-50.50s", execExp.data());
+						mprintf(L"\n%-60s", (L"Executing " + execExp).data());
 					}
 					if (CreateProcess(nullptr, const_cast<wchar_t*>(execExp.data()), nullptr, nullptr, TRUE, 0, nullptr, ipc.PluginDirectory, &si, &pi))
 					{
@@ -1045,7 +1113,7 @@ extern "C" void WINAPI RestartFARW(HWND, HINSTANCE, const wchar_t* Cmd, DWORD)
 
 				{
 					text_color color(color::white);
-					mprintf(L"\n%-60s", L"Starting FAR...");
+					mprintf(L"\n%-60s", L"Starting Far...");
 				}
 				STARTUPINFO si = { sizeof si };
 				PROCESS_INFORMATION pi;

@@ -20,6 +20,19 @@ inline auto normalize_handle(HANDLE Handle)
 
 namespace detail
 {
+	struct module_closer
+	{
+		void operator()(HMODULE Module) const
+		{
+			FreeLibrary(Module);
+		}
+	};
+}
+
+using module_ptr = std::unique_ptr<std::remove_pointer_t<HMODULE>, detail::module_closer>;
+
+namespace detail
+{
 	struct local_deleter
 	{
 		void operator()(HLOCAL Memory) const
@@ -57,10 +70,13 @@ public:
 	ptr_setter_t(T& Ptr): m_Ptr(&Ptr)
 	{
 	}
+
 	~ptr_setter_t()
 	{
-		if (m_Ptr) m_Ptr->reset(m_RawPtr);
+		if (m_Ptr)
+			m_Ptr->reset(m_RawPtr);
 	}
+
 	auto operator&()
 	{
 		return &m_RawPtr;
@@ -76,7 +92,5 @@ auto ptr_setter(T& Ptr)
 {
 	return ptr_setter_t<T>(Ptr);
 }
-
-
 
 std::wstring GetLastErrorMessage(DWORD LastError);

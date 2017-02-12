@@ -95,14 +95,7 @@ public:
 	GETNUMBEROFFORMATS m_GetNumberOfFormats;
 
 private:
-	struct module_closer
-	{
-		void operator()(HMODULE Module) const
-		{
-			FreeLibrary(Module);
-		}
-	};
-	std::unique_ptr<std::remove_pointer_t<HMODULE>, module_closer> m_Module;
+	module_ptr m_Module;
 };
 
 namespace detail

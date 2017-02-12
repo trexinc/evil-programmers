@@ -11,6 +11,7 @@
 #define WINVER 0x0600
 
 #define WIN32_LEAN_AND_MEAN
+#define WIN32_EXTRALEAN
 #define NOMINMAX
 
 #include <plugin.hpp>
