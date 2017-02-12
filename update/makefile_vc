@@ -39,14 +39,15 @@ LNK=$(_LINK_PATH_)link.exe
 LINK_FLAGS=/nologo /dll /release /def:"$(DEF)" /map:"$(MAP)" /out:"$(DLLFULLNAME)" $(LIBS)
 
 LINK_OBJS = $(INTDIR)\$(NAME).obj\
-            $(INTDIR)\Console.obj\
-            $(INTDIR)\CursorPos.obj\
-            $(INTDIR)\HideCursor.obj\
-            $(INTDIR)\TextColor.obj\
-            $(INTDIR)\Imports.obj\
-            $(INTDIR)\Underscore.Archives.obj\
-            $(INTDIR)\PropVariant.obj\
-            $(INTDIR)\Headers.obj\
+            $(INTDIR)\console.obj\
+            $(INTDIR)\cursor_pos.obj\
+            $(INTDIR)\headers.obj\
+            $(INTDIR)\hide_cursor.obj\
+            $(INTDIR)\imported_functions.obj\
+            $(INTDIR)\prop_variant.obj\
+            $(INTDIR)\seven_zip_module_manager.obj\
+            $(INTDIR)\system.obj\
+            $(INTDIR)\text_color.obj\
             $(INTDIR)\$(NAME).res
 
 ALL: $(OUTDIR) $(INTDIR) lng $(PCH) $(DLLFULLNAME)

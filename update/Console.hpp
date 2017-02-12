@@ -1,10 +1,8 @@
 #pragma once
 
-#include "headers.hpp"
-
-class Console
+class console
 {
 public:
-	Console();
-	~Console();
+	console();
+	~console();
 };

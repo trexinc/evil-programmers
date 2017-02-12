@@ -268,30 +268,32 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Console.cpp" />
-    <ClCompile Include="CursorPos.cpp" />
+    <ClCompile Include="console.cpp" />
+    <ClCompile Include="cursor_pos.cpp" />
     <ClCompile Include="headers.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="HideCursor.cpp" />
-    <ClCompile Include="Imports.cpp" />
-    <ClCompile Include="PropVariant.cpp" />
-    <ClCompile Include="TextColor.cpp" />
-    <ClCompile Include="Underscore.Archives.cpp" />
-    <ClCompile Include="Update.cpp" />
+    <ClCompile Include="hide_cursor.cpp" />
+    <ClCompile Include="imported_functions.cpp" />
+    <ClCompile Include="prop_variant.cpp" />
+    <ClCompile Include="system.cpp" />
+    <ClCompile Include="text_color.cpp" />
+    <ClCompile Include="seven_zip_module_manager.cpp" />
+    <ClCompile Include="update.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Console.hpp" />
-    <ClInclude Include="CursorPos.hpp" />
+    <ClInclude Include="console.hpp" />
+    <ClInclude Include="cursor_pos.hpp" />
     <ClInclude Include="headers.hpp" />
-    <ClInclude Include="HideCursor.hpp" />
-    <ClInclude Include="Imports.hpp" />
-    <ClInclude Include="PropVariant.h" />
-    <ClInclude Include="TextColor.hpp" />
-    <ClInclude Include="Underscore.Archives.h" />
+    <ClInclude Include="hide_cursor.hpp" />
+    <ClInclude Include="imported_functions.hpp" />
+    <ClInclude Include="prop_variant.hpp" />
+    <ClInclude Include="system.hpp" />
+    <ClInclude Include="text_color.hpp" />
+    <ClInclude Include="seven_zip_module_manager.hpp" />
     <ClInclude Include="update.hpp" />
     <ClInclude Include="ver.hpp" />
     <ClInclude Include="lng.hpp" />
