@@ -36,7 +36,7 @@ RCFLAGS=-I ./$(BOOTSTRAPDIR)
 TARGET=../$(BINDIR)/airbrush.dll
 OBJS=../$(OBJDIR)/far_settings.o ../$(OBJDIR)/ab_main.o ../$(OBJDIR)/ab_plugs.o ../$(OBJDIR)/ab_classes.o ../$(OBJDIR)/ab_colors.o ../$(OBJDIR)/airbrush.res.o
 LIBS=-lrpcrt4
-SUBDIRS=c pas sql html php re2c yacclex armgnuasm awk lua xml moon $(CUSTOM)
+SUBDIRS=c pas sql html php re2c yacclex armgnuasm awk lua xml moon rust $(CUSTOM)
 DOCTARGET=../$(BINDIR)/file_id.diz ../$(BINDIR)/airbrush.hlf ../$(BINDIR)/airbrush.lng
 MAP = $(patsubst %.dll,%.map,$(TARGET))
 
