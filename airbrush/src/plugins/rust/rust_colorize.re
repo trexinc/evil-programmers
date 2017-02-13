@@ -30,17 +30,21 @@
 #define YYFILL(n)
 
 /*!re2c
-any = [\U00000001-\U0000ffff];
-D = [0-9];
-L = [a-zA-Z_];
-H = [a-fA-F0-9];
-E = [Ee] [+-]? D+;
-ESC1 = [\\] ([nrt\\0] | "x" D{2});
-ESC2 = [\\] ['"];
-ESC3 = "\\x{" H{1,6} "}";
+any=[\U00000001-\U0000ffff];
+B=[0-1];
+O=[0-7];
+D=[0-9];
+DD=D("_"*);
+EXP=[eE]("_"*)DD+;
+L=[a-zA-Z_];
+H=[a-fA-F0-9];
+E=[Ee] [+-]? D+;
+ESC1=[\\] ([nrt\\0] | "x" D{2});
+ESC2=[\\] ['"];
+ESC3="\\x{" H{1,6} "}";
 
-ESCA = ESC1|ESC2|ESC3;
-ESCB = ESC1|ESC2;
+ESCA=ESC1|ESC2|ESC3;
+ESCB=ESC1|ESC2;
 */
 
 static int GetLevel(const wchar_t* string)
@@ -113,6 +117,8 @@ colorize_clear:
   { Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_KEYWORD1,EPriorityNormal); goto colorize_clear; }
   L(L|D)*
   { goto colorize_clear; }
+  ((DD+|("0x" "_"*(H("_"*))+)|("0o" "_"*(O("_"*))+)|("0b" "_"*(B("_"*))+)) ("u8"|"i8"|"u16"|"i16"|"u32"|"i32"|"u64"|"i64"|"isize"|"usize")?)|((DD+(("."DD*EXP?)|EXP)) ("f32"|"f64")?)
+  { Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_NUMBER,EPriorityNormal); goto colorize_clear; }
   "#" "!"? "[" (any\[\[\]])* "]"
   { Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_ATTRIBUTE,EPriorityNormal); goto colorize_clear; }
   ["]

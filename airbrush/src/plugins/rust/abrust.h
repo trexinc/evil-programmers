@@ -18,8 +18,8 @@
 
 #define HC_COMMENT   0
 #define HC_KEYWORD1  1
-#define HC_LABEL     2
-#define HC_STRING1   3
+#define HC_STRING1   2
+#define HC_NUMBER    3
 #define HC_ATTRIBUTE 4
 #define HC_FIXME     5
 #define HC_HIGHLITE  6
