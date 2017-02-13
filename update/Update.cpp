@@ -1,24 +1,27 @@
 #include "headers.hpp"
-
-#include "Underscore.Archives.h"
+#pragma hdrstop
 
 #include <initguid.h>
+
+#include "seven_zip_module_manager.hpp"
+
 #include "guid.hpp"
-#include "Imports.hpp"
+#include "imported_functions.hpp"
 
 #include "update.hpp"
 #include "lng.hpp"
 #include "ver.hpp"
 
+#include "system.hpp"
 #include "Console.hpp"
-#include "CursorPos.hpp"
-#include "headers.hpp"
-#include "HideCursor.hpp"
-#include "TextColor.hpp"
+#include "cursor_pos.hpp"
+#include "hide_cursor.hpp"
+#include "text_color.hpp"
 
 enum class update_status
 {
 	S_CANTCONNECT,
+	S_INCOMPATIBLE,
 	S_UPTODATE,
 	S_REQUIRED,
 };
@@ -77,9 +80,9 @@ const wchar_t SelfSection[] = L"UpdateW" PLATFORM_STR;
 
 const wchar_t* FarSection = L"far";
 
-wchar_t strProxyName[512];
-wchar_t strProxyUser[512];
-wchar_t strProxyPass[512];
+wchar_t ProxyName[512];
+wchar_t ProxyUser[512];
+wchar_t ProxyPass[512];
 
 PluginStartupInfo PsInfo;
 FarStandardFunctions FSF;
@@ -112,6 +115,15 @@ void InitPaths()
 	wcscat(ipc.SevenZip, L"7zxr.dll");
 }
 
+auto GetPrivateProfileString(const wchar_t* AppName, const wchar_t* KeyName, const wchar_t* Default, const wchar_t* FileName)
+{
+	std::vector<wchar_t> Buffer(32768);
+	DWORD size = ::GetPrivateProfileString(AppName, KeyName, Default, Buffer.data(), static_cast<DWORD>(Buffer.size()), FileName);
+	return std::wstring(Buffer.data(), size);
+}
+
+using download_callback = void(*)(int);
+
 class update_plugin
 {
 public:
@@ -122,18 +134,18 @@ public:
 		m_GuardName = L"FarUpdateGuard_"s + ModuleName;
 		std::replace(m_GuardName.begin(), m_GuardName.end(), L'\\', L'/');
 
-		*strProxyName = 0;
-		*strProxyUser = 0;
-		*strProxyPass = 0;
+		*ProxyName = 0;
+		*ProxyUser = 0;
+		*ProxyPass = 0;
 
 		InitPaths();
 
 		ReadSettings();
 
 		InitializeCriticalSection(&m_Cs);
-		m_ExitEvent = CreateEvent(nullptr, TRUE, FALSE, nullptr);
-		m_WaitEvent = CreateEvent(nullptr, FALSE, TRUE, nullptr);
-		m_SingletonEvent = CreateEvent(nullptr, TRUE, TRUE, m_GuardName.data());
+		m_ExitEvent.reset(CreateEvent(nullptr, TRUE, FALSE, nullptr));
+		m_WaitEvent.reset(CreateEvent(nullptr, FALSE, TRUE, nullptr));
+		m_SingletonEvent.reset(CreateEvent(nullptr, TRUE, TRUE, m_GuardName.data()));
 
 		if (m_Mode)
 		{
@@ -146,21 +158,9 @@ public:
 
 	~update_plugin()
 	{
-		SetEvent(m_ExitEvent);
-		WaitForSingleObject(m_Thread, INFINITE);
+		SetEvent(m_ExitEvent.get());
+		WaitForSingleObject(m_Thread.get(), INFINITE);
 		DeleteCriticalSection(&m_Cs);
-		if (m_Thread)
-		{
-			CloseHandle(m_Thread);
-		}
-		CloseHandle(m_SingletonEvent);
-		CloseHandle(m_WaitEvent);
-		CloseHandle(m_ExitEvent);
-
-		if (m_RunDll)
-		{
-			CloseHandle(m_RunDll);
-		}
 	}
 
 	void GetPluginInfo(PluginInfo& Info) const
@@ -182,16 +182,18 @@ public:
 
 	void StartBackgroundJob()
 	{
-		m_Thread = reinterpret_cast<HANDLE>(_beginthreadex(nullptr, 0, [](void* Parameter)
+		m_Thread.reset(reinterpret_cast<HANDLE>(_beginthreadex(nullptr, 0, [](void* Parameter)
 		{
 			static_cast<update_plugin*>(Parameter)->ThreadProc();
 			return 0u;
-		}, this, 0, nullptr));
+		}, this, 0, nullptr)));
 	}
 
 private:
-	update_status CheckUpdates(bool Self);
+	update_status CheckUpdates(bool Self, bool Manual) const;
 	bool DownloadUpdates(bool Self, bool Silent);
+	bool DownloadFile(bool Self, const wchar_t* RemoteFile, const wchar_t* LocalName, bool UseProxy, bool UseCallBack, bool DownloadAlways) const;
+	DWORD WinInetDownload(const wchar_t* ServerName, const wchar_t* Url, const wchar_t* FileName, bool UseProxy, download_callback Callback) const;
 	void StartUpdate(bool Self, bool Silent);
 
 	void ReadSettings();
@@ -203,11 +205,11 @@ private:
 	bool NeedRestart = false;
 	std::wstring m_GuardName;
 	CRITICAL_SECTION m_Cs;
-	HANDLE m_Thread = nullptr;
-	HANDLE m_ExitEvent = nullptr;
-	HANDLE m_WaitEvent = nullptr;
-	HANDLE m_SingletonEvent = nullptr;
-	HANDLE m_RunDll = nullptr;
+	handle m_Thread;
+	handle m_ExitEvent;
+	handle m_WaitEvent;
+	handle m_SingletonEvent;
+	handle m_RunDll;
 
 	std::wstring m_CommandPrefix = L"update";
 	const wchar_t* m_PluginMenuStrings[1];
@@ -216,28 +218,146 @@ private:
 
 std::unique_ptr<update_plugin> PluginInstance;
 
-int mprintf(const wchar_t* format, ...)
+namespace detail
+{
+	void check_arg(){}
+
+	template<typename arg, typename... args>
+	void check_arg(arg Arg, args... Args)
+	{
+		static_assert(std::is_fundamental<std::remove_pointer_t<arg>>::value, "Must be a fundamental type");
+		check_arg(Args...);
+	}
+}
+
+template<typename... args>
+int mprintf(const wchar_t* Format, args... Args)
+{
+	detail::check_arg(Args...);
+	return mprintf_impl(Format, Args...);
+}
+
+int mprintf_impl(const wchar_t* Format, ...)
 {
 	va_list argptr;
-	va_start(argptr, format);
-	wchar_t buff[1024];
-	DWORD n = wvsprintf(buff, format, argptr);
+	va_start(argptr, Format);
+
+	std::unique_ptr<wchar_t[]> Buffer;
+	size_t size = 128;
+	int Length;
+	do
+	{
+		Buffer = std::make_unique<wchar_t[]>(size *= 2);
+		Buffer[size - 1] = 0;
+		Length = _vsnwprintf(Buffer.get(), size - 1, Format, argptr);
+	}
+	while (Length < 0);
+
 	va_end(argptr);
-	WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), buff, n, &n, nullptr);
+
+	DWORD n;
+	WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), Buffer.get(), Length, &n, nullptr);
 	return n;
 }
 
+static bool confirm_retry()
+{
+	{
+		text_color color(color::yellow);
+		mprintf(L"\nRetry? (Y/N) ");
+	}
+
+	INPUT_RECORD ir = { 0 };
+	while (!(ir.EventType == KEY_EVENT && !ir.Event.KeyEvent.bKeyDown && (ir.Event.KeyEvent.wVirtualKeyCode == L'Y' || ir.Event.KeyEvent.wVirtualKeyCode == L'N')))
+	{
+		DWORD BytesRead;
+		ReadConsoleInput(GetStdHandle(STD_INPUT_HANDLE), &ir, 1, &BytesRead);
+		Sleep(1);
+	}
+
+	mprintf(L"\n");
+	return ir.Event.KeyEvent.wVirtualKeyCode == L'Y';
+}
+
+static bool CallbackHandler(callback_mode Type, const wchar_t* Str)
+{
+	switch (Type)
+	{
+	case notification:
+		//mprintf(L"%s", Str);
+		return true;
+
+	case error:
+		{
+			text_color color(color::red);
+			mprintf(L"%s", Str);
+		}
+		return true;
+
+	case retry_confirmation:
+		return confirm_retry();
+
+	default:
+		return true;
+	}
+}
 void GetNewModuleVersion(bool Self, wchar_t* Str, DWORD& NewMajor, DWORD& NewMinor, DWORD& NewBuild)
 {
-	const wchar_t* UpdateList = Self ? ipc.SelfUpdateList : ipc.FarUpdateList;
-	const wchar_t* Section = Self ? SelfSection : FarSection;
+	const auto UpdateList = Self? ipc.SelfUpdateList : ipc.FarUpdateList;
+	const auto Section = Self? SelfSection : FarSection;
 	NewMajor = GetPrivateProfileInt(Section, L"major", -1, UpdateList);
 	NewMinor = GetPrivateProfileInt(Section, L"minor", -1, UpdateList);
 	NewBuild = GetPrivateProfileInt(Section, L"build", -1, UpdateList);
 	if (Str)
 	{
-		FSF.sprintf(Str, Self ? L"Update (%d.%d build %d)" : L"Far Manager (%d.%d build %d)", NewMajor, NewMinor, NewBuild);
+		FSF.sprintf(Str, Self? L"Update (%d.%d build %d)" : L"Far Manager (%d.%d build %d)", NewMajor, NewMinor, NewBuild);
 	}
+}
+
+template<typename T>
+bool ApiDynamicStringReceiver(std::wstring& Destination, const T& Callable)
+{
+	wchar_t Buffer[MAX_PATH];
+	auto Size = Callable(Buffer, std::size(Buffer));
+	if (!Size)
+		return false;
+
+	if (Size < std::size(Buffer))
+	{
+		Destination.assign(Buffer, Size);
+		return true;
+	}
+
+	for (;;)
+	{
+		const auto BufferSize = Size;
+		auto vBuffer = std::make_unique<wchar_t[]>(BufferSize);
+		Size = Callable(vBuffer.get(), BufferSize);
+		if (!Size)
+			return false;
+		if (Size < BufferSize)
+		{
+			Destination.assign(vBuffer.get(), Size);
+			return true;
+		}
+	}
+}
+
+std::wstring expand_strings(const wchar_t* Str)
+{
+	std::wstring Result;
+	if (!ApiDynamicStringReceiver(Result, [&](wchar_t* Buffer, size_t Size)
+	{
+		auto ReturnedSize = ::ExpandEnvironmentStrings(Str, Buffer, static_cast<DWORD>(Size));
+		// This pesky function includes the terminating null character even upon success, breaking the usual pattern
+		if (ReturnedSize <= Size)
+			--ReturnedSize;
+		return ReturnedSize;
+	}))
+	{
+		Result = Str;
+	}
+	return Result;
 }
 
 bool NeedUpdate(bool Self)
@@ -262,11 +382,9 @@ bool NeedUpdate(bool Self)
 		((NewMajor == FarVersion.Major) && (NewMinor == FarVersion.Minor) && (NewBuild > FarVersion.Build));
 }
 
-typedef BOOL(CALLBACK* DOWNLOADPROC)(DWORD);
-
-BOOL CALLBACK DownloadProc(DWORD Percent)
+void DownloadProc(int Percent)
 {
-	CursorPos cp;
+	cursor_pos cp;
 	if (Percent)
 	{
 		mprintf(L"%d%%", Percent);
@@ -275,168 +393,193 @@ BOOL CALLBACK DownloadProc(DWORD Percent)
 	{
 		mprintf(L"    ");
 	}
-	return TRUE;
 }
 
-DWORD WINAPI WinInetDownload(const wchar_t* strSrv, const wchar_t* strURL, const wchar_t* strFile, bool UseProxy, DOWNLOADPROC Proc)
+namespace detail
 {
-	DWORD err = 0;
-
-	DWORD ProxyType = INTERNET_OPEN_TYPE_DIRECT;
-	if (UseProxy)
-		ProxyType = *strProxyName ? INTERNET_OPEN_TYPE_PROXY : INTERNET_OPEN_TYPE_PRECONFIG;
-
-	HINTERNET hInternet = InternetOpen(L"Mozilla/5.0 (compatible; FAR Update)", ProxyType, strProxyName, nullptr, 0);
-	if (hInternet)
+	struct internet_handle_closer
 	{
-		BYTE Data[2048];
-		DWORD dwBytesRead;
-
-		HINTERNET hConnect = InternetConnect(hInternet, strSrv, INTERNET_DEFAULT_HTTP_PORT, nullptr, nullptr, INTERNET_SERVICE_HTTP, 0, 1);
-		if (hConnect)
+		void operator()(HINTERNET Handle) const
 		{
-			if (UseProxy && *strProxyName)
-			{
-				if (*strProxyUser)
-				{
-					if (!InternetSetOption(hConnect, INTERNET_OPTION_PROXY_USERNAME, strProxyUser, static_cast<DWORD>(wcslen(strProxyUser))))
-					{
-						err = GetLastError();
-					}
-				}
-				if (*strProxyPass)
-				{
-					if (!InternetSetOption(hConnect, INTERNET_OPTION_PROXY_PASSWORD, strProxyPass, static_cast<DWORD>(wcslen(strProxyPass))))
-					{
-						err = GetLastError();
-					}
-				}
-			}
-			HTTP_VERSION_INFO httpver = { 1, 1 };
-			if (!InternetSetOption(hConnect, INTERNET_OPTION_HTTP_VERSION, &httpver, sizeof httpver))
-			{
-				err = GetLastError();
-			}
-
-			HINTERNET hRequest = HttpOpenRequest(hConnect, L"GET", strURL, L"HTTP/1.1", nullptr, nullptr, INTERNET_FLAG_KEEP_CONNECTION | INTERNET_FLAG_NO_CACHE_WRITE | INTERNET_FLAG_PRAGMA_NOCACHE | INTERNET_FLAG_RELOAD, 1);
-
-			if (hRequest)
-			{
-				if (HttpSendRequest(hRequest, nullptr, 0, nullptr, 0))
-				{
-					HANDLE hFile = CreateFile(strFile, GENERIC_WRITE, FILE_SHARE_READ, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
-					if (hFile != INVALID_HANDLE_VALUE)
-					{
-						DWORD Size = 0;
-						DWORD sz = sizeof Size;
-						if (!HttpQueryInfo(hRequest, HTTP_QUERY_CONTENT_LENGTH | HTTP_QUERY_FLAG_NUMBER, &Size, &sz, nullptr))
-						{
-							err = GetLastError();
-						}
-						if (Size != GetFileSize(hFile, nullptr))
-						{
-							SetEndOfFile(hFile);
-							UINT BytesDone = 0;
-							HideCursor hc;
-							while (InternetReadFile(hRequest, Data, sizeof Data, &dwBytesRead) && dwBytesRead)
-							{
-								BytesDone += dwBytesRead;
-								if (Proc && Size)
-								{
-									Proc(BytesDone * 100 / Size);
-								}
-								DWORD dwWritten = 0;
-								if (!WriteFile(hFile, Data, dwBytesRead, &dwWritten, nullptr))
-								{
-									err = GetLastError();
-									break;
-								}
-							}
-						}
-						if (Proc)
-						{
-							Proc(0);
-						}
-						CloseHandle(hFile);
-					}
-					else
-					{
-						err = GetLastError();
-					}
-				}
-				else
-				{
-					err = GetLastError();
-				}
-				InternetCloseHandle(hRequest);
-			}
-			InternetCloseHandle(hConnect);
+			InternetCloseHandle(Handle);
 		}
-		InternetCloseHandle(hInternet);
+	};
+}
+
+using internet_ptr = std::unique_ptr<std::remove_pointer_t<HINTERNET>, detail::internet_handle_closer>;
+
+DWORD update_plugin::WinInetDownload(const wchar_t* ServerName, const wchar_t* Url, const wchar_t* FileName, bool UseProxy, download_callback Callback) const
+{
+	auto ProxyType = UseProxy? *ProxyName? INTERNET_OPEN_TYPE_PROXY : INTERNET_OPEN_TYPE_PRECONFIG : INTERNET_OPEN_TYPE_DIRECT;
+
+	internet_ptr Internet(InternetOpen(L"Mozilla/5.0 (compatible; FAR Update)", ProxyType, ProxyName, nullptr, 0));
+	if (!Internet)
+		return GetLastError();
+		
+	BYTE Data[2048];
+	DWORD BytesRead;
+
+	internet_ptr Connection(InternetConnect(Internet.get(), ServerName, INTERNET_DEFAULT_HTTP_PORT, nullptr, nullptr, INTERNET_SERVICE_HTTP, 0, 1));
+	if (!Connection)
+		return GetLastError();
+
+	if (UseProxy && *ProxyName)
+	{
+		if (*ProxyUser)
+		{
+			if (!InternetSetOption(Connection.get(), INTERNET_OPTION_PROXY_USERNAME, ProxyUser, static_cast<DWORD>(wcslen(ProxyUser))))
+				return GetLastError();
+		}
+		if (*ProxyPass)
+		{
+			if (!InternetSetOption(Connection.get(), INTERNET_OPTION_PROXY_PASSWORD, ProxyPass, static_cast<DWORD>(wcslen(ProxyPass))))
+				return GetLastError();
+		}
 	}
-	return err;
+
+	HTTP_VERSION_INFO httpver = { 1, 1 };
+	if (!InternetSetOption(Connection.get(), INTERNET_OPTION_HTTP_VERSION, &httpver, sizeof httpver))
+		return GetLastError();
+
+	internet_ptr Request(HttpOpenRequest(Connection.get(), L"GET", Url, L"HTTP/1.1", nullptr, nullptr, INTERNET_FLAG_KEEP_CONNECTION | INTERNET_FLAG_NO_CACHE_WRITE | INTERNET_FLAG_PRAGMA_NOCACHE | INTERNET_FLAG_RELOAD, 1));
+	if (!Request)
+		return GetLastError();
+
+	if (!HttpSendRequest(Request.get(), nullptr, 0, nullptr, 0))
+		return GetLastError();
+
+	handle File(normalize_handle(CreateFile(FileName, GENERIC_WRITE, FILE_SHARE_READ, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr)));
+	if (!File)
+		return GetLastError();
+
+	DWORD Status;
+	DWORD StatusSize = sizeof(Status);
+	if (!HttpQueryInfo(Request.get(), HTTP_QUERY_STATUS_CODE | HTTP_QUERY_FLAG_NUMBER, &Status, &StatusSize, nullptr))
+		return GetLastError();
+
+	switch(Status)
+	{
+	case 200:
+		break;
+	case 404:
+		return ERROR_INTERNET_ITEM_NOT_FOUND;
+	case 500:
+	default:
+		return ERROR_GEN_FAILURE;
+	}
+
+	DWORD Size;
+	DWORD SizeSize = sizeof(Size);
+	if (!HttpQueryInfo(Request.get(), HTTP_QUERY_CONTENT_LENGTH | HTTP_QUERY_FLAG_NUMBER, &Size, &SizeSize, nullptr))
+		return GetLastError();
+
+	if (Size == GetFileSize(File.get(), nullptr))
+		return 0;
+
+	SetEndOfFile(File.get());
+	UINT BytesDone = 0;
+	hide_cursor hc;
+	while (InternetReadFile(Request.get(), Data, sizeof Data, &BytesRead) && BytesRead)
+	{
+		if (WaitForSingleObject(m_ExitEvent.get(), 0) == WAIT_OBJECT_0)
+			return ERROR_CANCELLED;
+
+		DWORD Written = 0;
+		if (!WriteFile(File.get(), Data, BytesRead, &Written, nullptr) || Written != BytesRead)
+		{
+			return GetLastError();
+		}
+		BytesDone += BytesRead;
+		if (Callback && Size)
+		{
+			Callback(BytesDone * 100 / Size);
+		}
+	}
+
+	if (Callback)
+		Callback(0);
+
+	return 0;
 }
 
-bool DownloadFile(bool Self, const wchar_t* RemoteFile, const wchar_t* LocalName, bool UseProxy, bool UseCallBack)
+bool update_plugin::DownloadFile(bool Self, const wchar_t* RemoteFile, const wchar_t* LocalName, bool UseProxy, bool UseCallback, bool DownloadAlways) const
 {
-	const auto LocalFile = std::wstring(ipc.TempDirectory) + (LocalName? LocalName : FSF.PointToName(RemoteFile));
-	return WinInetDownload(Self? SelfRemoteSrv : FarRemoteSrv, RemoteFile, LocalFile.data(), UseProxy, UseCallBack? DownloadProc : nullptr) == 0;
+	const auto FileName = LocalName? LocalName : FSF.PointToName(RemoteFile);
+	const auto LocalFile = std::wstring(ipc.TempDirectory) + FileName;
+	if (DownloadAlways && GetFileAttributes(LocalFile.data()) != INVALID_FILE_ATTRIBUTES)
+	{
+		DeleteFile(LocalFile.data());
+	}
+
+	DWORD DownloadResult;
+	for (;;)
+	{
+		DownloadResult = WinInetDownload(Self? SelfRemoteSrv : FarRemoteSrv, RemoteFile, LocalFile.data(), UseProxy, UseCallback? DownloadProc : nullptr);
+		if (DownloadResult == ERROR_SUCCESS)
+			break;
+
+		if (!UseCallback)
+			break;
+
+		auto Message = L" Error downloading "s + FileName + L":\n  "s + GetLastErrorMessage(DownloadResult) + L"\n"s;
+		CallbackHandler(error, Message.data());
+		if (!CallbackHandler(retry_confirmation, L""))
+			break;
+	}
+
+	return DownloadResult == ERROR_SUCCESS;
 }
 
-update_status update_plugin::CheckUpdates(bool Self)
+update_status update_plugin::CheckUpdates(bool Self, bool Manual) const
 {
-	auto Ret = update_status::S_UPTODATE;
 	CreateDirectory(ipc.TempDirectory, nullptr);
 
-	const auto URL = Self?
+	const auto Url = Self?
 		SelfRemotePath + L"/"s + SelfUpdateFile :
 		FarRemotePath + L"/"s + FarUpdateFile + phpRequest;
 
-	if (DownloadFile(Self, URL.data(), Self ? SelfUpdateFile : FarUpdateFile, m_UseProxy, false))
+	if (!DownloadFile(Self, Url.data(), Self? SelfUpdateFile : FarUpdateFile, m_UseProxy, Manual, true))
+		return update_status::S_CANTCONNECT;
+
+	const auto Version = GetPrivateProfileString(L"info", L"version", L"", Self? ipc.SelfUpdateList : ipc.FarUpdateList);
+	if (Version != strVer)
 	{
-		wchar_t sVer[MAX_PATH];
-		GetPrivateProfileString(L"info", L"version", L"", sVer, ARRAYSIZE(sVer), Self ? ipc.SelfUpdateList : ipc.FarUpdateList);
-		if (wcscmp(sVer, strVer)) // BUGBUG
-		{
-			return update_status::S_CANTCONNECT;
-		}
-		if (NeedUpdate(Self))
-		{
-			Ret = update_status::S_REQUIRED;
-		}
+		return update_status::S_INCOMPATIBLE;
 	}
-	else
+	if (NeedUpdate(Self))
 	{
-		Ret = update_status::S_CANTCONNECT;
+		return update_status::S_REQUIRED;
 	}
-	return Ret;
+
+	return update_status::S_UPTODATE;
 }
 
 bool update_plugin::DownloadUpdates(bool Self, bool Silent)
 {
-	wchar_t URL[1024], File[2][MAX_PATH];
+	std::wstring Url, File[2];
 	if (Self)
 	{
-		GetPrivateProfileString(SelfSection, L"arc", L"", File[0], ARRAYSIZE(File[0]), ipc.SelfUpdateList);
-		GetPrivateProfileString(SelfSection, L"pdb", L"", File[1], ARRAYSIZE(File[1]), ipc.FarUpdateList);
+		File[0] = GetPrivateProfileString(SelfSection, L"arc", L"", ipc.SelfUpdateList);
+		File[1] = GetPrivateProfileString(SelfSection, L"pdb", L"", ipc.FarUpdateList);
 	}
 	else
 	{
-		GetPrivateProfileString(FarSection, ipc.UseMsi ? L"msi" : L"arc", L"", File[0], ARRAYSIZE(File[0]), ipc.FarUpdateList);
-		GetPrivateProfileString(FarSection, L"pdb", L"", File[1], ARRAYSIZE(File[1]), ipc.FarUpdateList);
+		File[0]  =GetPrivateProfileString(FarSection, ipc.UseMsi? L"msi" : L"arc", L"", ipc.FarUpdateList);
+		File[1] = GetPrivateProfileString(FarSection, L"pdb", L"", ipc.FarUpdateList);
 	}
+
 	for (size_t i = 0; i != ARRAYSIZE(File); ++i)
 	{
 		if (!Silent)
 		{
-			mprintf(L"%s %s %-50s", MSG(MLoad), Self ? L"Update" : L"Far", !i? L"" : L"pdb");
+			mprintf(L"%-60s", (MSG(MLoad) + L" "s + (Self? L"Update"s : L"Far"s) + (!i? L""s : L" pdb"s)).data());
 		}
-		FSF.sprintf(URL, L"%s/%s", Self ? SelfRemotePath : FarRemotePath, File[i]);
-		if (DownloadFile(Self, URL, nullptr, m_UseProxy, !Silent))
+		Url = (Self? SelfRemotePath : FarRemotePath) + L"/"s + File[i];
+		if (DownloadFile(Self, Url.data(), nullptr, m_UseProxy, !Silent, false))
 		{
 			if (!Silent)
 			{
-				TextColor color(FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+				text_color color(color::green);
 				mprintf(L"OK\n");
 			}
 			NeedRestart = true;
@@ -445,7 +588,7 @@ bool update_plugin::DownloadUpdates(bool Self, bool Silent)
 		{
 			if (!Silent)
 			{
-				TextColor color(FOREGROUND_RED | FOREGROUND_INTENSITY);
+				text_color color(color::red);
 				mprintf(L"download error %d\n", GetLastError());
 			}
 			return false;
@@ -465,12 +608,12 @@ bool Clean()
 void update_plugin::StartUpdate(bool Self, bool Silent)
 {
 	DWORD RunDllExitCode = 0;
-	GetExitCodeProcess(m_RunDll, &RunDllExitCode);
+	GetExitCodeProcess(m_RunDll.get(), &RunDllExitCode);
 	if (RunDllExitCode == STILL_ACTIVE)
 	{
 		if (!Silent)
 		{
-			TextColor color(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+			text_color color(color::yellow);
 			mprintf(L"\n%s\n", MSG(MExitFAR));
 		}
 	}
@@ -496,34 +639,33 @@ void update_plugin::StartUpdate(bool Self, bool Silent)
 		GetWindowsDirectory(WinDir, ARRAYSIZE(WinDir));
 		BOOL IsWow64 = FALSE;
 		ipc.Self = Self;
-		FSF.sprintf(cmdline, L"%s\\%s\\rundll32.exe \"%s\", RestartFAR %I64d %I64d", WinDir, ifn.IsWow64Process(GetCurrentProcess(), &IsWow64) && IsWow64 ? L"SysWOW64" : L"System32", ipc.PluginModule, reinterpret_cast<INT64>(ProcDup), reinterpret_cast<INT64>(&ipc));
+		FSF.sprintf(cmdline, L"%s\\%s\\rundll32.exe \"%s\", RestartFAR %I64d %I64d", WinDir, ifn.IsWow64Process(GetCurrentProcess(), &IsWow64) && IsWow64? L"SysWOW64" : L"System32", ipc.PluginModule, reinterpret_cast<INT64>(ProcDup), reinterpret_cast<INT64>(&ipc));
 
 		STARTUPINFO si = { sizeof si };
 		PROCESS_INFORMATION pi;
 
 		if (CreateProcess(nullptr, cmdline, nullptr, nullptr, TRUE, 0, nullptr, nullptr, &si, &pi))
 		{
-			m_RunDll = pi.hProcess;
+			m_RunDll.reset(pi.hProcess);
 			CloseHandle(pi.hThread);
 			if (!Silent)
 			{
-				TextColor color(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+				text_color color(color::yellow);
 				mprintf(L"\n%s\n", MSG(MExitFAR));
 			}
 			else
 			{
-				HANDLE hEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-				EventStruct es = { E_DOWNLOADED, hEvent, Self };
+				handle hEvent(CreateEvent(nullptr, FALSE, FALSE, nullptr));
+				EventStruct es = { E_DOWNLOADED, hEvent.get(), Self };
 				PsInfo.AdvControl(&MainGuid, ACTL_SYNCHRO, 0, &es);
-				WaitForSingleObject(hEvent, INFINITE);
-				CloseHandle(hEvent);
+				WaitForSingleObject(hEvent.get(), INFINITE);
 			}
 		}
 		else
 		{
 			if (!Silent)
 			{
-				TextColor color(FOREGROUND_RED | FOREGROUND_INTENSITY);
+				text_color color(color::red);
 				mprintf(L"%s - error %d\n", MSG(MCantCreateProcess), GetLastError());
 			}
 		}
@@ -533,7 +675,7 @@ void update_plugin::StartUpdate(bool Self, bool Silent)
 	{
 		if (!Silent)
 		{
-			TextColor color(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+			text_color color(color::white);
 			mprintf(L"%s\n", MSG(MDone));
 		}
 	}
@@ -541,15 +683,15 @@ void update_plugin::StartUpdate(bool Self, bool Silent)
 
 void update_plugin::ThreadProc()
 {
-	while (WaitForSingleObject(m_ExitEvent, 0) != WAIT_OBJECT_0)
+	while (WaitForSingleObject(m_ExitEvent.get(), 0) != WAIT_OBJECT_0)
 	{
 		{
-			HANDLE Handles[] = { m_ExitEvent, m_SingletonEvent };
+			HANDLE Handles[] = { m_ExitEvent.get(), m_SingletonEvent.get() };
 			if (WaitForMultipleObjects(ARRAYSIZE(Handles), Handles, false, INFINITE) == WAIT_OBJECT_0)
 				return;
 		}
 
-		HANDLE Handles[] = { m_ExitEvent, m_WaitEvent };
+		HANDLE Handles[] = { m_ExitEvent.get(), m_WaitEvent.get() };
 		const auto Result = WaitForMultipleObjects(ARRAYSIZE(Handles), Handles, false, m_Period * 60 * 60 * 1000);
 		if (Result == WAIT_OBJECT_0)
 			return;
@@ -559,11 +701,11 @@ void update_plugin::ThreadProc()
 			//for(int i=0;i<2;i++)
 			int i = 1;
 			{
-				switch (CheckUpdates(!i))
+				switch (CheckUpdates(!i, false))
 				{
 				case update_status::S_REQUIRED:
 					{
-						ResetEvent(m_SingletonEvent);
+						ResetEvent(m_SingletonEvent.get());
 						auto Load = m_Mode == 2;
 						if (!Load)
 						{
@@ -584,11 +726,17 @@ void update_plugin::ThreadProc()
 						{
 							Clean();
 						}
-						SetEvent(m_SingletonEvent);
+						SetEvent(m_SingletonEvent.get());
 					}
 					break;
 
 				case update_status::S_CANTCONNECT:
+					{
+						Clean();
+					}
+					break;
+
+				case update_status::S_INCOMPATIBLE:
 					{
 						Clean();
 					}
@@ -612,9 +760,9 @@ void update_plugin::ReadSettings()
 	m_Period = GetPrivateProfileInt(L"update", L"Period", 60, ipc.Config);
 	ipc.UseMsi = (GetPrivateProfileInt(L"update", L"Msi", 0, ipc.Config) != 0);
 	m_UseProxy = GetPrivateProfileInt(L"connect", L"proxy", 0, ipc.Config) == 1;
-	GetPrivateProfileString(L"connect", L"srv", L"", strProxyName, ARRAYSIZE(strProxyName), ipc.Config);
-	GetPrivateProfileString(L"connect", L"user", L"", strProxyUser, ARRAYSIZE(strProxyUser), ipc.Config);
-	GetPrivateProfileString(L"connect", L"pass", L"", strProxyPass, ARRAYSIZE(strProxyPass), ipc.Config);
+	GetPrivateProfileString(L"connect", L"srv", L"", ProxyName, ARRAYSIZE(ProxyName), ipc.Config);
+	GetPrivateProfileString(L"connect", L"user", L"", ProxyUser, ARRAYSIZE(ProxyUser), ipc.Config);
+	GetPrivateProfileString(L"connect", L"pass", L"", ProxyPass, ARRAYSIZE(ProxyPass), ipc.Config);
 }
 
 
@@ -689,22 +837,28 @@ extern "C" HANDLE WINAPI OpenW(const OpenInfo*)
 
 void update_plugin::ManualCheck()
 {
-	Console console;
+	console console;
 
-	if (WaitForSingleObject(m_SingletonEvent, 0) == WAIT_TIMEOUT)
+	if (WaitForSingleObject(m_SingletonEvent.get(), 0) == WAIT_TIMEOUT)
 	{
-		TextColor color(FOREGROUND_BLUE | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+		text_color color(color::white);
 		mprintf(L"%s\n", MSG(MInProgress));
 		return;
 	}
-	ResetEvent(m_SingletonEvent);
+	ResetEvent(m_SingletonEvent.get());
 
 	//for(int i=0;i<2;i++)
 	int i = 1;
 	{
-		switch (CheckUpdates(!i))
+		mprintf(L"%-60s", (MSG(MChecking) + L" "s + (!i? L"Update"s : L"Far"s)).data());
+
+		switch (CheckUpdates(!i, true))
 		{
 		case update_status::S_REQUIRED:
+			{
+				text_color color(color::green);
+				mprintf(L"OK\n");
+			}
 			{
 				DWORD NewMajor, NewMinor, NewBuild;
 				wchar_t Str[128];
@@ -720,7 +874,12 @@ void update_plugin::ManualCheck()
 					MSG(MAsk)
 				};
 
-				if (!PsInfo.Message(&MainGuid, nullptr, FMSG_MB_YESNO | FMSG_LEFTALIGN, nullptr, Items, ARRAYSIZE(Items), 2))
+				bool Download;
+				{
+					cursor_pos CursorPos;
+					Download = !PsInfo.Message(&MainGuid, nullptr, FMSG_MB_YESNO | FMSG_LEFTALIGN, nullptr, Items, ARRAYSIZE(Items), 2);
+				}
+				if (Download)
 				{
 					if (DownloadUpdates(!i, false))
 					{
@@ -729,7 +888,7 @@ void update_plugin::ManualCheck()
 				}
 				else
 				{
-					TextColor color(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+					text_color color(color::yellow);
 					mprintf(L"%s\n", MSG(MCancelled));
 					Clean();
 				}
@@ -738,36 +897,57 @@ void update_plugin::ManualCheck()
 
 		case update_status::S_UPTODATE:
 			{
-				TextColor color(FOREGROUND_GREEN | FOREGROUND_INTENSITY);
-				mprintf(L"%s %s\n", MSG(MSystem), MSG(MUpToDate));
+				text_color color(color::green);
+				mprintf(L"OK\n");
+			}
+			{
+				text_color color(color::green);
+				mprintf(L"%s %s\n", MSG(!i? MPlugin : MFar), MSG(MUpToDate));
 				Clean();
 			}
 			break;
 
 		case update_status::S_CANTCONNECT:
 			{
-				TextColor color(FOREGROUND_RED | FOREGROUND_INTENSITY);
+				text_color color(color::red);
+				mprintf(L"Failed\n");
+			}
+			{
+				text_color color(color::red);
 				mprintf(L"%s\n", MSG(MCantConnect));
+			}
+			break;
+
+		case update_status::S_INCOMPATIBLE:
+			{
+				text_color color(color::green);
+				mprintf(L"OK\n");
+			}
+			{
+				text_color color(color::red);
+				mprintf(L"%s\n", MSG(MIncompatible));
 			}
 			break;
 		}
 	}
 
-	SetEvent(m_SingletonEvent);
+	SetEvent(m_SingletonEvent.get());
 }
 
-bool Extract(const wchar_t* lpArc, const wchar_t* lpPath, const wchar_t* lpDestDir)
+bool Extract(const wchar_t* Arc, const wchar_t* Path, const wchar_t* DestDir)
 {
-	bool Result = false;
+	auto Result = false;
 	if (!ipc.UseMsi)
 	{
-		Result = SevenZipModuleManager(lpArc).Extract(lpPath, lpDestDir);
+		mprintf(L"\n");
+		text_color color(color::dark_grey);
+		Result = seven_zip_module_manager(Arc).extract(Path, DestDir, CallbackHandler);
 	}
 	else
 	{
 		STARTUPINFO si { sizeof si };
 		PROCESS_INFORMATION pi;
-		auto CmdLine = L"msiexec.exe /promptrestart /qb /i \""s + lpPath + L"\""s;
+		auto CmdLine = L"msiexec.exe /promptrestart /qb /i \""s + Path + L"\""s;
 		if (CreateProcess(nullptr, &CmdLine[0], nullptr, nullptr, FALSE, 0, nullptr, nullptr, &si, &pi))
 		{
 			WaitForSingleObject(pi.hProcess, INFINITE);
@@ -823,11 +1003,11 @@ extern "C" intptr_t WINAPI ProcessSynchroEventW(const ProcessSynchroEventInfo *p
 	return 0;
 }
 
-extern "C" void WINAPI RestartFARW(HWND, HINSTANCE, const wchar_t* lpCmd, DWORD)
+extern "C" void WINAPI RestartFARW(HWND, HINSTANCE, const wchar_t* Cmd, DWORD)
 {
 	ifn.Load();
 	int argc = 0;
-	const auto argv = CommandLineToArgvW(lpCmd, &argc);
+	local_ptr<wchar_t*> argv(CommandLineToArgvW(Cmd, &argc));
 	int n = 0;
 	if (argc == 2 + n)
 	{
@@ -835,9 +1015,9 @@ extern "C" void WINAPI RestartFARW(HWND, HINSTANCE, const wchar_t* lpCmd, DWORD)
 		{
 			AllocConsole();
 		}
-		const auto ptr = std::wcstoull(argv[n + 0], nullptr, 10);
-		const auto hFar = static_cast<HANDLE>(reinterpret_cast<LPVOID>(ptr));
-		if (hFar && hFar != INVALID_HANDLE_VALUE)
+		const auto ptr = std::wcstoull(argv.get()[n + 0], nullptr, 10);
+		handle hFar(reinterpret_cast<HANDLE>(static_cast<uintptr_t>(ptr)));
+		if (hFar)
 		{
 			/*
 			HMENU hMenu = GetSystemMenu(GetConsoleWindow(), FALSE);
@@ -857,99 +1037,65 @@ extern "C" void WINAPI RestartFARW(HWND, HINSTANCE, const wchar_t* lpCmd, DWORD)
 				SetMenuItemInfo(hMenu, Pos, MF_BYPOSITION, &mi);
 			}
 			*/
-			const auto IPCPtr = std::wcstoull(argv[n + 1], nullptr, 10);
-			if (ReadProcessMemory(hFar, reinterpret_cast<LPCVOID>(IPCPtr), &ipc, sizeof ipc, nullptr))
+			const auto IPCPtr = std::wcstoull(argv.get()[n + 1], nullptr, 10);
+			if (ReadProcessMemory(hFar.get(), reinterpret_cast<const void*>(static_cast<uintptr_t>(IPCPtr)), &ipc, sizeof ipc, nullptr))
 			{
-				WaitForSingleObject(hFar, INFINITE);
+				WaitForSingleObject(hFar.get(), INFINITE);
 
-				CONSOLE_SCREEN_BUFFER_INFO csbi;
-				GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
-				while (csbi.dwSize.Y--)
-				{
-					mprintf(L"\n");
-				}
-				CloseHandle(hFar);
+				hFar.reset();
 
-				mprintf(L"\n\n\n");
-
-				wchar_t File[2][MAX_PATH];
-				GetPrivateProfileString(L"far", ipc.UseMsi ? L"msi" : L"arc", L"", File[0], ARRAYSIZE(File[0]), ipc.Self ? ipc.SelfUpdateList : ipc.FarUpdateList);
-				GetPrivateProfileString(L"far", L"pdb", L"", File[1], ARRAYSIZE(File[1]), ipc.Self ? ipc.SelfUpdateList : ipc.FarUpdateList);
+				std::wstring File[2];
+				File[0] = GetPrivateProfileString(L"far", ipc.UseMsi? L"msi" : L"arc", L"", ipc.Self? ipc.SelfUpdateList : ipc.FarUpdateList);
+				File[1] = GetPrivateProfileString(L"far", L"pdb", L"", ipc.Self? ipc.SelfUpdateList : ipc.FarUpdateList);
 				for(size_t i = 0; i != ARRAYSIZE(File); ++i)
 				{
-					if (*File[i])
+					if (!File[i].empty())
 					{
-						const auto local_file = std::wstring(ipc.TempDirectory) + File[i];
+						const auto local_file = ipc.TempDirectory + File[i];
 						if (GetFileAttributes(local_file.data()) != INVALID_FILE_ATTRIBUTES)
 						{
-							bool Result = false;
-							while (!Result)
+							for (;;)
 							{
-								mprintf(L"Unpacking %-50s", File[i]);
-								if (!Extract(ipc.SevenZip, local_file.data(), ipc.FarDirectory))
+								mprintf(L"\n%-60s", (L"Processing "s + File[i]).data());
+								const auto Result = Extract(ipc.SevenZip, local_file.data(), ipc.FarDirectory);
+								mprintf(L"\n%-60s", File[i].data());
+								text_color color(Result? color::green : color::red);
+								mprintf(Result? L"OK\n" : L"Failed\n");
+								if (Result)
 								{
-									{
-										TextColor color(FOREGROUND_RED | FOREGROUND_INTENSITY);
-										mprintf(L"\nUnpack error. Retry? (Y/N) ");
-									}
-									INPUT_RECORD ir = { 0 };
-									while (!(ir.EventType == KEY_EVENT && !ir.Event.KeyEvent.bKeyDown && (ir.Event.KeyEvent.wVirtualKeyCode == L'Y' || ir.Event.KeyEvent.wVirtualKeyCode == L'N')))
-									{
-										DWORD BytesRead;
-										ReadConsoleInput(GetStdHandle(STD_INPUT_HANDLE), &ir, 1, &BytesRead);
-										Sleep(1);
-									}
-									if (ir.Event.KeyEvent.wVirtualKeyCode == L'N')
-									{
-										mprintf(L"\n");
-										break;
-									}
-									mprintf(L"\n");
+									if (GetPrivateProfileInt(L"Update", L"Delete", 1, ipc.Config))
+										DeleteFile(local_file.data());
+
+									break;
 								}
-								else
-								{
-									Result = true;
-								}
-							}
-							if (Result)
-							{
-								TextColor color(FOREGROUND_GREEN | FOREGROUND_INTENSITY);
-								mprintf(L"OK\n");
-								if (GetPrivateProfileInt(L"Update", L"Delete", 1, ipc.Config))
-								{
-									DeleteFile(local_file.data());
-								}
-							}
-							else
-							{
-								TextColor color(FOREGROUND_RED | FOREGROUND_INTENSITY);
-								mprintf(L"error\n");
+
+								if (!confirm_retry())
+									break;
 							}
 						}
 					}
 				}
-				wchar_t exec[2048], execExp[4096];
-				GetPrivateProfileString(L"events", L"PostInstall", L"", exec, ARRAYSIZE(exec), ipc.Config);
-				if (*exec)
+				const auto exec = GetPrivateProfileString(L"events", L"PostInstall", L"", ipc.Config);
+				if (!exec.empty())
 				{
-					ExpandEnvironmentStrings(exec, execExp, ARRAYSIZE(execExp));
+					const auto execExp = expand_strings(exec.data());
 					STARTUPINFO si = { sizeof si };
 					PROCESS_INFORMATION pi;
 					{
-						TextColor color(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-						mprintf(L"\nExecuting %-50.50s", execExp);
+						text_color color(color::white);
+						mprintf(L"\n%-60s", (L"Executing " + execExp).data());
 					}
-					if (CreateProcess(nullptr, execExp, nullptr, nullptr, TRUE, 0, nullptr, ipc.PluginDirectory, &si, &pi))
+					if (CreateProcess(nullptr, const_cast<wchar_t*>(execExp.data()), nullptr, nullptr, TRUE, 0, nullptr, ipc.PluginDirectory, &si, &pi))
 					{
 						{
-							TextColor color(FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+							text_color color(color::green);
 							mprintf(L"OK\n\n");
 						}
 						WaitForSingleObject(pi.hProcess, INFINITE);
 					}
 					else
 					{
-						TextColor color(FOREGROUND_RED | FOREGROUND_INTENSITY);
+						text_color color(color::red);
 						mprintf(L"Error %d", GetLastError());
 					}
 					mprintf(L"\n");
@@ -966,20 +1112,20 @@ extern "C" void WINAPI RestartFARW(HWND, HINSTANCE, const wchar_t* lpCmd, DWORD)
 				*/
 
 				{
-					TextColor color(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-					mprintf(L"\n%-60s", L"Starting FAR...");
+					text_color color(color::white);
+					mprintf(L"\n%-60s", L"Starting Far...");
 				}
 				STARTUPINFO si = { sizeof si };
 				PROCESS_INFORMATION pi;
-				auto FarCmd = ipc.FarModule + L" "s + ipc.FarParams;
-				if (CreateProcess(nullptr, &FarCmd[0], nullptr, nullptr, TRUE, 0, nullptr, nullptr, &si, &pi))
+				const auto FarCmd = ipc.FarModule + L" "s + ipc.FarParams;
+				if (CreateProcess(nullptr, const_cast<wchar_t*>(FarCmd.data()), nullptr, nullptr, TRUE, 0, nullptr, nullptr, &si, &pi))
 				{
-					TextColor color(FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+					text_color color(color::green);
 					mprintf(L"OK");
 				}
 				else
 				{
-					TextColor color(FOREGROUND_RED | FOREGROUND_INTENSITY);
+					text_color color(color::red);
 					mprintf(L"Error %d", GetLastError());
 				}
 				mprintf(L"\n");
@@ -989,6 +1135,5 @@ extern "C" void WINAPI RestartFARW(HWND, HINSTANCE, const wchar_t* lpCmd, DWORD)
 			}
 		}
 	}
-	LocalFree(argv);
 	Clean();
 }
