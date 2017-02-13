@@ -2,22 +2,22 @@
 
 enum class color
 {
-	black        = 0,
-	dark_blue    = FOREGROUND_BLUE,
-	dark_green   = FOREGROUND_GREEN,
-	dark_cyan    = dark_blue | dark_green,
-	dark_red     = FOREGROUND_RED,
-	dark_magenta = dark_red | dark_blue,
-	dark_yellow  = dark_red | dark_green,
-	grey         = dark_red | dark_green | dark_blue,
-	dark_grey    = black | FOREGROUND_INTENSITY,
-	blue         = dark_blue | FOREGROUND_INTENSITY,
-	green        = dark_green | FOREGROUND_INTENSITY,
-	cyan         = dark_cyan | FOREGROUND_INTENSITY,
-	red          = dark_red | FOREGROUND_INTENSITY,
-	magenta      = dark_magenta | FOREGROUND_INTENSITY,
-	yellow       = dark_yellow | FOREGROUND_INTENSITY,
-	white        = grey | FOREGROUND_INTENSITY,
+	black,
+	dark_blue,
+	dark_green,
+	dark_cyan,
+	dark_red,
+	dark_magenta,
+	dark_yellow,
+	grey,
+	dark_grey,
+	blue,
+	green,
+	cyan,
+	red,
+	magenta,
+	yellow,
+	white
 };
 
 class text_color

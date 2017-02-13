@@ -223,7 +223,7 @@ namespace detail
 	void check_arg(){}
 
 	template<typename arg, typename... args>
-	void check_arg(arg Arg, args... Args)
+	void check_arg(arg, args... Args)
 	{
 		static_assert(std::is_fundamental<std::remove_pointer_t<arg>>::value, "Must be a fundamental type");
 		check_arg(Args...);
@@ -231,10 +231,17 @@ namespace detail
 }
 
 template<typename... args>
+int mprintf(color Color, const wchar_t* Format, args... Args)
+{
+	text_color TextColor(Color);
+	return mprintf(Format, std::forward<args>(Args)...);
+}
+
+template<typename... args>
 int mprintf(const wchar_t* Format, args... Args)
 {
 	detail::check_arg(Args...);
-	return mprintf_impl(Format, Args...);
+	return mprintf_impl(Format, std::forward<args>(Args)...);
 }
 
 int mprintf_impl(const wchar_t* Format, ...)
@@ -262,10 +269,7 @@ int mprintf_impl(const wchar_t* Format, ...)
 
 static bool confirm_retry()
 {
-	{
-		text_color color(color::yellow);
-		mprintf(L"\nRetry? (Y/N) ");
-	}
+	mprintf(color::yellow, L"\nRetry? (Y/N) ");
 
 	INPUT_RECORD ir = { 0 };
 	while (!(ir.EventType == KEY_EVENT && !ir.Event.KeyEvent.bKeyDown && (ir.Event.KeyEvent.wVirtualKeyCode == L'Y' || ir.Event.KeyEvent.wVirtualKeyCode == L'N')))
@@ -288,10 +292,7 @@ static bool CallbackHandler(callback_mode Type, const wchar_t* Str)
 		return true;
 
 	case error:
-		{
-			text_color color(color::red);
-			mprintf(L"%s", Str);
-		}
+		mprintf(color::red, L"%s", Str);
 		return true;
 
 	case retry_confirmation:
@@ -384,14 +385,20 @@ bool NeedUpdate(bool Self)
 
 void DownloadProc(int Percent)
 {
+	static int LastPercent = 0;
 	cursor_pos cp;
 	if (Percent)
 	{
-		mprintf(L"%d%%", Percent);
+		if (Percent != LastPercent)
+		{
+			mprintf(L"%d%%", Percent);
+			LastPercent = Percent;
+		}
 	}
 	else
 	{
 		mprintf(L"    ");
+		LastPercent = 0;
 	}
 }
 
@@ -579,8 +586,7 @@ bool update_plugin::DownloadUpdates(bool Self, bool Silent)
 		{
 			if (!Silent)
 			{
-				text_color color(color::green);
-				mprintf(L"OK\n");
+				mprintf(color::green, L"OK\n");
 			}
 			NeedRestart = true;
 		}
@@ -588,8 +594,7 @@ bool update_plugin::DownloadUpdates(bool Self, bool Silent)
 		{
 			if (!Silent)
 			{
-				text_color color(color::red);
-				mprintf(L"download error %d\n", GetLastError());
+				mprintf(color::red, L"download error %d\n", GetLastError());
 			}
 			return false;
 		}
@@ -613,8 +618,7 @@ void update_plugin::StartUpdate(bool Self, bool Silent)
 	{
 		if (!Silent)
 		{
-			text_color color(color::yellow);
-			mprintf(L"\n%s\n", MSG(MExitFAR));
+			mprintf(color::yellow, L"\n%s\n", MSG(MExitFAR));
 		}
 	}
 	else if (NeedRestart)
@@ -650,8 +654,7 @@ void update_plugin::StartUpdate(bool Self, bool Silent)
 			CloseHandle(pi.hThread);
 			if (!Silent)
 			{
-				text_color color(color::yellow);
-				mprintf(L"\n%s\n", MSG(MExitFAR));
+				mprintf(color::yellow, L"\n%s\n", MSG(MExitFAR));
 			}
 			else
 			{
@@ -665,8 +668,7 @@ void update_plugin::StartUpdate(bool Self, bool Silent)
 		{
 			if (!Silent)
 			{
-				text_color color(color::red);
-				mprintf(L"%s - error %d\n", MSG(MCantCreateProcess), GetLastError());
+				mprintf(color::red, L"%s - error %d\n", MSG(MCantCreateProcess), GetLastError());
 			}
 		}
 
@@ -675,8 +677,7 @@ void update_plugin::StartUpdate(bool Self, bool Silent)
 	{
 		if (!Silent)
 		{
-			text_color color(color::white);
-			mprintf(L"%s\n", MSG(MDone));
+			mprintf(color::white, L"%s\n", MSG(MDone));
 		}
 	}
 }
@@ -841,8 +842,7 @@ void update_plugin::ManualCheck()
 
 	if (WaitForSingleObject(m_SingletonEvent.get(), 0) == WAIT_TIMEOUT)
 	{
-		text_color color(color::white);
-		mprintf(L"%s\n", MSG(MInProgress));
+		mprintf(color::white, L"%s\n", MSG(MInProgress));
 		return;
 	}
 	ResetEvent(m_SingletonEvent.get());
@@ -856,10 +856,7 @@ void update_plugin::ManualCheck()
 		{
 		case update_status::S_REQUIRED:
 			{
-				text_color color(color::green);
-				mprintf(L"OK\n");
-			}
-			{
+				mprintf(color::green, L"OK\n");
 				DWORD NewMajor, NewMinor, NewBuild;
 				wchar_t Str[128];
 				GetNewModuleVersion(!i, Str, NewMajor, NewMinor, NewBuild);
@@ -888,8 +885,7 @@ void update_plugin::ManualCheck()
 				}
 				else
 				{
-					text_color color(color::yellow);
-					mprintf(L"%s\n", MSG(MCancelled));
+					mprintf(color::yellow, L"%s\n", MSG(MCancelled));
 					Clean();
 				}
 			}
@@ -897,35 +893,23 @@ void update_plugin::ManualCheck()
 
 		case update_status::S_UPTODATE:
 			{
-				text_color color(color::green);
-				mprintf(L"OK\n");
-			}
-			{
-				text_color color(color::green);
-				mprintf(L"%s %s\n", MSG(!i? MPlugin : MFar), MSG(MUpToDate));
+				mprintf(color::green, L"OK\n");
+				mprintf(color::green, L"%s %s\n", MSG(!i? MPlugin : MFar), MSG(MUpToDate));
 				Clean();
 			}
 			break;
 
 		case update_status::S_CANTCONNECT:
 			{
-				text_color color(color::red);
-				mprintf(L"Failed\n");
-			}
-			{
-				text_color color(color::red);
-				mprintf(L"%s\n", MSG(MCantConnect));
+				mprintf(color::red, L"Failed\n");
+				mprintf(color::red, L"%s\n", MSG(MCantConnect));
 			}
 			break;
 
 		case update_status::S_INCOMPATIBLE:
 			{
-				text_color color(color::green);
-				mprintf(L"OK\n");
-			}
-			{
-				text_color color(color::red);
-				mprintf(L"%s\n", MSG(MIncompatible));
+				mprintf(color::green, L"OK\n");
+				mprintf(color::red, L"%s\n", MSG(MIncompatible));
 			}
 			break;
 		}
@@ -940,7 +924,6 @@ bool Extract(const wchar_t* Arc, const wchar_t* Path, const wchar_t* DestDir)
 	if (!ipc.UseMsi)
 	{
 		mprintf(L"\n");
-		text_color color(color::dark_grey);
 		Result = seven_zip_module_manager(Arc).extract(Path, DestDir, CallbackHandler);
 	}
 	else
@@ -1003,6 +986,33 @@ extern "C" intptr_t WINAPI ProcessSynchroEventW(const ProcessSynchroEventInfo *p
 	return 0;
 }
 
+static void create_process_interactive(const std::wstring &Command, const wchar_t* Directory, bool Wait)
+{
+	STARTUPINFO si = { sizeof si };
+	PROCESS_INFORMATION pi;
+
+	for (;;)
+	{
+		if (CreateProcess(nullptr, const_cast<wchar_t*>(Command.data()), nullptr, nullptr, TRUE, 0, nullptr, Directory, &si, &pi))
+		{
+			mprintf(color::green, L"OK\n");
+			if (Wait)
+				WaitForSingleObject(pi.hProcess, INFINITE);
+			break;
+		}
+
+		mprintf(color::red, L"Failed\n");
+		auto Message = L" Error starting "s + Command + L":\n  "s + GetLastErrorMessage(GetLastError()) + L"\n"s;
+		mprintf(color::red, Message.data());
+		if (!confirm_retry())
+			break;
+	}
+
+	CloseHandle(pi.hThread);
+	CloseHandle(pi.hProcess);
+}
+
+
 extern "C" void WINAPI RestartFARW(HWND, HINSTANCE, const wchar_t* Cmd, DWORD)
 {
 	ifn.Load();
@@ -1059,8 +1069,7 @@ extern "C" void WINAPI RestartFARW(HWND, HINSTANCE, const wchar_t* Cmd, DWORD)
 								mprintf(L"\n%-60s", (L"Processing "s + File[i]).data());
 								const auto Result = Extract(ipc.SevenZip, local_file.data(), ipc.FarDirectory);
 								mprintf(L"\n%-60s", File[i].data());
-								text_color color(Result? color::green : color::red);
-								mprintf(Result? L"OK\n" : L"Failed\n");
+								mprintf(Result? color::green : color::red, Result? L"OK\n" : L"Failed\n");
 								if (Result)
 								{
 									if (GetPrivateProfileInt(L"Update", L"Delete", 1, ipc.Config))
@@ -1075,32 +1084,12 @@ extern "C" void WINAPI RestartFARW(HWND, HINSTANCE, const wchar_t* Cmd, DWORD)
 						}
 					}
 				}
-				const auto exec = GetPrivateProfileString(L"events", L"PostInstall", L"", ipc.Config);
-				if (!exec.empty())
+
+				const auto UserCommand = expand_strings(GetPrivateProfileString(L"events", L"PostInstall", L"", ipc.Config).data());
+				if (!UserCommand.empty())
 				{
-					const auto execExp = expand_strings(exec.data());
-					STARTUPINFO si = { sizeof si };
-					PROCESS_INFORMATION pi;
-					{
-						text_color color(color::white);
-						mprintf(L"\n%-60s", (L"Executing " + execExp).data());
-					}
-					if (CreateProcess(nullptr, const_cast<wchar_t*>(execExp.data()), nullptr, nullptr, TRUE, 0, nullptr, ipc.PluginDirectory, &si, &pi))
-					{
-						{
-							text_color color(color::green);
-							mprintf(L"OK\n\n");
-						}
-						WaitForSingleObject(pi.hProcess, INFINITE);
-					}
-					else
-					{
-						text_color color(color::red);
-						mprintf(L"Error %d", GetLastError());
-					}
-					mprintf(L"\n");
-					CloseHandle(pi.hThread);
-					CloseHandle(pi.hProcess);
+					mprintf(color::white, L"\n%-60s", L"Starting user command");
+					create_process_interactive(UserCommand, ipc.PluginDirectory, true);
 				}
 				/*
 				if (Pos != -1)
@@ -1111,27 +1100,9 @@ extern "C" void WINAPI RestartFARW(HWND, HINSTANCE, const wchar_t* Cmd, DWORD)
 				}
 				*/
 
-				{
-					text_color color(color::white);
-					mprintf(L"\n%-60s", L"Starting Far...");
-				}
-				STARTUPINFO si = { sizeof si };
-				PROCESS_INFORMATION pi;
-				const auto FarCmd = ipc.FarModule + L" "s + ipc.FarParams;
-				if (CreateProcess(nullptr, const_cast<wchar_t*>(FarCmd.data()), nullptr, nullptr, TRUE, 0, nullptr, nullptr, &si, &pi))
-				{
-					text_color color(color::green);
-					mprintf(L"OK");
-				}
-				else
-				{
-					text_color color(color::red);
-					mprintf(L"Error %d", GetLastError());
-				}
-				mprintf(L"\n");
-
-				CloseHandle(pi.hThread);
-				CloseHandle(pi.hProcess);
+				const auto FarCommand = ipc.FarModule + (*ipc.FarParams? L" "s + ipc.FarParams : L""s);
+				mprintf(color::white, L"\n%-60s", L"Starting Far");
+				create_process_interactive(FarCommand, nullptr, false);
 			}
 		}
 	}
