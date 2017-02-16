@@ -8,11 +8,11 @@ escape={P"\\"*(P 1),Color:6}
     {P'$'*(S'!#?*@$'+(range '(',')')+(range '[',']')+(range '{','}')+(range '`','`')+digit^1+word),Color:13}
     {P'\\'*P 1}
     {
---      (P'if'+P'then'+P'elif'+P'else'+P'fi'+P'case'+P'in'+P'esac'+P'while'+
---      P'for'+P'done'+P'do'+P'continue'+P'local'+P'return'+P'-nt'+P'-ot'+P'-ef'+
---      P'-eq'+P'-ne'+P'-lt'+P'-le'+P'-gt'+P'-ge'+P'-a'+P'-b'+P'-c'+P'-d'+P'-e'+
---      P'-f'+P'-g'+P'-h'+P'-k'+P'-p'+P'-r'+P'-s'+P'-t'+P'-u'+P'-w'+P'-x'+P'-O'+
---      P'-G'+P'-L'+P'-S'+P'-N'+P'-o'+P'-z'+P'-n')*#-word
+      (P'if'+P'then'+P'elif'+P'else'+P'fi'+P'case'+P'in'+P'esac'+P'while'+
+      P'for'+P'done'+P'do'+P'continue'+P'local'+P'return'+P'-nt'+P'-ot'+P'-ef'+
+      P'-eq'+P'-ne'+P'-lt'+P'-le'+P'-gt'+P'-ge'+P'-a'+P'-b'+P'-c'+P'-d'+P'-e'+
+      P'-f'+P'-g'+P'-h'+P'-k'+P'-p'+P'-r'+P'-s'+P'-t'+P'-u'+P'-w'+P'-x'+P'-O'+
+      P'-G'+P'-L'+P'-S'+P'-N'+P'-o'+P'-z'+P'-n')*#-word
       Color:15
     }
     {word}
