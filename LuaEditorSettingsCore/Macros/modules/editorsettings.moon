@@ -37,6 +37,11 @@ class LuaSources extends Sources
   Title: "Lua & MoonScript Sources"
   Type: "*.lua,*.moon"
   ExpandTabs: 1
+class Io extends Sources
+  Title: "Io Sources"
+  Type: "*.io"
+  ExpandTabs: 1
+  Highlite:require'highlite.io'
 class Makefile extends UnixSources
   Title: "makefile"
   Type: "*makefile*,*.mak"
@@ -167,7 +172,7 @@ class Default
   Title: "default"
   Type: "*"
 {
-  CFarSources,CSources,PasSources,LuaSources,Sql
+  CFarSources,CSources,PasSources,LuaSources,Io,Sql
   Makefile,MFour,Bash,LexAndYacc,Syntax
   JavaScript,FarMail,BatFile,RegFile
   Diff,Resources,Postscript
