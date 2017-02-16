@@ -36,6 +36,8 @@ O=[0-7];
 D=[0-9];
 DD=D("_"*);
 EXP=[eE]("_"*)DD+;
+INT="u8"|"i8"|"u16"|"i16"|"u32"|"i32"|"u64"|"i64"|"isize"|"usize";
+FLOAT="f32"|"f64";
 L=[a-zA-Z_];
 H=[a-fA-F0-9];
 E=[Ee] [+-]? D+;
@@ -113,11 +115,11 @@ colorize_clear:
   { state[0].State=PARSER_COMMENT; state[0].Level=0; commentstart=yytok; goto colorize_comment1; }
   "//"
   { commentstart=yytok; goto colorize_comment2; }
-  "break"|"continue"|"fn"|"for"|"if"|"in"|"loop"|"match"|"return"|"where"|"while"
+  "as"|"box"|"break"|"const"|"continue"|"crate"|"else"|"enum"|"extern"|"false"|"fn"|"for"|"if"|"impl"|"in"|"let"|"loop"|"match"|"mod"|"pub"|"return"|"static"|"struct"|"trait"|"true"|"type"|"use"|"where"|"while"
   { Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_KEYWORD1,EPriorityNormal); goto colorize_clear; }
   L(L|D)*
   { goto colorize_clear; }
-  ((DD+|("0x" "_"*(H("_"*))+)|("0o" "_"*(O("_"*))+)|("0b" "_"*(B("_"*))+)) ("u8"|"i8"|"u16"|"i16"|"u32"|"i32"|"u64"|"i64"|"isize"|"usize")?)|((DD+(("."DD*EXP?)|EXP)) ("f32"|"f64")?)
+  ((DD+|("0x" "_"*(H("_"*))+)|("0o" "_"*(O("_"*))+)|("0b" "_"*(B("_"*))+)) INT?)|((DD+(("."DD*EXP?)|EXP)) FLOAT?)|(DD++ FLOAT)
   { Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_NUMBER,EPriorityNormal); goto colorize_clear; }
   "#" "!"? "[" (any\[\[\]])* "]"
   { Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_ATTRIBUTE,EPriorityNormal); goto colorize_clear; }
