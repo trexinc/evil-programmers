@@ -27,6 +27,7 @@
 #define YYCURSOR yycur
 #define YYLIMIT yyend
 #define YYMARKER yytmp
+#define YYCTXMARKER yyctxtmp
 #define YYFILL(n)
 
 /*!re2c
@@ -82,7 +83,7 @@ void WINAPI Colorize(intptr_t index,struct ColorizeParams *params)
   RustState state_data={PARSER_CLEAR,0};
   RustState *state=&state_data;
   int state_size=sizeof(state_data);
-  const wchar_t *yycur,*yyend,*yytmp=NULL,*yytok=NULL;
+  const wchar_t *yycur,*yyend,*yytmp=NULL,*yyctxtmp,*yytok=NULL;
   struct PairStack *hl_state=NULL;
   intptr_t hl_row; intptr_t hl_col;
   if(params->data_size>=sizeof(state_data))
@@ -115,11 +116,19 @@ colorize_clear:
   { state[0].State=PARSER_COMMENT; state[0].Level=0; commentstart=yytok; goto colorize_comment1; }
   "//"
   { commentstart=yytok; goto colorize_comment2; }
-  "as"|"box"|"break"|"const"|"continue"|"crate"|"else"|"enum"|"extern"|"false"|"fn"|"for"|"if"|"impl"|"in"|"let"|"loop"|"match"|"mod"|"pub"|"return"|"static"|"struct"|"trait"|"true"|"type"|"use"|"where"|"while"
+  "as"|"box"|"break"|"const"|"continue"|"crate"|"else"|"enum"|"extern"|"false"|"fn"|"for"|
+  "if"|"impl"|"in"|"let"|"loop"|"match"|"return"|"static"|"struct"|"trait"|"true"|"type"|
+  "use"|"where"|"while"|[-+*/%!&|^?<>=.:,'_]
   { Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_KEYWORD1,EPriorityNormal); goto colorize_clear; }
+  "mod"|"move"|"mut"|"pub"|"ref"|"unsafe"|";"
+  { Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_MODIFIER,EPriorityNormal); goto colorize_clear; }
+  L(L|D)* "!"|"$"(L(L|D)*)*
+  { Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_MACRO,EPriorityNormal); goto colorize_clear; }
   L(L|D)*
   { goto colorize_clear; }
-  ((DD+|("0x" "_"*(H("_"*))+)|("0o" "_"*(O("_"*))+)|("0b" "_"*(B("_"*))+)) INT?)|((DD+(("."DD*EXP?)|EXP)) FLOAT?)|(DD++ FLOAT)
+  DD+/[.]{2,}
+  { Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_NUMBER,EPriorityNormal); goto colorize_clear; }
+  ((DD+|("0x" "_"*(H("_"*))+)|("0o" "_"*(O("_"*))+)|("0b" "_"*(B("_"*))+)) INT?)|((DD+(("." DD*EXP?)|EXP)) FLOAT?)|(DD+ FLOAT)
   { Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_NUMBER,EPriorityNormal); goto colorize_clear; }
   "#" "!"? "[" (any\[\[\]])* "]"
   { Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_ATTRIBUTE,EPriorityNormal); goto colorize_clear; }

@@ -28,6 +28,8 @@ ABColor colors[]=
 {
   {ABCF_4BIT,AB_OPAQUE(0x03),AB_OPAQUE(0x00),NULL,false,true },
   {ABCF_4BIT,AB_OPAQUE(0x0F),AB_OPAQUE(0x00),NULL,false,true },
+  {ABCF_4BIT,AB_OPAQUE(0x0D),AB_OPAQUE(0x00),NULL,false,true },
+  {ABCF_4BIT,AB_OPAQUE(0x09),AB_OPAQUE(0x00),NULL,false,true },
   {ABCF_4BIT,AB_OPAQUE(0x0E),AB_OPAQUE(0x00),NULL,false,true },
   {ABCF_4BIT,AB_OPAQUE(0x0A),AB_OPAQUE(0x00),NULL,false,true },
   {ABCF_4BIT,AB_OPAQUE(0x04),AB_OPAQUE(0x00),NULL,false,true },
@@ -35,7 +37,7 @@ ABColor colors[]=
   {ABCF_4BIT,AB_OPAQUE(0x0C),AB_OPAQUE(0x00),NULL,false,true },
   {ABCF_4BIT,AB_OPAQUE(0x01),AB_OPAQUE(0x0C),NULL,false,false}
 };
-const wchar_t* colornames[]={L"Comment",L"Keyword",L"String",L"Number",L"Attribute",L"//FIXME",L"Pair",L"Wrong Pair"};
+const wchar_t* colornames[]={L"Comment",L"Keyword",L"Modifier",L"Macro",L"String",L"Number",L"Attribute",L"//FIXME",L"Pair",L"Wrong Pair"};
 
 int WINAPI SetColorizeInfo(ColorizeInfo *AInfo)
 {

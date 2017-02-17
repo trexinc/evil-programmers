@@ -18,12 +18,14 @@
 
 #define HC_COMMENT   0
 #define HC_KEYWORD1  1
-#define HC_STRING1   2
-#define HC_NUMBER    3
-#define HC_ATTRIBUTE 4
-#define HC_FIXME     5
-#define HC_HIGHLITE  6
-#define HC_HL_ERROR  7
+#define HC_MODIFIER  2
+#define HC_MACRO     3
+#define HC_STRING1   4
+#define HC_NUMBER    5
+#define HC_ATTRIBUTE 6
+#define HC_FIXME     7
+#define HC_HIGHLITE  8
+#define HC_HL_ERROR  9
 
 #define PARSER_CLEAR           0
 #define PARSER_COMMENT         1
