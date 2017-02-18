@@ -151,9 +151,6 @@ public:
 		{
 			StartBackgroundJob();
 		}
-
-		m_PluginMenuStrings[0] = MSG(MName);
-		m_PluginConfigStrings[0] = MSG(MCfgName);
 	}
 
 	~update_plugin()
@@ -163,16 +160,21 @@ public:
 		DeleteCriticalSection(&m_Cs);
 	}
 
-	void GetPluginInfo(PluginInfo& Info) const
+	void GetPluginInfo(PluginInfo& Info)
 	{
 		Info.StructSize = sizeof Info;
+
 		Info.PluginMenu.Guids = &MenuGuid;
+		m_PluginMenuStrings[0] = MSG(MName);
 		Info.PluginMenu.Strings = m_PluginMenuStrings;
 		Info.PluginMenu.Count = ARRAYSIZE(m_PluginMenuStrings);
 
+		/*
 		Info.PluginConfig.Guids = &MenuGuid;
+		m_PluginConfigStrings[0] = MSG(MCfgName);
 		Info.PluginConfig.Strings = m_PluginConfigStrings;
 		Info.PluginConfig.Count = ARRAYSIZE(m_PluginConfigStrings);
+		*/
 
 		Info.Flags = PF_EDITOR | PF_VIEWER | PF_DIALOG | PF_PRELOAD;
 		Info.CommandPrefix = m_CommandPrefix.data();
@@ -267,9 +269,9 @@ int mprintf_impl(const wchar_t* Format, ...)
 	return n;
 }
 
-static bool confirm_retry()
+static bool get_response(const wchar_t* Question)
 {
-	mprintf(color::yellow, L"\nRetry? (Y/N) ");
+	mprintf(color::yellow, (L"\n"s + Question + L" (Y/N) "s).data());
 
 	INPUT_RECORD ir = { 0 };
 	while (!(ir.EventType == KEY_EVENT && !ir.Event.KeyEvent.bKeyDown && (ir.Event.KeyEvent.wVirtualKeyCode == L'Y' || ir.Event.KeyEvent.wVirtualKeyCode == L'N')))
@@ -281,6 +283,11 @@ static bool confirm_retry()
 
 	mprintf(L"\n");
 	return ir.Event.KeyEvent.wVirtualKeyCode == L'Y';
+}
+
+static bool confirm_retry()
+{
+	return get_response(L"Retry?");
 }
 
 static bool CallbackHandler(callback_mode Type, const wchar_t* Str)
@@ -852,29 +859,47 @@ void update_plugin::ManualCheck()
 	{
 		mprintf(L"%-60s", (MSG(MChecking) + L" "s + (!i? L"Update"s : L"Far"s)).data());
 
-		switch (CheckUpdates(!i, true))
+		const auto UpdateStatus = CheckUpdates(!i, true);
+		switch (UpdateStatus)
 		{
+		case update_status::S_UPTODATE:
 		case update_status::S_REQUIRED:
 			{
 				mprintf(color::green, L"OK\n");
 				DWORD NewMajor, NewMinor, NewBuild;
 				wchar_t Str[128];
-				GetNewModuleVersion(!i, Str, NewMajor, NewMinor, NewBuild);
 
-				const wchar_t* Items[] =
+				std::wstring MsgUptodate;
+				std::vector<const wchar_t*> Items;
+				if (UpdateStatus == update_status::S_REQUIRED)
 				{
-					MSG(MName),
-					MSG(MAvailableUpdates),
-					L"\x1",
-					Str,
-					L"\x1",
-					MSG(MAsk)
-				};
+					GetNewModuleVersion(!i, Str, NewMajor, NewMinor, NewBuild);
+					Items =
+					{
+						MSG(MName),
+						MSG(MAvailableUpdates),
+						L"\x1",
+						Str,
+						L"\x1",
+						MSG(MAsk)
+					};
+				}
+				else
+				{
+					MsgUptodate = MSG(!i? MPlugin : MFar) + L" "s + MSG(MUpToDate);
+					Items =
+					{
+						MSG(MName),
+						MsgUptodate.data(),
+						MSG(MPluginsNote),
+						MSG(MAsk)
+					};
+				}
 
 				bool Download;
 				{
 					cursor_pos CursorPos;
-					Download = !PsInfo.Message(&MainGuid, nullptr, FMSG_MB_YESNO | FMSG_LEFTALIGN, nullptr, Items, ARRAYSIZE(Items), 2);
+					Download = !PsInfo.Message(&MainGuid, nullptr, FMSG_MB_YESNO | FMSG_LEFTALIGN, nullptr, Items.data(), Items.size(), 2);
 				}
 				if (Download)
 				{
@@ -885,17 +910,12 @@ void update_plugin::ManualCheck()
 				}
 				else
 				{
-					mprintf(color::yellow, L"%s\n", MSG(MCancelled));
+					if (UpdateStatus == update_status::S_REQUIRED)
+					{
+						mprintf(color::yellow, L"%s\n", MSG(MCancelled));
+					}
 					Clean();
 				}
-			}
-			break;
-
-		case update_status::S_UPTODATE:
-			{
-				mprintf(color::green, L"OK\n");
-				mprintf(color::green, L"%s %s\n", MSG(!i? MPlugin : MFar), MSG(MUpToDate));
-				Clean();
 			}
 			break;
 
@@ -1002,7 +1022,7 @@ static void create_process_interactive(const std::wstring &Command, const wchar_
 		}
 
 		mprintf(color::red, L"Failed\n");
-		auto Message = L" Error starting "s + Command + L":\n  "s + GetLastErrorMessage(GetLastError()) + L"\n"s;
+		const auto Message = L" Error starting "s + Command + L":\n  "s + GetLastErrorMessage(GetLastError()) + L"\n"s;
 		mprintf(color::red, Message.data());
 		if (!confirm_retry())
 			break;
