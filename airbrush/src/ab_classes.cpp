@@ -125,25 +125,6 @@ PEditFile loadfile(int eid,int type)
   return fl;
 }
 
-struct ColorizeThreadData
-{
-  PLUGINCOLORIZE pColorize;
-  int index;
-  struct ColorizeParams *params;
-};
-
-DWORD WINAPI ColorizeThread(LPVOID lpvThreadParm)
-{
-  ColorizeThreadData *ctd=(ColorizeThreadData *)lpvThreadParm;
-  ctd->pColorize(ctd->index,ctd->params);
-  return 0;
-}
-
-void ColorizeThreadExit(void)
-{
-  ExitThread(0);
-}
-
 // controls editor events
 int OnEditorEvent(int event,void *param,int editorid)
 {
