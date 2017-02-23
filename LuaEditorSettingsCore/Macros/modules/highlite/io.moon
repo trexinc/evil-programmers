@@ -6,7 +6,7 @@ word=(alpha+'_')*(alnum+'_')^0
   Keywords:{
     {P'0'*S'xX'*xdigit^1+digits^1+P'.'*digits^1+digits*P'.'*digits*(P'e'*P'-'^-1*digits)^-1,Color:10}
     {P'::='+P':=',Color:8}
-    {S'`~@%$%%%^&%*%-%+=\\<>%?%.,:'+P'/'*-P'/',Color:15}
+    {S'`~@%$%%%^&%*%-%+=\\<>%?%.,:'+P'/'*-S'*/',Color:15}
     {P';',Color:13}
     {'%(',Color:15,Open:1}
     {'%)',Color:15,Close:1}
