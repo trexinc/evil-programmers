@@ -8,8 +8,15 @@ ess=ffi.new "struct EditorSetString"
 ess.StructSize=ffi.sizeof ess
 editors={}
 colorguid=win.Uuid "F018DA49-6EB9-49C3-84D8-0F5E7BA20EFB"
-airbrushguid="9860393A-918D-450F-A3EA-84186F21B0A2"
-
+pcall ffi.cdef,[[
+struct ABShared
+{
+  intptr_t EditorID;
+  intptr_t Top;
+  GUID Id;
+};
+]]
+farguid=string.rep('\0',16)
 IsMms=(str)->return str[0]==45 and str[1]==45 and str[2]==32 and str[3]==0
 IsSpace=(char)->return char==32 or char==9
 KillSpaces1=(id,lineno,mms=false,spaces=true,eol)->
@@ -132,14 +139,14 @@ FixSchemes=(Sch)->
 
 FixSchemes Schemes
 
-Highlite=(id,tt)->
+Highlite=(id,tt,top)->
   if tt.o.Highlite
     tocache=(v)->1+math.floor v/50
     fromcache=(v)->(v-1)*50+1
     clone=(t)->{k,('table'==type v) and (clone v) or v for k,v in pairs t}
     insert,remove=table.insert,table.remove
     ei=editor.GetInfo id
-    start,finish=(math.min ei.TopScreenLine,tt.startline),math.min ei.TopScreenLine+ei.WindowSizeY,ei.TotalLines
+    start,finish=(math.min ei.TopScreenLine,tt.startline,top),math.min ei.TopScreenLine+ei.WindowSizeY,ei.TotalLines
     start=tocache start
     if start>#tt.cache
       start=#tt.cache
@@ -330,18 +337,16 @@ Event
       fn=editor.GetFileName id
       tt=GetType id,fn
       if tt
-        ab=->mf.postmacro ->tt.airbrush=Plugin.Call(airbrushguid,2,id)
         if Event==F.EE_SAVE
           if tt.o.KillSpaces or tt.o.Eol then KillSpaces id,tt.o.MinusMinusSpace,tt.o.KillSpaces,tt.o.Eol
           if tt.o.KillEmptyLines then KillEmptyLines id
         elseif Event==F.EE_READ
           ApplyType id,tt,true,fn
-          ab!
-        elseif Event==F.EE_GOTFOCUS
-          ab!
         elseif Event==F.EE_REDRAW and redraw==0
           redraw+=1
-          Highlite id,tt if not tt.airbrush
+          ab=_G.airbrush and ffi.cast "struct ABShared*",_G.airbrush
+          top,guid=if ab and ab.EditorID==id then (tonumber ab.Top),ffi.string ab.Id,16 else math.huge,farguid
+          Highlite id,tt,top if guid==farguid
           if tt.o.WhiteSpaceColor
             ei=editor.GetInfo id
             if 0~=bit64.band ei.Options,F.EOPT_SHOWWHITESPACE
