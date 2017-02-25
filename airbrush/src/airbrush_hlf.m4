@@ -27,9 +27,6 @@ $  #Air Brush - main options#
 
   #Turn on plugin module#     - enable plugin.
 
-  #Highlite all files#        - if this option active plugin does
-                              pseudohighliting for all files.
-
   #Don't highlite files with# - if line count in file exceeds this
   #line count greater then#     value - plugin doesn't highlite this
                               file.

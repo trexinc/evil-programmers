@@ -30,7 +30,6 @@ enum {
   mConfigMenu3,
   mConfigMenu4,
   mConfigDialogActive,
-  mConfigDialogColorizeAll,
   mConfigDialogMaxLines,
   mConfigSave,
   mConfigCancel,
@@ -142,7 +141,6 @@ struct Options
 {
   bool Active;
   __int64 MaxLines;
-  bool ColorizeAll;
 };
 
 extern struct Options Opt;

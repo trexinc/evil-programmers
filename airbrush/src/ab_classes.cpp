@@ -17,7 +17,6 @@
 */
 
 #include <tchar.h>
-#include <limits.h>
 #include "far_settings.h"
 #include "memory.h"
 #include "abplugin.h"
@@ -107,6 +106,33 @@ bool ef_deletefile(int fid)
   return true;
 }
 
+struct ABShared
+{
+  intptr_t EditorID;
+  intptr_t Top;
+  GUID Id;
+};
+
+static ABShared* shared=NULL;
+
+static ABShared* Shared(void)
+{
+  if(!shared)
+  {
+    shared=(struct ABShared*)malloc(sizeof(ABShared));
+    if(shared)
+    {
+      shared->EditorID=-1;
+      FarMacroValue value;
+      value.Type=FMVT_POINTER;
+      value.Pointer=shared;
+      MacroExecuteString seq={sizeof(MacroExecuteString),KMFLAGS_NONE,_T("_G.airbrush=..."),1,&value,0,NULL};
+      Info.MacroControl(0,MCTL_EXECSTRING,0,&seq);
+    }
+  }
+  return shared;
+}
+
 void OnLoad(void)
 {
   editfiles=ef_create(true);
@@ -115,6 +141,13 @@ void OnLoad(void)
 void OnExit(void)
 {
   ef_free(editfiles);
+  if(shared)
+  {
+    MacroExecuteString seq={sizeof(MacroExecuteString),KMFLAGS_NONE,_T("_G.airbrush=nil"),0,NULL,0,NULL};
+    Info.MacroControl(0,MCTL_EXECSTRING,0,&seq);
+    free(shared);
+    shared=NULL;
+  }
 }
 
 PEditFile loadfile(int eid,int type)
@@ -251,8 +284,19 @@ int OnEditorEvent(int event,void *param,int editorid)
 
   free(editorfilename);
 
-  if((!curfile)&&(Opt.ColorizeAll)) curfile=loadfile(ei.EditorID,-1);
+  if(!curfile) curfile=loadfile(ei.EditorID,-1);
   if(!curfile) return 0;
+  intptr_t topline=curfile->topline;
+  curfile->topline=INTPTR_MAX;
+  if(ei.TotalLines>Opt.MaxLines) curfile->type=-1;
+  ABShared* ss=Shared();
+  if(ss)
+  {
+    ss->EditorID=ei.EditorID;
+    ss->Top=topline;
+    ss->Id=(curfile->type<0)?FakeGuid:PluginsData[curfile->type].Id;
+  }
+  if(curfile->type<0||!Opt.Active) return 0;
 
   ColorizeParams params; unsigned char *cache_data=NULL;
   params.size=sizeof(ColorizeParams);
@@ -276,18 +320,12 @@ int OnEditorEvent(int event,void *param,int editorid)
   else
   {
     params.startline=ei.TopScreenLine;
-    if(curfile->topline<params.startline)
-      params.startline=curfile->topline;
+    if(topline<params.startline)
+      params.startline=topline;
     params.endline=ei.TopScreenLine+ei.WindowSizeY;
     if(params.endline>ei.TotalLines) params.endline=ei.TotalLines;
   }
-  curfile->topline=INT_MAX;
 
-  if(ei.TotalLines>Opt.MaxLines) curfile->type=-1;
-  if((curfile->type<0)||(!Opt.Active))
-  {
-    return 0;
-  }
   if(!(curfile->cachesize))
   {
     curfile->cache=(StateCache *)malloc(sizeof(StateCache));

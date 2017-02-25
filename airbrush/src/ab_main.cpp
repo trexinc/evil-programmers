@@ -52,7 +52,7 @@ DEFINE_GUID(Config7MenuGuid, 0x83992d56, 0xb22b, 0x417a, 0xa3, 0x92, 0xa1, 0x7f,
 PluginStartupInfo Info;
 FARSTANDARDFUNCTIONS FSF;
 
-struct Options Opt={true,50000,true};
+struct Options Opt={true,50000};
 
 #define GetCheck(i) (int)Info.SendDlgMessage(hDlg,DM_GETCHECK,i,0)
 #define GetDataPtr(i) ((const TCHAR *)Info.SendDlgMessage(hDlg,DM_GETCONSTTEXTPTR,i,0))
@@ -134,7 +134,6 @@ void WINAPI SetStartupInfoW(const struct PluginStartupInfo *Info)
     CFarSettings settings(MainGuid);
     Opt.Active=settings.Get(_T("Active"),Opt.Active);
     Opt.MaxLines=settings.Get(_T("MaxLines"),Opt.MaxLines);
-    Opt.ColorizeAll=settings.Get(_T("ColorizeAll"),Opt.ColorizeAll);
   }
   LoadPlugs(Info->ModuleName);
   OnLoad();
@@ -364,52 +363,48 @@ intptr_t WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
       break;
     else if(MenuCode==0)
     {
+      enum {IBox,IActive,IMaxLinesLabel,IMaxLines,IDummy,ISave,ICancel};
       /*
         0000000000111111111122222222223333333333444444444455555555556666666666777777
         0123456789012345678901234567890123456789012345678901234567890123456789012345
       00                                                                            00
       01   ษออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออป   01
       02   บ [x] Turn on plugin module                                          บ   02
-      03   บ [x] Colorize all files                                             บ   03
-      04   บ Don't colorize files with line count greater then:         ÛÛÛÛÛÛÛ บ   04
-      05   วฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤถ   05
-      06   บ                 [ Save ]              [ Cancel ]                   บ   06
-      07   ศออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ   07
-      08                                                                            08
+      03   บ Don't colorize files with line count greater then:       ÛÛÛÛÛÛÛÛÛ บ   03
+      04   วฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤถ   04
+      05   บ                 [ Save ]              [ Cancel ]                   บ   05
+      06   ศออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ   06
+      07                                                                            07
         0000000000111111111122222222223333333333444444444455555555556666666666777777
         0123456789012345678901234567890123456789012345678901234567890123456789012345
       */
       struct FarDialogItem DialogItems[]={
-      /*0*/  {DI_DOUBLEBOX,3 ,1,72,7,{0},NULL,NULL,0,                                GetMsg(mName)                   ,0,0,{0,0}},
+      /*0*/  {DI_DOUBLEBOX,3 ,1,72,6,{0},NULL,NULL,0,                                GetMsg(mName)                   ,0,0,{0,0}},
       /*1*/  {DI_CHECKBOX ,5 ,2,0 ,0,{0},NULL,NULL,DIF_FOCUS,                        GetMsg(mConfigDialogActive)     ,0,0,{0,0}},
-      /*2*/  {DI_CHECKBOX ,5 ,3,0 ,0,{0},NULL,NULL,0,                                GetMsg(mConfigDialogColorizeAll),0,0,{0,0}},
-      /*3*/  {DI_TEXT     ,5 ,4,0 ,0,{0},NULL,NULL,0,                                GetMsg(mConfigDialogMaxLines)   ,0,0,{0,0}},
-      /*4*/  {DI_FIXEDIT  ,64,4,70,0,{0},NULL,NULL,DIF_MASKEDIT,                     _T("")                          ,0,0,{0,0}},
-      /*5*/  {DI_TEXT     ,-1,5,0 ,0,{0},NULL,NULL,DIF_SEPARATOR,                    _T("")                          ,0,0,{0,0}},
-      /*6*/  {DI_BUTTON   ,0 ,6,0 ,0,{0},NULL,NULL,DIF_CENTERGROUP|DIF_DEFAULTBUTTON,GetMsg(mConfigSave)             ,0,0,{0,0}},
-      /*7*/  {DI_BUTTON   ,0 ,6,0 ,0,{0},NULL,NULL,DIF_CENTERGROUP,                  GetMsg(mConfigCancel)           ,0,0,{0,0}}
+      /*2*/  {DI_TEXT     ,5 ,3,0 ,0,{0},NULL,NULL,0,                                GetMsg(mConfigDialogMaxLines)   ,0,0,{0,0}},
+      /*3*/  {DI_FIXEDIT  ,62,3,70,0,{0},NULL,NULL,DIF_MASKEDIT,                     _T("")                          ,0,0,{0,0}},
+      /*4*/  {DI_TEXT     ,-1,4,0 ,0,{0},NULL,NULL,DIF_SEPARATOR,                    _T("")                          ,0,0,{0,0}},
+      /*5*/  {DI_BUTTON   ,0 ,5,0 ,0,{0},NULL,NULL,DIF_CENTERGROUP|DIF_DEFAULTBUTTON,GetMsg(mConfigSave)             ,0,0,{0,0}},
+      /*6*/  {DI_BUTTON   ,0 ,5,0 ,0,{0},NULL,NULL,DIF_CENTERGROUP,                  GetMsg(mConfigCancel)           ,0,0,{0,0}}
       };
-      DialogItems[1].Selected=Opt.Active;
-      DialogItems[2].Selected=Opt.ColorizeAll;
-      DialogItems[4].Mask=_T("######9");
+      DialogItems[IActive].Selected=Opt.Active;
+      DialogItems[IMaxLines].Mask=_T("########9");
 
       TCHAR lines[32];
-      DialogItems[4].Data=lines;
+      DialogItems[IMaxLines].Data=lines;
       wsprintf(lines,_T("%d"),Opt.MaxLines);
       int DlgCode=-1;
-      HANDLE hDlg=Info.DialogInit(&MainGuid,&Config1Guid,-1,-1,76,9,_T("Config1"),DialogItems,(sizeof(DialogItems)/sizeof(DialogItems[0])),0,0,Config1DialogProc,0);
+      HANDLE hDlg=Info.DialogInit(&MainGuid,&Config1Guid,-1,-1,76,8,_T("Config1"),DialogItems,(sizeof(DialogItems)/sizeof(DialogItems[0])),0,0,Config1DialogProc,0);
       if(hDlg!=INVALID_HANDLE_VALUE) DlgCode=Info.DialogRun(hDlg);
-      if(DlgCode==6)
+      if(DlgCode==ISave)
       {
-        Opt.Active=GetCheck(1);
-        Opt.ColorizeAll=GetCheck(2);
-        Opt.MaxLines=FSF.atoi(GetDataPtr(4));
+        Opt.Active=GetCheck(IActive);
+        Opt.MaxLines=FSF.atoi(GetDataPtr(IMaxLines));
 
         {
           CFarSettings settings(MainGuid);
           settings.Set(_T("Active"),Opt.Active);
           settings.Set(_T("MaxLines"),Opt.MaxLines);
-          settings.Set(_T("ColorizeAll"),Opt.ColorizeAll);
         }
       }
       if(hDlg!=INVALID_HANDLE_VALUE) Info.DialogFree(hDlg);
