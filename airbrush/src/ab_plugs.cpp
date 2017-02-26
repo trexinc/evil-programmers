@@ -226,6 +226,7 @@ void LoadPlugs(const TCHAR* ModuleName)
   lstrcpy(NamePtr,_T("\\Formats\\"));
   wsprintf(PluginsMask,_T("%s*.fmt"),PluginsFolder);
 
+  CFarSettings settings(MainGuid);
   HANDLE FindHandle;
   WIN32_FIND_DATA fdata;
   int Done=((FindHandle=FindFirstFile(PluginsMask,&fdata))==INVALID_HANDLE_VALUE);
@@ -303,7 +304,7 @@ void LoadPlugs(const TCHAR* ModuleName)
                 lstrcpy(buff_mask,mask);
                 if(CurPlugin.Params&PAR_MASK_STORE)
                 {
-                  CFarSettings settings(MainGuid);
+                  settings.Root();
                   settings.Change(PLUGIN_MASK_KEY);
                   settings.Get(name,buff_mask,ArraySize(buff_mask));
                 }
@@ -316,7 +317,7 @@ void LoadPlugs(const TCHAR* ModuleName)
                 lstrcpy(buff_start,start);
                 if(CurPlugin.Params&PAR_FILESTART_STORE)
                 {
-                  CFarSettings settings(MainGuid);
+                  settings.Root();
                   settings.Change(PLUGIN_START_KEY);
                   settings.Get(name,buff_start,ArraySize(buff_start));
                 }
@@ -343,7 +344,7 @@ void LoadPlugs(const TCHAR* ModuleName)
               int ColorCount; ABColor* Colors;
               if((CurPlugin.Params&PAR_COLORS_STORE)&&CurPlugin.pGetParams(CurPlugin.Index,PAR_GET_COLOR_COUNT,(const char **)&ColorCount)&&CurPlugin.pGetParams(CurPlugin.Index,PAR_GET_COLOR,(const char **)&Colors))
               {
-                LoadColors(CurPlugin.IdStr,Colors,ColorCount);
+                LoadColors(settings,CurPlugin.IdStr,Colors,ColorCount);
               }
             }
             PluginsData[PluginsCount]=CurPlugin;
@@ -358,6 +359,7 @@ void LoadPlugs(const TCHAR* ModuleName)
   }
   FindClose(FindHandle);
   Info.RestoreScreen(hSScr);
+  Info.Text(0,0,NULL,NULL);
 }
 
 void UnloadPlugs(void)

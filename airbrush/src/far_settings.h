@@ -33,6 +33,7 @@ class CFarSettings
   public:
     CFarSettings(const GUID& PluginId);
     ~CFarSettings();
+    void Root(void);
     void Change(const wchar_t* aName);
     void Set(const wchar_t* aName,__int64 aValue);
     void Set(const wchar_t* aName,const wchar_t* aValue);

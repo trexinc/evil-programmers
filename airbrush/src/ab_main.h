@@ -135,7 +135,7 @@ extern void UnloadPlugs(void);
 
 extern void ConvertColor(const ABColor& Color,FarColor& NewColor);
 extern void SaveColors(const wchar_t* Name,const ABColor* Colors,const size_t Count);
-extern void LoadColors(const wchar_t* Name,ABColor* Colors,size_t Count);
+extern void LoadColors(CFarSettings& Settings,const wchar_t* Name,ABColor* Colors,size_t Count);
 
 struct Options
 {

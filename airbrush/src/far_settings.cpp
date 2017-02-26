@@ -30,6 +30,11 @@ CFarSettings::~CFarSettings()
   Info.SettingsControl(iSettings,SCTL_FREE,0,0);
 }
 
+void CFarSettings::Root(void)
+{
+  iRoot=0;
+}
+
 void CFarSettings::Change(const wchar_t* aName)
 {
   FarSettingsValue value={sizeof(FarSettingsValue),iRoot,aName};

@@ -26,8 +26,9 @@
 class CColors
 {
   public:
-    template<typename T,typename S> CColors(const wchar_t* Name,T Colors,S& Count): settings(MainGuid)
+    template<typename T,typename S> CColors(CFarSettings& Settings,const wchar_t* Name,T Colors,S& Count): settings(Settings)
     {
+      settings.Root();
       settings.Change(PLUGIN_COLOR_KEY);
       settings.Change(Name);
       C(Count);
@@ -64,17 +65,18 @@ class CColors
       settings.Set(L"Count",Count);
     }
   private:
-    CFarSettings settings;
+    CFarSettings& settings;
     size_t ii;
 };
 
 
 void SaveColors(const wchar_t* Name,const ABColor* Colors,const size_t Count)
 {
-  CColors colors(Name,Colors,Count);
+  CFarSettings settings(MainGuid);
+  CColors colors(settings,Name,Colors,Count);
 }
 
-void LoadColors(const wchar_t* Name,ABColor* Colors,size_t Count)
+void LoadColors(CFarSettings& Settings,const wchar_t* Name,ABColor* Colors,size_t Count)
 {
-  CColors colors(Name,Colors,Count);
+  CColors colors(Settings,Name,Colors,Count);
 }
