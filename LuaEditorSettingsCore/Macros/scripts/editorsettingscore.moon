@@ -197,9 +197,9 @@ Highlite=(id,tt,top)->
       regionstart=pos
       if s>0 and len
         pos1,pos2=pos,pos+len-1
-        insert pairs,{:line,:pos1,:pos2,cur:curpair}
         add region.ColorFull[1]
         if region.Pair
+          insert pairs,{:line,:pos1,:pos2,cur:curpair}
           if curpair
             add tt.o.Highlite.Pairs.ColorFull,100
         regionstart+=len
