@@ -32,16 +32,19 @@ typedef unsigned short UTCHAR;
 #define YYFILL(n)
 
 /*!re2c
-any = [\U00000001-\U0000ffff];
-O = [0-7];
-D = [0-9];
-L = [a-zA-Z_];
-H = [a-fA-F0-9];
-E = [Ee] [+-]? D+;
-FS  = [fFlL];
-IS  = [uUlL]*;
-ESC = [\\] ([abfnrtv?'"\\] | "x" H+ | O+);
-STR = ("L"|"u8"|"u"|"U");
+any=[\U00000001-\U0000ffff];
+B=[0-1];
+O=[0-7];
+D=[0-9];
+L=[a-zA-Z_];
+H=[a-fA-F0-9];
+SEP="'";
+DD=D(SEP*);
+EXP=[eE][+-]?(SEP*)DD+;
+FLOAT=[fFlL];
+INT=[uUlL]*;
+ESC=[\\] ([abfnrtv?'"\\] | "x" H+ | O+);
+STR=("L"|"u8"|"u"|"U");
 */
 
 void WINAPI Colorize(intptr_t index,struct ColorizeParams *params)
@@ -104,8 +107,7 @@ colorize_clear:
   { Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_KEYWORD1,EPriorityNormal); goto colorize_clear; }
   L(L|D)*
   { goto colorize_clear; }
-  ("0"[xX]H+IS?)|("0"O+IS?)|(D+IS?)|
-  (D+E FS?)|(D*"."D+E?FS?)|(D+"."D*E?FS?)
+  ((DD+|("0x" SEP*(H("_"*))+)|("0" SEP*(O(SEP*))+)|("0b" SEP*(B(SEP*))+)) INT?)|((DD+(("." DD*EXP?)|EXP)) FLOAT?)|(DD+ FLOAT)
   { Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_NUMBER1,EPriorityNormal); goto colorize_clear; }
   STR?["]
   { PUSH_PAIR_S(3); state[0]=PARSER_STRING; commentstart=yytok; goto colorize_string; }
