@@ -17,6 +17,7 @@ struct ABShared
 };
 ]]
 farguid=string.rep('\0',16)
+modeline=require"modeline"
 IsMms=(str)->return str[0]==45 and str[1]==45 and str[2]==32 and str[3]==0
 IsSpace=(char)->return char==32 or char==9
 KillSpaces1=(id,lineno,mms=false,spaces=true,eol)->
@@ -327,6 +328,19 @@ ApplyType=(id,tt,startup,fn)->
   }
   for param in *params do if type(tt.o[param[2]])~='nil' and (not param[3] or (startup and not mf.fexist fn)) then editor.SetParam id,param[1],tt.o[param[2]]
 
+ApplyModeline=(id,ml)->
+  params={
+    {F.ESPT_TABSIZE       ,'tabstop','ts',tonumber}
+    {F.ESPT_EXPANDTABS    ,'expandtab','et',(v)->v}
+    {F.ESPT_AUTOINDENT    ,'autoindent','ai',(v)->v}
+    {F.ESPT_SHOWWHITESPACE,'list','list',(v)->v and 2 or 1}
+  }
+  isset=(v)->nil~=v
+  for {p,l,s,def} in *params
+    l,s=ml[l],ml[s]
+    editor.SetParam id,p,def (isset l) and l or s if (isset l) or isset s
+
+
 redraw=0
 Event
   group:"EditorEvent"
@@ -341,7 +355,8 @@ Event
           if tt.o.KillSpaces or tt.o.Eol then KillSpaces id,tt.o.MinusMinusSpace,tt.o.KillSpaces,tt.o.Eol
           if tt.o.KillEmptyLines then KillEmptyLines id
         elseif Event==F.EE_READ
-          ApplyType id,tt,true,fn
+          ml=modeline id
+          if ml then ApplyModeline id,ml else ApplyType id,tt,true,fn
         elseif Event==F.EE_REDRAW and redraw==0
           redraw+=1
           ab=_G.airbrush and ffi.cast "struct ABShared*",_G.airbrush

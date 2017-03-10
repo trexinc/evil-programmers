@@ -1,8 +1,13 @@
 ﻿import P,R,S,V,C,Cf,Cg,Ct from lpeg
-add=(t,k,v)->rawset t,k,v or true
+sub,insert,get=string.sub,table.insert,editor.GetString
+add=(t,k,v)->
+  no='no'==sub k,1,2
+  k=sub k,3 if no
+  t[k]=v or not no
+  t
 parse=(line)->
   parser=P{
-    Cf Ct""*(((1-V'Space')^1-V'Magic')*V'Space'^1)*V'Magic'*V'Space'^0*(V'Syntax'*-1+V'Syntax2'),add
+    Cf Ct''*(((1-V'Space')^1-V'Magic')*V'Space'^1)*V'Magic'*V'Space'^0*(V'Syntax'*-1+V'Syntax2'),add
     Space:S' \t'
     Delim:V'Space'+S':'
     Spaces:V'Space'^1
@@ -23,7 +28,7 @@ parse=(line)->
   }
   parser\match line
 (id)->
-  insert,get,lines,total=table.insert,editor.GetString,{},(editor.GetInfo id).TotalLines
+  lines,total={},(editor.GetInfo id).TotalLines
   for ii=1,total<=10 and total or 5
     insert lines,(get id,ii,3)
   if total>10
