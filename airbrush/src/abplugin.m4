@@ -134,3 +134,4 @@ struct ABName
 #define PAR_BRACKETS            128
 
 #endif
+// vim: filetype=cpp

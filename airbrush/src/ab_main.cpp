@@ -266,62 +266,87 @@ HANDLE WINAPI OpenW(const struct OpenInfo *Info)
         ::Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
         eid=ei.EditorID;
       }
-      PEditFile fl=ef_getfile(eid);
-      if(fl&&fl->type>=0)
+      if(0==op)
       {
-        switch(op)
+        if(mi->Count>2&&(FMVT_STRING==mi->Values[2].Type||(FMVT_BINARY==mi->Values[2].Type&&sizeof(GUID)==mi->Values[2].Binary.Size)))
         {
-          case 1:
-            if(PluginsData[fl->type].Params&PAR_BRACKETS)
-            {
-              fl->full=true;
-              ::Info.EditorControl(eid,ECTL_REDRAW,0,NULL);
-              if(fl->bracket[0].active||fl->bracket[1].active)
+          GUID syntax;
+          bool res=true;
+          if(FMVT_STRING==mi->Values[2].Type)
+            res=RPC_S_OK==UuidFromString((unsigned short*)mi->Values[2].String,&syntax);
+          else
+            memcpy(&syntax,mi->Values[2].Binary.Data,sizeof(syntax));
+          if(res)
+          {
+            for(int ii=0;ii<PluginsCount;++ii)
+              if(syntax==PluginsData[ii].Id)
               {
-                const size_t count=(1+4*ArraySize(fl->bracket));
-                FarMacroCall* fmc=(FarMacroCall*)malloc(sizeof(FarMacroCall)+count*sizeof(FarMacroValue));
+                ef_deletefile(eid);
+                loadfile(eid,ii);
+                return (HANDLE)1;
+              }
+          }
+        }
+      }
+      else
+      {
+        PEditFile fl=ef_getfile(eid);
+        if(fl&&fl->type>=0)
+        {
+          switch(op)
+          {
+            case 1:
+              if(PluginsData[fl->type].Params&PAR_BRACKETS)
+              {
+                fl->full=true;
+                ::Info.EditorControl(eid,ECTL_REDRAW,0,NULL);
+                if(fl->bracket[0].active||fl->bracket[1].active)
+                {
+                  const size_t count=(1+4*ArraySize(fl->bracket));
+                  FarMacroCall* fmc=(FarMacroCall*)malloc(sizeof(FarMacroCall)+count*sizeof(FarMacroValue));
+                  if(fmc)
+                  {
+                    fmc->StructSize=sizeof(*fmc);
+                    fmc->Count=count;
+                    fmc->Values=(FarMacroValue*)(fmc+1);
+                    fmc->Callback=MacroCallback;
+                    fmc->CallbackData=fmc;
+                    fmc->Values[0].Type=FMVT_BOOLEAN;
+                    fmc->Values[0].Boolean=true;
+                    for(size_t ii=0;ii<ArraySize(fl->bracket);++ii)
+                    {
+                      size_t jj=ii*4;
+                      fmc->Values[jj+1].Type=fmc->Values[jj+2].Type=fmc->Values[jj+3].Type=FMVT_INTEGER;
+                      fmc->Values[jj+4].Type=FMVT_BOOLEAN;
+                      fmc->Values[jj+1].Integer=fl->bracket[ii].x+1;
+                      fmc->Values[jj+2].Integer=fl->bracket[ii].y+1;
+                      fmc->Values[jj+3].Integer=fl->bracket[ii].len;
+                      fmc->Values[jj+4].Boolean=fl->bracket[ii].active;
+                    }
+                    return fmc;
+                  }
+                }
+              }
+              break;
+            case 2:
+              {
+                FarMacroCall* fmc=(FarMacroCall*)malloc(sizeof(FarMacroCall)+2*sizeof(FarMacroValue));
                 if(fmc)
                 {
                   fmc->StructSize=sizeof(*fmc);
-                  fmc->Count=count;
+                  fmc->Count=2;
                   fmc->Values=(FarMacroValue*)(fmc+1);
                   fmc->Callback=MacroCallback;
                   fmc->CallbackData=fmc;
                   fmc->Values[0].Type=FMVT_BOOLEAN;
                   fmc->Values[0].Boolean=true;
-                  for(size_t ii=0;ii<ArraySize(fl->bracket);++ii)
-                  {
-                    size_t jj=ii*4;
-                    fmc->Values[jj+1].Type=fmc->Values[jj+2].Type=fmc->Values[jj+3].Type=FMVT_INTEGER;
-                    fmc->Values[jj+4].Type=FMVT_BOOLEAN;
-                    fmc->Values[jj+1].Integer=fl->bracket[ii].x+1;
-                    fmc->Values[jj+2].Integer=fl->bracket[ii].y+1;
-                    fmc->Values[jj+3].Integer=fl->bracket[ii].len;
-                    fmc->Values[jj+4].Boolean=fl->bracket[ii].active;
-                  }
+                  fmc->Values[1].Type=FMVT_STRING;
+                  fmc->Values[1].String=PluginsData[fl->type].IdStr;
                   return fmc;
                 }
               }
-            }
-            break;
-          case 2:
-            {
-              FarMacroCall* fmc=(FarMacroCall*)malloc(sizeof(FarMacroCall)+2*sizeof(FarMacroValue));
-              if(fmc)
-              {
-                fmc->StructSize=sizeof(*fmc);
-                fmc->Count=2;
-                fmc->Values=(FarMacroValue*)(fmc+1);
-                fmc->Callback=MacroCallback;
-                fmc->CallbackData=fmc;
-                fmc->Values[0].Type=FMVT_BOOLEAN;
-                fmc->Values[0].Boolean=true;
-                fmc->Values[1].Type=FMVT_STRING;
-                fmc->Values[1].String=PluginsData[fl->type].IdStr;
-                return fmc;
-              }
-            }
-            break;
+              break;
+          }
         }
       }
     }
