@@ -216,68 +216,52 @@ int OnEditorEvent(int event,void *param,int editorid)
 
   if((!curfile)&&Opt.Active&&(ei.TotalLines<=Opt.MaxLines))
   {
-    TCHAR ini_path[MAX_PATH],ini_type[256];
-    lstrcpyn(ini_path,editorfilename,filename-editorfilename+1);
-    ini_path[filename-editorfilename]=0;
-    lstrcat(ini_path,_T("airbrush.ini"));
-    if(GetPrivateProfileString(_T("types"),filename,_T(""),ini_type,sizeof(ini_type)/sizeof(ini_type[0]),ini_path))
+    for(int i=0;i<PluginsCount;i++)
     {
-      for(int i=0;i<PluginsCount;i++)
-        if(!lstrcmpi(PluginsData[i].Name,ini_type))
-        {
-          curfile=loadfile(ei.EditorID,i);
-          break;
-        }
-    }
-    else
-    {
-      for(int i=0;i<PluginsCount;i++)
+      if(PluginsData[i].Params&PAR_MASK_CACHE)
       {
-        if(PluginsData[i].Params&PAR_MASK_CACHE)
+        TCHAR* mask=PluginsData[i].Mask;
+        if(mask)
         {
-          TCHAR* mask=PluginsData[i].Mask;
-          if(mask)
+          TCHAR FileMask[MAX_PATH];
+          while((mask=GetCommaWord(mask,FileMask))!=NULL)
+            if(FSF.ProcessName(FileMask,(wchar_t*)filename,0,PN_CMPNAME|PN_SKIPPATH))
+            {
+              curfile=loadfile(ei.EditorID,i);
+              break;
+            }
+        }
+        if(curfile) break;
+      }
+      else
+      {
+        if(PluginsData[i].pGetParams)
+          if(PluginsData[i].pGetParams(PluginsData[i].Index,PAR_CHECK_MASK,(const char**)&filename))
           {
-            TCHAR FileMask[MAX_PATH];
-            while((mask=GetCommaWord(mask,FileMask))!=NULL)
-              if(FSF.ProcessName(FileMask,(wchar_t*)filename,0,PN_CMPNAME|PN_SKIPPATH))
-              {
-                curfile=loadfile(ei.EditorID,i);
-                break;
-              }
+            curfile=loadfile(ei.EditorID,i);
+            break;
           }
-          if(curfile) break;
-        }
-        else
+      }
+      if(PluginsData[i].Params&PAR_FILESTART_CACHE)
+      {
+        if(egs.StringLength&&PluginsData[i].Start)
         {
-          if(PluginsData[i].pGetParams)
-            if(PluginsData[i].pGetParams(PluginsData[i].Index,PAR_CHECK_MASK,(const char**)&filename))
-            {
-              curfile=loadfile(ei.EditorID,i);
-              break;
-            }
-        }
-        if(PluginsData[i].Params&PAR_FILESTART_CACHE)
-        {
-          if(egs.StringLength&&PluginsData[i].Start)
+          int len=lstrlen(PluginsData[i].Start);
+          if(len&&(FSF.ProcessName(PluginsData[i].Start,(wchar_t*)egs.StringText,0,PN_CMPNAME)))
           {
-            int len=lstrlen(PluginsData[i].Start);
-            if(len&&(FSF.ProcessName(PluginsData[i].Start,(wchar_t*)egs.StringText,0,PN_CMPNAME)))
-            {
-              curfile=loadfile(ei.EditorID,i);
-              break;
-            }
+            curfile=loadfile(ei.EditorID,i);
+            break;
           }
         }
-        else
-        {
-          if(PluginsData[i].pGetParams)
-            if(PluginsData[i].pGetParams(PluginsData[i].Index,PAR_CHECK_FILESTART,(const char**)&egs.StringText))
-            {
-              curfile=loadfile(ei.EditorID,i);
-              break;
-            }
-        }
+      }
+      else
+      {
+        if(PluginsData[i].pGetParams)
+          if(PluginsData[i].pGetParams(PluginsData[i].Index,PAR_CHECK_FILESTART,(const char**)&egs.StringText))
+          {
+            curfile=loadfile(ei.EditorID,i);
+            break;
+          }
       }
     }
   }
