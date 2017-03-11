@@ -335,11 +335,29 @@ ApplyModeline=(id,ml)->
     {F.ESPT_AUTOINDENT    ,'autoindent','ai',(v)->v}
     {F.ESPT_SHOWWHITESPACE,'list','list',(v)->v and 2 or 1}
   }
+  syntaxes={
+    asm:'405026D5-E610-4C87-94E7-AD1EC5F7FBFA'
+    awk:'40F55654-B2B0-4289-93B3-C84A16FEBB73'
+    c:'208B30EE-E89E-4050-BADF-299B80D02FFE'
+    cpp:'208B30EE-E89E-4050-BADF-299B80D02FFE'
+    html:'E408256A-42AC-47EA-82F3-C7208AEBCECD'
+    lex:'93730FF0-7E4B-4BA9-882E-A8F0F65F7243'
+    lua:'00B5C3B7-C768-4EA6-9D0B-30843B29C1D9'
+    moon:'88DFA357-4B2A-4401-A12C-493202247396'
+    pascal:'CC22AA95-EED1-473E-AAB7-AA6535A8CF23'
+    php:'142DE201-733C-48AB-AF9C-F413445D7FE4'
+    rust:'28421DC4-BF41-46B6-B021-65125455F3F9'
+    sql:'50B1CA20-8758-442F-A51E-4CD3DB8D04CA'
+    xml:'2AEA7052-CF0D-47EB-981B-00CD220F0D66'
+    yacc:'93730FF0-7E4B-4BA9-882E-A8F0F65F7243'
+  }
   isset=(v)->nil~=v
   for {p,l,s,def} in *params
     l,s=ml[l],ml[s]
     editor.SetParam id,p,def (isset l) and l or s if (isset l) or isset s
-
+  syntax=ml.filetype or ml.ft
+  if syntax and syntaxes[syntax]
+    mf.postmacro ->Plugin.Call("9860393A-918D-450F-A3EA-84186F21B0A2",0,id,syntaxes[syntax])
 
 redraw=0
 Event
