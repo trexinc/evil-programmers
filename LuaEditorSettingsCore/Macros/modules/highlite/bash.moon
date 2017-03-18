@@ -1,7 +1,9 @@
 ﻿import P,S,C,locale from lpeg
 {:alpha,:alnum,:digit}=locale!
+aps='\''
+ap=P aps
 word=(alpha+'_')*(alnum+'_')^0
-range=(s,e)->(P s)*(1-S s..e)^0*(P e)^-1
+range=(s,e)->(P s)*((1-S s..e..aps)+(ap*(1-ap)^0*ap))^0*(P e)^-1
 escape={P"\\"*(P 1),Color:6}
 {
   Keywords:{
