@@ -155,9 +155,9 @@ Highlite=(id,tt,top)->
       for ii=start+1,#tt.cache
         tt.cache[ii]=nil
     left,right=ei.LeftPos,ei.LeftPos+ei.WindowSizeX
-    margins=:left,top:ei.TopScreenLine,:right,bottom:math.min ei.TopScreenLine+ei.WindowSizeY,ei.TotalLines+1
+    margins=top:ei.TopScreenLine,bottom:math.min ei.TopScreenLine+ei.WindowSizeY,ei.TotalLines+1
     addcolor=(line,s,e,c,p=0)->
-      if c and line>=margins.top and line<margins.bottom and not (s>=margins.right or e<margins.left)
+      if c and line>=margins.top and line<margins.bottom and not (s>=margins[line].right or e<margins[line].left)
         editor.AddColor id,line,s,e,F.ECF_AUTODELETE,c,p,colorguid
     state,state_data,pairs=(clone tt.cache[start].state),(clone tt.cache[start].data),(clone tt.cache[start].pairs)
     {CurPos:curpos,CurLine:curline}=editor.GetInfo id
@@ -217,30 +217,31 @@ Highlite=(id,tt,top)->
     start=fromcache start
     for ii=start,finish
       regionstart=1
-      tt.cache[tocache ii]={state:(clone state),data:(clone state_data),pairs:(clone pairs)} if ii%50==1
+      tt.cache[tocache ii]=state:(clone state),data:(clone state_data),pairs:(clone pairs) if ii%50==1
       {StringText:line,StringLength:len}=editor.GetString id,ii,0
       if 0==bit64.band ei.Options,F.EOPT_EXPANDALLTABS
-        margins.left,margins.right,pos,symb=0,len+1,0,0
-        tab=ei.TabSize
-        for fix,chars,tabs in line\gmatch"()[^\t]*()[\t]*()"
-          tabs-=chars
-          chars-=fix
-          pos+=chars
-          symb+=chars
-          if margins.left==0 and pos>=left
-            margins.left=symb-pos+left
-          if right>symb and pos>=right
-            margins.right=symb-pos+right
-            break
-          if tabs>0
-            pos+=tab-pos%tab+tab*(tabs-1)
-            symb+=tabs
-            if margins.left==0 and pos>=left
-              margins.left=symb-math.floor (pos-left)/tab
+        with margins[ii]=left:0,right:len+1
+          pos,symb=0,0
+          tab=ei.TabSize
+          for fix,chars,tabs in line\gmatch"()[^\t]*()[\t]*()"
+            tabs-=chars
+            chars-=fix
+            pos+=chars
+            symb+=chars
+            if .left==0 and pos>=left
+              .left=symb-pos+left
             if right>symb and pos>=right
-              margins.right=symb-math.floor (pos-right)/tab
+              .right=symb-pos+right
               break
-        if 0==margins.left then margins.right=0
+            if tabs>0
+              pos+=tab-pos%tab+tab*(tabs-1)
+              symb+=tabs
+              if .left==0 and pos>=left
+                .left=symb-math.floor (pos-left)/tab
+              if right>symb and pos>=right
+                .right=symb-math.floor (pos-right)/tab
+                break
+          if 0==.left then .right=0
       posU,posB=1,1
       match2=(patt)->match line,patt,posB
       while posU<=len
