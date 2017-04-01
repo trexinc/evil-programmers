@@ -142,7 +142,7 @@ FixSchemes Schemes
 
 Highlite=(id,tt,top)->
   if tt.o.Highlite
-    tocache=(v)->1+math.floor v/50
+    tocache=(v)->1+math.floor (v-1)/50
     fromcache=(v)->(v-1)*50+1
     clone=(t)->{k,('table'==type v) and (clone v) or v for k,v in pairs t}
     insert,remove=table.insert,table.remove
@@ -219,6 +219,7 @@ Highlite=(id,tt,top)->
       regionstart=1
       tt.cache[tocache ii]=state:(clone state),data:(clone state_data),pairs:(clone pairs) if ii%50==1
       {StringText:line,StringLength:len}=editor.GetString id,ii,0
+      margins[ii]=:left,:right
       if 0==bit64.band ei.Options,F.EOPT_EXPANDALLTABS
         with margins[ii]=left:0,right:len+1
           pos,symb=0,0
@@ -378,8 +379,8 @@ Event
           if ml then ApplyModeline id,ml else ApplyType id,tt,true,fn
         elseif Event==F.EE_REDRAW and redraw==0
           redraw+=1
-          ab=_G.airbrush and ffi.cast "struct ABShared*",_G.airbrush
-          top,guid=if ab and ab.EditorID==id then (tonumber ab.Top),ffi.string ab.Id,16 else math.huge,farguid
+          ab=_G.airbrush and _G.airbrush.shared and ffi.cast "struct ABShared*",_G.airbrush.shared
+          top,guid=if ab and ab.EditorID==id then (1+tonumber ab.Top),ffi.string ab.Id,16 else math.huge,farguid
           Highlite id,tt,top if guid==farguid
           if tt.o.WhiteSpaceColor
             ei=editor.GetInfo id

@@ -126,7 +126,7 @@ static ABShared* Shared(void)
       FarMacroValue value;
       value.Type=FMVT_POINTER;
       value.Pointer=shared;
-      MacroExecuteString seq={sizeof(MacroExecuteString),KMFLAGS_NONE,_T("_G.airbrush=..."),1,&value,0,NULL};
+      MacroExecuteString seq={sizeof(MacroExecuteString),KMFLAGS_NONE,_T("if 'nil'==type(_G.airbrush) then _G.airbrush={} end if 'table'==type(_G.airbrush) then _G.airbrush.shared=... end"),1,&value,0,NULL};
       Info.MacroControl(0,MCTL_EXECSTRING,0,&seq);
     }
   }
@@ -143,7 +143,7 @@ void OnExit(void)
   ef_free(editfiles);
   if(shared)
   {
-    MacroExecuteString seq={sizeof(MacroExecuteString),KMFLAGS_NONE,_T("_G.airbrush=nil"),0,NULL,0,NULL};
+    MacroExecuteString seq={sizeof(MacroExecuteString),KMFLAGS_NONE,_T("if 'table'==type(_G.airbrush) then _G.airbrush.shared=nil end"),0,NULL,0,NULL};
     Info.MacroControl(0,MCTL_EXECSTRING,0,&seq);
     free(shared);
     shared=NULL;
