@@ -150,6 +150,162 @@ startup.GdiplusVersion=1
 gdiplus.GdiplusStartup(handle,startup,ffi.NULL)
 local Symbol=0
 
+safe_cdef([[
+typedef enum _SYSTEM_INFORMATION_CLASS {
+  SystemBasicInformation = 0,
+  SystemProcessorInformation = 1,
+  SystemPerformanceInformation = 2,
+  SystemTimeOfDayInformation = 3,
+  SystemProcessInformation = 5,
+  SystemProcessorPerformanceInformation = 8,
+  SystemHandleInformation = 16,
+  SystemPagefileInformation = 18,
+  SystemInterruptInformation = 23,
+  SystemExceptionInformation = 33,
+  SystemRegistryQuotaInformation = 37,
+  SystemLookasideInformation = 45
+} SYSTEM_INFORMATION_CLASS;
+]])
+safe_cdef([[
+typedef enum _THREAD_STATE {
+  StateInitialized = 0,
+  StateReady, StateRunning, StateStandby, StateTerminated,
+  StateWait, StateTransition,
+  StateUnknown
+} THREAD_STATE;
+]])
+safe_cdef([[
+typedef enum _KWAIT_REASON {
+  Executive = 0,
+  FreePage, PageIn, PoolAllocation, DelayExecution,
+  Suspended, UserRequest, WrExecutive, WrFreePage, WrPageIn,
+  WrPoolAllocation, WrDelayExecution, WrSuspended,
+  WrUserRequest, WrEventPair, WrQueue, WrLpcReceive,
+  WrLpcReply, WrVirtualMemory, WrPageOut, WrRendezvous,
+  Spare2, Spare3, Spare4, Spare5, Spare6, WrKernel,
+  MaximumWaitReason
+} KWAIT_REASON;
+]])
+safe_cdef([[
+typedef struct _LARGE_INTEGER {
+  long long QuadPart;
+} LARGE_INTEGER;
+]])
+safe_cdef([[
+typedef struct _UNICODE_STRING {
+  unsigned short Length;
+  unsigned short MaximumLength;
+  wchar* Buffer;
+} UNICODE_STRING;
+]])
+safe_cdef([[
+typedef struct _VM_COUNTERS {
+  size_t PeakVirtualSize;
+  size_t VirtualSize;
+  unsigned long PageFaultCount;
+  size_t PeakWorkingSetSize;
+  size_t WorkingSetSize;
+  size_t QuotaPeakPagedPoolUsage;
+  size_t QuotaPagedPoolUsage;
+  size_t QuotaPeakNonPagedPoolUsage;
+  size_t QuotaNonPagedPoolUsage;
+  size_t PagefileUsage;
+  size_t PeakPagefileUsage;
+} VM_COUNTERS;
+]])
+safe_cdef([[
+typedef struct _IO_COUNTERS {
+  unsigned long long ReadOperationCount;
+  unsigned long long WriteOperationCount;
+  unsigned long long OtherOperationCount;
+  unsigned long long ReadTransferCount;
+  unsigned long long WriteTransferCount;
+  unsigned long long OtherTransferCount;
+} IO_COUNTERS;
+]])
+safe_cdef([[
+typedef struct _SYSTEM_PROCESS_INFORMATION {
+  unsigned long NextEntryOffset;
+  unsigned long NumberOfThreads;
+  LARGE_INTEGER Reserved[3];
+  LARGE_INTEGER CreateTime;
+  LARGE_INTEGER UserTime;
+  LARGE_INTEGER KernelTime;
+  UNICODE_STRING ImageName;
+  long BasePriority;
+  uintptr_t UniqueProcessId;
+  uintptr_t InheritedFromUniqueProcessId;
+  unsigned long HandleCount;
+  unsigned long SessionId;
+  unsigned long PageDirectoryBase;
+  VM_COUNTERS VirtualMemoryCounters;
+  size_t PrivatePageCount;
+  IO_COUNTERS IoCounters;
+} SYSTEM_PROCESS_INFORMATION;
+]])
+safe_cdef([[
+typedef struct _CLIENT_ID {
+  uintptr_t UniqueProcess;
+  uintptr_t UniqueThread;
+} CLIENT_ID;
+]])
+safe_cdef([[
+typedef struct _SYSTEM_THREADS
+{
+  LARGE_INTEGER KernelTime;
+  LARGE_INTEGER UserTime;
+  LARGE_INTEGER CreateTime;
+  unsigned long WaitTime;
+  void* StartAddress;
+  CLIENT_ID ClientId;
+  long Priority;
+  long BasePriority;
+  unsigned long ContextSwitchCount;
+  THREAD_STATE State;
+  KWAIT_REASON WaitReason;
+} SYSTEM_THREADS, *PSYSTEM_THREADS;
+]])
+ffi.cdef[[
+unsigned long ZwQuerySystemInformation(SYSTEM_INFORMATION_CLASS,void*,unsigned long,unsigned long*);
+unsigned long GetCurrentProcessId(void);
+]]
+local ntdll=ffi.load("ntdll")
+local pid=C.GetCurrentProcessId()
+
+local function GetProcessesAndThreads()
+  local size=512*1024
+  while true do
+    local buffer=ffi.new("char[?]",size)
+    local status=ntdll.ZwQuerySystemInformation(C.SystemProcessInformation,buffer,size,ffi.NULL)
+    if 0xC0000004==status then
+      size=size*2
+    elseif 0==status then
+      return buffer
+    else
+      break
+    end
+  end
+end
+
+local function IsWorking()
+  local ptr=GetProcessesAndThreads()
+  if ptr then
+    local ptr1=ptr
+    while true do
+      local process=ffi.cast("SYSTEM_PROCESS_INFORMATION*",ptr1)
+      if pid==process.InheritedFromUniqueProcessId and 'conhost.exe'==win.Utf16ToUtf8(ffi.string(process.ImageName.Buffer,process.ImageName.Length)):lower() then
+        local thread=ffi.cast("SYSTEM_THREADS*",ptr1+ffi.sizeof"SYSTEM_PROCESS_INFORMATION")
+        for ii=1,process.NumberOfThreads do
+          if thread[ii-1].State~=C.StateWait or thread[ii-1].WaitReason==C.DelayExecution then return true end
+        end
+        break
+      end
+      if process.NextEntryOffset==0 then break end
+      ptr1=ptr1+process.NextEntryOffset
+    end
+  end
+end
+
 local function ToWChar(str)
   str=win.Utf8ToUtf16(str)
   local result=ffi.new("wchar_t[?]",#str/2+1)
@@ -376,6 +532,7 @@ local function UpdateImage(params)
   for _=0,1 do
     if C.Win32Error~=gdiplus.GdipDrawImageRectI(params.image.memory.graphics[0],params.image.image[0],0,0,params.image.width,params.image.height) then break end
   end
+  while IsWorking() do end
   gdiplus.GdipDrawImageRectI(params.image.graphics[0],params.image.memory.image[0],params.RangedRect.left,params.RangedRect.top,params.RangedRect.right,params.RangedRect.bottom)
   if params.timer and not params.timer.Closed then
     if params.image.delay then
