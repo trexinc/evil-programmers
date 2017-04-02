@@ -895,7 +895,7 @@ void WINAPI GetOpenPanelInfoW(struct OpenPanelInfo *Info)
     Info->StructSize=sizeof(*Info);
     Info->Flags=OPIF_ADDDOTS|OPIF_SHOWNAMESONLY/*|OPIF_FINDFOLDERS*/;
     if((panel->level==levelUsers)||(panel->level==levelGroups))
-      Info->Flags|=OPIF_USEATTRHIGHLIGHTING|OPIF_DISABLEHIGHLIGHTING;
+      Info->Flags|=OPIF_USEATTRHIGHLIGHTING;
     Info->HostFile=NULL;
     if(has_hostfile[panel->level])
       Info->HostFile=panel->hostfile_oem;

@@ -101,7 +101,9 @@ static bool EditAdvancedAccess(UserManager *panel,int size,int *messages,unsigne
           DialogItems[0].Type=DI_DOUBLEBOX; DialogItems[0].X1=3; DialogItems[0].Y1=1; DialogItems[0].X2=72; DialogItems[0].Y2=ItemCount;
           DialogItems[1].Type=DI_TEXT; DialogItems[1].X1=-1; DialogItems[1].Y1=ItemCount-2; DialogItems[1].Flags=DIF_SEPARATOR;
           if(delimiter>=0)
+          {
             DialogItems[2].Type=DI_TEXT; DialogItems[2].X1=-1; DialogItems[2].Y1=3+delimiter; DialogItems[2].Flags=DIF_SEPARATOR;
+          }
 
           DialogItems[button_index].Type=DI_BUTTON; DialogItems[button_index].Y1=ItemCount-1; DialogItems[button_index].Flags=DIF_CENTERGROUP|DIF_DEFAULTBUTTON; INIT_DLG_DATA(DialogItems[button_index],GetMsg(mPropButtonOk));
           button_index++;
