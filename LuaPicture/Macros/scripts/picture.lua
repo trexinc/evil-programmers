@@ -13,6 +13,14 @@ local F=far.Flags
 local K=far.Colors
 local ffi=require("ffi")
 local C=ffi.C
+ffi.cdef[[
+int SetProcessDpiAwareness(int);
+]]
+function setdpi()
+  local shcore=ffi.load("shcore")
+  shcore.SetProcessDpiAwareness(2)
+end
+pcall(setdpi)
 local function safe_cdef(def) pcall(ffi.cdef,def) end
 safe_cdef([[
 typedef enum GpStatus {
@@ -107,6 +115,14 @@ typedef struct _SMALL_RECT {
 } SMALL_RECT;
 ]])
 safe_cdef([[
+typedef struct _RECT {
+  long left;
+  long top;
+  long right;
+  long bottom;
+} RECT;
+]])
+safe_cdef([[
 typedef struct _CONSOLE_SCREEN_BUFFER_INFO {
   COORD dwSize;
   COORD dwCursorPosition;
@@ -128,20 +144,13 @@ typedef struct _CONSOLE_SCREEN_BUFFER_INFOEX {
   unsigned long ColorTable[16];
 } CONSOLE_SCREEN_BUFFER_INFOEX;
 ]])
-safe_cdef([[
-typedef struct _CONSOLE_FONT_INFO {
-  unsigned long nFont;
-  COORD dwFontSize;
-} CONSOLE_FONT_INFO;
-]])
 ffi.cdef[[
 void* GetDC(void* HWND);
 int ReleaseDC(void* HWND,void* HDC);
 int32_t GetConsoleScreenBufferInfo(void* hConsoleOutput,CONSOLE_SCREEN_BUFFER_INFO* lpConsoleScreenBufferInfo);
 int32_t GetConsoleScreenBufferInfoEx(void* hConsoleOutput,CONSOLE_SCREEN_BUFFER_INFOEX* lpConsoleScreenBufferInfoEx);
-int32_t GetCurrentConsoleFont(void* hConsoleOutput,int32_t bMaximumWindow,CONSOLE_FONT_INFO* lpConsoleCurrentFont);
-COORD GetConsoleFontSize(void* hConsoleOutput,unsigned long nFont);
 void* GetStdHandle(uint32_t nStdHandle);
+int32_t GetClientRect(void*,RECT*);
 ]]
 local gdiplus=ffi.load("gdiplus")
 local handle=ffi.new("void*[1]")
@@ -488,13 +497,12 @@ end
 
 local function InitArea(params)
   local info=ffi.new("CONSOLE_SCREEN_BUFFER_INFO")
-  local font=ffi.new("CONSOLE_FONT_INFO")
   local handle=C.GetStdHandle(-11)
   C.GetConsoleScreenBufferInfo(handle,info)
-  if C.GetCurrentConsoleFont(handle,false,font) then font.dwFontSize=C.GetConsoleFontSize(handle,font.nFont) end --xp workaround
-
-  local dx=font.dwFontSize.X
-  local dy=font.dwFontSize.Y
+  local crect=ffi.new("RECT")
+  C.GetClientRect(params.image.wnd,crect)
+  local dx=math.floor((crect.right-crect.left)/(info.srWindow.Right-info.srWindow.Left+1))
+  local dy=math.floor((crect.bottom-crect.top)/(info.srWindow.Bottom-info.srWindow.Top+1))
   local DCRect={}
   DCRect.left=math.floor(dx*(params.DrawRect.left-info.srWindow.Left))
   DCRect.right=math.floor(dx*(params.DrawRect.right+1-info.srWindow.Left))
