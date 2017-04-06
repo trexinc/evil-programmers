@@ -16,7 +16,7 @@ local C=ffi.C
 ffi.cdef[[
 int SetProcessDpiAwareness(int);
 ]]
-function setdpi()
+local function setdpi()
   local shcore=ffi.load("shcore")
   shcore.SetProcessDpiAwareness(2)
 end
@@ -464,8 +464,9 @@ local function InitImage(filename)
     gdiplus.GdipImageGetFrameCount(image[0],dimensionIDs,frames)
     local delaysize=ffi.new("unsigned int[1]")
     gdiplus.GdipGetPropertyItemSize(image[0],0x5100,delaysize)
-    local delay={}
+    local delay
     if delaysize[0]>0 then
+      delay={}
       local delayraw_buffer=ffi.new("char[?]",delaysize[0])
       local delayraw=ffi.cast("PropertyItem*",delayraw_buffer)
       gdiplus.GdipGetPropertyItem(image[0],0x5100,delaysize[0],delayraw)
@@ -480,7 +481,7 @@ local function InitImage(filename)
     gdiplus.GdipCreateBitmapFromScan0(width[0],height[0],0,0x26200a,ffi.NULL,memimage)
     local memgraphics=ffi.new("void*[1]")
     gdiplus.GdipGetImageGraphicsContext(memimage[0],memgraphics)
-    return {wnd=wnd,dc=dc,image=image,graphics=graphics,brush=brush,width=width[0],height=height[0],frames=frames[0],delay=delay,delete=delete,memory={image=memimage,graphics=memgraphics}}
+    return {wnd=wnd,dc=dc,image=image,graphics=graphics,brush=brush,width=width[0],height=height[0],frames=frames[0],delay=delay,guid=dimensionIDs,delete=delete,memory={image=memimage,graphics=memgraphics}}
   end
   return false
 end
@@ -543,15 +544,13 @@ local function UpdateImage(params)
   while IsWorking() do end
   gdiplus.GdipDrawImageRectI(params.image.graphics[0],params.image.memory.image[0],params.RangedRect.left,params.RangedRect.top,params.RangedRect.right,params.RangedRect.bottom)
   if params.timer and not params.timer.Closed then
-    if params.image.delay then
-      params.timer.Interval=params.image.delay[params.image.frame+1]*10
-      if not params.timer.Enabled then params.timer.Enabled=true end
-    end
+    params.timer.Interval=params.image.delay and params.image.delay[params.image.frame+1]*10 or 500
+    if not params.timer.Enabled then params.timer.Enabled=true end
     params.image.frame=params.image.frame+1
     if params.image.frame==params.image.frames then
       params.image.frame=0
     end
-    gdiplus.GdipImageSelectActiveFrame(params.image.image[0],ffi.cast("GUID*",params.image.guid),params.image.frame);
+    gdiplus.GdipImageSelectActiveFrame(params.image.image[0],params.image.guid,params.image.frame);
   end
 end
 
@@ -602,7 +601,6 @@ local function ShowImage(xpanel)
             params.timer=far.Timer(1000000,ShowAnimation)
             params.timer.Enabled=false
             params.image.frame=0
-            params.image.guid=win.Uuid("6aedbd6d-3fb5-418a-83a6-7f45229dc872")
           end
         elseif msg==F.DN_CTLCOLORDLGITEM then
           if param1==1 then
