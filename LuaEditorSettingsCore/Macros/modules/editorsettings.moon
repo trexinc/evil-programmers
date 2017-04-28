@@ -70,6 +70,10 @@ class Sql extends Sources
 class JavaScript extends Sources
   Title: "js"
   Type: "*.js"
+class VBScript extends Sources
+  Title: "vbs"
+  Type: "*.vbs"
+  Highlite:require'highlite.vbs'
 class FarMail extends Sources
   Title: "farmail script"
   Type: "*.fms"
@@ -174,7 +178,7 @@ class Default
 {
   CFarSources,CSources,PasSources,LuaSources,Io,Sql
   Makefile,MFour,Bash,LexAndYacc,Syntax
-  JavaScript,FarMail,BatFile,RegFile
+  JavaScript,VBScript,FarMail,BatFile,RegFile
   Diff,Resources,Postscript
   Executables,Archives,Pictures,Video,Audio,OtherBinaries
   Messages,FarHelp,NtEvents,PlainText,History,ChangeLogFar,ChangeLog,Roadmap

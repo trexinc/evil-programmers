@@ -129,7 +129,7 @@ FixSchemes=(Sch)->
           .Keywords[ii]={.Keywords[ii]} if 'string'==type .Keywords[ii]
           .Keywords[ii].ColorFull or=(decodeK .Keywords[ii].Color) or .Keywords.ColorFull
       .ColorFull or=decodeR .Color
-      if .Left and .Right and 'nil'==type .Pair then .Pair=true
+      .Pair=true if .Left and .Right and 'nil'==type .Pair
   for s in *Sch
     s.First={s.First} if 'string'==type s.First
     if s.Highlite
@@ -137,6 +137,7 @@ FixSchemes=(Sch)->
         if not .Pairs then .Pairs={}
         .Pairs.ColorFull or=decodeK .Pairs.Color
         .Pairs.ColorErrorFull or=invert .Pairs.ColorFull
+        .Case=true if 'nil'==type .Case
 
 FixSchemes Schemes
 
@@ -219,6 +220,7 @@ Highlite=(id,tt,top)->
       regionstart=1
       tt.cache[tocache ii]=state:(clone state),data:(clone state_data),pairs:(clone pairs) if ii%50==1
       {StringText:line,StringLength:len}=editor.GetString id,ii,0
+      line=line\lower! if not tt.o.Highlite.Case
       margins[ii]=:left,:right
       if 0==bit64.band ei.Options,F.EOPT_EXPANDALLTABS
         with margins[ii]=left:0,right:len+1
