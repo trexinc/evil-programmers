@@ -18,6 +18,7 @@
     along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <algorithm>
 #include "dt.hpp"
 #include <limits.h>
 #include <ntdef.h>
@@ -173,11 +174,11 @@ BOOL FindBounds(TCHAR *Str, int Len, int Pos, int *Start, int *End)
   // If line isn't empty
   if( Len>*Start )
   {
-    *End=min(*End,Len);
+    *End=std::min(*End,Len);
 
     // Pos between [Start, End] ?
-    Pos=max(Pos,*Start);
-    Pos=min(*End,Pos);
+    Pos=std::max(Pos,*Start);
+    Pos=std::min(*End,Pos);
 
     // If current character is non letter
     if(!MyIsAlpha(Str[Pos]))
@@ -202,7 +203,7 @@ BOOL FindBounds(TCHAR *Str, int Len, int Pos, int *Start, int *End)
       // Here r is left radius and i is right radius
 
       // If no letters was found
-      if( min(r,i)!=INT_MAX )
+      if( std::min(r,i)!=INT_MAX )
       {
         // What radius is less? Left?
         if( r <= i )
@@ -315,9 +316,9 @@ int GetNextCCType(TCHAR *Str, int StrLen, int Start, int End)
   int Counter;
   int i;
 
-  SignalWordLen=max(Start,End);
+  SignalWordLen=std::max(Start,End);
   Counter=SignalWordLen/2+1;
-  SignalWordLen=min(Start,End);
+  SignalWordLen=std::min(Start,End);
 
   if (StrLen<SignalWordLen)
     return CCCyclic;

@@ -54,7 +54,7 @@ void DoSearch(HANDLE aDlg)
       {//       Type            X1 Y1 X2 Y2 Se Fl                                     Data */
        /*00*/ { DI_DOUBLEBOX,   3, 1,55, 9, {0},          NULL,                       NULL, DIF_BOXCOLOR,                          GetMsg(mSearchCaption) ,0,0},
        /*01*/ { DI_TEXT,        5, 2, 0, 2, {0},          NULL,                       NULL, 0,                                     GetMsg(mSearch)        ,0,0},
-       /*02*/ { DI_EDIT,        5, 3,53, 3, {0},          _T("DialogManager.Search"), NULL, DIF_USELASTHISTORY,                    _T("")                 ,0,0},
+       /*02*/ { DI_EDIT,        5, 3,53, 3, {0},          _T("DialogManager.Search"), NULL, DIF_HISTORY|DIF_USELASTHISTORY,        _T("")                 ,0,0},
        /*03*/ { DI_TEXT,        0, 4, 0, 4, {0},          NULL,                       NULL, DIF_BOXCOLOR|DIF_SEPARATOR,            _T("")                 ,0,0},
        /*04*/ { DI_CHECKBOX,    5, 5, 0, 5, {(intptr_t)c},NULL,                       NULL, 0,                                     GetMsg(mCase)          ,0,0},
        /*05*/ { DI_CHECKBOX,    5, 6, 0, 6, {(intptr_t)p},NULL,                       NULL, 0,                                     GetMsg(mCurPos)        ,0,0},

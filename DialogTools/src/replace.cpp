@@ -53,9 +53,9 @@ void DoReplace(HANDLE aDlg)
       {//       Type            X1 Y1 X2 Y2 Se Fl                                     Data */
        /*00*/ { DI_DOUBLEBOX,   3, 1,55,11, {0},          NULL,                       NULL, DIF_BOXCOLOR,                          GetMsg(mReplaceCaption)  ,0,0},
        /*01*/ { DI_TEXT,        5, 2, 0, 2, {0},          NULL,                       NULL, 0,                                     GetMsg(mSearch)          ,0,0},
-       /*02*/ { DI_EDIT,        5, 3,53, 3, {0},          _T("DialogManager.Search"), NULL, DIF_USELASTHISTORY,                    _T("")                   ,0,0},
+       /*02*/ { DI_EDIT,        5, 3,53, 3, {0},          _T("DialogManager.Search"), NULL, DIF_HISTORY|DIF_USELASTHISTORY,        _T("")                   ,0,0},
        /*03*/ { DI_TEXT,        5, 4, 0, 4, {0},          NULL,                       NULL, 0,                                     GetMsg(mReplace)         ,0,0},
-       /*04*/ { DI_EDIT,        5, 5,53, 5, {0},          _T("DialogManager.Replace"),NULL, DIF_USELASTHISTORY,                    _T("")                   ,0,0},
+       /*04*/ { DI_EDIT,        5, 5,53, 5, {0},          _T("DialogManager.Replace"),NULL, DIF_HISTORY|DIF_USELASTHISTORY,        _T("")                   ,0,0},
        /*05*/ { DI_TEXT,        0, 6, 0, 6, {0},          NULL,                       NULL, DIF_BOXCOLOR|DIF_SEPARATOR,            _T("")                   ,0,0},
        /*06*/ { DI_CHECKBOX,    5, 7, 0, 7, {(intptr_t)c},NULL,                       NULL, 0,                                     GetMsg(mCase)            ,0,0},
        /*07*/ { DI_CHECKBOX,    5, 8, 0, 8, {(intptr_t)p},NULL,                       NULL, 0,                                     GetMsg(mCurPos)          ,0,0},
