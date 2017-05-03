@@ -16,12 +16,21 @@ public:
 	pyobject_ptr(PyObject* Object): m_Object(Object) {}
 	pyobject_ptr(const pyobject_ptr& rhs): m_Object(rhs.m_Object) { Py_XINCREF(m_Object); }
 
+	pyobject_ptr& operator=(PyObject* rhs)
+	{
+		Py_XDECREF(m_Object);
+		m_Object = rhs;
+		return *this;
+	}
+
 	pyobject_ptr& operator=(const pyobject_ptr& rhs)
 	{
 		Py_XINCREF(rhs.m_Object);
 		Py_XDECREF(m_Object);
 		m_Object = rhs.m_Object;
+		return *this;
 	}
+
 	~pyobject_ptr()
 	{
 		Py_XDECREF(m_Object);
@@ -113,6 +122,28 @@ public:
 private:
 	pyobject_ptr m_List;
 };
+
+namespace detail
+{
+	inline void SetTupleItems(const pyobject_ptr&, size_t) {}
+
+	template<typename arg, typename... args>
+	void SetTupleItems(const pyobject_ptr& Tuple, size_t CurrentIndex, const arg& Arg, const args&... Args)
+	{
+		// PyTuple_SetItem steals reference. Awesome design, guys, just awesome.
+		Py_INCREF(Arg.get());
+		PyTuple_SetItem(Tuple.get(), CurrentIndex, Arg.get());
+		SetTupleItems(Tuple, CurrentIndex + 1, Args...);
+	}
+}
+
+template<typename... args>
+pyobject_ptr MakeTuple(const args&... Args)
+{
+	auto Result = pyobject_ptr(PyTuple_New(sizeof...(args)));
+	detail::SetTupleItems(Result, 0, Args...);
+	return Result;
+}
 
 pyobject_ptr Call(const pyobject_ptr& Module, const char* Name, const py_dict& InfoArg);
 

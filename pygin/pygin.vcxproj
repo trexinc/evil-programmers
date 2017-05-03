@@ -69,29 +69,29 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Program Files (x86)\Python35-32\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Program Files (x86)\Python35-32\libs;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Program Files (x86)\Python36-32\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Program Files (x86)\Python36-32\libs;$(LibraryPath)</LibraryPath>
     <IntDir>artefacts\$(Platform)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)artefacts\$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Program Files\Python35\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Program Files\Python35\libs;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Program Files\Python36\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Program Files\Python36\libs;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)artefacts\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>artefacts\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>C:\Program Files (x86)\Python35-32\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Program Files (x86)\Python35-32\libs;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Program Files (x86)\Python36-32\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Program Files (x86)\Python36-32\libs;$(LibraryPath)</LibraryPath>
     <IntDir>artefacts\$(Platform)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)artefacts\$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>C:\Program Files\Python35\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Program Files\Python35\libs;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Program Files\Python36\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Program Files\Python36\libs;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)artefacts\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>artefacts\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>

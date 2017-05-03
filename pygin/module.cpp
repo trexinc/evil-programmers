@@ -82,14 +82,14 @@ void module::GetGlobalInfoW(struct GlobalInfo *Info)
 	py_dict pyInfo;
 	pyInfo["Title"] = "";
 	pyInfo["Author"] = "";
-	pyInfo["Desc"] = "";
+	pyInfo["Description"] = "";
 	pyInfo["Guid"] = "";
 
 	Call(m_Object, "GetGlobalInfoW", pyInfo);
 
 	Info->Title = (m_Title = to_wstring(pyInfo["Title"])).data();
 	Info->Author = (m_Author = to_wstring(pyInfo["Author"])).data();
-	Info->Description = (m_Description = to_wstring(pyInfo["Desc"])).data();
+	Info->Description = (m_Description = to_wstring(pyInfo["Description"])).data();
 	Info->Guid = m_Uuid = UuidFromString(to_wstring(pyInfo["Guid"]));
 }
 

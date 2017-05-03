@@ -1,7 +1,7 @@
 def GetGlobalInfoW(info):
     info["Title"] = "Hello Python world"
     info["Author"] = "Far group"
-    info["Desc"] = "Python plugin very basic example"
+    info["Description"] = "Python plugin very basic example"
     info["Guid"] = "31A0D11E-B9D8-4A9B-88C7-2D2983802C51"
 
 def GetPluginInfoW(info):
