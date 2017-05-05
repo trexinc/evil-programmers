@@ -13,15 +13,15 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="ReadMe.txt" />
+    <Filter Include="Header Files\cpp api">
+      <UniqueIdentifier>{0c7c2d49-9ebc-462f-b9ba-a85a4e4a2b15}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\cpp api">
+      <UniqueIdentifier>{8325c893-6cd9-45a0-820e-7c4af00cc5c0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="module.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="python_cpp.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="headers.hpp">
@@ -29,6 +29,39 @@
     </ClInclude>
     <ClInclude Include="targetver.hpp">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="python.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="py_dictionary.hpp">
+      <Filter>Header Files\cpp api</Filter>
+    </ClInclude>
+    <ClInclude Include="py_err.hpp">
+      <Filter>Header Files\cpp api</Filter>
+    </ClInclude>
+    <ClInclude Include="py_import.hpp">
+      <Filter>Header Files\cpp api</Filter>
+    </ClInclude>
+    <ClInclude Include="py_list.hpp">
+      <Filter>Header Files\cpp api</Filter>
+    </ClInclude>
+    <ClInclude Include="py_object.hpp">
+      <Filter>Header Files\cpp api</Filter>
+    </ClInclude>
+    <ClInclude Include="py_string.hpp">
+      <Filter>Header Files\cpp api</Filter>
+    </ClInclude>
+    <ClInclude Include="py_sys.hpp">
+      <Filter>Header Files\cpp api</Filter>
+    </ClInclude>
+    <ClInclude Include="py_tools.hpp">
+      <Filter>Header Files\cpp api</Filter>
+    </ClInclude>
+    <ClInclude Include="py_integer.hpp">
+      <Filter>Header Files\cpp api</Filter>
+    </ClInclude>
+    <ClInclude Include="py_tuple.hpp">
+      <Filter>Header Files\cpp api</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -38,22 +71,49 @@
     <ClCompile Include="dllmain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="python_cpp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="module.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="headers.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="py_dictionary.cpp">
+      <Filter>Source Files\cpp api</Filter>
+    </ClCompile>
+    <ClCompile Include="py_err.cpp">
+      <Filter>Source Files\cpp api</Filter>
+    </ClCompile>
+    <ClCompile Include="py_import.cpp">
+      <Filter>Source Files\cpp api</Filter>
+    </ClCompile>
+    <ClCompile Include="py_list.cpp">
+      <Filter>Source Files\cpp api</Filter>
+    </ClCompile>
+    <ClCompile Include="py_object.cpp">
+      <Filter>Source Files\cpp api</Filter>
+    </ClCompile>
+    <ClCompile Include="py_string.cpp">
+      <Filter>Source Files\cpp api</Filter>
+    </ClCompile>
+    <ClCompile Include="py_sys.cpp">
+      <Filter>Source Files\cpp api</Filter>
+    </ClCompile>
+    <ClCompile Include="py_tools.cpp">
+      <Filter>Source Files\cpp api</Filter>
+    </ClCompile>
+    <ClCompile Include="py_integer.cpp">
+      <Filter>Source Files\cpp api</Filter>
+    </ClCompile>
+    <ClCompile Include="py_tuple.cpp">
+      <Filter>Source Files\cpp api</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="pygin.def">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="pugin.py">
-      <Filter>Source Files</Filter>
-    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="__init__.py" />
   </ItemGroup>
 </Project>

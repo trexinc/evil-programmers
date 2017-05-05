@@ -1,15 +1,23 @@
 #include "headers.hpp"
 #include "module.hpp"
 
+#include "py_dictionary.hpp"
+#include "py_err.hpp"
+#include "py_import.hpp"
+#include "py_list.hpp"
+#include "py_string.hpp"
+#include "py_sys.hpp"
+#include "py_tools.hpp"
+
 static void AddToPythonPath(const std::wstring& Path)
 {
-	py_list PathList(PySys_GetObject("path"));
-	auto NewItem = py_str(Path);
+	py::list PathList(py::sys::get_object("path"));
+	const py::string NewItem(Path);
 	bool Found = false;
 
 	for (size_t i = 0, size = PathList.size();  i != size; ++i)
 	{
-		if (!PyUnicode_Compare(PathList[i], NewItem.get()))
+		if (!NewItem.compare(PathList[i]))
 		{
 			Found = true;
 		}
@@ -20,26 +28,26 @@ static void AddToPythonPath(const std::wstring& Path)
 	}
 }
 
-static PyObject* AddOrReloadModule(const std::wstring& Name)
+static py::object AddOrReloadModule(const std::wstring& Name)
 {
-	py_dict ModulesDict(PySys_GetObject("modules"));
-	auto NewModuleName = py_str(Name);
-	auto ExistingModule = ModulesDict.get_at(NewModuleName);
-	auto NewModule = PyImport_Import(NewModuleName.get());
+	py::dictionary ModulesDict(py::sys::get_object("modules"));
+	const py::string NewModuleName(Name);
+	const auto ExistingModule = ModulesDict.get_at(NewModuleName);
+	auto NewModule = py::import::import(NewModuleName);
 
 	if (ExistingModule)
 	{
-		NewModule = PyImport_ReloadModule(ExistingModule.get());
+		NewModule = py::import::reload_module(ExistingModule);
 	}
 	return NewModule;
 }
 
 static void DebugPrintTracebackIfAny()
 {
-	if (!PyErr_Occurred())
+	if (!py::err::occurred())
 		return;
 
-	PyErr_Print();
+	py::err::print();
 }
 
 HANDLE WINAPI adapter_CreateInstance(const wchar_t* filename)
@@ -53,10 +61,12 @@ HANDLE WINAPI adapter_CreateInstance(const wchar_t* filename)
 	AddToPythonPath(Path);
 	const auto Object = AddOrReloadModule(ModuleName);
 	DebugPrintTracebackIfAny();
-	return Object ? new module(Object) : nullptr;
+	return Object? new module(Object) : nullptr;
 }
 
 extern "C" IMAGE_DOS_HEADER __ImageBase;
+
+static HANDLE HelperModule;
 
 BOOL WINAPI adapter_Initialize(GlobalInfo* Info)
 {
@@ -72,12 +82,13 @@ BOOL WINAPI adapter_Initialize(GlobalInfo* Info)
 	Info->Author = L"Far Group";
 	Info->Description = L"Python language support for Far Manager";
 
-	Py_Initialize();
+	py::initialize();
 
 	wchar_t AdaptherPath[MAX_PATH];
 	GetModuleFileNameW(reinterpret_cast<HINSTANCE>(&__ImageBase), AdaptherPath, static_cast<DWORD>(std::size(AdaptherPath)));
 	*(wcsrchr(AdaptherPath, L'\\') + 1) = 0;
-	auto PythonModule(reinterpret_cast<PyObject*>(adapter_CreateInstance((AdaptherPath + L"__init__.py"s).data())));
+
+	HelperModule = adapter_CreateInstance((AdaptherPath + L"__init__.py"s).data());
 
 	return TRUE;
 }
@@ -125,7 +136,6 @@ FARPROC WINAPI adapter_GetFunctionAddress(HANDLE Instance, const wchar_t* functi
 		FunctionsMap[L"FreeContentDataW"] = FreeContentDataW;
 	}
 
-
 	const auto Module = static_cast<module*>(Instance);
 	return Module->CheckFunction(functionname) && FunctionsMap.count(functionname)? reinterpret_cast<FARPROC>(FunctionsMap[functionname]) : nullptr;
 }
@@ -139,5 +149,6 @@ BOOL WINAPI adapter_DestroyInstance(HANDLE Instance)
 
 void WINAPI adapter_Free(const ExitInfo* info)
 {
-	Py_Finalize();
+	adapter_DestroyInstance(HelperModule);
+	py::finalize();
 }

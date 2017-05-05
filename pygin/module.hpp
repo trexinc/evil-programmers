@@ -1,47 +1,69 @@
 #pragma once
 
+#include "py_object.hpp"
+
 class module
 {
 public:
-	module(PyObject* Object);
+	module(const py::object& Object);
 	~module();
 
-	bool CheckFunction(const wchar_t* FunctionName);
+	bool CheckFunction(const wchar_t* FunctionName) const;
+	py::object CallFunction(const char* FunctionName, const py::object& InfoArg) const;
 
-	HANDLE AnalyseW(const struct AnalyseInfo *Info);
-	void CloseAnalyseW(const struct CloseAnalyseInfo *Info);
-	void ClosePanelW(const struct ClosePanelInfo *Info);
-	intptr_t CompareW(const struct CompareInfo *Info);
-	intptr_t ConfigureW(const struct ConfigureInfo *Info);;
-	intptr_t DeleteFilesW(const struct DeleteFilesInfo *Info);
-	void ExitFARW(const struct ExitInfo *Info);
-	void FreeFindDataW(const struct FreeFindDataInfo *Info);
-	intptr_t GetFilesW(struct GetFilesInfo *Info);
-	intptr_t GetFindDataW(struct GetFindDataInfo *Info);
-	void GetGlobalInfoW(struct GlobalInfo *Info);
-	void GetOpenPanelInfoW(struct OpenPanelInfo *Info);
-	void GetPluginInfoW(struct PluginInfo *Info);
-	intptr_t MakeDirectoryW(struct MakeDirectoryInfo *Info);
-	HANDLE OpenW(const struct OpenInfo *Info);
-	intptr_t ProcessDialogEventW(const struct ProcessDialogEventInfo *Info);
-	intptr_t ProcessEditorEventW(const struct ProcessEditorEventInfo *Info);
-	intptr_t ProcessEditorInputW(const struct ProcessEditorInputInfo *Info);
-	intptr_t ProcessPanelEventW(const struct ProcessPanelEventInfo *Info);
-	intptr_t ProcessHostFileW(const struct ProcessHostFileInfo *Info);
-	intptr_t ProcessPanelInputW(const struct ProcessPanelInputInfo *Info);
-	intptr_t ProcessConsoleInputW(struct ProcessConsoleInputInfo *Info);
-	intptr_t ProcessSynchroEventW(const struct ProcessSynchroEventInfo *Info);
-	intptr_t ProcessViewerEventW(const struct ProcessViewerEventInfo *Info);
-	intptr_t PutFilesW(const struct PutFilesInfo *Info);
-	intptr_t SetDirectoryW(const struct SetDirectoryInfo *Info);
-	intptr_t SetFindListW(const struct SetFindListInfo *Info);
-	void SetStartupInfoW(const struct PluginStartupInfo *Info);
-	intptr_t GetContentFieldsW(const struct GetContentFieldsInfo *Info);
-	intptr_t GetContentDataW(struct GetContentDataInfo *Info);
-	void FreeContentDataW(const struct GetContentDataInfo *Info);
+	template<typename callable, typename fallback>
+	auto try_call(const callable& Callable, const fallback& Fallback) noexcept
+	{
+		try
+		{
+			return Callable();
+		}
+		catch (...)
+		{
+			try
+			{
+				return Fallback();
+			}
+			catch (...)
+			{
+			}
+		}
+	}
+
+	HANDLE AnalyseW(const AnalyseInfo *Info) noexcept;
+	void CloseAnalyseW(const CloseAnalyseInfo *Info) noexcept;
+	void ClosePanelW(const ClosePanelInfo *Info) noexcept;
+	intptr_t CompareW(const CompareInfo *Info) noexcept;
+	intptr_t ConfigureW(const ConfigureInfo *Info) noexcept;
+	intptr_t DeleteFilesW(const DeleteFilesInfo *Info) noexcept;
+	void ExitFARW(const ExitInfo *Info) noexcept;
+	void FreeFindDataW(const FreeFindDataInfo *Info) noexcept;
+	intptr_t GetFilesW(GetFilesInfo *Info) noexcept;
+	intptr_t GetFindDataW(GetFindDataInfo *Info) noexcept;
+	void GetGlobalInfoW(GlobalInfo *Info) noexcept;
+	void GetOpenPanelInfoW(OpenPanelInfo *Info) noexcept;
+	void GetPluginInfoW(PluginInfo *Info) noexcept;
+	intptr_t MakeDirectoryW(MakeDirectoryInfo *Info) noexcept;
+	HANDLE OpenW(const OpenInfo *Info) noexcept;
+	intptr_t ProcessDialogEventW(const ProcessDialogEventInfo *Info) noexcept;
+	intptr_t ProcessEditorEventW(const ProcessEditorEventInfo *Info) noexcept;
+	intptr_t ProcessEditorInputW(const ProcessEditorInputInfo *Info) noexcept;
+	intptr_t ProcessPanelEventW(const ProcessPanelEventInfo *Info) noexcept;
+	intptr_t ProcessHostFileW(const ProcessHostFileInfo *Info) noexcept;
+	intptr_t ProcessPanelInputW(const ProcessPanelInputInfo *Info) noexcept;
+	intptr_t ProcessConsoleInputW(ProcessConsoleInputInfo *Info) noexcept;
+	intptr_t ProcessSynchroEventW(const ProcessSynchroEventInfo *Info) noexcept;
+	intptr_t ProcessViewerEventW(const ProcessViewerEventInfo *Info) noexcept;
+	intptr_t PutFilesW(const PutFilesInfo *Info) noexcept;
+	intptr_t SetDirectoryW(const SetDirectoryInfo *Info) noexcept;
+	intptr_t SetFindListW(const SetFindListInfo *Info) noexcept;
+	void SetStartupInfoW(const PluginStartupInfo *Info) noexcept;
+	intptr_t GetContentFieldsW(const GetContentFieldsInfo *Info) noexcept;
+	intptr_t GetContentDataW(GetContentDataInfo *Info) noexcept;
+	void FreeContentDataW(const GetContentDataInfo *Info) noexcept;
 
 private:
-	pyobject_ptr m_Object;
+	py::object m_Object;
 
 	std::wstring m_Title;
 	std::wstring m_Author;

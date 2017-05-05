@@ -168,12 +168,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="module.hpp" />
-    <ClInclude Include="python_cpp.hpp" />
+    <ClInclude Include="python.hpp" />
+    <ClInclude Include="py_integer.hpp" />
+    <ClInclude Include="py_string.hpp" />
+    <ClInclude Include="py_tools.hpp" />
     <ClInclude Include="headers.hpp" />
+    <ClInclude Include="py_dictionary.hpp" />
+    <ClInclude Include="py_err.hpp" />
+    <ClInclude Include="py_import.hpp" />
+    <ClInclude Include="py_list.hpp" />
+    <ClInclude Include="py_object.hpp" />
+    <ClInclude Include="py_sys.hpp" />
+    <ClInclude Include="py_tuple.hpp" />
     <ClInclude Include="targetver.hpp" />
   </ItemGroup>
   <ItemGroup>
@@ -193,13 +200,22 @@
     </ClCompile>
     <ClCompile Include="module.cpp" />
     <ClCompile Include="pygin.cpp" />
-    <ClCompile Include="python_cpp.cpp" />
+    <ClCompile Include="py_integer.cpp" />
+    <ClCompile Include="py_string.cpp" />
+    <ClCompile Include="py_tools.cpp" />
     <ClCompile Include="headers.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="py_dictionary.cpp" />
+    <ClCompile Include="py_err.cpp" />
+    <ClCompile Include="py_import.cpp" />
+    <ClCompile Include="py_list.cpp" />
+    <ClCompile Include="py_object.cpp" />
+    <ClCompile Include="py_sys.cpp" />
+    <ClCompile Include="py_tuple.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="__init__.py">
