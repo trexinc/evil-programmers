@@ -7,6 +7,8 @@ namespace py
 	class dictionary: public object
 	{
 	public:
+		TRIVIALLY_MOVABLE(dictionary);
+
 		dictionary();
 
 		explicit dictionary(const object& Object);
@@ -14,6 +16,8 @@ namespace py
 		class value_proxy
 		{
 		public:
+			TRIVIALLY_MOVABLE(value_proxy);
+
 			value_proxy(dictionary* Owner, const object& Key);
 			value_proxy(const value_proxy& rhs);
 
@@ -25,8 +29,8 @@ namespace py
 			operator object() const;
 
 		private:
-			object m_Key;
 			dictionary* m_Owner;
+			object m_Key;
 		};
 
 		value_proxy operator[](const char* Key);

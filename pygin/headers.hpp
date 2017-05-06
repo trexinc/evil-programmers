@@ -17,3 +17,20 @@
 #include "plugin.hpp"
 
 using namespace std::string_literals;
+
+template<typename callable, typename fallback>
+auto try_call(const callable& Callable, const fallback& Fallback) noexcept
+{
+	try
+	{
+		return Callable();
+	}
+	catch (...)
+	{
+		return Fallback();
+	}
+}
+
+#define TRIVIALLY_MOVABLE(Type) \
+Type(Type&&) = default; \
+Type& operator=(Type&&) = default;

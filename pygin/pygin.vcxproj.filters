@@ -19,6 +19,9 @@
     <Filter Include="Source Files\cpp api">
       <UniqueIdentifier>{8325c893-6cd9-45a0-820e-7c4af00cc5c0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="python api">
+      <UniqueIdentifier>{9eebceaf-9dc3-4791-b595-3fe790800646}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="module.hpp">
@@ -62,6 +65,9 @@
     </ClInclude>
     <ClInclude Include="py_tuple.hpp">
       <Filter>Header Files\cpp api</Filter>
+    </ClInclude>
+    <ClInclude Include="pygin.hpp">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -107,6 +113,12 @@
     <ClCompile Include="py_tuple.cpp">
       <Filter>Source Files\cpp api</Filter>
     </ClCompile>
+    <ClCompile Include="module_interface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="pygin_interface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="pygin.def">
@@ -114,6 +126,8 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="__init__.py" />
+    <CustomBuild Include="farmanager\__init__.py">
+      <Filter>python api</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

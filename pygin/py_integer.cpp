@@ -10,4 +10,9 @@ namespace py
 		object(PyLong_FromLong(Value))
 	{
 	}
+
+	integer::integer(unsigned long long Value):
+		object(PyLong_FromUnsignedLongLong(Value))
+	{
+	}
 }

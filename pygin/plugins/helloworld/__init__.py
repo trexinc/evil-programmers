@@ -1,3 +1,5 @@
+import farmanager as far
+
 def GetGlobalInfoW(info):
     info["Title"] = "Hello Python world"
     info["Author"] = "Far group"
@@ -9,4 +11,4 @@ def GetPluginInfoW(info):
     info["Guid"] = "DAF1257B-E011-4B5A-B5DC-732581BDF3BA";
 
 def OpenW(info):
-    print("Hello Python world\n")
+    far.print_message("Hello Python world\n")

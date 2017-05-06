@@ -6,6 +6,8 @@ namespace py
 	class tuple: public object
 	{
 	public:
+		TRIVIALLY_MOVABLE(tuple);
+
 		explicit tuple(size_t Size);
 
 		void set_at(size_t Position, const object& Object);

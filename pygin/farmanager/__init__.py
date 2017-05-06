@@ -19,3 +19,6 @@ class Logger(object):
 Log = Logger()
 sys.stdout = Log
 sys.stderr = Log
+
+def print_message(str):
+	print(str)

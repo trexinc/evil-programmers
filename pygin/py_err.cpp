@@ -21,5 +21,14 @@ namespace py
 		{
 			PyErr_Print();
 		}
+
+		void print_if_any()
+		{
+			if (!occurred())
+				return;
+
+			print();
+		}
+
 	}
 }

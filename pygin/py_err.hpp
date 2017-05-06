@@ -8,5 +8,6 @@ namespace py
 		object occurred();
 		void clear();
 		void print();
+		void print_if_any();
 	}
 }

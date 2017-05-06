@@ -9,12 +9,14 @@ namespace py
 	public:
 		explicit object(PyObject* Object);
 		object(const object& rhs);
+		object(object&& Object);
 		object(std::nullptr_t);
 
 		~object();
 
 		object& operator=(PyObject* rhs);
 		object& operator=(const object& rhs);
+		object& operator=(object&& Object);
 
 		explicit operator bool() const;
 		bool operator!() const;

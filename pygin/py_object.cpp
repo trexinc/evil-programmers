@@ -10,10 +10,15 @@ namespace py
 	{
 	}
 
-	object::object(const object& rhs):
-		m_Object(rhs.m_Object)
+	object::object(const object& Object):
+		m_Object(Object.m_Object)
 	{
 		Py_XINCREF(m_Object);
+	}
+
+	object::object(object&& Object):
+		m_Object(std::exchange(Object.m_Object, nullptr))
+	{
 	}
 
 	object::object(std::nullptr_t):
@@ -26,18 +31,24 @@ namespace py
 		Py_XDECREF(m_Object);
 	}
 
-	object& object::operator=(PyObject* rhs)
+	object& object::operator=(PyObject* Rhs)
 	{
 		Py_XDECREF(m_Object);
-		m_Object = rhs;
+		m_Object = Rhs;
 		return *this;
 	}
 
-	object& object::operator=(const object& rhs)
+	object& object::operator=(const object& Rhs)
 	{
-		Py_XINCREF(rhs.m_Object);
+		Py_XINCREF(Rhs.m_Object);
 		Py_XDECREF(m_Object);
-		m_Object = rhs.m_Object;
+		m_Object = Rhs.m_Object;
+		return *this;
+	}
+
+	object& object::operator=(object&& Rhs)
+	{
+		m_Object = std::exchange(Rhs.m_Object, nullptr);
 		return *this;
 	}
 

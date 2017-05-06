@@ -36,7 +36,7 @@ namespace py
 		return *this;
 	}
 
-	dictionary::value_proxy& dictionary::value_proxy::operator=(const int value)
+	dictionary::value_proxy& dictionary::value_proxy::operator=(int value)
 	{
 		m_Owner->set_at(m_Key, py::integer(value));
 		return *this;
