@@ -1,10 +1,13 @@
 #pragma once
 
 #include "py_object.hpp"
+#include "far_api.hpp"
 
 class module
 {
 public:
+	NONCOPYABLE(module);
+
 	module(const py::object& Object);
 	~module();
 
@@ -44,7 +47,7 @@ public:
 	void FreeContentDataW(const GetContentDataInfo *Info);
 
 private:
-	py::object m_Object;
+	py::object m_PluginModule;
 
 	std::wstring m_Title;
 	std::wstring m_Author;
@@ -53,9 +56,8 @@ private:
 
 	std::vector<std::wstring> m_MenuStringsData;
 	std::vector<const wchar_t*> m_MenuStrings;
-	std::vector<UUID> m_MEnuUuids;
+	std::vector<UUID> m_MenuUuids;
 
-	PluginStartupInfo m_Psi;
-	FarStandardFunctions m_Fsf;
+	std::unique_ptr<far_api> m_FarApi;
 };
 

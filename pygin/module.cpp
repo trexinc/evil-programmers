@@ -8,6 +8,8 @@
 #include "py_tuple.hpp"
 #include "py_tools.hpp"
 
+using namespace py::literals;
+
 static UUID UuidFromString(const std::wstring& Str)
 {
 	UUID Result;
@@ -15,9 +17,8 @@ static UUID UuidFromString(const std::wstring& Str)
 	return Result;
 }
 
-
 module::module(const py::object& Object):
-	m_Object(Object)
+	m_PluginModule(Object)
 {
 }
 
@@ -27,23 +28,21 @@ module::~module()
 
 bool module::check_function(const wchar_t* FunctionName) const
 {
-	const auto Func = m_Object.get_attribute(py::string(FunctionName));
+	const auto Func = m_PluginModule.get_attribute(py::string(FunctionName));
 	py::err::clear();
-	return (Func && py::callable_check(Func))
-		// SetStartupInfoW is useless for Python script itself, but crucial for this wrapper
-		|| !wcscmp(FunctionName, L"SetStartupInfoW");
+	return Func && py::callable_check(Func);
 }
 
 py::object module::call_function(const char* FunctionName, const py::object& InfoArg) const
 {
-	const auto Func = m_Object.get_attribute(py::string(FunctionName));
+	const auto Func = m_PluginModule.get_attribute(py::string(FunctionName));
 	if (!Func)
 		throw std::runtime_error(FunctionName + " is absent"s);
 
 	if (!py::callable_check(Func))
 		throw std::runtime_error(FunctionName + " is not callable"s);
 
-	const auto Result = Func.call(py::tuple::make(InfoArg));
+	const auto Result = Func.call(InfoArg? py::tuple::make(InfoArg) : InfoArg);
 	if (!Result)
 	{
 		py::err::print_if_any();
@@ -53,6 +52,8 @@ py::object module::call_function(const char* FunctionName, const py::object& Inf
 	return Result;
 }
 
+
+#define STR(x) #x
 
 HANDLE module::AnalyseW(const AnalyseInfo *Info)
 {
@@ -84,6 +85,8 @@ intptr_t module::DeleteFilesW(const DeleteFilesInfo *Info)
 
 void module::ExitFARW(const ExitInfo *Info)
 {
+	py::dictionary pyInfo;
+	call_function(STR(ExitFARW), pyInfo);
 }
 
 void module::FreeFindDataW(const FreeFindDataInfo *Info)
@@ -108,12 +111,12 @@ void module::GetGlobalInfoW(GlobalInfo *Info)
 	pyInfo["Description"] = "";
 	pyInfo["Guid"] = "";
 
-	call_function("GetGlobalInfoW", pyInfo);
+	call_function(STR(GetGlobalInfoW), pyInfo);
 
-	Info->Title = (m_Title = py::string::to_wstring(pyInfo["Title"])).data();
-	Info->Author = (m_Author = py::string::to_wstring(pyInfo["Author"])).data();
-	Info->Description = (m_Description = py::string::to_wstring(pyInfo["Description"])).data();
-	Info->Guid = m_Uuid = UuidFromString(py::string::to_wstring(pyInfo["Guid"]));
+	Info->Title = (m_Title = py::as_string(pyInfo["Title"]).to_wstring()).data();
+	Info->Author = (m_Author = py::as_string(pyInfo["Author"]).to_wstring()).data();
+	Info->Description = (m_Description = py::as_string(pyInfo["Description"]).to_wstring()).data();
+	Info->Guid = m_Uuid = UuidFromString(py::as_string(pyInfo["Guid"]).to_wstring());
 }
 
 void module::GetOpenPanelInfoW(OpenPanelInfo *Info)
@@ -126,19 +129,19 @@ void module::GetPluginInfoW(PluginInfo *Info)
 	pyInfo["MenuString"] = "";
 	pyInfo["Guid"] = "";
 
-	call_function("GetPluginInfoW", pyInfo);
+	call_function(STR(GetPluginInfoW), pyInfo);
 
 	const size_t Size = 1;
 	m_MenuStringsData.resize(Size);
 	m_MenuStrings.resize(Size);
-	m_MEnuUuids.resize(Size);
+	m_MenuUuids.resize(Size);
 
-	m_MenuStringsData[0] = py::string::to_wstring(pyInfo["MenuString"]);
+	m_MenuStringsData[0] = py::as_string(pyInfo["MenuString"]).to_wstring();
 	m_MenuStrings[0] = m_MenuStringsData[0].data();
-	m_MEnuUuids[0] = UuidFromString(py::string::to_wstring(pyInfo["Guid"]));
+	m_MenuUuids[0] = UuidFromString(py::as_string(pyInfo["Guid"]).to_wstring());
 
 	Info->PluginMenu.Strings = m_MenuStrings.data();
-	Info->PluginMenu.Guids = m_MEnuUuids.data();
+	Info->PluginMenu.Guids = m_MenuUuids.data();
 	Info->PluginMenu.Count = Size;
 
 	Info->Flags |= PF_PRELOAD;
@@ -151,24 +154,10 @@ intptr_t module::MakeDirectoryW(MakeDirectoryInfo *Info)
 
 HANDLE module::OpenW(const OpenInfo *Info)
 {
-	try
-	{
-		// BUGBUG
-		m_Psi.PanelControl(PANEL_NONE, FCTL_GETUSERSCREEN, 0, nullptr);
-
-		py::dictionary pyInfo;
-		call_function("OpenW", pyInfo);
-
-		// BUGBUG
-		m_Psi.PanelControl(PANEL_NONE, FCTL_SETUSERSCREEN, 0, nullptr);
-		return nullptr;
-	}
-	catch(...)
-	{
-		// BUGBUG
-		m_Psi.PanelControl(PANEL_NONE, FCTL_SETUSERSCREEN, 0, nullptr);
-		throw;
-	}
+	py::dictionary pyInfo;
+	const auto Result = call_function(STR(OpenW), pyInfo);
+	// BUGBUG
+	return nullptr;
 }
 
 intptr_t module::ProcessDialogEventW(const ProcessDialogEventInfo *Info)
@@ -233,9 +222,8 @@ intptr_t module::SetFindListW(const SetFindListInfo *Info)
 
 void module::SetStartupInfoW(const PluginStartupInfo *Info)
 {
-	m_Psi = *Info;
-	m_Fsf = *Info->FSF;
-	m_Psi.FSF = &m_Fsf;
+	m_FarApi = std::make_unique<far_api>(Info);
+	call_function(STR(SetStartupInfoW), m_FarApi->get());
 }
 
 intptr_t module::GetContentFieldsW(const GetContentFieldsInfo *Info)

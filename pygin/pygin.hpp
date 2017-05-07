@@ -2,10 +2,13 @@
 
 class module;
 struct GlobalInfo;
+class far_api;
 
 class pygin
 {
 public:
+	NONCOPYABLE(pygin);
+
 	pygin(GlobalInfo* Info);
 	~pygin();
 	bool is_module(const wchar_t* FileName) const;
@@ -13,5 +16,5 @@ public:
 	FARPROC WINAPI get_function(HANDLE Instance, const wchar_t* FunctionName);
 
 private:
-	std::unique_ptr<module> m_FarmanagerModule;
+	std::unique_ptr<module> m_PyginModule;
 };

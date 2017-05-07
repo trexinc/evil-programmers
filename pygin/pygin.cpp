@@ -66,18 +66,23 @@ pygin::pygin(GlobalInfo* Info)
 	GetModuleFileNameW(reinterpret_cast<HINSTANCE>(&__ImageBase), AdaptherPath, static_cast<DWORD>(std::size(AdaptherPath)));
 	*(wcsrchr(AdaptherPath, L'\\') + 1) = 0;
 
-	m_FarmanagerModule = create_module((AdaptherPath + L"farmanager\\__init__.py"s).data());
+	m_PyginModule = create_module((AdaptherPath + L"pygin\\__init__.py"s).data());
 }
 
 pygin::~pygin()
 {
-	m_FarmanagerModule.reset();
+	m_PyginModule.reset();
 	py::finalize();
 }
 
 bool pygin::is_module(const wchar_t* FileName) const
 {
-	return !wcscmp(wcsrchr(FileName, L'\\') + 1, L"__init__.py");
+	// BUGBUG, ends_with
+	static const auto Suffix = L"\\__init__.py";
+	static const auto SuffixSize = wcslen(Suffix);
+
+	const auto FileNameLength = wcslen(FileName);
+	return FileNameLength >= SuffixSize && !_wcsnicmp(FileName + FileNameLength - SuffixSize, Suffix, SuffixSize);
 }
 
 std::unique_ptr<module> pygin::create_module(const wchar_t* FileName)

@@ -15,20 +15,27 @@ namespace py
 		explicit string(const wchar_t* Str);
 		explicit string(const std::string& Str);
 		explicit string(const std::wstring& Str);
+		explicit string(const object& Object);
 
 		int compare(const object& Other) const;
 
-		static std::string to_string(const object& Object);
-		static std::wstring to_wstring(const object& Object);
+		std::string to_string() const;
+		std::wstring to_wstring() const;
 	};
 
-	inline auto operator ""_py(const char* Data, size_t Size) noexcept
-	{
-		return string(Data, Size);
-	}
+	string as_string(PyObject* Object);
+	string as_string(const object& Object);
 
-	inline auto operator ""_py(const wchar_t* Data, size_t Size) noexcept
+	inline namespace literals
 	{
-		return string(Data, Size);
+		inline auto operator ""_py(const char* Data, size_t Size) noexcept
+		{
+			return string(Data, Size);
+		}
+
+		inline auto operator ""_py(const wchar_t* Data, size_t Size) noexcept
+		{
+			return string(Data, Size);
+		}
 	}
 }

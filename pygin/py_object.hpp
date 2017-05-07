@@ -26,6 +26,9 @@ namespace py
 		object get_attribute(const char* Name) const;
 		object get_attribute(const object& Name) const;
 
+		bool set_attribute(const char* Name, const object& Value) const;
+		bool set_attribute(const object& Name, const object& Value) const;
+
 		object call(const object& Args) const;
 
 		static object from_borrowed(PyObject* Object);

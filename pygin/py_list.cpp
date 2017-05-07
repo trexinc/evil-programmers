@@ -46,8 +46,7 @@ namespace py
 
 	void list::set_at(size_t Index, const object& Value)
 	{
-		// PyList_SetItem steals reference. Awesome design, guys, just awesome.
-		Py_XINCREF(Value.get());
+		DONT_STEAL_REFERENCE(Value.get());
 		PyList_SetItem(get(), Index, Value.get());
 	}
 

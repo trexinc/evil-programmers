@@ -69,6 +69,9 @@
     <ClInclude Include="pygin.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="far_api.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pygin.cpp">
@@ -119,6 +122,9 @@
     <ClCompile Include="pygin_interface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="far_api.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="pygin.def">
@@ -126,7 +132,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="farmanager\__init__.py">
+    <CustomBuild Include="pygin\__init__.py">
       <Filter>python api</Filter>
     </CustomBuild>
   </ItemGroup>

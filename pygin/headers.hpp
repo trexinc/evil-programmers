@@ -31,6 +31,10 @@ auto try_call(const callable& Callable, const fallback& Fallback) noexcept
 	}
 }
 
+#define NONCOPYABLE(Type) \
+Type(const Type&) = delete; \
+Type& operator=(const Type&) = delete;
+
 #define TRIVIALLY_MOVABLE(Type) \
 Type(Type&&) = default; \
 Type& operator=(Type&&) = default;

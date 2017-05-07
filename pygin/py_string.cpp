@@ -37,14 +37,29 @@ namespace py
 	{
 	}
 
+	string::string(const object& Object):
+		object(Object)
+	{
+	}
+
 	int string::compare(const object& Other) const
 	{
 		return PyUnicode_Compare(get(), Other.get());
 	}
 
-	std::string string::to_string(const object& Object)
+	string as_string(PyObject* Object)
 	{
-		const auto Utf8Str = object(PyUnicode_AsUTF8String(Object.get()));
+		return string(object::from_borrowed(Object));
+	}
+
+	string as_string(const object& Object)
+	{
+		return string(Object);
+	}
+
+	std::string string::to_string() const
+	{
+		const auto Utf8Str = object(PyUnicode_AsUTF8String(get()));
 		if (!Utf8Str)
 		{
 			err::print_if_any();
@@ -63,10 +78,10 @@ namespace py
 		return { Data, Size };
 	}
 
-	std::wstring string::to_wstring(const object& Object)
+	std::wstring string::to_wstring() const
 	{
 		Py_ssize_t Size;
-		const auto Data = PyUnicode_AsWideCharString(Object.get(), &Size);
+		const auto Data = PyUnicode_AsWideCharString(get(), &Size);
 		if (!Data)
 		{
 			err::print_if_any();
@@ -79,5 +94,4 @@ namespace py
 
 		return Result;
 	}
-
 }

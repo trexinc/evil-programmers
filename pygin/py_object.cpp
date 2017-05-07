@@ -77,6 +77,16 @@ namespace py
 		return object(PyObject_GetAttr(get(), Name.get()));
 	}
 
+	bool object::set_attribute(const char* Name, const object& Value) const
+	{
+		return PyObject_SetAttrString(get(), Name, Value.get()) == 0;
+	}
+
+	bool object::set_attribute(const object& Name, const object& Value) const
+	{
+		return PyObject_SetAttr(get(), Name.get(), Value.get()) == 0;
+	}
+
 	object object::call(const object& Args) const
 	{
 		return object(PyObject_CallObject(get(), Args.get()));

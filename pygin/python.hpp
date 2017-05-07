@@ -9,3 +9,5 @@
 #undef _OLDDDEBUG
 #define _DEBUG 1
 #endif
+
+#define DONT_STEAL_REFERENCE(x) Py_XINCREF(x)
