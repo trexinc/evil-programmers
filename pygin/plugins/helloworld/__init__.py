@@ -1,6 +1,6 @@
 import pygin
 
-class hello_world_plugin:
+class HelloWorldPlugin:
 	def __init__(self, info):
 		info["Title"] = "Hello Python world"
 		info["Author"] = "Far group"
@@ -21,7 +21,7 @@ class hello_world_plugin:
 
 def GetGlobalInfoW(info):
 	global Plugin
-	Plugin = hello_world_plugin(info)
+	Plugin = HelloWorldPlugin(info)
 
 def SetStartupInfoW(info):
 	global far
