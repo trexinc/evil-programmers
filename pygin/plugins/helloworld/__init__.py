@@ -1,5 +1,8 @@
 import pygin
 
+# Far Manager API, passed through SetStartupInfoW call
+far = None
+
 class HelloWorldPlugin:
 	def __init__(self, info):
 		info["Title"] = "Hello Python world"
@@ -23,9 +26,9 @@ def GetGlobalInfoW(info):
 	global Plugin
 	Plugin = HelloWorldPlugin(info)
 
-def SetStartupInfoW(info):
+def SetStartupInfoW(farapi):
 	global far
-	far = info
+	far = farapi
 
 def GetPluginInfoW(info):
 	return Plugin.GetPluginInfo(info)
