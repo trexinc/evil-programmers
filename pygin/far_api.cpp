@@ -1,9 +1,10 @@
 #include "headers.hpp"
 
 #include "far_api.hpp"
-#include "python.hpp"
 
 #include "py_integer.hpp"
+
+#include "python.hpp"
 
 namespace far_api_implementation
 {
@@ -11,8 +12,8 @@ namespace far_api_implementation
 
 	static const auto& api(PyObject* Object)
 	{
-		const auto Ptr = py::object::from_borrowed(Object).get_attribute(ApiPointerAttributeName);
-		return *reinterpret_cast<const far_api*>(PyLong_AsSize_t(Ptr.get()));
+		const auto Ptr = py::cast<py::integer>(py::object::from_borrowed(Object).get_attribute(ApiPointerAttributeName));
+		return *reinterpret_cast<const far_api*>(Ptr.to_size_t());
 	}
 
 	static const auto& fsf(PyObject* Object)
@@ -62,18 +63,16 @@ namespace far_api_implementation
 }
 
 far_api::far_api(const PluginStartupInfo* Psi):
-	m_Module(PyModule_Create(&far_api_implementation::ModuleDefinition)),
-	m_Exception(PyErr_NewException("farapi.error", nullptr, nullptr)),
+	m_Module(py::invoke(PyModule_Create2, &far_api_implementation::ModuleDefinition, PYTHON_API_VERSION)),
+	m_Exception(py::invoke(PyErr_NewException, "farapi.error", nullptr, nullptr)),
 	m_Psi(*Psi),
 	m_Fsf(*Psi->FSF)
 {
 	m_Psi.FSF = &m_Fsf;
 
-	if (!m_Module)
-		throw std::runtime_error("PyModule_Create");
 
 	DONT_STEAL_REFERENCE(m_Exception.get());
-	PyModule_AddObject(m_Module.get(), "error", m_Exception.get());
+	py::invoke(PyModule_AddObject, m_Module.get(), "error", m_Exception.get());
 
 	m_Module.set_attribute(far_api_implementation::ApiPointerAttributeName, py::integer(reinterpret_cast<uintptr_t>(this)));
 }

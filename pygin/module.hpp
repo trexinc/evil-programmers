@@ -2,17 +2,20 @@
 
 #include "py_object.hpp"
 #include "far_api.hpp"
+#include "pygin.hpp"
 
 class module
 {
 public:
 	NONCOPYABLE(module);
 
-	module(const py::object& Object);
+	module(const py::object& Object, const pygin::type_factory& TypeFactory);
 	~module();
 
 	bool check_function(const wchar_t* FunctionName) const;
-	py::object call_function(const char* FunctionName, const py::object& InfoArg) const;
+
+	template<typename... args>
+	py::object call(const char* FunctionName, const args&... Args) const;
 
 	HANDLE AnalyseW(const AnalyseInfo *Info);
 	void CloseAnalyseW(const CloseAnalyseInfo *Info);
@@ -48,16 +51,25 @@ public:
 
 private:
 	py::object m_PluginModule;
+	py::object m_PluginModuleClass;
+	mutable std::unordered_map<std::string, py::object> m_PluginModuleClassFunctions;
 
 	std::wstring m_Title;
 	std::wstring m_Author;
 	std::wstring m_Description;
 	UUID m_Uuid;
 
-	std::vector<std::wstring> m_MenuStringsData;
-	std::vector<const wchar_t*> m_MenuStrings;
-	std::vector<UUID> m_MenuUuids;
+	struct menu_items
+	{
+		std::vector<std::wstring> StringsData;
+		std::vector<const wchar_t*> Strings;
+		std::vector<UUID> Uuids;
+	};
+
+	menu_items m_PluginMenuItems;
+	menu_items m_DiskMenuItems;
+	menu_items m_PluginConfigItems;
 
 	std::unique_ptr<far_api> m_FarApi;
+	pygin::type_factory m_TypeFactory;
 };
-

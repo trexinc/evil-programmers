@@ -6,15 +6,16 @@ namespace py
 	class tuple: public object
 	{
 	public:
-		TRIVIALLY_MOVABLE(tuple);
+		MOVABLE(tuple);
+		static auto type_name() { return "tuple"; }
 
 		explicit tuple(size_t Size);
-		explicit tuple(const object& Object);
+		explicit tuple(cast_guard, const object& Object);
 
 		class value_proxy
 		{
 		public:
-			TRIVIALLY_MOVABLE(value_proxy);
+			MOVABLE(value_proxy);
 
 			value_proxy(tuple* Owner, size_t Index);
 			value_proxy(const value_proxy& rhs);
@@ -30,6 +31,7 @@ namespace py
 		};
 
 		value_proxy operator[](size_t Index);
+		object operator[](size_t Index) const;
 		void set_at(size_t Position, const object& Object);
 		object get_at(size_t Position) const;
 
@@ -51,7 +53,4 @@ namespace py
 			set_tuple_items(Tuple, CurrentIndex + 1, Args...);
 		}
 	};
-
-	tuple as_tuple(PyObject* Object);
-	tuple as_tuple(const object& Object);
 }

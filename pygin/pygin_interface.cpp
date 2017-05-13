@@ -3,7 +3,9 @@
 #include "pygin.hpp"
 #include "module.hpp"
 
-std::unique_ptr<pygin> PyginInstance;
+#include "error_handling.hpp"
+
+static std::unique_ptr<pygin> PyginInstance;
 
 BOOL WINAPI adapter_Initialize(GlobalInfo* Info) noexcept
 {

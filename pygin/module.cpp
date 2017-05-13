@@ -2,23 +2,40 @@
 
 #include "module.hpp"
 
-#include "py_dictionary.hpp"
-#include "py_err.hpp"
 #include "py_string.hpp"
 #include "py_tuple.hpp"
-#include "py_tools.hpp"
+#include "py_type.hpp"
+#include "py_uuid.hpp"
+#include "py_list.hpp"
+#include "py_boolean.hpp"
 
 using namespace py::literals;
 
 static UUID UuidFromString(const std::wstring& Str)
 {
 	UUID Result;
-	UuidFromString(reinterpret_cast<RPC_WSTR>(const_cast<wchar_t*>(Str.data())), &Result);
+	if (UuidFromString(reinterpret_cast<RPC_WSTR>(const_cast<wchar_t*>(Str.data())), &Result) != RPC_S_OK)
+		throw std::runtime_error("UuidFromString");
+
 	return Result;
 }
 
-module::module(const py::object& Object):
-	m_PluginModule(Object)
+static std::wstring UuidToString(const UUID& Uuid)
+{
+	RPC_WSTR Str;
+	if (UuidToString(&Uuid, &Str) != RPC_S_OK)
+		throw std::runtime_error("UuidToString");
+
+	std::wstring Result = reinterpret_cast<const wchar_t*>(Str);
+	RpcStringFree(&Str);
+
+	return Result;
+}
+
+module::module(const py::object& Object, const pygin::type_factory& TypeFactory):
+	m_PluginModule(Object),
+	m_PluginModuleClass(m_PluginModule.get_attribute("FarPluginClass")),
+	m_TypeFactory(TypeFactory)
 {
 }
 
@@ -28,30 +45,25 @@ module::~module()
 
 bool module::check_function(const wchar_t* FunctionName) const
 {
-	const auto Func = m_PluginModule.get_attribute(py::string(FunctionName));
-	py::err::clear();
-	return Func && py::callable_check(Func);
+	const auto Name = py::string(FunctionName);
+	if (!m_PluginModuleClass.has_attribute(Name))
+		return false;
+
+	const auto Function = m_PluginModuleClass.get_attribute(Name);
+	if (!py::callable_check(Function))
+		return false;
+
+	// Not perfect, but that should always be pure ASCII anyway, so why not.
+	std::string NarrowName(FunctionName, FunctionName + wcslen(FunctionName));
+	m_PluginModuleClassFunctions.emplace(NarrowName, Function);
+	return true;
 }
 
-py::object module::call_function(const char* FunctionName, const py::object& InfoArg) const
+template<typename ... args>
+py::object module::call(const char* FunctionName, const args&... Args) const
 {
-	const auto Func = m_PluginModule.get_attribute(py::string(FunctionName));
-	if (!Func)
-		throw std::runtime_error(FunctionName + " is absent"s);
-
-	if (!py::callable_check(Func))
-		throw std::runtime_error(FunctionName + " is not callable"s);
-
-	const auto Result = Func.call(InfoArg? py::tuple::make(InfoArg) : InfoArg);
-	if (!Result)
-	{
-		py::err::print_if_any();
-		throw std::runtime_error(FunctionName + " call failed"s);
-	}
-
-	return Result;
+	return m_PluginModuleClassFunctions.at(FunctionName).call(m_PluginModuleClass, Args...);
 }
-
 
 #define STR(x) #x
 
@@ -75,7 +87,14 @@ intptr_t module::CompareW(const CompareInfo *Info)
 
 intptr_t module::ConfigureW(const ConfigureInfo *Info)
 {
-	return 0;
+	const auto ConfigureInstance = m_TypeFactory("ConfigureInfo").call();
+
+	const auto UuidType = py::typeof(ConfigureInstance.get_attribute("Guid"));
+	const auto Uuid = UuidType.call(py::string(UuidToString(*Info->Guid)));
+	ConfigureInstance.set_attribute("Guid", Uuid);
+
+	const auto Result = py::cast<py::boolean>(call(STR(ConfigureW), ConfigureInstance));
+	return Result.to_bool();
 }
 
 intptr_t module::DeleteFilesW(const DeleteFilesInfo *Info)
@@ -85,8 +104,13 @@ intptr_t module::DeleteFilesW(const DeleteFilesInfo *Info)
 
 void module::ExitFARW(const ExitInfo *Info)
 {
-	py::dictionary pyInfo;
-	call_function(STR(ExitFARW), pyInfo);
+	const auto ExitInfoInstance = m_TypeFactory("ExitInfo").call();
+	call(STR(ExitFARW), ExitInfoInstance);
+
+	// Point of no return
+	m_PluginModuleClassFunctions.clear();
+	m_PluginModuleClass = {};
+	m_PluginModule = {};
 }
 
 void module::FreeFindDataW(const FreeFindDataInfo *Info)
@@ -105,18 +129,14 @@ intptr_t module::GetFindDataW(GetFindDataInfo *Info)
 
 void module::GetGlobalInfoW(GlobalInfo *Info)
 {
-	py::dictionary pyInfo;
-	pyInfo["Title"] = "";
-	pyInfo["Author"] = "";
-	pyInfo["Description"] = "";
-	pyInfo["Guid"] = "";
+	const auto PyInfo = call(STR(GetGlobalInfoW));
+	if (!m_TypeFactory("GlobalInfo").is_same(py::typeof(PyInfo)))
+		throw std::bad_cast();
 
-	call_function(STR(GetGlobalInfoW), pyInfo);
-
-	Info->Title = (m_Title = py::as_string(pyInfo["Title"]).to_wstring()).data();
-	Info->Author = (m_Author = py::as_string(pyInfo["Author"]).to_wstring()).data();
-	Info->Description = (m_Description = py::as_string(pyInfo["Description"]).to_wstring()).data();
-	Info->Guid = m_Uuid = UuidFromString(py::as_string(pyInfo["Guid"]).to_wstring());
+	Info->Title = (m_Title = py::cast<py::string>(PyInfo.get_attribute("Title")).to_wstring()).data();
+	Info->Author = (m_Author = py::cast<py::string>(PyInfo.get_attribute("Author")).to_wstring()).data();
+	Info->Description = (m_Description = py::cast<py::string>(PyInfo.get_attribute("Description")).to_wstring()).data();
+	Info->Guid = py::cast<py::uuid>(PyInfo.get_attribute("Guid")).to_uuid();
 }
 
 void module::GetOpenPanelInfoW(OpenPanelInfo *Info)
@@ -125,24 +145,37 @@ void module::GetOpenPanelInfoW(OpenPanelInfo *Info)
 
 void module::GetPluginInfoW(PluginInfo *Info)
 {
-	py::dictionary pyInfo;
-	pyInfo["MenuString"] = "";
-	pyInfo["Guid"] = "";
+	const auto PyInfo = call(STR(GetPluginInfoW));
+	if (!m_TypeFactory("PluginInfo").is_same(py::typeof(PyInfo)))
+		throw std::bad_cast();
 
-	call_function(STR(GetPluginInfoW), pyInfo);
+	const auto& ConvertPluginMenuItem = [&](const char* Kind, menu_items& MenuItems, PluginMenuItem PluginInfo::*Destination)
+	{
+		const auto ItemsList = py::cast<py::list>(PyInfo.get_attribute(Kind));
 
-	const size_t Size = 1;
-	m_MenuStringsData.resize(Size);
-	m_MenuStrings.resize(Size);
-	m_MenuUuids.resize(Size);
+		const auto ListSize = ItemsList.size();
 
-	m_MenuStringsData[0] = py::as_string(pyInfo["MenuString"]).to_wstring();
-	m_MenuStrings[0] = m_MenuStringsData[0].data();
-	m_MenuUuids[0] = UuidFromString(py::as_string(pyInfo["Guid"]).to_wstring());
+		MenuItems.StringsData.reserve(ListSize);
+		MenuItems.Strings.reserve(ListSize);
+		MenuItems.Uuids.reserve(ListSize);
 
-	Info->PluginMenu.Strings = m_MenuStrings.data();
-	Info->PluginMenu.Guids = m_MenuUuids.data();
-	Info->PluginMenu.Count = Size;
+		// TODO: enumerator
+		for (size_t i = 0; i != ListSize; ++i)
+		{
+			const auto Tuple = py::cast<py::tuple>(ItemsList[i]);
+			MenuItems.StringsData.emplace_back(py::cast<py::string>(Tuple[0]).to_wstring());
+			MenuItems.Strings.emplace_back(MenuItems.StringsData.back().data());
+			MenuItems.Uuids.emplace_back(py::cast<py::uuid>(Tuple[1]).to_uuid());
+		}
+
+		(Info->*Destination).Strings = MenuItems.Strings.data();
+		(Info->*Destination).Guids = MenuItems.Uuids.data();
+		(Info->*Destination).Count = ListSize;
+	};
+
+	ConvertPluginMenuItem("PluginMenuItems", m_PluginMenuItems, &PluginInfo::PluginMenu);
+	ConvertPluginMenuItem("DiskMenuItems", m_DiskMenuItems, &PluginInfo::DiskMenu);
+	ConvertPluginMenuItem("PluginConfigItems", m_PluginConfigItems, &PluginInfo::PluginConfig);
 
 	Info->Flags |= PF_PRELOAD;
 }
@@ -154,8 +187,14 @@ intptr_t module::MakeDirectoryW(MakeDirectoryInfo *Info)
 
 HANDLE module::OpenW(const OpenInfo *Info)
 {
-	py::dictionary pyInfo;
-	const auto Result = call_function(STR(OpenW), pyInfo);
+	const auto OpenInfoInstance = m_TypeFactory("OpenInfo").call();
+
+	const auto UuidType = py::typeof(OpenInfoInstance.get_attribute("Guid"));
+	const auto Uuid = UuidType.call(py::string(UuidToString(*Info->Guid)));
+	OpenInfoInstance.set_attribute("Guid", Uuid);
+
+	const auto Result = call(STR(OpenW), OpenInfoInstance);
+
 	// BUGBUG
 	return nullptr;
 }
@@ -223,7 +262,7 @@ intptr_t module::SetFindListW(const SetFindListInfo *Info)
 void module::SetStartupInfoW(const PluginStartupInfo *Info)
 {
 	m_FarApi = std::make_unique<far_api>(Info);
-	call_function(STR(SetStartupInfoW), m_FarApi->get());
+	call(STR(SetStartupInfoW), m_FarApi->get());
 }
 
 intptr_t module::GetContentFieldsW(const GetContentFieldsInfo *Info)

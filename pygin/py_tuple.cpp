@@ -7,11 +7,11 @@
 namespace py
 {
 	tuple::tuple(size_t Size):
-		object(PyTuple_New(Size))
+		object(invoke(PyTuple_New, Size))
 	{
 	}
 
-	tuple::tuple(const object& Object):
+	tuple::tuple(cast_guard, const object& Object):
 		object(Object)
 	{
 	}
@@ -50,24 +50,19 @@ namespace py
 		return{ this, Index };
 	}
 
+	object tuple::operator[](size_t Index) const
+	{
+		return get_at(Index);
+	}
+
 	void tuple::set_at(size_t Position, const object& Object)
 	{
 		DONT_STEAL_REFERENCE(Object.get());
-		PyTuple_SetItem(get(), Position, Object.get());
+		invoke(PyTuple_SetItem, get(), Position, Object.get());
 	}
 
 	object tuple::get_at(size_t Position) const
 	{
-		return from_borrowed(PyTuple_GetItem(get(), Position));
-	}
-
-	tuple as_tuple(PyObject* Object)
-	{
-		return tuple(object::from_borrowed(Object));
-	}
-
-	tuple as_tuple(const object& Object)
-	{
-		return tuple(Object);
+		return from_borrowed(invoke(PyTuple_GetItem, get(), Position));
 	}
 }

@@ -1,8 +1,14 @@
 #pragma once
+#include "py_object.hpp"
 
 class module;
 struct GlobalInfo;
 class far_api;
+
+namespace py
+{
+	class type;
+}
 
 class pygin
 {
@@ -15,6 +21,11 @@ public:
 	std::unique_ptr<module> create_module(const wchar_t* FileName);
 	FARPROC WINAPI get_function(HANDLE Instance, const wchar_t* FunctionName);
 
+	const py::type& api_type(const std::string& TypeName) const;
+	using type_factory = std::function<const py::type&(const std::string&)>;
+	type_factory api_type_factory() const;
+
 private:
-	std::unique_ptr<module> m_PyginModule;
+	py::object m_PyginModule;
+	mutable std::unordered_map<std::string, py::type> m_ApiTypes;
 };

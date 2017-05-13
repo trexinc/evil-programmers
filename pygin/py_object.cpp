@@ -1,10 +1,18 @@
 #include "headers.hpp"
 
 #include "py_object.hpp"
+
+#include "py_tuple.hpp"
+
 #include "python.hpp"
 
 namespace py
 {
+	object::object():
+		m_Object()
+	{
+	}
+
 	object::object(PyObject* Object):
 		m_Object(Object)
 	{
@@ -16,7 +24,7 @@ namespace py
 		Py_XINCREF(m_Object);
 	}
 
-	object::object(object&& Object):
+	object::object(object&& Object) noexcept:
 		m_Object(std::exchange(Object.m_Object, nullptr))
 	{
 	}
@@ -46,7 +54,7 @@ namespace py
 		return *this;
 	}
 
-	object& object::operator=(object&& Rhs)
+	object& object::operator=(object&& Rhs) noexcept
 	{
 		m_Object = std::exchange(Rhs.m_Object, nullptr);
 		return *this;
@@ -67,34 +75,55 @@ namespace py
 		return m_Object;
 	}
 
+	bool object::has_attribute(const char* Name) const
+	{
+		return invoke(PyObject_HasAttrString, get(), Name) != 0;
+	}
+
+	bool object::has_attribute(const object& Name) const
+	{
+		return invoke(PyObject_HasAttr, get(), Name.get()) != 0;
+	}
+
 	object object::get_attribute(const char* Name) const
 	{
-		return object(PyObject_GetAttrString(get(), Name));
+		return object(invoke(PyObject_GetAttrString, get(), Name));
 	}
 
 	object object::get_attribute(const object& Name) const
 	{
-		return object(PyObject_GetAttr(get(), Name.get()));
+		return object(invoke(PyObject_GetAttr, get(), Name.get()));
 	}
 
 	bool object::set_attribute(const char* Name, const object& Value) const
 	{
-		return PyObject_SetAttrString(get(), Name, Value.get()) == 0;
+		return invoke(PyObject_SetAttrString, get(), Name, Value.get()) == 0;
 	}
 
 	bool object::set_attribute(const object& Name, const object& Value) const
 	{
-		return PyObject_SetAttr(get(), Name.get(), Value.get()) == 0;
+		return invoke(PyObject_SetAttr, get(), Name.get(), Value.get()) == 0;
 	}
 
-	object object::call(const object& Args) const
+	object object::call(const tuple& Args) const
 	{
-		return object(PyObject_CallObject(get(), Args.get()));
+		return object(invoke(PyObject_CallObject, get(), Args.get()));
 	}
 
 	object object::from_borrowed(PyObject* Object)
 	{
 		Py_XINCREF(Object);
 		return object(Object);
+	}
+
+	const char* object::type_name() const
+	{
+		return get()->ob_type->tp_name;
+	}
+
+	void object::validate_type_name(const char* TypeName) const
+	{
+		if (strcmp(TypeName, type_name()))
+			throw std::bad_cast();
 	}
 }

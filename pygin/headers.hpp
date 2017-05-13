@@ -1,40 +1,27 @@
 #pragma once
 
-#include "targetver.hpp"
-
-// Exclude rarely-used stuff from Windows headers
-#define WIN32_LEAN_AND_MEAN
-// Windows Header Files:
-#include <windows.h>
-#include <Rpc.h>
-
 #include <vector>
 #include <algorithm>
 #include <unordered_map>
 #include <memory>
 #include <string>
+#include <functional>
+
+#define WIN32_LEAN_AND_MEAN
+#define VC_EXTRALEAN
+#define NOMINMAX
+
+#include <windows.h>
+#include <Rpc.h>
 
 #include "plugin.hpp"
 
 using namespace std::string_literals;
 
-template<typename callable, typename fallback>
-auto try_call(const callable& Callable, const fallback& Fallback) noexcept
-{
-	try
-	{
-		return Callable();
-	}
-	catch (...)
-	{
-		return Fallback();
-	}
-}
-
 #define NONCOPYABLE(Type) \
 Type(const Type&) = delete; \
 Type& operator=(const Type&) = delete;
 
-#define TRIVIALLY_MOVABLE(Type) \
+#define MOVABLE(Type) \
 Type(Type&&) = default; \
 Type& operator=(Type&&) = default;

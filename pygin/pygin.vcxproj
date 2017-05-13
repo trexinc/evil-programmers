@@ -168,13 +168,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="error_handling.hpp" />
     <ClInclude Include="far_api.hpp" />
     <ClInclude Include="module.hpp" />
     <ClInclude Include="pygin.hpp" />
     <ClInclude Include="python.hpp" />
+    <ClInclude Include="py_boolean.hpp" />
+    <ClInclude Include="py_common.hpp" />
     <ClInclude Include="py_integer.hpp" />
     <ClInclude Include="py_string.hpp" />
-    <ClInclude Include="py_tools.hpp" />
     <ClInclude Include="headers.hpp" />
     <ClInclude Include="py_dictionary.hpp" />
     <ClInclude Include="py_err.hpp" />
@@ -183,7 +185,8 @@
     <ClInclude Include="py_object.hpp" />
     <ClInclude Include="py_sys.hpp" />
     <ClInclude Include="py_tuple.hpp" />
-    <ClInclude Include="targetver.hpp" />
+    <ClInclude Include="py_type.hpp" />
+    <ClInclude Include="py_uuid.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -200,14 +203,16 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
       </PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="error_handling.cpp" />
     <ClCompile Include="far_api.cpp" />
     <ClCompile Include="module.cpp" />
     <ClCompile Include="module_interface.cpp" />
     <ClCompile Include="pygin.cpp" />
     <ClCompile Include="pygin_interface.cpp" />
+    <ClCompile Include="py_boolean.cpp" />
     <ClCompile Include="py_integer.cpp" />
     <ClCompile Include="py_string.cpp" />
-    <ClCompile Include="py_tools.cpp" />
+    <ClCompile Include="py_common.cpp" />
     <ClCompile Include="headers.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -221,6 +226,8 @@
     <ClCompile Include="py_object.cpp" />
     <ClCompile Include="py_sys.cpp" />
     <ClCompile Include="py_tuple.cpp" />
+    <ClCompile Include="py_type.cpp" />
+    <ClCompile Include="py_uuid.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="pygin\__init__.py">
@@ -235,6 +242,39 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)%(Identity)</Outputs>
     </CustomBuild>
     <None Include="pygin.def" />
+    <CustomBuild Include="pygin\farapi_types.py">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copy %(Identity) $(OutDir)%(Identity)</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(OutDir)%(Identity)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">copy %(Identity) $(OutDir)%(Identity)</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(OutDir)%(Identity)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copy %(Identity) $(OutDir)%(Identity)</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)%(Identity)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">copy %(Identity) $(OutDir)%(Identity)</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)%(Identity)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="pygin\logging.py">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copy %(Identity) $(OutDir)%(Identity)</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(OutDir)%(Identity)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">copy %(Identity) $(OutDir)%(Identity)</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(OutDir)%(Identity)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copy %(Identity) $(OutDir)%(Identity)</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)%(Identity)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">copy %(Identity) $(OutDir)%(Identity)</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)%(Identity)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="pygin\misc.py">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copy %(Identity) $(OutDir)%(Identity)</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(OutDir)%(Identity)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">copy %(Identity) $(OutDir)%(Identity)</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(OutDir)%(Identity)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copy %(Identity) $(OutDir)%(Identity)</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)%(Identity)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">copy %(Identity) $(OutDir)%(Identity)</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)%(Identity)</Outputs>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

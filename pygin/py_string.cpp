@@ -3,17 +3,16 @@
 #include "py_string.hpp"
 
 #include "python.hpp"
-#include "py_err.hpp"
 
 namespace py
 {
 	string::string(const char* Str, size_t Size):
-		object(PyUnicode_FromStringAndSize(Str, Size))
+		object(invoke(PyUnicode_FromStringAndSize, Str, Size))
 	{
 	}
 
 	string::string(const wchar_t* Str, size_t Size):
-		object(PyUnicode_FromWideChar(Str, Size))
+		object(invoke(PyUnicode_FromWideChar, Str, Size))
 	{
 	}
 
@@ -37,43 +36,22 @@ namespace py
 	{
 	}
 
-	string::string(const object& Object):
+	string::string(cast_guard, const object& Object):
 		object(Object)
 	{
 	}
 
 	int string::compare(const object& Other) const
 	{
-		return PyUnicode_Compare(get(), Other.get());
-	}
-
-	string as_string(PyObject* Object)
-	{
-		return string(object::from_borrowed(Object));
-	}
-
-	string as_string(const object& Object)
-	{
-		return string(Object);
+		return invoke(PyUnicode_Compare, get(), Other.get());
 	}
 
 	std::string string::to_string() const
 	{
-		const auto Utf8Str = object(PyUnicode_AsUTF8String(get()));
-		if (!Utf8Str)
-		{
-			err::print_if_any();
-			throw std::runtime_error("PyUnicode_AsUTF8String");
-		}
+		const auto Utf8Str = object(invoke(PyUnicode_AsUTF8String, get()));
+		const auto Data = invoke(PyBytes_AsString, Utf8Str.get());
 
-		const auto Data = PyBytes_AsString(Utf8Str.get());
-		if (!Data)
-		{
-			err::print_if_any();
-			throw std::runtime_error("PyBytes_AsString");
-		}
-
-		const auto Size = static_cast<size_t>(PyBytes_Size(Utf8Str.get()));
+		const auto Size = static_cast<size_t>(invoke(PyBytes_Size, Utf8Str.get()));
 
 		return { Data, Size };
 	}
@@ -81,16 +59,11 @@ namespace py
 	std::wstring string::to_wstring() const
 	{
 		Py_ssize_t Size;
-		const auto Data = PyUnicode_AsWideCharString(get(), &Size);
-		if (!Data)
-		{
-			err::print_if_any();
-			throw std::runtime_error("PyUnicode_AsWideCharString");
-		}
+		const auto Data = invoke(PyUnicode_AsWideCharString, get(), &Size);
 
 		const std::wstring Result(Data, static_cast<size_t>(Size));
 
-		PyMem_Free(Data);
+		invoke(PyMem_Free, Data);
 
 		return Result;
 	}

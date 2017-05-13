@@ -1,11 +1,12 @@
 #include "headers.hpp"
 
 #include "py_list.hpp"
+
 #include "python.hpp"
 
 namespace py
 {
-	list::list(const object& Object):
+	list::list(cast_guard, const object& Object):
 		object(Object)
 	{
 	}
@@ -44,29 +45,34 @@ namespace py
 		return { this, Index };
 	}
 
+	object list::operator[](size_t Index) const
+	{
+		return get_at(Index);
+	}
+
 	void list::set_at(size_t Index, const object& Value)
 	{
 		DONT_STEAL_REFERENCE(Value.get());
-		PyList_SetItem(get(), Index, Value.get());
+		invoke(PyList_SetItem, get(), Index, Value.get());
 	}
 
 	object list::get_at(size_t Index) const
 	{
-		return from_borrowed(PyList_GetItem(get(), Index));
+		return from_borrowed(invoke(PyList_GetItem, get(), Index));
 	}
 
 	size_t list::size() const
 	{
-		return PyList_Size(get());
+		return invoke(PyList_Size, get());
 	}
 
 	void list::push_back(const object& Object)
 	{
-		PyList_Append(get(), Object.get());
+		invoke(PyList_Append, get(), Object.get());
 	}
 
 	void list::insert(const object& Object, size_t index)
 	{
-		PyList_Insert(get(), index, Object.get());
+		invoke(PyList_Insert, get(), index, Object.get());
 	}
 }

@@ -7,16 +7,17 @@ namespace py
 	class dictionary: public object
 	{
 	public:
-		TRIVIALLY_MOVABLE(dictionary);
+		MOVABLE(dictionary);
+		static auto type_name() { return "dict"; }
 
 		dictionary();
 
-		explicit dictionary(const object& Object);
+		explicit dictionary(cast_guard, const object& Object);
 
 		class value_proxy
 		{
 		public:
-			TRIVIALLY_MOVABLE(value_proxy);
+			MOVABLE(value_proxy);
 
 			value_proxy(dictionary* Owner, const object& Key);
 			value_proxy(const value_proxy& rhs);
@@ -33,8 +34,9 @@ namespace py
 			object m_Key;
 		};
 
-		value_proxy operator[](const char* Key);
+		value_proxy operator[](const object& Key);
+		object operator[](const object& Key) const;
 		void set_at(const object& Key, const object& Value);
-		object get_at(const object& Key);
+		object get_at(const object& Key) const;
 	};
 }

@@ -2,6 +2,8 @@
 
 #include "module.hpp"
 
+#include "error_handling.hpp"
+
 HANDLE WINAPI AnalyseW(const AnalyseInfo *Info) noexcept
 {
 	return try_call(

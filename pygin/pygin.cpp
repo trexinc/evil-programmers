@@ -1,19 +1,21 @@
 #include "headers.hpp"
 
 #include "pygin.hpp"
+
 #include "module.hpp"
 
 #include "py_dictionary.hpp"
-#include "py_err.hpp"
 #include "py_import.hpp"
 #include "py_list.hpp"
 #include "py_string.hpp"
 #include "py_sys.hpp"
-#include "py_tools.hpp"
+#include "py_type.hpp"
+
+using namespace py::literals;
 
 static void add_to_python_path(const std::wstring& Path)
 {
-	py::list PathList(py::sys::get_object("path"));
+	auto PathList = py::cast<py::list>(py::sys::get_object("path"));
 	const py::string NewItem(Path);
 	bool Found = false;
 
@@ -32,16 +34,25 @@ static void add_to_python_path(const std::wstring& Path)
 
 static py::object add_or_reload_module(const std::wstring& Name)
 {
-	py::dictionary ModulesDict(py::sys::get_object("modules"));
-	const py::string NewModuleName(Name);
-	const auto ExistingModule = ModulesDict.get_at(NewModuleName);
-	auto NewModule = py::import::import(NewModuleName);
+	const auto ModulesDict = py::cast<py::dictionary>(py::sys::get_object("modules"));
+	const py::string ModuleName(Name);
+	if (const auto ExistingModule = ModulesDict.get_at(ModuleName))
+		return py::import::reload_module(ExistingModule);
 
-	if (ExistingModule)
-	{
-		NewModule = py::import::reload_module(ExistingModule);
-	}
-	return NewModule;
+	return py::import::import(ModuleName);
+}
+
+static py::object create_python_module(const wchar_t* FileName)
+{
+	std::wstring Dir(FileName);
+	const auto SlashPos = Dir.rfind(L'\\');
+	Dir.resize(SlashPos);
+	const auto PrevSlashPos = Dir.rfind(L'\\');
+	const std::wstring Path(Dir, 0, PrevSlashPos);
+	const std::wstring ModuleName(Dir, PrevSlashPos + 1);
+	add_to_python_path(Path);
+	const auto Object = add_or_reload_module(ModuleName);
+	return Object;
 }
 
 extern "C" IMAGE_DOS_HEADER __ImageBase;
@@ -66,12 +77,13 @@ pygin::pygin(GlobalInfo* Info)
 	GetModuleFileNameW(reinterpret_cast<HINSTANCE>(&__ImageBase), AdaptherPath, static_cast<DWORD>(std::size(AdaptherPath)));
 	*(wcsrchr(AdaptherPath, L'\\') + 1) = 0;
 
-	m_PyginModule = create_module((AdaptherPath + L"pygin\\__init__.py"s).data());
+	m_PyginModule = create_python_module((AdaptherPath + L"pygin\\__init__.py"s).data());
 }
 
 pygin::~pygin()
 {
-	m_PyginModule.reset();
+	m_ApiTypes.clear();
+	m_PyginModule = {};
 	py::finalize();
 }
 
@@ -87,21 +99,13 @@ bool pygin::is_module(const wchar_t* FileName) const
 
 std::unique_ptr<module> pygin::create_module(const wchar_t* FileName)
 {
-	std::wstring Dir(FileName);
-	const auto SlashPos = Dir.rfind(L'\\');
-	Dir.resize(SlashPos);
-	const auto PrevSlashPos = Dir.rfind(L'\\');
-	const std::wstring Path(Dir, 0, PrevSlashPos);
-	const std::wstring ModuleName(Dir, PrevSlashPos + 1);
-	add_to_python_path(Path);
-	const auto Object = add_or_reload_module(ModuleName);
-	py::err::print_if_any();
-	return Object? std::make_unique<module>(Object) : nullptr;
+	const auto Object = create_python_module(FileName);
+	return Object? std::make_unique<module>(Object, api_type_factory()) : nullptr;
 }
 
 FARPROC WINAPI pygin::get_function(HANDLE Instance, const wchar_t* FunctionName)
 {
-	static std::unordered_map<std::wstring, void*> FunctionsMap =
+	static const std::unordered_map<std::wstring, void*> FunctionsMap =
 	{
 #define KEY_VALUE(x) { L ## #x, x }
 
@@ -141,5 +145,23 @@ FARPROC WINAPI pygin::get_function(HANDLE Instance, const wchar_t* FunctionName)
 	};
 
 	const auto Module = static_cast<module*>(Instance);
-	return Module->check_function(FunctionName) && FunctionsMap.count(FunctionName)? reinterpret_cast<FARPROC>(FunctionsMap[FunctionName]) : nullptr;
+	return Module->check_function(FunctionName) && FunctionsMap.count(FunctionName)? reinterpret_cast<FARPROC>(FunctionsMap.at(FunctionName)) : nullptr;
+}
+
+const py::type& pygin::api_type(const std::string& TypeName) const
+{
+	auto& Type = m_ApiTypes[TypeName];
+	if (!Type)
+	{
+		Type = py::cast<py::type>(m_PyginModule.get_attribute(TypeName.data()));
+	}
+	return Type;
+}
+
+pygin::type_factory pygin::api_type_factory() const
+{
+	return [this](const std::string& TypeName) -> decltype(auto)
+	{
+		return api_type(TypeName);
+	};
 }

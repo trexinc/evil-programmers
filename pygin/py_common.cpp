@@ -1,6 +1,8 @@
 #include "headers.hpp"
 
-#include "py_tools.hpp"
+#include "py_common.hpp"
+
+#include "py_object.hpp"
 
 #include "python.hpp"
 
@@ -18,7 +20,7 @@ namespace py
 
 	bool callable_check(const object& Object)
 	{
-		return PyCallable_Check(Object.get()) != 0;
+		return invoke(PyCallable_Check, Object.get()) != 0;
 	}
 }
 

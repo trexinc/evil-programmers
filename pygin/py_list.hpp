@@ -7,14 +7,15 @@ namespace py
 	class list: public object
 	{
 	public:
-		TRIVIALLY_MOVABLE(list);
+		MOVABLE(list);
+		static auto type_name() { return "list"; }
 
-		explicit list(const object& Object);
+		explicit list(cast_guard, const object& Object);
 
 		class value_proxy
 		{
 		public:
-			TRIVIALLY_MOVABLE(value_proxy);
+			MOVABLE(value_proxy);
 
 			value_proxy(list* Owner, size_t Index);
 			value_proxy(const value_proxy& rhs);
@@ -30,6 +31,7 @@ namespace py
 		};
 
 		value_proxy operator[](size_t Index);
+		object operator[](size_t Index) const;
 		void set_at(size_t Index, const object& Value);
 		object get_at(size_t Index) const;
 
