@@ -53,6 +53,7 @@ private:
 	py::object m_PluginModule;
 	py::object m_PluginModuleClass;
 	mutable std::unordered_map<std::string, py::object> m_PluginModuleClassFunctions;
+	py::object m_PluginModuleInstance;
 
 	std::wstring m_Title;
 	std::wstring m_Author;

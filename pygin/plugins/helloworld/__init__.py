@@ -4,19 +4,13 @@ import pygin
 from pygin.farapi_types import *
 
 class HelloWorldPlugin(object):
-	def __init__(self):
-		pass
+	Title = "Hello Python world"
+	Author = "Far group"
+	Description = "Python plugin very basic example"
+	Guid = uuid.UUID("{31A0D11E-B9D8-4A9B-88C7-2D2983802C51}")
 
-	def GetGlobalInfoW(self):
-		info = GlobalInfo()
-		info.Title = "Hello Python world"
-		info.Author = "Far group"
-		info.Description = "Python plugin very basic example"
-		info.Guid = uuid.UUID("{31A0D11E-B9D8-4A9B-88C7-2D2983802C51}")
-		return info
-
-	def SetStartupInfoW(self, info):
-		self.far = info
+	def __init__(self, far):
+		self.far = far
 
 	def GetPluginInfoW(self):
 		info = PluginInfo()

@@ -22,6 +22,12 @@
     <Filter Include="python api">
       <UniqueIdentifier>{9eebceaf-9dc3-4791-b595-3fe790800646}</UniqueIdentifier>
     </Filter>
+    <Filter Include="plugins">
+      <UniqueIdentifier>{ad1e59d8-59fb-49ab-8cf0-738febe79107}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="plugins\helloworld">
+      <UniqueIdentifier>{17e525b3-7590-4f89-85a7-4e082ee18d9c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="module.hpp">
@@ -151,6 +157,10 @@
     <None Include="pygin.def">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="plugins\helloworld\__init__.py">
+      <Filter>plugins\helloworld</Filter>
+    </None>
+    <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="pygin\__init__.py">

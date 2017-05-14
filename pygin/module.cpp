@@ -45,6 +45,15 @@ module::~module()
 
 bool module::check_function(const wchar_t* FunctionName) const
 {
+	// Mapped to class static fields
+	if (!wcscmp(FunctionName, L"GetGlobalInfoW"))
+		return true;
+
+	// Mapped to class ctor
+	if (!wcscmp(FunctionName, L"SetStartupInfoW"))
+		return true;
+
+	// The rest is as is
 	const auto Name = py::string(FunctionName);
 	if (!m_PluginModuleClass.has_attribute(Name))
 		return false;
@@ -62,7 +71,7 @@ bool module::check_function(const wchar_t* FunctionName) const
 template<typename ... args>
 py::object module::call(const char* FunctionName, const args&... Args) const
 {
-	return m_PluginModuleClassFunctions.at(FunctionName).call(m_PluginModuleClass, Args...);
+	return m_PluginModuleClassFunctions.at(FunctionName).call(m_PluginModuleInstance, Args...);
 }
 
 #define STR(x) #x
@@ -108,6 +117,7 @@ void module::ExitFARW(const ExitInfo *Info)
 	call(STR(ExitFARW), ExitInfoInstance);
 
 	// Point of no return
+	m_PluginModuleInstance = {};
 	m_PluginModuleClassFunctions.clear();
 	m_PluginModuleClass = {};
 	m_PluginModule = {};
@@ -129,14 +139,10 @@ intptr_t module::GetFindDataW(GetFindDataInfo *Info)
 
 void module::GetGlobalInfoW(GlobalInfo *Info)
 {
-	const auto PyInfo = call(STR(GetGlobalInfoW));
-	if (!m_TypeFactory("GlobalInfo").is_same(py::typeof(PyInfo)))
-		throw std::bad_cast();
-
-	Info->Title = (m_Title = py::cast<py::string>(PyInfo.get_attribute("Title")).to_wstring()).data();
-	Info->Author = (m_Author = py::cast<py::string>(PyInfo.get_attribute("Author")).to_wstring()).data();
-	Info->Description = (m_Description = py::cast<py::string>(PyInfo.get_attribute("Description")).to_wstring()).data();
-	Info->Guid = py::cast<py::uuid>(PyInfo.get_attribute("Guid")).to_uuid();
+	Info->Title = (m_Title = py::cast<py::string>(m_PluginModuleClass.get_attribute("Title")).to_wstring()).data();
+	Info->Author = (m_Author = py::cast<py::string>(m_PluginModuleClass.get_attribute("Author")).to_wstring()).data();
+	Info->Description = (m_Description = py::cast<py::string>(m_PluginModuleClass.get_attribute("Description")).to_wstring()).data();
+	Info->Guid = py::cast<py::uuid>(m_PluginModuleClass.get_attribute("Guid")).to_uuid();
 }
 
 void module::GetOpenPanelInfoW(OpenPanelInfo *Info)
@@ -262,7 +268,7 @@ intptr_t module::SetFindListW(const SetFindListInfo *Info)
 void module::SetStartupInfoW(const PluginStartupInfo *Info)
 {
 	m_FarApi = std::make_unique<far_api>(Info);
-	call(STR(SetStartupInfoW), m_FarApi->get());
+	m_PluginModuleInstance = m_PluginModuleClass.call(m_FarApi->get());
 }
 
 intptr_t module::GetContentFieldsW(const GetContentFieldsInfo *Info)
