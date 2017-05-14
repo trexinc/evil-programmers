@@ -9,6 +9,11 @@ namespace py
 		void clear();
 		void print();
 
+		class exception: public std::runtime_error
+		{
+			using runtime_error::runtime_error;
+		};
+
 		void raise_exception_if_needed();
 	}
 }

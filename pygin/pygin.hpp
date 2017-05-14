@@ -20,6 +20,7 @@ public:
 	bool is_module(const wchar_t* FileName) const;
 	std::unique_ptr<module> create_module(const wchar_t* FileName);
 	FARPROC WINAPI get_function(HANDLE Instance, const wchar_t* FunctionName);
+	bool get_error(ErrorInfo* Info) const;
 
 	const py::type& api_type(const std::string& TypeName) const;
 	using type_factory = std::function<const py::type&(const std::string&)>;

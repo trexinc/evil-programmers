@@ -10,6 +10,7 @@
 #include "py_string.hpp"
 #include "py_sys.hpp"
 #include "py_type.hpp"
+#include "error_handling.hpp"
 
 using namespace py::literals;
 
@@ -146,6 +147,11 @@ FARPROC WINAPI pygin::get_function(HANDLE Instance, const wchar_t* FunctionName)
 
 	const auto Module = static_cast<module*>(Instance);
 	return Module->check_function(FunctionName) && FunctionsMap.count(FunctionName)? reinterpret_cast<FARPROC>(FunctionsMap.at(FunctionName)) : nullptr;
+}
+
+bool pygin::get_error(ErrorInfo* Info) const
+{
+	return get_error_context(Info);
 }
 
 const py::type& pygin::api_type(const std::string& TypeName) const

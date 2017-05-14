@@ -157,10 +157,6 @@
     <None Include="pygin.def">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="plugins\helloworld\__init__.py">
-      <Filter>plugins\helloworld</Filter>
-    </None>
-    <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="pygin\__init__.py">
@@ -174,6 +170,10 @@
     </CustomBuild>
     <CustomBuild Include="pygin\farapi_types.py">
       <Filter>python api</Filter>
+    </CustomBuild>
+    <CustomBuild Include="README.md" />
+    <CustomBuild Include="plugins\helloworld\__init__.py">
+      <Filter>plugins\helloworld</Filter>
     </CustomBuild>
   </ItemGroup>
 </Project>

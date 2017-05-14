@@ -69,7 +69,7 @@ namespace py
 				Message += cast<string>(List[i]).to_string();
 			}
 
-			throw std::runtime_error(Message);
+			throw exception(Message);
 		}
 	}
 }
