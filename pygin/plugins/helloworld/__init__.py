@@ -1,7 +1,6 @@
 import uuid
 
 import pygin
-from pygin.farapi_types import *
 
 class HelloWorldPlugin:
 	Title = "Hello Python world"
@@ -13,7 +12,7 @@ class HelloWorldPlugin:
 		self.far = far
 
 	def GetPluginInfoW(self):
-		info = PluginInfo()
+		info = self.far.PluginInfo()
 		info.PluginMenuItems = [
 			("Hello Python world", uuid.UUID("{DAF1257B-E011-4B5A-B5DC-732581BDF3BA}"))
 		]

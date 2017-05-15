@@ -1,3 +1,5 @@
+"""Far API implementation. DO NOT import this module directly."""
+
 import uuid
 
 NullUuid = uuid.UUID("{00000000-0000-0000-0000-000000000000}")

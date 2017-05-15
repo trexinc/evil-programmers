@@ -1,6 +1,7 @@
 #include "headers.hpp"
 
 #include "module.hpp"
+#include "far_api.hpp"
 
 #include "py_string.hpp"
 #include "py_tuple.hpp"
@@ -32,10 +33,9 @@ static std::wstring UuidToString(const UUID& Uuid)
 	return Result;
 }
 
-module::module(const py::object& Object, const pygin::type_factory& TypeFactory):
+module::module(const py::object& Object):
 	m_PluginModule(Object),
-	m_PluginModuleClass(m_PluginModule.get_attribute("FarPluginClass")),
-	m_TypeFactory(TypeFactory)
+	m_PluginModuleClass(m_PluginModule.get_attribute("FarPluginClass"))
 {
 }
 
@@ -96,7 +96,7 @@ intptr_t module::CompareW(const CompareInfo *Info)
 
 intptr_t module::ConfigureW(const ConfigureInfo *Info)
 {
-	const auto ConfigureInstance = m_TypeFactory("ConfigureInfo").call();
+	const auto ConfigureInstance = far_api::type("ConfigureInfo").call();
 
 	const auto UuidType = py::typeof(ConfigureInstance.get_attribute("Guid"));
 	const auto Uuid = UuidType.call(py::string(UuidToString(*Info->Guid)));
@@ -113,7 +113,7 @@ intptr_t module::DeleteFilesW(const DeleteFilesInfo *Info)
 
 void module::ExitFARW(const ExitInfo *Info)
 {
-	const auto ExitInfoInstance = m_TypeFactory("ExitInfo").call();
+	const auto ExitInfoInstance = far_api::type("ExitInfo").call();
 	call(STR(ExitFARW), ExitInfoInstance);
 
 	// Point of no return
@@ -152,7 +152,7 @@ void module::GetOpenPanelInfoW(OpenPanelInfo *Info)
 void module::GetPluginInfoW(PluginInfo *Info)
 {
 	const auto PyInfo = call(STR(GetPluginInfoW));
-	if (!m_TypeFactory("PluginInfo").is_same(py::typeof(PyInfo)))
+	if (!far_api::type("PluginInfo").is_same(py::typeof(PyInfo)))
 		throw std::bad_cast();
 
 	const auto& ConvertPluginMenuItem = [&](const char* Kind, menu_items& MenuItems, PluginMenuItem PluginInfo::*Destination)
@@ -193,7 +193,7 @@ intptr_t module::MakeDirectoryW(MakeDirectoryInfo *Info)
 
 HANDLE module::OpenW(const OpenInfo *Info)
 {
-	const auto OpenInfoInstance = m_TypeFactory("OpenInfo").call();
+	const auto OpenInfoInstance = far_api::type("OpenInfo").call();
 
 	const auto UuidType = py::typeof(OpenInfoInstance.get_attribute("Guid"));
 	const auto Uuid = UuidType.call(py::string(UuidToString(*Info->Guid)));
@@ -267,8 +267,8 @@ intptr_t module::SetFindListW(const SetFindListInfo *Info)
 
 void module::SetStartupInfoW(const PluginStartupInfo *Info)
 {
-	m_FarApi = std::make_unique<far_api>(Info);
-	m_PluginModuleInstance = m_PluginModuleClass.call(m_FarApi->get());
+	far_api::initialise(Info);
+	m_PluginModuleInstance = m_PluginModuleClass.call(far_api::module());
 }
 
 intptr_t module::GetContentFieldsW(const GetContentFieldsInfo *Info)

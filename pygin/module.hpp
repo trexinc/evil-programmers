@@ -1,15 +1,13 @@
 #pragma once
 
 #include "py_object.hpp"
-#include "far_api.hpp"
-#include "pygin.hpp"
 
 class module
 {
 public:
 	NONCOPYABLE(module);
 
-	module(const py::object& Object, const pygin::type_factory& TypeFactory);
+	module(const py::object& Object);
 	~module();
 
 	bool check_function(const wchar_t* FunctionName) const;
@@ -70,7 +68,4 @@ private:
 	menu_items m_PluginMenuItems;
 	menu_items m_DiskMenuItems;
 	menu_items m_PluginConfigItems;
-
-	std::unique_ptr<far_api> m_FarApi;
-	pygin::type_factory m_TypeFactory;
 };

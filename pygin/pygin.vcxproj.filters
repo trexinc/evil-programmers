@@ -168,7 +168,7 @@
     <CustomBuild Include="pygin\logging.py">
       <Filter>python api</Filter>
     </CustomBuild>
-    <CustomBuild Include="pygin\farapi_types.py">
+    <CustomBuild Include="pygin\far_api.py">
       <Filter>python api</Filter>
     </CustomBuild>
     <CustomBuild Include="README.md" />

@@ -149,7 +149,7 @@
       <Outputs>artefacts\product\%(Identity)</Outputs>
     </CustomBuild>
     <None Include="pygin.def" />
-    <CustomBuild Include="pygin\farapi_types.py">
+    <CustomBuild Include="pygin\far_api.py">
       <FileType>Document</FileType>
       <Command>copy %(Identity) $(OutDir)%(Identity)</Command>
       <Outputs>$(OutDir)%(Identity)</Outputs>

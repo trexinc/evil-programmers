@@ -2,6 +2,11 @@
 
 #include "py_object.hpp"
 
+namespace py
+{
+	class type;
+}
+
 class far_api
 {
 public:
@@ -12,11 +17,20 @@ public:
 
 	const PluginStartupInfo& psi() const;
 	const FarStandardFunctions& fsf() const;
-	const py::object& get() const;
+
+	const py::object& get_module() const;
+	const py::type& get_type(const std::string& TypeName) const;
+
+	static void initialise(const PluginStartupInfo* Psi);
+	static const far_api& get();
+	static const py::object& module();
+	static const py::type& type(const std::string& TypeName);
+	static void uninitialise();
 
 private:
 	py::object m_Module;
 	py::object m_Exception;
 	PluginStartupInfo m_Psi;
 	FarStandardFunctions m_Fsf;
+	mutable std::unordered_map<std::string, py::type> m_ApiTypesCache;
 };

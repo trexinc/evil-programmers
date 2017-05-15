@@ -2,6 +2,7 @@
 
 #include "pygin.hpp"
 
+#include "far_api.hpp"
 #include "module.hpp"
 
 #include "py_dictionary.hpp"
@@ -9,7 +10,7 @@
 #include "py_list.hpp"
 #include "py_string.hpp"
 #include "py_sys.hpp"
-#include "py_type.hpp"
+
 #include "error_handling.hpp"
 
 using namespace py::literals;
@@ -83,7 +84,7 @@ pygin::pygin(GlobalInfo* Info)
 
 pygin::~pygin()
 {
-	m_ApiTypes.clear();
+	far_api::uninitialise();
 	m_PyginModule = {};
 	py::finalize();
 }
@@ -101,7 +102,7 @@ bool pygin::is_module(const wchar_t* FileName) const
 std::unique_ptr<module> pygin::create_module(const wchar_t* FileName)
 {
 	const auto Object = create_python_module(FileName);
-	return Object? std::make_unique<module>(Object, api_type_factory()) : nullptr;
+	return Object? std::make_unique<module>(Object) : nullptr;
 }
 
 FARPROC WINAPI pygin::get_function(HANDLE Instance, const wchar_t* FunctionName)
@@ -152,22 +153,4 @@ FARPROC WINAPI pygin::get_function(HANDLE Instance, const wchar_t* FunctionName)
 bool pygin::get_error(ErrorInfo* Info) const
 {
 	return get_error_context(Info);
-}
-
-const py::type& pygin::api_type(const std::string& TypeName) const
-{
-	auto& Type = m_ApiTypes[TypeName];
-	if (!Type)
-	{
-		Type = py::cast<py::type>(m_PyginModule.get_attribute(TypeName.data()));
-	}
-	return Type;
-}
-
-pygin::type_factory pygin::api_type_factory() const
-{
-	return [this](const std::string& TypeName) -> decltype(auto)
-	{
-		return api_type(TypeName);
-	};
 }

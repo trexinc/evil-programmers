@@ -12,7 +12,7 @@ namespace py
 	}
 
 	template<typename callable, typename... args>
-	auto invoke(callable Callable, const args&... Args)
+	auto invoke(callable Callable, args... Args)
 	{
 		class final_act
 		{
