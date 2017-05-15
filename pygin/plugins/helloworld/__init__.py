@@ -3,7 +3,7 @@ import uuid
 import pygin
 from pygin.farapi_types import *
 
-class HelloWorldPlugin(object):
+class HelloWorldPlugin:
 	Title = "Hello Python world"
 	Author = "Far group"
 	Description = "Python plugin very basic example"
