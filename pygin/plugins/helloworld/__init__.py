@@ -40,4 +40,5 @@ class HelloWorldPlugin:
 		self.far.SetUserScreen()
 		return True
 
+
 FarPluginClass = HelloWorldPlugin

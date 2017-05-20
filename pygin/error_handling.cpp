@@ -37,3 +37,25 @@ void reset_error_context()
 {
 	ErrorContext.Occurred = false;
 }
+
+detail::exception_impl::exception_impl(const std::string& Message, const char* Function, const char* File, int Line):
+	m_Message(Message),
+	m_FullMessage(Message + "\n (at " + Function + ", " + File + ":" + std::to_string(Line) + ")")
+{
+}
+
+const std::string& detail::exception_impl::get_message() const noexcept
+{
+	return m_Message;
+}
+
+const std::string& detail::exception_impl::get_full_message() const noexcept
+{
+	return m_FullMessage;
+}
+
+pygin_exception::pygin_exception(const std::string& Message, const char* Function, const char* File, int Line):
+	exception_impl(Message, Function, File, Line),
+	std::runtime_error(get_full_message())
+{
+}

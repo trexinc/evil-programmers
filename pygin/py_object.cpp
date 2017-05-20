@@ -5,6 +5,7 @@
 #include "py_tuple.hpp"
 
 #include "python.hpp"
+#include "error_handling.hpp"
 
 namespace py
 {
@@ -124,6 +125,6 @@ namespace py
 	void object::validate_type_name(const char* TypeName) const
 	{
 		if (strcmp(TypeName, type_name()))
-			throw std::bad_cast();
+			throw MAKE_PYGIN_EXCEPTION(type_name() + " is not "s + TypeName);
 	}
 }

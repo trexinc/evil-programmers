@@ -2,6 +2,7 @@
 
 #include "module.hpp"
 #include "far_api.hpp"
+#include "error_handling.hpp"
 
 #include "py_string.hpp"
 #include "py_tuple.hpp"
@@ -14,23 +15,25 @@ using namespace py::literals;
 
 static UUID UuidFromString(const std::wstring& Str)
 {
-	UUID Result;
-	if (UuidFromString(reinterpret_cast<RPC_WSTR>(const_cast<wchar_t*>(Str.data())), &Result) != RPC_S_OK)
-		throw std::runtime_error("UuidFromString");
+	UUID Uuid;
+	const auto Result = UuidFromString(reinterpret_cast<RPC_WSTR>(const_cast<wchar_t*>(Str.data())), &Uuid);
+	if (Result != RPC_S_OK)
+		throw MAKE_PYGIN_EXCEPTION("UuidFromString returned " + std::to_string(Result));
 
-	return Result;
+	return Uuid;
 }
 
 static std::wstring UuidToString(const UUID& Uuid)
 {
-	RPC_WSTR Str;
-	if (UuidToString(&Uuid, &Str) != RPC_S_OK)
-		throw std::runtime_error("UuidToString");
+	RPC_WSTR RpcStr;
+	const auto Result = UuidToString(&Uuid, &RpcStr);
+	if (Result != RPC_S_OK)
+		throw MAKE_PYGIN_EXCEPTION("UuidToString returned " + std::to_string(Result));
 
-	std::wstring Result = reinterpret_cast<const wchar_t*>(Str);
-	RpcStringFree(&Str);
+	std::wstring Str = reinterpret_cast<const wchar_t*>(RpcStr);
+	RpcStringFree(&RpcStr);
 
-	return Result;
+	return Str;
 }
 
 module::module(const py::object& Object):
@@ -152,8 +155,7 @@ void module::GetOpenPanelInfoW(OpenPanelInfo *Info)
 void module::GetPluginInfoW(PluginInfo *Info)
 {
 	const auto PyInfo = call(STR(GetPluginInfoW));
-	if (!far_api::type("PluginInfo").is_same(py::typeof(PyInfo)))
-		throw std::bad_cast();
+	PyInfo.validate_type_name("PluginInfo");
 
 	const auto& ConvertPluginMenuItem = [&](const char* Kind, menu_items& MenuItems, PluginMenuItem PluginInfo::*Destination)
 	{

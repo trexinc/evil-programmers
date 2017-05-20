@@ -124,6 +124,5 @@ const py::type& far_api::type(const std::string& TypeName)
 
 void far_api::uninitialise()
 {
-	assert(s_FarApi);
 	s_FarApi.reset();
 }
