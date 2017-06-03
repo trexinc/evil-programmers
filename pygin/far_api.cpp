@@ -63,7 +63,7 @@ far_api::far_api(const PluginStartupInfo* Psi):
 	// We use single instances of PSI and FSF for all plugins.
 	// This is perfectly fine for FSF as it is completely static.
 	// PSI, however, has some dynamic fields.
-	// It i better to reset all of them to avoid any misusing.
+	// It is better to reset all of them to avoid any misusing.
 	m_Psi.ModuleName = nullptr;
 	m_Psi.Private = nullptr;
 	m_Psi.Instance = nullptr;
