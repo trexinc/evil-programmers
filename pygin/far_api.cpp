@@ -7,6 +7,8 @@
 #include "py_string.hpp"
 #include "py_type.hpp"
 
+#include "types_cache.hpp"
+
 #include "python.hpp"
 
 using namespace py::literals;
@@ -91,12 +93,7 @@ const py::object& far_api::get_module() const
 
 const py::type& far_api::get_type(const std::string& TypeName) const
 {
-	auto& Type = m_ApiTypesCache[TypeName];
-	if (!Type)
-	{
-		Type = py::cast<py::type>(m_Module.get_attribute(TypeName.data()));
-	}
-	return Type;
+	return types_cache::get_type([this]{ return m_Module; }, TypeName);
 }
 
 static std::unique_ptr<far_api> s_FarApi;

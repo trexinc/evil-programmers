@@ -5,7 +5,7 @@
 #include "seven_zip_module_manager.hpp"
 
 #include "7z.headers/7zip/Archive/IArchive.h"
-#include "7z.headers/7zip/Common/FileStreams.h" 
+#include "7z.headers/7zip/Common/FileStreams.h"
 
 #include <initguid.h>
 #include "system.hpp"

@@ -111,9 +111,10 @@
     <ClInclude Include="py_tuple.hpp" />
     <ClInclude Include="py_type.hpp" />
     <ClInclude Include="py_uuid.hpp" />
+    <ClInclude Include="types_cache.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="dllmain.cpp"/>
+    <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="error_handling.cpp" />
     <ClCompile Include="far_api.cpp" />
     <ClCompile Include="module.cpp" />
@@ -136,6 +137,7 @@
     <ClCompile Include="py_tuple.cpp" />
     <ClCompile Include="py_type.cpp" />
     <ClCompile Include="py_uuid.cpp" />
+    <ClCompile Include="types_cache.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="pygin\__init__.py">

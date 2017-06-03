@@ -87,6 +87,9 @@
     <ClInclude Include="error_handling.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="types_cache.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pygin.cpp">
@@ -151,6 +154,9 @@
     </ClCompile>
     <ClCompile Include="py_common.cpp">
       <Filter>Source Files\cpp api</Filter>
+    </ClCompile>
+    <ClCompile Include="types_cache.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

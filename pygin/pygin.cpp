@@ -4,14 +4,14 @@
 
 #include "far_api.hpp"
 #include "module.hpp"
+#include "types_cache.hpp"
+#include "error_handling.hpp"
 
 #include "py_dictionary.hpp"
 #include "py_import.hpp"
 #include "py_list.hpp"
 #include "py_string.hpp"
 #include "py_sys.hpp"
-
-#include "error_handling.hpp"
 
 using namespace py::literals;
 
@@ -85,6 +85,7 @@ pygin::pygin(GlobalInfo* Info)
 pygin::~pygin()
 {
 	far_api::uninitialise();
+	types_cache::clear();
 	m_PyginModule = {};
 	py::finalize();
 }

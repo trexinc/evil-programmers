@@ -106,7 +106,7 @@ namespace py
 		return invoke(PyObject_SetAttr, get(), Name.get(), Value.get()) == 0;
 	}
 
-	object object::call(const tuple& Args) const
+	object object::operator()(const tuple& Args) const
 	{
 		return object(invoke(PyObject_CallObject, get(), Args.get()));
 	}

@@ -38,12 +38,12 @@ namespace py
 		bool set_attribute(const object& Name, const object& Value) const;
 
 		template<typename... args>
-		object call(const args&... Args) const
+		object operator()(const args&... Args) const
 		{
-			return call(tuple::make(Args...));
+			return operator()(tuple::make(Args...));
 		}
 
-		object call(const tuple& Args) const;
+		object operator()(const tuple& Args) const;
 
 		static object from_borrowed(PyObject* Object);
 		const char* type_name() const;

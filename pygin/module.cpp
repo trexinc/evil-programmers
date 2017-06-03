@@ -2,7 +2,6 @@
 
 #include "module.hpp"
 #include "far_api.hpp"
-#include "error_handling.hpp"
 
 #include "py_string.hpp"
 #include "py_tuple.hpp"
@@ -12,29 +11,6 @@
 #include "py_boolean.hpp"
 
 using namespace py::literals;
-
-static UUID UuidFromString(const std::wstring& Str)
-{
-	UUID Uuid;
-	const auto Result = UuidFromString(reinterpret_cast<RPC_WSTR>(const_cast<wchar_t*>(Str.data())), &Uuid);
-	if (Result != RPC_S_OK)
-		throw MAKE_PYGIN_EXCEPTION("UuidFromString returned " + std::to_string(Result));
-
-	return Uuid;
-}
-
-static std::wstring UuidToString(const UUID& Uuid)
-{
-	RPC_WSTR RpcStr;
-	const auto Result = UuidToString(&Uuid, &RpcStr);
-	if (Result != RPC_S_OK)
-		throw MAKE_PYGIN_EXCEPTION("UuidToString returned " + std::to_string(Result));
-
-	std::wstring Str = reinterpret_cast<const wchar_t*>(RpcStr);
-	RpcStringFree(&RpcStr);
-
-	return Str;
-}
 
 module::module(const py::object& Object):
 	m_PluginModule(Object),
@@ -74,7 +50,7 @@ bool module::check_function(const wchar_t* FunctionName) const
 template<typename ... args>
 py::object module::call(const char* FunctionName, const args&... Args) const
 {
-	return m_PluginModuleClassFunctions.at(FunctionName).call(m_PluginModuleInstance, Args...);
+	return m_PluginModuleClassFunctions.at(FunctionName)(m_PluginModuleInstance, Args...);
 }
 
 #define STR(x) #x
@@ -99,11 +75,9 @@ intptr_t module::CompareW(const CompareInfo *Info)
 
 intptr_t module::ConfigureW(const ConfigureInfo *Info)
 {
-	const auto ConfigureInstance = far_api::type("ConfigureInfo").call();
+	const auto ConfigureInstance = far_api::type("ConfigureInfo"s)();
 
-	const auto UuidType = py::typeof(ConfigureInstance.get_attribute("Guid"));
-	const auto Uuid = UuidType.call(py::string(UuidToString(*Info->Guid)));
-	ConfigureInstance.set_attribute("Guid", Uuid);
+	ConfigureInstance.set_attribute("Guid", py::uuid(*Info->Guid));
 
 	const auto Result = py::cast<py::boolean>(call(STR(ConfigureW), ConfigureInstance));
 	return Result.to_bool();
@@ -116,7 +90,7 @@ intptr_t module::DeleteFilesW(const DeleteFilesInfo *Info)
 
 void module::ExitFARW(const ExitInfo *Info)
 {
-	const auto ExitInfoInstance = far_api::type("ExitInfo").call();
+	const auto ExitInfoInstance = far_api::type("ExitInfo"s)();
 	call(STR(ExitFARW), ExitInfoInstance);
 
 	// Point of no return
@@ -195,11 +169,9 @@ intptr_t module::MakeDirectoryW(MakeDirectoryInfo *Info)
 
 HANDLE module::OpenW(const OpenInfo *Info)
 {
-	const auto OpenInfoInstance = far_api::type("OpenInfo").call();
+	const auto OpenInfoInstance = far_api::type("OpenInfo"s)();
 
-	const auto UuidType = py::typeof(OpenInfoInstance.get_attribute("Guid"));
-	const auto Uuid = UuidType.call(py::string(UuidToString(*Info->Guid)));
-	OpenInfoInstance.set_attribute("Guid", Uuid);
+	OpenInfoInstance.set_attribute("Guid", py::uuid(*Info->Guid));
 
 	const auto Result = call(STR(OpenW), OpenInfoInstance);
 
@@ -270,7 +242,7 @@ intptr_t module::SetFindListW(const SetFindListInfo *Info)
 void module::SetStartupInfoW(const PluginStartupInfo *Info)
 {
 	far_api::initialise(Info);
-	m_PluginModuleInstance = m_PluginModuleClass.call(far_api::module());
+	m_PluginModuleInstance = m_PluginModuleClass(far_api::module());
 }
 
 intptr_t module::GetContentFieldsW(const GetContentFieldsInfo *Info)

@@ -41,7 +41,7 @@ namespace py
 			// Seems to be a Python core bug :(
 			if (!strcmp(Value.type_name(), "str"))
 			{
-				Value = object(PyExc_Exception).call(Value);
+				Value = object(PyExc_Exception)(Value);
 			}
 
 			const auto TracebackModule = import::import("traceback"_py);
@@ -61,7 +61,7 @@ namespace py
 			}
 
 			const auto Formatter = TracebackModule.get_attribute(FormatterName);
-			const auto List = cast<list>(Formatter.call(Args));
+			const auto List = cast<list>(Formatter(Args));
 
 			std::string Message;
 			for (size_t i = 0, size = List.size(); i != size; ++i)

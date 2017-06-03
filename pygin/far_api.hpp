@@ -32,5 +32,4 @@ private:
 	py::object m_Exception;
 	PluginStartupInfo m_Psi;
 	FarStandardFunctions m_Fsf;
-	mutable std::unordered_map<std::string, py::type> m_ApiTypesCache;
 };
