@@ -37,18 +37,12 @@ namespace
 
 		return Uuid;
 	}
-
-	auto make_uuid(const UUID& Uuid)
-	{
-		const auto& UuidType = types_cache::get_type([&]{ return py::import::import("uuid"_py); }, "UUID"s);
-		return UuidType(py::string(UuidToString(Uuid)));
-	}
 }
 
 namespace py
 {
 	uuid::uuid(const UUID& Uuid):
-		object(make_uuid(Uuid))
+		object(types_cache::get_type([&]{ return import::import("uuid"_py); }, "UUID"s)(string(UuidToString(Uuid))))
 	{
 	}
 

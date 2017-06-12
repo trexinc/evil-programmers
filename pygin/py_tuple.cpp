@@ -47,7 +47,7 @@ namespace py
 
 	tuple::value_proxy tuple::operator[](size_t Index)
 	{
-		return{ this, Index };
+		return { this, Index };
 	}
 
 	object tuple::operator[](size_t Index) const

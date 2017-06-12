@@ -43,7 +43,7 @@ bool module::check_function(const wchar_t* FunctionName) const
 
 	// Not perfect, but that should always be pure ASCII anyway, so why not.
 	std::string NarrowName(FunctionName, FunctionName + wcslen(FunctionName));
-	m_PluginModuleClassFunctions.emplace(NarrowName, Function);
+	m_PluginModuleClassFunctions.emplace(std::move(NarrowName), Function);
 	return true;
 }
 
@@ -137,9 +137,15 @@ void module::GetPluginInfoW(PluginInfo *Info)
 
 		const auto ListSize = ItemsList.size();
 
-		MenuItems.StringsData.reserve(ListSize);
-		MenuItems.Strings.reserve(ListSize);
-		MenuItems.Uuids.reserve(ListSize);
+		const auto prepare = [ListSize](auto& Container)
+		{
+			Container.clear();
+			Container.reserve(ListSize);
+		};
+
+		prepare(MenuItems.StringsData);
+		prepare(MenuItems.Strings);
+		prepare(MenuItems.Uuids);
 
 		// TODO: enumerator
 		for (size_t i = 0; i != ListSize; ++i)

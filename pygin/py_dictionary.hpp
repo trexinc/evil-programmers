@@ -7,12 +7,11 @@ namespace py
 	class dictionary: public object
 	{
 	public:
-		MOVABLE(dictionary);
 		static auto type_name() { return "dict"; }
 
 		dictionary();
 
-		explicit dictionary(cast_guard, const object& Object);
+		dictionary(cast_guard, const object& Object);
 
 		class value_proxy
 		{

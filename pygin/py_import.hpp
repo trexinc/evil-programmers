@@ -1,12 +1,12 @@
 #pragma once
 
-#include "py_object.hpp"
+#include "py_module.hpp"
 
 namespace py
 {
 	namespace import
 	{
-		object import(const object& Name);
-		object reload_module(const object& Name);
+		module import(const object& Name);
+		module reload_module(const object& Name);
 	}
 }

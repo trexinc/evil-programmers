@@ -7,14 +7,13 @@ namespace py
 	class integer: public object
 	{
 	public:
-		MOVABLE(integer);
 		static auto type_name() { return "int"; }
 
 		explicit integer(int Value);
 		explicit integer(unsigned int Value);
 		explicit integer(long long Value);
 		explicit integer(unsigned long long Value);
-		explicit integer(cast_guard, const object& Object);
+		integer(cast_guard, const object& Object);
 
 		size_t to_size_t() const;
 		int to_int() const;

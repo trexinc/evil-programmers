@@ -62,7 +62,7 @@ namespace py
 
 	dictionary::value_proxy dictionary::operator[](const object& Key)
 	{
-		return{ this, Key };
+		return { this, Key };
 	}
 
 	object dictionary::operator[](const object& Key) const

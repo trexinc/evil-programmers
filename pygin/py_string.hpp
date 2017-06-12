@@ -7,7 +7,6 @@ namespace py
 	class string: public object
 	{
 	public:
-		MOVABLE(string);
 		static auto type_name() { return "str"; }
 
 		string(const char* Str, size_t Size);
@@ -16,7 +15,7 @@ namespace py
 		explicit string(const wchar_t* Str);
 		explicit string(const std::string& Str);
 		explicit string(const std::wstring& Str);
-		explicit string(cast_guard, const object& Object);
+		string(cast_guard, const object& Object);
 
 		int compare(const object& Other) const;
 

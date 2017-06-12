@@ -1,5 +1,6 @@
 #pragma once
-#include "py_object.hpp"
+
+#include "py_type.hpp"
 
 namespace py
 {
@@ -9,11 +10,10 @@ namespace py
 		void clear();
 		void print();
 
-		class exception: public std::runtime_error
+		class exception: public type
 		{
-			using runtime_error::runtime_error;
+		public:
+			explicit exception(const char* Name);
 		};
-
-		void raise_exception_if_needed();
 	}
 }

@@ -7,10 +7,9 @@ namespace py
 	class list: public object
 	{
 	public:
-		MOVABLE(list);
 		static auto type_name() { return "list"; }
 
-		explicit list(cast_guard, const object& Object);
+		list(cast_guard, const object& Object);
 
 		class value_proxy
 		{

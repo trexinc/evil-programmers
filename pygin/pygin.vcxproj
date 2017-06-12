@@ -100,6 +100,7 @@
     <ClInclude Include="py_boolean.hpp" />
     <ClInclude Include="py_common.hpp" />
     <ClInclude Include="py_integer.hpp" />
+    <ClInclude Include="py_module.hpp" />
     <ClInclude Include="py_string.hpp" />
     <ClInclude Include="headers.hpp" />
     <ClInclude Include="py_dictionary.hpp" />
@@ -123,6 +124,7 @@
     <ClCompile Include="pygin_interface.cpp" />
     <ClCompile Include="py_boolean.cpp" />
     <ClCompile Include="py_integer.cpp" />
+    <ClCompile Include="py_module.cpp" />
     <ClCompile Include="py_string.cpp" />
     <ClCompile Include="py_common.cpp" />
     <ClCompile Include="headers.cpp">

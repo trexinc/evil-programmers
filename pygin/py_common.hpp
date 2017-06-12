@@ -6,10 +6,12 @@ namespace py
 {
 	class object;
 
-	namespace err
+	class exception: public std::runtime_error
 	{
-		void raise_exception_if_needed();
-	}
+		using runtime_error::runtime_error;
+	};
+
+	void raise_exception_if_needed();
 
 	template<typename callable, typename... args>
 	auto invoke(callable Callable, args... Args)
@@ -19,7 +21,7 @@ namespace py
 		public:
 			~final_act() noexcept(false)
 			{
-				err::raise_exception_if_needed();
+				raise_exception_if_needed();
 			}
 		};
 

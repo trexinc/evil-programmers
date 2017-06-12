@@ -22,6 +22,10 @@ using namespace std::string_literals;
 Type(const Type&) = delete; \
 Type& operator=(const Type&) = delete;
 
+#define COPYABLE(Type) \
+Type(const Type&) = default; \
+Type& operator=(const Type&) = default;
+
 #define MOVABLE(Type) \
 Type(Type&&) = default; \
 Type& operator=(Type&&) = default;

@@ -39,7 +39,7 @@ auto try_call(const callable& Callable, const fallback& Fallback) noexcept
 		reset_error_context();
 		return Callable();
 	}
-	catch (const py::err::exception& e)
+	catch (const py::exception& e)
 	{
 		set_error_context(L"Pygin: Python exception", e.what());
 		return Fallback();

@@ -90,6 +90,9 @@
     <ClInclude Include="types_cache.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="py_module.hpp">
+      <Filter>Header Files\cpp api</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pygin.cpp">
@@ -157,6 +160,9 @@
     </ClCompile>
     <ClCompile Include="types_cache.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="py_module.cpp">
+      <Filter>Source Files\cpp api</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

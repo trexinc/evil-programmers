@@ -6,11 +6,10 @@ namespace py
 	class tuple: public object
 	{
 	public:
-		MOVABLE(tuple);
 		static auto type_name() { return "tuple"; }
 
 		explicit tuple(size_t Size);
-		explicit tuple(cast_guard, const object& Object);
+		tuple(cast_guard, const object& Object);
 
 		class value_proxy
 		{

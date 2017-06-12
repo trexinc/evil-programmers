@@ -3,9 +3,7 @@
 #include "far_api.hpp"
 
 #include "py_import.hpp"
-#include "py_integer.hpp"
 #include "py_string.hpp"
-#include "py_type.hpp"
 
 #include "types_cache.hpp"
 
@@ -28,6 +26,7 @@ namespace far_api_implementation
 	static PyObject* GetUserScreen(PyObject* self, PyObject* args)
 	{
 		psi().PanelControl(PANEL_NONE, FCTL_GETUSERSCREEN, 0, nullptr);
+
 		Py_INCREF(Py_None);
 		return Py_None;
 	}
@@ -54,7 +53,7 @@ namespace far_api_implementation
 
 far_api::far_api(const PluginStartupInfo* Psi):
 	m_Module(py::import::import("pygin.far_api"_py)),
-	m_Exception(py::invoke(PyErr_NewException, "pygin.far_api.error", nullptr, nullptr)),
+	m_Exception("pygin.far_api.error"),
 	m_Psi(*Psi),
 	m_Fsf(*Psi->FSF)
 {
@@ -68,9 +67,8 @@ far_api::far_api(const PluginStartupInfo* Psi):
 	m_Psi.Private = nullptr;
 	m_Psi.Instance = nullptr;
 
-	DONT_STEAL_REFERENCE(m_Exception.get());
-	py::invoke(PyModule_AddObject, m_Module.get(), "error", m_Exception.get());
-	py::invoke(PyModule_AddFunctions, m_Module.get(), far_api_implementation::Methods);
+	m_Module.add_object("error", m_Exception);
+	m_Module.add_functions(far_api_implementation::Methods);
 }
 
 far_api::~far_api()

@@ -1,6 +1,7 @@
 #pragma once
 
-#include "py_object.hpp"
+#include "py_module.hpp"
+#include "py_err.hpp"
 
 namespace py
 {
@@ -28,8 +29,8 @@ public:
 	static void uninitialise();
 
 private:
-	py::object m_Module;
-	py::object m_Exception;
+	py::module m_Module;
+	py::err::exception m_Exception;
 	PluginStartupInfo m_Psi;
 	FarStandardFunctions m_Fsf;
 };
