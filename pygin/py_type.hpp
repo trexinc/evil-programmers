@@ -1,7 +1,7 @@
 #pragma once
 #include "py_object.hpp"
 
-typedef struct _typeobject PyTypeObject;
+using PyTypeObject = struct _typeobject;
 
 namespace py
 {

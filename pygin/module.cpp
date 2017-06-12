@@ -5,10 +5,10 @@
 
 #include "py_string.hpp"
 #include "py_tuple.hpp"
-#include "py_type.hpp"
 #include "py_uuid.hpp"
 #include "py_list.hpp"
 #include "py_boolean.hpp"
+#include "py_common.hpp"
 
 using namespace py::literals;
 
@@ -129,7 +129,7 @@ void module::GetOpenPanelInfoW(OpenPanelInfo *Info)
 void module::GetPluginInfoW(PluginInfo *Info)
 {
 	const auto PyInfo = call(STR(GetPluginInfoW));
-	PyInfo.validate_type_name("PluginInfo");
+	PyInfo.ensure_type_name("PluginInfo");
 
 	const auto& ConvertPluginMenuItem = [&](const char* Kind, menu_items& MenuItems, PluginMenuItem PluginInfo::*Destination)
 	{

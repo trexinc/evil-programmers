@@ -106,9 +106,9 @@ namespace py
 		return invoke(PyObject_SetAttr, get(), Name.get(), Value.get()) == 0;
 	}
 
-	object object::operator()(const tuple& Args) const
+	object object::operator()(const std::initializer_list<object>& Args) const
 	{
-		return object(invoke(PyObject_CallObject, get(), Args.get()));
+		return object(invoke(PyObject_CallObject, get(), tuple(Args).get()));
 	}
 
 	object object::from_borrowed(PyObject* Object)
@@ -122,9 +122,14 @@ namespace py
 		return get()->ob_type->tp_name;
 	}
 
-	void object::validate_type_name(const char* TypeName) const
+	bool object::check_type_name(const char* TypeName) const
 	{
-		if (strcmp(TypeName, type_name()))
+		return !strcmp(TypeName, type_name());
+	}
+
+	void object::ensure_type_name(const char* TypeName) const
+	{
+		if (!check_type_name(TypeName))
 			throw MAKE_PYGIN_EXCEPTION(type_name() + " is not "s + TypeName);
 	}
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "py_err.hpp"
+#include "py_common.hpp"
 
 void set_error_context(const wchar_t* Summary, const std::string& Description);
 bool get_error_context(ErrorInfo* Info);

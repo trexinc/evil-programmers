@@ -8,7 +8,10 @@ namespace py
 	public:
 		static auto type_name() { return "tuple"; }
 
-		explicit tuple(size_t Size);
+		explicit tuple(size_t Size = 0);
+		tuple(const std::initializer_list<object>& Args);
+		template<typename... args>
+		tuple(const args&... Args): tuple({ Args... }) {}
 		tuple(cast_guard, const object& Object);
 
 		class value_proxy
@@ -33,23 +36,5 @@ namespace py
 		object operator[](size_t Index) const;
 		void set_at(size_t Position, const object& Object);
 		object get_at(size_t Position) const;
-
-		template<typename... args>
-		static tuple make(const args&... Args)
-		{
-			tuple Result(sizeof...(args));
-			set_tuple_items(Result, 0, Args...);
-			return Result;
-		}
-
-	private:
-		static void set_tuple_items(tuple&, size_t) {}
-
-		template<typename arg, typename... args>
-		static void set_tuple_items(tuple& Tuple, size_t CurrentIndex, const arg& Arg, const args&... Args)
-		{
-			Tuple.set_at(CurrentIndex, Arg);
-			set_tuple_items(Tuple, CurrentIndex + 1, Args...);
-		}
-	};
+};
 }

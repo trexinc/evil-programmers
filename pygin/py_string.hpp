@@ -17,7 +17,7 @@ namespace py
 		explicit string(const std::wstring& Str);
 		string(cast_guard, const object& Object);
 
-		int compare(const object& Other) const;
+		bool operator==(const string& Other) const;
 
 		std::string to_string() const;
 		std::wstring to_wstring() const;

@@ -4,6 +4,7 @@
 
 #include "py_integer.hpp"
 #include "py_string.hpp"
+#include "py_common.hpp"
 
 #include "python.hpp"
 

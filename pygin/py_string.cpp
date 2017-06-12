@@ -1,6 +1,7 @@
 #include "headers.hpp"
 
 #include "py_string.hpp"
+#include "py_common.hpp"
 
 #include "python.hpp"
 
@@ -41,9 +42,9 @@ namespace py
 	{
 	}
 
-	int string::compare(const object& Other) const
+	bool string::operator==(const string& Other) const
 	{
-		return invoke(PyUnicode_Compare, get(), Other.get());
+		return invoke(PyUnicode_Compare, get(), Other.get()) == 0;
 	}
 
 	std::string string::to_string() const

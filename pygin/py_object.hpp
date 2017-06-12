@@ -1,6 +1,6 @@
 #pragma once
 
-#include "py_common.hpp"
+using PyObject = struct _object;
 
 namespace py
 {
@@ -40,16 +40,43 @@ namespace py
 		template<typename... args>
 		object operator()(const args&... Args) const
 		{
-			return operator()(tuple::make(Args...));
+			return operator()({ Args... });
 		}
-
-		object operator()(const tuple& Args) const;
 
 		static object from_borrowed(PyObject* Object);
 		const char* type_name() const;
-		void validate_type_name(const char* TypeName) const;
+		bool check_type_name(const char* TypeName) const;
+		void ensure_type_name(const char* TypeName) const;
 
 	private:
+		object operator()(const std::initializer_list<object>& Args) const;
+
 		PyObject* m_Object;
 	};
+
+	template<typename T>
+	T cast(PyObject* Object)
+	{
+		return cast<T>(object::from_borrowed(Object));
+	}
+
+	template<typename T>
+	T cast(const object& Object)
+	{
+		Object.ensure_type_name(T::type_name());
+		return T(cast_guard{}, Object);
+	}
+
+	template<typename T>
+	T try_cast(PyObject* Object)
+	{
+		return try_cast<T>(object::from_borrowed(Object));
+	}
+
+	template<typename T>
+	T try_cast(const object& Object)
+	{
+		return T(cast_guard{}, Object.check_type_name(T::type_name())? Object : object(nullptr));
+	}
+
 }

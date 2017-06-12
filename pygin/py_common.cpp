@@ -4,7 +4,6 @@
 
 #include "py_object.hpp"
 #include "py_import.hpp"
-#include "py_tuple.hpp"
 #include "py_list.hpp"
 #include "py_string.hpp"
 
@@ -43,23 +42,8 @@ namespace py
 		}
 
 		const auto TracebackModule = import::import("traceback"_py);
-
-		const char* FormatterName;
-		tuple Args(0);
-
-		if (Traceback)
-		{
-			FormatterName = "format_exception";
-			Args = tuple::make(Type, Value, Traceback);
-		}
-		else
-		{
-			FormatterName = "format_exception_only";
-			Args = tuple::make(Type, Value);
-		}
-
-		const auto Formatter = TracebackModule.get_attribute(FormatterName);
-		const auto List = cast<list>(Formatter(Args));
+		const auto Formatter = TracebackModule.get_attribute(Traceback? "format_exception" : "format_exception_only");
+		const auto List = cast<list>(Traceback? Formatter(Type, Value, Traceback) : Formatter(Type, Value));
 
 		std::string Message;
 		for (size_t i = 0, size = List.size(); i != size; ++i)

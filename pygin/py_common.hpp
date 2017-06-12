@@ -1,7 +1,5 @@
 #pragma once
 
-typedef struct _object PyObject;
-
 namespace py
 {
 	class object;
@@ -27,19 +25,6 @@ namespace py
 
 		final_act FinalAct;
 		return Callable(Args...);
-	}
-
-	template<typename T>
-	T cast(PyObject* Object)
-	{
-		return cast<T>(object::from_borrowed(Object));
-	}
-
-	template<typename T>
-	T cast(const object& Object)
-	{
-		Object.validate_type_name(T::type_name());
-		return T(cast_guard{}, Object);
 	}
 
 	void initialize();

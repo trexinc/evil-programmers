@@ -19,19 +19,15 @@ static void add_to_python_path(const std::wstring& Path)
 {
 	auto PathList = py::cast<py::list>(py::sys::get_object("path"));
 	const py::string NewItem(Path);
-	bool Found = false;
 
 	for (size_t i = 0, size = PathList.size();  i != size; ++i)
 	{
-		if (!NewItem.compare(PathList[i]))
-		{
-			Found = true;
-		}
+		if (const auto Str = py::try_cast<py::string>(PathList[i]))
+			if (Str == NewItem)
+				return;
 	}
-	if (!Found)
-	{
-		PathList.push_back(NewItem);
-	}
+
+	PathList.push_back(NewItem);
 }
 
 static py::object add_or_reload_module(const std::wstring& Name)
