@@ -13,7 +13,7 @@ namespace py
 	}
 
 	type::type(const object& Object, const char* Name):
-		type(cast<type>(Object.get_attribute(Name)))
+		type(cast<type>(Object[Name]))
 	{
 	}
 

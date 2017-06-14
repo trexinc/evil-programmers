@@ -42,7 +42,7 @@ namespace py
 		}
 
 		const auto TracebackModule = import::import("traceback"_py);
-		const auto Formatter = TracebackModule.get_attribute(Traceback? "format_exception" : "format_exception_only");
+		const auto Formatter = TracebackModule[Traceback? "format_exception" : "format_exception_only"];
 		const auto List = cast<list>(Traceback? Formatter(Type, Value, Traceback) : Formatter(Type, Value));
 
 		std::string Message;

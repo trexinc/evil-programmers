@@ -40,14 +40,14 @@ namespace py
 		Py_XDECREF(m_Object);
 	}
 
-	object& object::operator=(PyObject* Rhs)
+	object& object::operator=(PyObject* Rhs) &
 	{
 		Py_XDECREF(m_Object);
 		m_Object = Rhs;
 		return *this;
 	}
 
-	object& object::operator=(const object& Rhs)
+	object& object::operator=(const object& Rhs) &
 	{
 		Py_XINCREF(Rhs.m_Object);
 		Py_XDECREF(m_Object);
@@ -55,7 +55,7 @@ namespace py
 		return *this;
 	}
 
-	object& object::operator=(object&& Rhs) noexcept
+	object& object::operator=(object&& Rhs) & noexcept
 	{
 		m_Object = std::exchange(Rhs.m_Object, nullptr);
 		return *this;
@@ -104,6 +104,45 @@ namespace py
 	bool object::set_attribute(const object& Name, const object& Value) const
 	{
 		return invoke(PyObject_SetAttr, get(), Name.get(), Value.get()) == 0;
+	}
+
+	object::value_proxy::value_proxy(object* Owner, const char* Key):
+		m_Owner(Owner),
+		m_Key(Key)
+	{
+	}
+
+	object::value_proxy::value_proxy(const value_proxy& rhs):
+		m_Owner(rhs.m_Owner),
+		m_Key(rhs.m_Key)
+	{
+	}
+
+	object::value_proxy& object::value_proxy::operator=(const object& value)
+	{
+		m_Owner->set_attribute(m_Key, value);
+		return *this;
+	}
+
+	object::value_proxy& object::value_proxy::operator=(const value_proxy& value)
+	{
+		m_Owner->set_attribute(m_Key, value);
+		return *this;
+	}
+
+	object::value_proxy::operator object() const
+	{
+		return m_Owner->get_attribute(m_Key);
+	}
+
+	object::value_proxy object::operator[](const char* Key)
+	{
+		return { this, Key };
+	}
+
+	object object::operator[](const char* Key) const
+	{
+		return get_attribute(Key);
 	}
 
 	object object::operator()(const std::initializer_list<object>& Args) const

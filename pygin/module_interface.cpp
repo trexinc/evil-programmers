@@ -4,7 +4,7 @@
 
 #include "error_handling.hpp"
 
-HANDLE WINAPI AnalyseW(const AnalyseInfo *Info) noexcept
+HANDLE WINAPI AnalyseW(const AnalyseInfo* Info) noexcept
 {
 	return try_call(
 	[&]
@@ -17,7 +17,7 @@ HANDLE WINAPI AnalyseW(const AnalyseInfo *Info) noexcept
 	});
 }
 
-void WINAPI CloseAnalyseW(const CloseAnalyseInfo *Info) noexcept
+void WINAPI CloseAnalyseW(const CloseAnalyseInfo* Info) noexcept
 {
 	return try_call(
 	[&]
@@ -29,7 +29,7 @@ void WINAPI CloseAnalyseW(const CloseAnalyseInfo *Info) noexcept
 	});
 }
 
-void WINAPI ClosePanelW(const ClosePanelInfo *Info) noexcept
+void WINAPI ClosePanelW(const ClosePanelInfo* Info) noexcept
 {
 	return try_call(
 	[&]
@@ -41,7 +41,7 @@ void WINAPI ClosePanelW(const ClosePanelInfo *Info) noexcept
 	});
 }
 
-intptr_t WINAPI CompareW(const CompareInfo *Info) noexcept
+intptr_t WINAPI CompareW(const CompareInfo* Info) noexcept
 {
 	return try_call(
 	[&]
@@ -54,7 +54,7 @@ intptr_t WINAPI CompareW(const CompareInfo *Info) noexcept
 	});
 }
 
-intptr_t WINAPI ConfigureW(const ConfigureInfo *Info) noexcept
+intptr_t WINAPI ConfigureW(const ConfigureInfo* Info) noexcept
 {
 	return try_call(
 	[&]
@@ -67,7 +67,7 @@ intptr_t WINAPI ConfigureW(const ConfigureInfo *Info) noexcept
 	});
 }
 
-intptr_t WINAPI DeleteFilesW(const DeleteFilesInfo *Info) noexcept
+intptr_t WINAPI DeleteFilesW(const DeleteFilesInfo* Info) noexcept
 {
 	return try_call(
 	[&]
@@ -80,7 +80,7 @@ intptr_t WINAPI DeleteFilesW(const DeleteFilesInfo *Info) noexcept
 	});
 }
 
-void WINAPI ExitFARW(const ExitInfo *Info) noexcept
+void WINAPI ExitFARW(const ExitInfo* Info) noexcept
 {
 	return try_call(
 	[&]
@@ -92,7 +92,7 @@ void WINAPI ExitFARW(const ExitInfo *Info) noexcept
 	});
 }
 
-void WINAPI FreeFindDataW(const FreeFindDataInfo *Info) noexcept
+void WINAPI FreeFindDataW(const FreeFindDataInfo* Info) noexcept
 {
 	return try_call(
 	[&]
@@ -104,7 +104,7 @@ void WINAPI FreeFindDataW(const FreeFindDataInfo *Info) noexcept
 	});
 }
 
-intptr_t WINAPI GetFilesW(GetFilesInfo *Info) noexcept
+intptr_t WINAPI GetFilesW(GetFilesInfo* Info) noexcept
 {
 	return try_call(
 	[&]
@@ -117,7 +117,7 @@ intptr_t WINAPI GetFilesW(GetFilesInfo *Info) noexcept
 	});
 }
 
-intptr_t WINAPI GetFindDataW(GetFindDataInfo *Info) noexcept
+intptr_t WINAPI GetFindDataW(GetFindDataInfo* Info) noexcept
 {
 	return try_call(
 	[&]
@@ -130,7 +130,7 @@ intptr_t WINAPI GetFindDataW(GetFindDataInfo *Info) noexcept
 	});
 }
 
-void WINAPI GetGlobalInfoW(GlobalInfo *Info) noexcept
+void WINAPI GetGlobalInfoW(GlobalInfo* Info) noexcept
 {
 	return try_call(
 	[&]
@@ -142,7 +142,7 @@ void WINAPI GetGlobalInfoW(GlobalInfo *Info) noexcept
 	});
 }
 
-void WINAPI GetOpenPanelInfoW(OpenPanelInfo *Info) noexcept
+void WINAPI GetOpenPanelInfoW(OpenPanelInfo* Info) noexcept
 {
 	return try_call(
 	[&]
@@ -154,7 +154,7 @@ void WINAPI GetOpenPanelInfoW(OpenPanelInfo *Info) noexcept
 	});
 }
 
-void WINAPI GetPluginInfoW(PluginInfo *Info) noexcept
+void WINAPI GetPluginInfoW(PluginInfo* Info) noexcept
 {
 	return try_call(
 	[&]
@@ -166,7 +166,7 @@ void WINAPI GetPluginInfoW(PluginInfo *Info) noexcept
 	});
 }
 
-intptr_t WINAPI MakeDirectoryW(MakeDirectoryInfo *Info) noexcept
+intptr_t WINAPI MakeDirectoryW(MakeDirectoryInfo* Info) noexcept
 {
 	return try_call(
 	[&]
@@ -179,7 +179,7 @@ intptr_t WINAPI MakeDirectoryW(MakeDirectoryInfo *Info) noexcept
 	});
 }
 
-HANDLE WINAPI OpenW(const OpenInfo *Info) noexcept
+HANDLE WINAPI OpenW(const OpenInfo* Info) noexcept
 {
 	return try_call(
 	[&]
@@ -192,7 +192,7 @@ HANDLE WINAPI OpenW(const OpenInfo *Info) noexcept
 	});
 }
 
-intptr_t WINAPI ProcessDialogEventW(const ProcessDialogEventInfo *Info) noexcept
+intptr_t WINAPI ProcessDialogEventW(const ProcessDialogEventInfo* Info) noexcept
 {
 	return try_call(
 	[&]
@@ -205,7 +205,7 @@ intptr_t WINAPI ProcessDialogEventW(const ProcessDialogEventInfo *Info) noexcept
 	});
 }
 
-intptr_t WINAPI ProcessEditorEventW(const ProcessEditorEventInfo *Info) noexcept
+intptr_t WINAPI ProcessEditorEventW(const ProcessEditorEventInfo* Info) noexcept
 {
 	return try_call(
 	[&]
@@ -218,7 +218,7 @@ intptr_t WINAPI ProcessEditorEventW(const ProcessEditorEventInfo *Info) noexcept
 	});
 }
 
-intptr_t WINAPI ProcessEditorInputW(const ProcessEditorInputInfo *Info) noexcept
+intptr_t WINAPI ProcessEditorInputW(const ProcessEditorInputInfo* Info) noexcept
 {
 	return try_call(
 	[&]
@@ -231,7 +231,7 @@ intptr_t WINAPI ProcessEditorInputW(const ProcessEditorInputInfo *Info) noexcept
 	});
 }
 
-intptr_t WINAPI ProcessPanelEventW(const ProcessPanelEventInfo *Info) noexcept
+intptr_t WINAPI ProcessPanelEventW(const ProcessPanelEventInfo* Info) noexcept
 {
 	return try_call(
 	[&]
@@ -244,7 +244,7 @@ intptr_t WINAPI ProcessPanelEventW(const ProcessPanelEventInfo *Info) noexcept
 	});
 }
 
-intptr_t WINAPI ProcessHostFileW(const ProcessHostFileInfo *Info) noexcept
+intptr_t WINAPI ProcessHostFileW(const ProcessHostFileInfo* Info) noexcept
 {
 	return try_call(
 	[&]
@@ -257,7 +257,7 @@ intptr_t WINAPI ProcessHostFileW(const ProcessHostFileInfo *Info) noexcept
 	});
 }
 
-intptr_t WINAPI ProcessPanelInputW(const ProcessPanelInputInfo *Info) noexcept
+intptr_t WINAPI ProcessPanelInputW(const ProcessPanelInputInfo* Info) noexcept
 {
 	return try_call(
 	[&]
@@ -270,7 +270,7 @@ intptr_t WINAPI ProcessPanelInputW(const ProcessPanelInputInfo *Info) noexcept
 	});
 }
 
-intptr_t WINAPI ProcessConsoleInputW(ProcessConsoleInputInfo *Info) noexcept
+intptr_t WINAPI ProcessConsoleInputW(ProcessConsoleInputInfo* Info) noexcept
 {
 	return try_call(
 	[&]
@@ -283,7 +283,7 @@ intptr_t WINAPI ProcessConsoleInputW(ProcessConsoleInputInfo *Info) noexcept
 	});
 }
 
-intptr_t WINAPI ProcessSynchroEventW(const ProcessSynchroEventInfo *Info) noexcept
+intptr_t WINAPI ProcessSynchroEventW(const ProcessSynchroEventInfo* Info) noexcept
 {
 	return try_call(
 	[&]
@@ -296,7 +296,7 @@ intptr_t WINAPI ProcessSynchroEventW(const ProcessSynchroEventInfo *Info) noexce
 	});
 }
 
-intptr_t WINAPI ProcessViewerEventW(const ProcessViewerEventInfo *Info) noexcept
+intptr_t WINAPI ProcessViewerEventW(const ProcessViewerEventInfo* Info) noexcept
 {
 	return try_call(
 	[&]
@@ -309,7 +309,7 @@ intptr_t WINAPI ProcessViewerEventW(const ProcessViewerEventInfo *Info) noexcept
 	});
 }
 
-intptr_t WINAPI PutFilesW(const PutFilesInfo *Info) noexcept
+intptr_t WINAPI PutFilesW(const PutFilesInfo* Info) noexcept
 {
 	return try_call(
 	[&]
@@ -322,7 +322,7 @@ intptr_t WINAPI PutFilesW(const PutFilesInfo *Info) noexcept
 	});
 }
 
-intptr_t WINAPI SetDirectoryW(const SetDirectoryInfo *Info) noexcept
+intptr_t WINAPI SetDirectoryW(const SetDirectoryInfo* Info) noexcept
 {
 	return try_call(
 	[&]
@@ -335,7 +335,7 @@ intptr_t WINAPI SetDirectoryW(const SetDirectoryInfo *Info) noexcept
 	});
 }
 
-intptr_t WINAPI SetFindListW(const SetFindListInfo *Info) noexcept
+intptr_t WINAPI SetFindListW(const SetFindListInfo* Info) noexcept
 {
 	return try_call(
 	[&]
@@ -348,7 +348,7 @@ intptr_t WINAPI SetFindListW(const SetFindListInfo *Info) noexcept
 	});
 }
 
-void WINAPI SetStartupInfoW(const PluginStartupInfo *Info) noexcept
+void WINAPI SetStartupInfoW(const PluginStartupInfo* Info) noexcept
 {
 	return try_call(
 	[&]
@@ -360,7 +360,7 @@ void WINAPI SetStartupInfoW(const PluginStartupInfo *Info) noexcept
 	});
 }
 
-intptr_t WINAPI GetContentFieldsW(const GetContentFieldsInfo *Info) noexcept
+intptr_t WINAPI GetContentFieldsW(const GetContentFieldsInfo* Info) noexcept
 {
 	return try_call(
 	[&]
@@ -373,7 +373,7 @@ intptr_t WINAPI GetContentFieldsW(const GetContentFieldsInfo *Info) noexcept
 	});
 }
 
-intptr_t WINAPI GetContentDataW(GetContentDataInfo *Info) noexcept
+intptr_t WINAPI GetContentDataW(GetContentDataInfo* Info) noexcept
 {
 	return try_call(
 	[&]
@@ -386,7 +386,7 @@ intptr_t WINAPI GetContentDataW(GetContentDataInfo *Info) noexcept
 	});
 }
 
-void WINAPI FreeContentDataW(const GetContentDataInfo *Info) noexcept
+void WINAPI FreeContentDataW(const GetContentDataInfo* Info) noexcept
 {
 	return try_call(
 	[&]

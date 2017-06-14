@@ -13,7 +13,7 @@ const py::type& types_cache::get_type(const std::function<py::object()>& Module,
 	auto& Type = m_TypesCache[TypeName];
 	if (!Type)
 	{
-		Type = py::cast<py::type>(Module().get_attribute(TypeName.data()));
+		Type = py::cast<py::type>(Module()[TypeName.data()]);
 	}
 	return Type;
 }

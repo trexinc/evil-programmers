@@ -14,7 +14,7 @@ using namespace py::literals;
 
 module::module(const py::object& Object):
 	m_PluginModule(Object),
-	m_PluginModuleClass(m_PluginModule.get_attribute("FarPluginClass"))
+	m_PluginModuleClass(m_PluginModule["FarPluginClass"])
 {
 }
 
@@ -33,16 +33,17 @@ bool module::check_function(const wchar_t* FunctionName) const
 		return true;
 
 	// The rest is as is
-	const auto Name = py::string(FunctionName);
-	if (!m_PluginModuleClass.has_attribute(Name))
-		return false;
-
-	const auto Function = m_PluginModuleClass.get_attribute(Name);
-	if (!py::callable_check(Function))
-		return false;
 
 	// Not perfect, but that should always be pure ASCII anyway, so why not.
 	std::string NarrowName(FunctionName, FunctionName + wcslen(FunctionName));
+
+	if (!m_PluginModuleClass.has_attribute(NarrowName.data()))
+		return false;
+
+	const auto Function = m_PluginModuleClass[NarrowName.data()];
+	if (!py::callable_check(Function))
+		return false;
+
 	m_PluginModuleClassFunctions.emplace(std::move(NarrowName), Function);
 	return true;
 }
@@ -55,40 +56,40 @@ py::object module::call(const char* FunctionName, const args&... Args) const
 
 #define STR(x) #x
 
-HANDLE module::AnalyseW(const AnalyseInfo *Info)
+HANDLE module::AnalyseW(const AnalyseInfo* Info)
 {
 	return nullptr;
 }
 
-void module::CloseAnalyseW(const CloseAnalyseInfo *Info)
+void module::CloseAnalyseW(const CloseAnalyseInfo* Info)
 {
 }
 
-void module::ClosePanelW(const ClosePanelInfo *Info)
+void module::ClosePanelW(const ClosePanelInfo* Info)
 {
 }
 
-intptr_t module::CompareW(const CompareInfo *Info)
+intptr_t module::CompareW(const CompareInfo* Info)
 {
 	return 0;
 }
 
-intptr_t module::ConfigureW(const ConfigureInfo *Info)
+intptr_t module::ConfigureW(const ConfigureInfo* Info)
 {
-	const auto ConfigureInstance = far_api::type("ConfigureInfo"s)();
+	auto ConfigureInstance = far_api::type("ConfigureInfo"s)();
 
-	ConfigureInstance.set_attribute("Guid", py::uuid(*Info->Guid));
+	ConfigureInstance["Guid"] = py::uuid(*Info->Guid);
 
 	const auto Result = py::cast<py::boolean>(call(STR(ConfigureW), ConfigureInstance));
 	return Result.to_bool();
 }
 
-intptr_t module::DeleteFilesW(const DeleteFilesInfo *Info)
+intptr_t module::DeleteFilesW(const DeleteFilesInfo* Info)
 {
 	return 0;
 }
 
-void module::ExitFARW(const ExitInfo *Info)
+void module::ExitFARW(const ExitInfo* Info)
 {
 	const auto ExitInfoInstance = far_api::type("ExitInfo"s)();
 	call(STR(ExitFARW), ExitInfoInstance);
@@ -100,40 +101,40 @@ void module::ExitFARW(const ExitInfo *Info)
 	m_PluginModule = {};
 }
 
-void module::FreeFindDataW(const FreeFindDataInfo *Info)
+void module::FreeFindDataW(const FreeFindDataInfo* Info)
 {
 }
 
-intptr_t module::GetFilesW(GetFilesInfo *Info)
-{
-	return 0;
-}
-
-intptr_t module::GetFindDataW(GetFindDataInfo *Info)
+intptr_t module::GetFilesW(GetFilesInfo* Info)
 {
 	return 0;
 }
 
-void module::GetGlobalInfoW(GlobalInfo *Info)
+intptr_t module::GetFindDataW(GetFindDataInfo* Info)
 {
-	Info->Title = (m_Title = py::cast<py::string>(m_PluginModuleClass.get_attribute("Title")).to_wstring()).data();
-	Info->Author = (m_Author = py::cast<py::string>(m_PluginModuleClass.get_attribute("Author")).to_wstring()).data();
-	Info->Description = (m_Description = py::cast<py::string>(m_PluginModuleClass.get_attribute("Description")).to_wstring()).data();
-	Info->Guid = py::cast<py::uuid>(m_PluginModuleClass.get_attribute("Guid")).to_uuid();
+	return 0;
 }
 
-void module::GetOpenPanelInfoW(OpenPanelInfo *Info)
+void module::GetGlobalInfoW(GlobalInfo* Info)
+{
+	Info->Title = (m_Title = py::cast<py::string>(m_PluginModuleClass["Title"]).to_wstring()).data();
+	Info->Author = (m_Author = py::cast<py::string>(m_PluginModuleClass["Author"]).to_wstring()).data();
+	Info->Description = (m_Description = py::cast<py::string>(m_PluginModuleClass["Description"]).to_wstring()).data();
+	Info->Guid = py::cast<py::uuid>(m_PluginModuleClass["Guid"]).to_uuid();
+}
+
+void module::GetOpenPanelInfoW(OpenPanelInfo* Info)
 {
 }
 
-void module::GetPluginInfoW(PluginInfo *Info)
+void module::GetPluginInfoW(PluginInfo* Info)
 {
 	const auto PyInfo = call(STR(GetPluginInfoW));
 	PyInfo.ensure_type_name("PluginInfo");
 
-	const auto& ConvertPluginMenuItem = [&](const char* Kind, menu_items& MenuItems, PluginMenuItem PluginInfo::*Destination)
+	const auto& ConvertPluginMenuItem = [&](const char* Kind, menu_items& MenuItems, PluginMenuItem& Destination)
 	{
-		const auto ItemsList = py::cast<py::list>(PyInfo.get_attribute(Kind));
+		const auto ItemsList = py::cast<py::list>(PyInfo[Kind]);
 
 		const auto ListSize = ItemsList.size();
 
@@ -156,28 +157,28 @@ void module::GetPluginInfoW(PluginInfo *Info)
 			MenuItems.Uuids.emplace_back(py::cast<py::uuid>(Tuple[1]).to_uuid());
 		}
 
-		(Info->*Destination).Strings = MenuItems.Strings.data();
-		(Info->*Destination).Guids = MenuItems.Uuids.data();
-		(Info->*Destination).Count = ListSize;
+		Destination.Strings = MenuItems.Strings.data();
+		Destination.Guids = MenuItems.Uuids.data();
+		Destination.Count = ListSize;
 	};
 
-	ConvertPluginMenuItem("PluginMenuItems", m_PluginMenuItems, &PluginInfo::PluginMenu);
-	ConvertPluginMenuItem("DiskMenuItems", m_DiskMenuItems, &PluginInfo::DiskMenu);
-	ConvertPluginMenuItem("PluginConfigItems", m_PluginConfigItems, &PluginInfo::PluginConfig);
+	ConvertPluginMenuItem("PluginMenuItems", m_PluginMenuItems, Info->PluginMenu);
+	ConvertPluginMenuItem("DiskMenuItems", m_DiskMenuItems, Info->DiskMenu);
+	ConvertPluginMenuItem("PluginConfigItems", m_PluginConfigItems, Info->PluginConfig);
 
 	Info->Flags |= PF_PRELOAD;
 }
 
-intptr_t module::MakeDirectoryW(MakeDirectoryInfo *Info)
+intptr_t module::MakeDirectoryW(MakeDirectoryInfo* Info)
 {
 	return 0;
 }
 
-HANDLE module::OpenW(const OpenInfo *Info)
+HANDLE module::OpenW(const OpenInfo* Info)
 {
-	const auto OpenInfoInstance = far_api::type("OpenInfo"s)();
+	auto OpenInfoInstance = far_api::type("OpenInfo"s)();
 
-	OpenInfoInstance.set_attribute("Guid", py::uuid(*Info->Guid));
+	OpenInfoInstance["Guid"] = py::uuid(*Info->Guid);
 
 	const auto Result = call(STR(OpenW), OpenInfoInstance);
 
@@ -185,82 +186,82 @@ HANDLE module::OpenW(const OpenInfo *Info)
 	return nullptr;
 }
 
-intptr_t module::ProcessDialogEventW(const ProcessDialogEventInfo *Info)
+intptr_t module::ProcessDialogEventW(const ProcessDialogEventInfo* Info)
 {
 	return 0;
 }
 
-intptr_t module::ProcessEditorEventW(const ProcessEditorEventInfo *Info)
+intptr_t module::ProcessEditorEventW(const ProcessEditorEventInfo* Info)
 {
 	return 0;
 }
 
-intptr_t module::ProcessEditorInputW(const ProcessEditorInputInfo *Info)
+intptr_t module::ProcessEditorInputW(const ProcessEditorInputInfo* Info)
 {
 	return 0;
 }
 
-intptr_t module::ProcessPanelEventW(const ProcessPanelEventInfo *Info)
+intptr_t module::ProcessPanelEventW(const ProcessPanelEventInfo* Info)
 {
 	return 0;
 }
 
-intptr_t module::ProcessHostFileW(const ProcessHostFileInfo *Info)
+intptr_t module::ProcessHostFileW(const ProcessHostFileInfo* Info)
 {
 	return 0;
 }
 
-intptr_t module::ProcessPanelInputW(const ProcessPanelInputInfo *Info)
+intptr_t module::ProcessPanelInputW(const ProcessPanelInputInfo* Info)
 {
 	return 0;
 }
 
-intptr_t module::ProcessConsoleInputW(ProcessConsoleInputInfo *Info)
+intptr_t module::ProcessConsoleInputW(ProcessConsoleInputInfo* Info)
 {
 	return 0;
 }
 
-intptr_t module::ProcessSynchroEventW(const ProcessSynchroEventInfo *Info)
+intptr_t module::ProcessSynchroEventW(const ProcessSynchroEventInfo* Info)
 {
 	return 0;
 }
 
-intptr_t module::ProcessViewerEventW(const ProcessViewerEventInfo *Info)
+intptr_t module::ProcessViewerEventW(const ProcessViewerEventInfo* Info)
 {
 	return 0;
 }
 
-intptr_t module::PutFilesW(const PutFilesInfo *Info)
+intptr_t module::PutFilesW(const PutFilesInfo* Info)
 {
 	return 0;
 }
 
-intptr_t module::SetDirectoryW(const SetDirectoryInfo *Info)
+intptr_t module::SetDirectoryW(const SetDirectoryInfo* Info)
 {
 	return 0;
 }
 
-intptr_t module::SetFindListW(const SetFindListInfo *Info)
+intptr_t module::SetFindListW(const SetFindListInfo* Info)
 {
 	return 0;
 }
 
-void module::SetStartupInfoW(const PluginStartupInfo *Info)
+void module::SetStartupInfoW(const PluginStartupInfo* Info)
 {
 	far_api::initialise(Info);
 	m_PluginModuleInstance = m_PluginModuleClass(far_api::module());
 }
 
-intptr_t module::GetContentFieldsW(const GetContentFieldsInfo *Info)
+intptr_t module::GetContentFieldsW(const GetContentFieldsInfo* Info)
 {
 	return 0;
 }
 
-intptr_t module::GetContentDataW(GetContentDataInfo *Info)
+intptr_t module::GetContentDataW(GetContentDataInfo* Info)
 {
 	return 0;
 }
 
-void module::FreeContentDataW(const GetContentDataInfo *Info)
+void module::FreeContentDataW(const GetContentDataInfo* Info)
 {
 }

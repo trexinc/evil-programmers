@@ -19,9 +19,9 @@ namespace py
 
 		~object();
 
-		object& operator=(PyObject* rhs);
-		object& operator=(const object& rhs);
-		object& operator=(object&& Object) noexcept;
+		object& operator=(PyObject* rhs) &;
+		object& operator=(const object& rhs) &;
+		object& operator=(object&& Object) & noexcept;
 
 		explicit operator bool() const;
 		bool operator!() const;
@@ -36,6 +36,27 @@ namespace py
 
 		bool set_attribute(const char* Name, const object& Value) const;
 		bool set_attribute(const object& Name, const object& Value) const;
+
+		class value_proxy
+		{
+		public:
+			MOVABLE(value_proxy);
+
+			value_proxy(object* Owner, const char* Key);
+			value_proxy(const value_proxy& rhs);
+
+			value_proxy& operator=(const object& value);
+			value_proxy& operator=(const value_proxy& value);
+
+			operator object() const;
+
+		private:
+			object* m_Owner;
+			const char* m_Key;
+		};
+
+		value_proxy operator[](const char* Key);
+		object operator[](const char* Key) const;
 
 		template<typename... args>
 		object operator()(const args&... Args) const

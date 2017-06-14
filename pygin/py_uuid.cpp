@@ -53,7 +53,7 @@ namespace py
 
 	UUID uuid::to_uuid() const
 	{
-		const auto Bytes = get_attribute("bytes_le");
+		const auto Bytes = (*this)["bytes_le"];
 		UUID Result;
 		std::memcpy(&Result, invoke(PyBytes_AsString, Bytes.get()), sizeof(Result));
 		return Result;
