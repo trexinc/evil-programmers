@@ -2,7 +2,6 @@
 
 #include "types_cache.hpp"
 
-#include "py_common.hpp"
 #include "py_object.hpp"
 #include "py_type.hpp"
 

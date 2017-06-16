@@ -12,6 +12,6 @@ namespace py
 		explicit uuid(const UUID& Uuid);
 		uuid(cast_guard, const object& Object);
 
-		UUID to_uuid() const;
+		operator UUID() const;
 	};
 }

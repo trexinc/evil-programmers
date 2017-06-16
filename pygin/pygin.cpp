@@ -2,16 +2,16 @@
 
 #include "pygin.hpp"
 
-#include "far_api.hpp"
-#include "module.hpp"
-#include "types_cache.hpp"
-#include "error_handling.hpp"
-
 #include "py_dictionary.hpp"
 #include "py_import.hpp"
 #include "py_list.hpp"
 #include "py_string.hpp"
 #include "py_sys.hpp"
+
+#include "error_handling.hpp"
+#include "far_api.hpp"
+#include "module.hpp"
+#include "types_cache.hpp"
 
 using namespace py::literals;
 
@@ -34,8 +34,8 @@ static py::object add_or_reload_module(const std::wstring& Name)
 {
 	const auto ModulesDict = py::cast<py::dictionary>(py::sys::get_object("modules"));
 	const py::string ModuleName(Name);
-	if (const auto ExistingModule = ModulesDict.get_at(ModuleName))
-		return py::import::reload_module(ExistingModule);
+	if (const auto ExistingModule = py::try_cast<py::module>(ModulesDict[ModuleName]))
+		return py::import::reload(ExistingModule);
 
 	return py::import::import(ModuleName);
 }

@@ -12,6 +12,6 @@ namespace py
 		explicit boolean(bool Value);
 		boolean(cast_guard, const object& Object);
 
-		bool to_bool() const;
+		operator bool() const;
 	};
 }

@@ -19,8 +19,8 @@ namespace py
 
 		bool operator==(const string& Other) const;
 
-		std::string to_string() const;
-		std::wstring to_wstring() const;
+		operator std::string() const;
+		operator std::wstring() const;
 	};
 
 	inline namespace literals

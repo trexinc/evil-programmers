@@ -1,10 +1,11 @@
 #include "headers.hpp"
 
 #include "py_uuid.hpp"
-#include "py_string.hpp"
-#include "py_import.hpp"
-#include "py_type.hpp"
+
 #include "py_common.hpp"
+#include "py_import.hpp"
+#include "py_string.hpp"
+#include "py_type.hpp"
 
 #include "error_handling.hpp"
 #include "types_cache.hpp"
@@ -51,7 +52,7 @@ namespace py
 	{
 	}
 
-	UUID uuid::to_uuid() const
+	uuid::operator UUID() const
 	{
 		const auto Bytes = (*this)["bytes_le"];
 		UUID Result;

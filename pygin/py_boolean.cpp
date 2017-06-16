@@ -16,7 +16,7 @@ namespace py
 	{
 	}
 
-	bool boolean::to_bool() const
+	boolean::operator bool() const
 	{
 		return get() == Py_True;
 	}

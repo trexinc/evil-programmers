@@ -1,6 +1,7 @@
 #include "headers.hpp"
 
 #include "py_string.hpp"
+
 #include "py_common.hpp"
 
 #include "python.hpp"
@@ -47,7 +48,7 @@ namespace py
 		return invoke(PyUnicode_Compare, get(), Other.get()) == 0;
 	}
 
-	std::string string::to_string() const
+	string::operator std::string() const
 	{
 		const auto Utf8Str = object(invoke(PyUnicode_AsUTF8String, get()));
 		const auto Data = invoke(PyBytes_AsString, Utf8Str.get());
@@ -57,7 +58,7 @@ namespace py
 		return { Data, Size };
 	}
 
-	std::wstring string::to_wstring() const
+	string::operator std::wstring() const
 	{
 		Py_ssize_t Size;
 		const auto Data = invoke(PyUnicode_AsWideCharString, get(), &Size);

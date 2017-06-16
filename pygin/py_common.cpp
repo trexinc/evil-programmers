@@ -2,9 +2,9 @@
 
 #include "py_common.hpp"
 
-#include "py_object.hpp"
 #include "py_import.hpp"
 #include "py_list.hpp"
+#include "py_object.hpp"
 #include "py_string.hpp"
 
 #include "python.hpp"
@@ -48,7 +48,7 @@ namespace py
 		std::string Message;
 		for (size_t i = 0, size = List.size(); i != size; ++i)
 		{
-			Message += cast<string>(List[i]).to_string();
+			Message += cast<string>(List[i]);
 		}
 
 		throw exception(Message);

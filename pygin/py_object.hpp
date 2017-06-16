@@ -8,7 +8,52 @@ namespace py
 
 	class cast_guard {};
 
-	class object
+	class object;
+
+	template<typename owner_type, typename key_type>
+	class value_proxy_t
+	{
+	public:
+		MOVABLE(value_proxy_t);
+		NONCOPYABLE(value_proxy_t);
+
+		value_proxy_t(owner_type* Owner, const key_type& Key):
+			m_Owner(Owner),
+			m_Key(Key)
+		{
+		}
+
+		value_proxy_t& operator=(const object& value)
+		{
+			m_Owner->set_at(m_Key, value);
+			return *this;
+		}
+
+		operator object() const;
+
+	private:
+		owner_type* m_Owner;
+		key_type m_Key;
+	};
+
+	template<typename owner_type, typename key_type>
+	class proxy_owner
+	{
+	public:
+		using value_proxy = value_proxy_t<owner_type, key_type>;
+
+		auto operator[](key_type Key)
+		{
+			return value_proxy{ static_cast<owner_type*>(this), Key };
+		}
+
+		auto operator[](key_type Key) const
+		{
+			return static_cast<const owner_type*>(this)->get_at(Key);
+		}
+	};
+
+	class object: public proxy_owner<object, const char*>
 	{
 	public:
 		object();
@@ -33,30 +78,11 @@ namespace py
 
 		object get_attribute(const char* Name) const;
 		object get_attribute(const object& Name) const;
+		object get_at(const char* Name) const;
 
 		bool set_attribute(const char* Name, const object& Value) const;
 		bool set_attribute(const object& Name, const object& Value) const;
-
-		class value_proxy
-		{
-		public:
-			MOVABLE(value_proxy);
-
-			value_proxy(object* Owner, const char* Key);
-			value_proxy(const value_proxy& rhs);
-
-			value_proxy& operator=(const object& value);
-			value_proxy& operator=(const value_proxy& value);
-
-			operator object() const;
-
-		private:
-			object* m_Owner;
-			const char* m_Key;
-		};
-
-		value_proxy operator[](const char* Key);
-		object operator[](const char* Key) const;
+		bool set_at(const char* Name, const object& Value) const;
 
 		template<typename... args>
 		object operator()(const args&... Args) const
@@ -74,6 +100,12 @@ namespace py
 
 		PyObject* m_Object;
 	};
+
+	template<typename owner_type, typename key_type>
+	value_proxy_t<owner_type, key_type>::operator object() const
+	{
+		return m_Owner->get_at(m_Key);
+	}
 
 	template<typename T>
 	T cast(PyObject* Object)
@@ -97,7 +129,7 @@ namespace py
 	template<typename T>
 	T try_cast(const object& Object)
 	{
-		return T(cast_guard{}, Object.check_type_name(T::type_name())? Object : object(nullptr));
+		return T(cast_guard{}, Object && Object.check_type_name(T::type_name())? Object : object(nullptr));
 	}
 
 }

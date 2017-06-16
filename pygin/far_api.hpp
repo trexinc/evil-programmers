@@ -1,7 +1,7 @@
 #pragma once
 
-#include "py_module.hpp"
 #include "py_err.hpp"
+#include "py_module.hpp"
 
 namespace py
 {

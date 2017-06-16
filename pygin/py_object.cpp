@@ -4,8 +4,9 @@
 
 #include "py_tuple.hpp"
 
-#include "python.hpp"
 #include "error_handling.hpp"
+
+#include "python.hpp"
 
 namespace py
 {
@@ -96,6 +97,11 @@ namespace py
 		return object(invoke(PyObject_GetAttr, get(), Name.get()));
 	}
 
+	object object::get_at(const char* Name) const
+	{
+		return get_attribute(Name);
+	}
+
 	bool object::set_attribute(const char* Name, const object& Value) const
 	{
 		return invoke(PyObject_SetAttrString, get(), Name, Value.get()) == 0;
@@ -106,43 +112,9 @@ namespace py
 		return invoke(PyObject_SetAttr, get(), Name.get(), Value.get()) == 0;
 	}
 
-	object::value_proxy::value_proxy(object* Owner, const char* Key):
-		m_Owner(Owner),
-		m_Key(Key)
+	bool object::set_at(const char* Name, const object& Value) const
 	{
-	}
-
-	object::value_proxy::value_proxy(const value_proxy& rhs):
-		m_Owner(rhs.m_Owner),
-		m_Key(rhs.m_Key)
-	{
-	}
-
-	object::value_proxy& object::value_proxy::operator=(const object& value)
-	{
-		m_Owner->set_attribute(m_Key, value);
-		return *this;
-	}
-
-	object::value_proxy& object::value_proxy::operator=(const value_proxy& value)
-	{
-		m_Owner->set_attribute(m_Key, value);
-		return *this;
-	}
-
-	object::value_proxy::operator object() const
-	{
-		return m_Owner->get_attribute(m_Key);
-	}
-
-	object::value_proxy object::operator[](const char* Key)
-	{
-		return { this, Key };
-	}
-
-	object object::operator[](const char* Key) const
-	{
-		return get_attribute(Key);
+		return set_attribute(Name, Value);
 	}
 
 	object object::operator()(const std::initializer_list<object>& Args) const
@@ -158,7 +130,7 @@ namespace py
 
 	const char* object::type_name() const
 	{
-		return get()->ob_type->tp_name;
+		return *this? get()->ob_type->tp_name : "nullptr";
 	}
 
 	bool object::check_type_name(const char* TypeName) const

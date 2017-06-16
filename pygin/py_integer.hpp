@@ -15,11 +15,10 @@ namespace py
 		explicit integer(unsigned long long Value);
 		integer(cast_guard, const object& Object);
 
-		size_t to_size_t() const;
-		int to_int() const;
-		unsigned int to_unsigned_int() const;
-		long long to_long_long() const;
-		unsigned long long to_unsigned_long_long() const;
+		operator int() const;
+		operator unsigned int() const;
+		operator long long() const;
+		operator unsigned long long() const;
 	};
 
 	inline namespace literals
