@@ -11,7 +11,6 @@
 #include "error_handling.hpp"
 #include "far_api.hpp"
 #include "module.hpp"
-#include "types_cache.hpp"
 
 using namespace py::literals;
 
@@ -30,7 +29,7 @@ static void add_to_python_path(const std::wstring& Path)
 	PathList.push_back(NewItem);
 }
 
-static py::object add_or_reload_module(const std::wstring& Name)
+static py::module add_or_reload_module(const std::wstring& Name)
 {
 	const auto ModulesDict = py::cast<py::dictionary>(py::sys::get_object("modules"));
 	const py::string ModuleName(Name);
@@ -40,7 +39,7 @@ static py::object add_or_reload_module(const std::wstring& Name)
 	return py::import::import(ModuleName);
 }
 
-static py::object create_python_module(const wchar_t* FileName)
+static py::module create_python_module(const wchar_t* FileName)
 {
 	std::wstring Dir(FileName);
 	const auto SlashPos = Dir.rfind(L'\\');
@@ -69,40 +68,44 @@ pygin::pygin(GlobalInfo* Info)
 	Info->Author = L"Far Group";
 	Info->Description = L"Python language support for Far Manager";
 
-	py::initialize();
-
 	wchar_t AdaptherPath[MAX_PATH];
 	GetModuleFileNameW(reinterpret_cast<HINSTANCE>(&__ImageBase), AdaptherPath, static_cast<DWORD>(std::size(AdaptherPath)));
 	*(wcsrchr(AdaptherPath, L'\\') + 1) = 0;
 
 	m_PyginModule = create_python_module((AdaptherPath + L"pygin\\__init__.py"s).data());
+	m_PyginLoadPlugin = py::cast<py::function>(m_PyginModule["load_plugin"]);
 }
 
 pygin::~pygin()
 {
 	far_api::uninitialise();
-	types_cache::clear();
-	m_PyginModule = {};
-	py::finalize();
 }
+
+static const auto PluginFileNameSuffix = L".far.py";
 
 bool pygin::is_module(const wchar_t* FileName) const
 {
 	// BUGBUG, ends_with
-	static const auto Suffix = L"\\__init__.py";
-	static const auto SuffixSize = wcslen(Suffix);
+	static const auto SuffixSize = wcslen(PluginFileNameSuffix);
 
 	const auto FileNameLength = wcslen(FileName);
-	return FileNameLength >= SuffixSize && !_wcsnicmp(FileName + FileNameLength - SuffixSize, Suffix, SuffixSize);
+	return FileNameLength >= SuffixSize && !_wcsnicmp(FileName + FileNameLength - SuffixSize, PluginFileNameSuffix, SuffixSize);
 }
 
-std::unique_ptr<module> pygin::create_module(const wchar_t* FileName)
+std::unique_ptr<module> pygin::create_module(const wchar_t* FileName) const
 {
-	const auto Object = create_python_module(FileName);
-	return Object? std::make_unique<module>(Object) : nullptr;
+	const auto NamePtr = std::wcsrchr(FileName, L'\\') + 1;
+	const auto NameSize = wcslen(NamePtr) - wcslen(PluginFileNameSuffix);
+
+	const auto Module = m_PyginLoadPlugin(py::string(NamePtr, NameSize), py::string(FileName));
+
+	if (!Module)
+		return nullptr;
+
+	return std::make_unique<module>(Module);
 }
 
-FARPROC WINAPI pygin::get_function(HANDLE Instance, const wchar_t* FunctionName)
+FARPROC WINAPI pygin::get_function(HANDLE Instance, const wchar_t* FunctionName) const
 {
 	static const std::unordered_map<std::wstring, void*> FunctionsMap =
 	{
@@ -150,4 +153,14 @@ FARPROC WINAPI pygin::get_function(HANDLE Instance, const wchar_t* FunctionName)
 bool pygin::get_error(ErrorInfo* Info) const
 {
 	return get_error_context(Info);
+}
+
+pygin::python::python()
+{
+	py::initialize();
+}
+
+pygin::python::~python()
+{
+	py::finalize();
 }

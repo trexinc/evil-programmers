@@ -8,7 +8,6 @@ public:
 	NONCOPYABLE(module);
 
 	module(const py::object& Object);
-	~module();
 
 	bool check_function(const wchar_t* FunctionName) const;
 

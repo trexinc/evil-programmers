@@ -19,10 +19,6 @@ module::module(const py::object& Object):
 {
 }
 
-module::~module()
-{
-}
-
 bool module::check_function(const wchar_t* FunctionName) const
 {
 	// Mapped to class static fields

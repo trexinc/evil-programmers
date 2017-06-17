@@ -5,8 +5,6 @@
 #include "py_import.hpp"
 #include "py_string.hpp"
 
-#include "types_cache.hpp"
-
 #include "python.hpp"
 
 using namespace py::literals;
@@ -71,10 +69,6 @@ far_api::far_api(const PluginStartupInfo* Psi):
 	m_Module.add_functions(far_api_implementation::Methods);
 }
 
-far_api::~far_api()
-{
-}
-
 const PluginStartupInfo& far_api::psi() const
 {
 	return m_Psi;
@@ -87,11 +81,6 @@ const FarStandardFunctions& far_api::fsf() const
 const py::object& far_api::get_module() const
 {
 	return m_Module;
-}
-
-const py::type& far_api::get_type(const std::string& TypeName) const
-{
-	return types_cache::get_type([this]{ return m_Module; }, TypeName);
 }
 
 static std::unique_ptr<far_api> s_FarApi;
@@ -112,9 +101,9 @@ const py::object& far_api::module()
 	return s_FarApi->get_module();
 }
 
-const py::type& far_api::type(const std::string& TypeName)
+py::type far_api::type(const std::string& TypeName)
 {
-	return s_FarApi->get_type(TypeName);
+	return py::cast<py::type>(s_FarApi->m_Module[TypeName.data()]);
 }
 
 void far_api::uninitialise()

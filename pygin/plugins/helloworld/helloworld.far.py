@@ -24,20 +24,24 @@ class HelloWorldPlugin:
 
 	def OpenW(self, info):
 		self.far.GetUserScreen()
-		print("------------")
-		pygin.SayHello()
-		print("Menu id: " + str(info.Guid))
-		print("------------")
-		self.far.SetUserScreen()
+		try:
+			print("------------")
+			pygin.SayHello()
+			print("Menu id: " + str(info.Guid))
+			print("------------")
+		finally:
+			self.far.SetUserScreen()
 		return None
 
 	def ConfigureW(self, info):
 		self.far.GetUserScreen()
-		print("------------")
-		print("Very configure. Wow.")
-		print("Menu id: " + str(info.Guid))
-		print("------------")
-		self.far.SetUserScreen()
+		try:
+			print("------------")
+			print("Very configure. Wow.")
+			print("Menu id: " + str(info.Guid))
+			print("------------")
+		finally:
+			self.far.SetUserScreen()
 		return True
 
 

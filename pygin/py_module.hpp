@@ -11,6 +11,7 @@ namespace py
 	public:
 		static auto type_name() { return "module"; }
 
+		module() = default;
 		module(cast_guard, const object& Object);
 
 		void add_object(const char* Name, const object& Object);

@@ -106,6 +106,7 @@
     <ClInclude Include="python.hpp" />
     <ClInclude Include="py_boolean.hpp" />
     <ClInclude Include="py_common.hpp" />
+    <ClInclude Include="py_function.hpp" />
     <ClInclude Include="py_integer.hpp" />
     <ClInclude Include="py_module.hpp" />
     <ClInclude Include="py_string.hpp" />
@@ -119,7 +120,6 @@
     <ClInclude Include="py_tuple.hpp" />
     <ClInclude Include="py_type.hpp" />
     <ClInclude Include="py_uuid.hpp" />
-    <ClInclude Include="types_cache.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
@@ -130,6 +130,7 @@
     <ClCompile Include="pygin.cpp" />
     <ClCompile Include="pygin_interface.cpp" />
     <ClCompile Include="py_boolean.cpp" />
+    <ClCompile Include="py_function.cpp" />
     <ClCompile Include="py_integer.cpp" />
     <ClCompile Include="py_module.cpp" />
     <ClCompile Include="py_string.cpp" />
@@ -146,39 +147,50 @@
     <ClCompile Include="py_tuple.cpp" />
     <ClCompile Include="py_type.cpp" />
     <ClCompile Include="py_uuid.cpp" />
-    <ClCompile Include="types_cache.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="pygin\__init__.py">
       <FileType>Document</FileType>
-      <Command>copy %(Identity) $(OutDir)%(Identity)</Command>
+      <Command>copy %(Identity) $(OutDir)%(Identity) &gt; nul</Command>
       <Outputs>$(OutDir)%(Identity)</Outputs>
+      <Message>%(Identity)</Message>
     </CustomBuild>
-    <CustomBuild Include="plugins\helloworld\__init__.py">
+    <CustomBuild Include="plugins\helloworld\helloworld.far.py">
       <FileType>Document</FileType>
-      <Command>copy %(Identity) artefacts\product\%(Identity)</Command>
+      <Command>copy %(Identity) artefacts\product\%(Identity) &gt; nul</Command>
       <Outputs>artefacts\product\%(Identity)</Outputs>
+      <Message>%(Identity)</Message>
     </CustomBuild>
     <None Include="pygin.def" />
     <CustomBuild Include="pygin\far_api.py">
       <FileType>Document</FileType>
-      <Command>copy %(Identity) $(OutDir)%(Identity)</Command>
+      <Command>copy %(Identity) $(OutDir)%(Identity) &gt; nul</Command>
       <Outputs>$(OutDir)%(Identity)</Outputs>
+      <Message>%(Identity)</Message>
     </CustomBuild>
     <CustomBuild Include="pygin\logging.py">
       <FileType>Document</FileType>
-      <Command>copy %(Identity) $(OutDir)%(Identity)</Command>
+      <Command>copy %(Identity) $(OutDir)%(Identity) &gt; nul</Command>
       <Outputs>$(OutDir)%(Identity)</Outputs>
+      <Message>%(Identity)</Message>
     </CustomBuild>
     <CustomBuild Include="pygin\misc.py">
       <FileType>Document</FileType>
-      <Command>copy %(Identity) $(OutDir)%(Identity)</Command>
+      <Command>copy %(Identity) $(OutDir)%(Identity) &gt; nul</Command>
       <Outputs>$(OutDir)%(Identity)</Outputs>
+      <Message>%(Identity)</Message>
     </CustomBuild>
     <CustomBuild Include="README.md">
       <FileType>Document</FileType>
-      <Command>copy %(Identity) artefacts\product\%(Identity)</Command>
+      <Command>copy %(Identity) artefacts\product\%(Identity) &gt; nul</Command>
       <Outputs>artefacts\product\%(Identity)</Outputs>
+      <Message>%(Identity)</Message>
+    </CustomBuild>
+    <CustomBuild Include="pygin\loader.py">
+      <FileType>Document</FileType>
+      <Command>copy %(Identity) $(OutDir)%(Identity) &gt; nul</Command>
+      <Outputs>$(OutDir)%(Identity)</Outputs>
+      <Message>%(Identity)</Message>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

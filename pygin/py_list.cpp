@@ -8,6 +8,11 @@
 
 namespace py
 {
+	list::list(size_t Size):
+		object(invoke(PyList_New, Size))
+	{
+	}
+
 	list::list(cast_guard, const object& Object):
 		object(Object)
 	{

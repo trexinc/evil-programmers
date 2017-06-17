@@ -11,7 +11,6 @@ namespace py
 		static auto type_name() { return "dict"; }
 
 		dictionary();
-
 		dictionary(cast_guard, const object& Object);
 
 		void set_at(const object& Key, const object& Value);

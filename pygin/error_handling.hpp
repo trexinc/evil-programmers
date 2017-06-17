@@ -42,20 +42,18 @@ auto try_call(const callable& Callable, const fallback& Fallback) noexcept
 	catch (const py::exception& e)
 	{
 		set_error_context(L"Pygin: Python exception", e.what());
-		return Fallback();
 	}
 	catch (const pygin_exception& e)
 	{
 		set_error_context(L"Pygin: pygin_exception", e.what());
-		return Fallback();
 	}
 	catch (const std::exception& e)
 	{
 		set_error_context(L"Pygin: std::exception", e.what());
-		return Fallback();
 	}
 	catch (...)
 	{
-		return Fallback();
+		set_error_context(L"Pygin: unknown exception", "Unknown exception");
 	}
+	return Fallback();
 }

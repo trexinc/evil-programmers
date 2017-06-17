@@ -14,18 +14,16 @@ public:
 	NONCOPYABLE(far_api);
 
 	explicit far_api(const PluginStartupInfo* Psi);
-	~far_api();
 
 	const PluginStartupInfo& psi() const;
 	const FarStandardFunctions& fsf() const;
 
 	const py::object& get_module() const;
-	const py::type& get_type(const std::string& TypeName) const;
 
 	static void initialise(const PluginStartupInfo* Psi);
 	static const far_api& get();
 	static const py::object& module();
-	static const py::type& type(const std::string& TypeName);
+	static py::type type(const std::string& TypeName);
 	static void uninitialise();
 
 private:

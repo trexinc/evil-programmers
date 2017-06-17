@@ -108,22 +108,10 @@ namespace py
 	}
 
 	template<typename T>
-	T cast(PyObject* Object)
-	{
-		return cast<T>(object::from_borrowed(Object));
-	}
-
-	template<typename T>
 	T cast(const object& Object)
 	{
 		Object.ensure_type_name(T::type_name());
 		return T(cast_guard{}, Object);
-	}
-
-	template<typename T>
-	T try_cast(PyObject* Object)
-	{
-		return try_cast<T>(object::from_borrowed(Object));
 	}
 
 	template<typename T>

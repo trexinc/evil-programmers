@@ -87,10 +87,10 @@
     <ClInclude Include="error_handling.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="types_cache.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="py_module.hpp">
+      <Filter>Header Files\cpp api</Filter>
+    </ClInclude>
+    <ClInclude Include="py_function.hpp">
       <Filter>Header Files\cpp api</Filter>
     </ClInclude>
   </ItemGroup>
@@ -158,10 +158,10 @@
     <ClCompile Include="py_common.cpp">
       <Filter>Source Files\cpp api</Filter>
     </ClCompile>
-    <ClCompile Include="types_cache.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="py_module.cpp">
+      <Filter>Source Files\cpp api</Filter>
+    </ClCompile>
+    <ClCompile Include="py_function.cpp">
       <Filter>Source Files\cpp api</Filter>
     </ClCompile>
   </ItemGroup>
@@ -184,8 +184,11 @@
       <Filter>python api</Filter>
     </CustomBuild>
     <CustomBuild Include="README.md" />
-    <CustomBuild Include="plugins\helloworld\__init__.py">
+    <CustomBuild Include="plugins\helloworld\helloworld.far.py">
       <Filter>plugins\helloworld</Filter>
+    </CustomBuild>
+    <CustomBuild Include="pygin\loader.py">
+      <Filter>python api</Filter>
     </CustomBuild>
   </ItemGroup>
 </Project>
