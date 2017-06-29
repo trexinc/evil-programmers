@@ -9,7 +9,7 @@ namespace py
 	public:
 		static auto type_name() { return "UUID"; }
 
-		explicit uuid(const UUID& Uuid);
+		uuid(const UUID& Uuid);
 		uuid(cast_guard, const object& Object);
 
 		operator UUID() const;

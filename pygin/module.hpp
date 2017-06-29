@@ -7,7 +7,7 @@ class module
 public:
 	NONCOPYABLE(module);
 
-	module(const py::object& Object);
+	explicit module(const py::object& Object);
 
 	bool check_function(const wchar_t* FunctionName) const;
 

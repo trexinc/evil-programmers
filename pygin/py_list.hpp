@@ -10,7 +10,7 @@ namespace py
 		using proxy_owner<list, size_t>::operator[];
 		static auto type_name() { return "list"; }
 
-		list(size_t Size);
+		explicit list(size_t Size);
 		list(cast_guard, const object& Object);
 
 		void set_at(size_t Index, const object& Value);

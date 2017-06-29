@@ -9,10 +9,10 @@ namespace py
 	public:
 		static auto type_name() { return "int"; }
 
-		explicit integer(int Value);
-		explicit integer(unsigned int Value);
-		explicit integer(long long Value);
-		explicit integer(unsigned long long Value);
+		integer(int Value);
+		integer(unsigned int Value);
+		integer(long long Value);
+		integer(unsigned long long Value);
 		integer(cast_guard, const object& Object);
 
 		operator int() const;

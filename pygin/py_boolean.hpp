@@ -9,7 +9,7 @@ namespace py
 	public:
 		static auto type_name() { return "bool"; }
 
-		explicit boolean(bool Value);
+		boolean(bool Value);
 		boolean(cast_guard, const object& Object);
 
 		operator bool() const;

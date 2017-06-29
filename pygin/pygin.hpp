@@ -17,7 +17,7 @@ class pygin
 public:
 	NONCOPYABLE(pygin);
 
-	pygin(GlobalInfo* Info);
+	explicit pygin(GlobalInfo* Info);
 	~pygin();
 	bool is_module(const wchar_t* FileName) const;
 	std::unique_ptr<module> create_module(const wchar_t* FileName) const;

@@ -11,10 +11,10 @@ namespace py
 
 		string(const char* Str, size_t Size);
 		string(const wchar_t* Str, size_t Size);
-		explicit string(const char* Str);
-		explicit string(const wchar_t* Str);
-		explicit string(const std::string& Str);
-		explicit string(const std::wstring& Str);
+		string(const char* Str);
+		string(const wchar_t* Str);
+		string(const std::string& Str);
+		string(const std::wstring& Str);
 		string(cast_guard, const object& Object);
 
 		bool operator==(const string& Other) const;
