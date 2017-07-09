@@ -1,3 +1,5 @@
+[![Build status](https://ci.appveyor.com/api/projects/status/4yvw4l3lnhilsyps/branch/master?svg=true)](https://ci.appveyor.com/project/alabuzhev/evil-programmers/branch/master)
+
 ### Pygin
 
 Very basic adapter to write Far Manager plugins in Python 3.
