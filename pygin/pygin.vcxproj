@@ -37,18 +37,13 @@
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Label="UserMacros">
+    <PythonPath Condition="'$(PythonPath)'=='' AND '$(Platform)'=='x64'">C:\Program Files\Python36</PythonPath>
+    <PythonPath Condition="'$(PythonPath)'=='' AND '$(Platform)'=='win32'">C:\Program Files (x86)\Python36-32</PythonPath>
+  </PropertyGroup>
   <PropertyGroup>
     <IntDir>artefacts\intermediate\adapters\$(Platform)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)artefacts\product\adapters\$(Platform)\$(Configuration)\</OutDir>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Platform)'=='Win32'">
-    <IncludePath>C:\Program Files (x86)\Python36-32\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Program Files (x86)\Python36-32\libs;$(LibraryPath)</LibraryPath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Platform)'=='x64'">
-    <IncludePath>C:\Program Files\Python36\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Program Files\Python36\libs;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <LinkIncremental>true</LinkIncremental>
@@ -58,11 +53,13 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
+      <AdditionalIncludeDirectories>$(PythonPath)\include</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PrecompiledHeaderFile>headers.hpp</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
+      <AdditionalLibraryDirectories>$(PythonPath)\libs</AdditionalLibraryDirectories>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ModuleDefinitionFile>pygin.def</ModuleDefinitionFile>
