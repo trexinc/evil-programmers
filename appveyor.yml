@@ -1,0 +1,16 @@
+version: 1.0.{build}
+configuration: Release
+environment:
+  matrix:
+  - PYTHONPATH: C:\Python36
+  - PYTHONPATH: C:\Python36-x64
+    PLATFORM: x64
+build:
+  project: pygin/pygin.sln
+  verbosity: minimal
+after_build:
+- cmd: >-
+    cd pygin
+    pack.cmd
+artifacts:
+- path: '**\*.7z'
