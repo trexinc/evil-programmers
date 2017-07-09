@@ -1,6 +1,6 @@
 @echo off
 
-for /f "tokens=1-4 delims=. " %%a in ('date /t') do (set timestamp=%%c%%b%%a)
+for /f "tokens=2-4 delims=./ " %%a in ('date /t') do (set timestamp=%%c%%b%%a)
 for /f %%i in ('git rev-parse --short HEAD') do set hash=%%i
 
 pushd artefacts\product
