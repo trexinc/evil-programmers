@@ -11,6 +11,7 @@ build:
 after_build:
 - cmd: >-
     cd pygin
+
     pack.cmd
 artifacts:
 - path: '**\*.7z'
