@@ -36,7 +36,7 @@ namespace py
 		object Type(TypePtr), Value(ValuePtr), Traceback(TracebackPtr);
 
 		// Seems to be a Python core bug :(
-		if (!strcmp(Value.type_name(), "str"))
+		if (try_cast<string>(Value))
 		{
 			Value = object(PyExc_Exception)(Value);
 		}

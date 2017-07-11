@@ -4,11 +4,11 @@ using PyObject = struct _object;
 
 namespace py
 {
+	class object;
 	class tuple;
+	class type;
 
 	class cast_guard {};
-
-	class object;
 
 	template<typename owner_type, typename key_type>
 	class value_proxy_t
@@ -92,8 +92,8 @@ namespace py
 
 		static object from_borrowed(PyObject* Object);
 		const char* type_name() const;
-		bool check_type_name(const char* TypeName) const;
-		void ensure_type_name(const char* TypeName) const;
+		bool check_type(const type& Type) const;
+		void ensure_type(const type& Type) const;
 
 	private:
 		object operator()(const std::initializer_list<object>& Args) const;
@@ -110,14 +110,14 @@ namespace py
 	template<typename T>
 	T cast(const object& Object)
 	{
-		Object.ensure_type_name(T::type_name());
+		Object.ensure_type(T::get_type());
 		return T(cast_guard{}, Object);
 	}
 
 	template<typename T>
 	T try_cast(const object& Object)
 	{
-		return T(cast_guard{}, Object && Object.check_type_name(T::type_name())? Object : object(nullptr));
+		return T(cast_guard{}, Object && Object.check_type(T::get_type())? Object : object(nullptr));
 	}
 
 }

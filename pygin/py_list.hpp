@@ -1,6 +1,6 @@
 #pragma once
 
-#include "py_object.hpp"
+#include "py_type.hpp"
 
 namespace py
 {
@@ -8,7 +8,8 @@ namespace py
 	{
 	public:
 		using proxy_owner<list, size_t>::operator[];
-		static auto type_name() { return "list"; }
+
+		static const type& get_type();
 
 		explicit list(size_t Size);
 		list(cast_guard, const object& Object);

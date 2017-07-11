@@ -4,10 +4,20 @@
 
 #include "py_common.hpp"
 
+#include "types_cache.hpp"
+
 #include "python.hpp"
 
 namespace py
 {
+	const type& list::get_type()
+	{
+		return types_cache::get_type(types::list, []()
+		{
+			return type(cast_guard{}, list(0));
+		});
+	}
+
 	list::list(size_t Size):
 		object(invoke(PyList_New, Size))
 	{

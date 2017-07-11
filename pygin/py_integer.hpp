@@ -1,13 +1,13 @@
 #pragma once
 
-#include "py_object.hpp"
+#include "py_type.hpp"
 
 namespace py
 {
 	class integer: public object
 	{
 	public:
-		static auto type_name() { return "int"; }
+		static const type& get_type();
 
 		integer(int Value);
 		integer(unsigned int Value);
@@ -27,5 +27,29 @@ namespace py
 		{
 			return integer(Value);
 		}
+	}
+
+	template<>
+	inline int cast(const object& Object)
+	{
+		return cast<integer>(Object);
+	}
+
+	template<>
+	inline unsigned int cast(const object& Object)
+	{
+		return cast<integer>(Object);
+	}
+
+	template<>
+	inline long long cast(const object& Object)
+	{
+		return cast<integer>(Object);
+	}
+
+	template<>
+	inline unsigned long long cast(const object& Object)
+	{
+		return cast<integer>(Object);
 	}
 }

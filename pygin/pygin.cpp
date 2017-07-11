@@ -11,6 +11,7 @@
 #include "error_handling.hpp"
 #include "far_api.hpp"
 #include "module.hpp"
+#include "types_cache.hpp"
 
 using namespace py::literals;
 
@@ -79,6 +80,7 @@ pygin::pygin(GlobalInfo* Info)
 pygin::~pygin()
 {
 	far_api::uninitialise();
+	types_cache::clear();
 }
 
 static const auto PluginFileNameSuffix = L".far.py";

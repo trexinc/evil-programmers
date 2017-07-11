@@ -1,11 +1,13 @@
 #pragma once
 
-#include <vector>
 #include <algorithm>
-#include <unordered_map>
-#include <memory>
-#include <string>
 #include <functional>
+#include <iterator>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 #define WIN32_LEAN_AND_MEAN
 #define VC_EXTRALEAN

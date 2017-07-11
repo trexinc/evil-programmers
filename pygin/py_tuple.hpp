@@ -1,6 +1,6 @@
 #pragma once
 
-#include "py_object.hpp"
+#include "py_type.hpp"
 
 namespace py
 {
@@ -8,7 +8,8 @@ namespace py
 	{
 	public:
 		using proxy_owner<tuple, size_t>::operator[];
-		static auto type_name() { return "tuple"; }
+
+		static const type& get_type();
 
 		explicit tuple(size_t Size = 0);
 		tuple(const std::initializer_list<object>& Args);
@@ -18,5 +19,7 @@ namespace py
 
 		void set_at(size_t Position, const object& Object);
 		object get_at(size_t Position) const;
+
+		size_t size() const;
 	};
 }

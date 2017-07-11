@@ -3,6 +3,7 @@
 #include "py_object.hpp"
 
 #include "py_tuple.hpp"
+#include "py_type.hpp"
 
 #include "error_handling.hpp"
 
@@ -133,14 +134,14 @@ namespace py
 		return *this? get()->ob_type->tp_name : "nullptr";
 	}
 
-	bool object::check_type_name(const char* TypeName) const
+	bool object::check_type(const type& Type) const
 	{
-		return !strcmp(TypeName, type_name());
+		return py::invoke(PyObject_IsInstance, get(), Type.get()) != 0 || (*this && Type && get()->ob_type == Type.get()->ob_type);
 	}
 
-	void object::ensure_type_name(const char* TypeName) const
+	void object::ensure_type(const type& Type) const
 	{
-		if (!check_type_name(TypeName))
-			throw MAKE_PYGIN_EXCEPTION(type_name() + " is not "s + TypeName);
+		if (!check_type(Type))
+			throw MAKE_PYGIN_EXCEPTION(type_name() + " is not a "s + Type.type_name());
 	}
 }

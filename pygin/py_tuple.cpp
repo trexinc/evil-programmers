@@ -4,10 +4,20 @@
 
 #include "py_common.hpp"
 
+#include "types_cache.hpp"
+
 #include "python.hpp"
 
 namespace py
 {
+	const type& tuple::get_type()
+	{
+		return types_cache::get_type(types::tuple, []()
+		{
+			return type(cast_guard{}, tuple(0u));
+		});
+	}
+
 	tuple::tuple(size_t Size):
 		object(invoke(PyTuple_New, Size))
 	{
@@ -36,5 +46,10 @@ namespace py
 	object tuple::get_at(size_t Position) const
 	{
 		return from_borrowed(invoke(PyTuple_GetItem, get(), Position));
+	}
+
+	size_t tuple::size() const
+	{
+		return invoke(PyTuple_Size, get());
 	}
 }

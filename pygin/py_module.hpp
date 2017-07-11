@@ -1,6 +1,6 @@
 #pragma once
 
-#include "py_object.hpp"
+#include "py_type.hpp"
 
 struct PyMethodDef;
 
@@ -9,7 +9,7 @@ namespace py
 	class module: public object
 	{
 	public:
-		static auto type_name() { return "module"; }
+		static const type& get_type();
 
 		module() = default;
 		module(cast_guard, const object& Object);

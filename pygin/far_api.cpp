@@ -3,7 +3,15 @@
 #include "far_api.hpp"
 
 #include "py_import.hpp"
+#include "py_integer.hpp"
+#include "py_list.hpp"
 #include "py_string.hpp"
+#include "py_tuple.hpp"
+#include "py_uuid.hpp"
+
+#include "py_common.hpp"
+
+#include "error_handling.hpp"
 
 #include "python.hpp"
 
@@ -21,26 +29,68 @@ namespace far_api_implementation
 		return far_api::get().psi();
 	}
 
-	static PyObject* GetUserScreen(PyObject* self, PyObject* args)
+	static auto string_list_to_vector(const py::list& List)
+	{
+		const auto Size = List.size();
+		std::vector<std::wstring> Result;
+		Result.reserve(Size);
+		for (size_t i = 0; i != Size; ++i)
+		{
+			Result.push_back(py::cast<std::wstring>(List[i]));
+		}
+		return Result;
+	}
+
+	static auto get_args(PyObject* RawArgs, size_t Count)
+	{
+		const auto Args = py::cast<py::tuple>(py::object::from_borrowed(RawArgs));
+		if (Args.size() != Count)
+			throw MAKE_PYGIN_EXCEPTION("Message: wrong number of arguments");
+		return Args;
+	}
+
+	static PyObject* Message(PyObject* Self, PyObject* RawArgs)
+	{
+		const auto Args = get_args(RawArgs, 7);
+
+		const auto PluginId = py::cast<UUID>(Args[0]);
+		const auto Id = py::cast<UUID>(Args[1]);
+		const auto Flags = py::cast<FARMESSAGEFLAGS>(Args[2]);
+		const auto HelpTopic = py::cast<std::wstring>(Args[3]);
+		const auto Title = py::cast<std::wstring>(Args[4]);
+		const auto Items = string_list_to_vector(py::cast<py::list>(Args[5]));
+		const auto Buttons = string_list_to_vector(py::cast<py::list>(Args[6]));
+
+		std::vector<const wchar_t*> AllItems;
+		AllItems.reserve(1 + Items.size() + Buttons.size());
+		AllItems.emplace_back(Title.data());
+		std::transform(Items.cbegin(), Items.cend(), std::back_inserter(AllItems), [](const auto& i) { return i.data(); });
+		std::transform(Buttons.cbegin(), Buttons.cend(), std::back_inserter(AllItems), [](const auto& i) { return i.data(); });
+
+		const auto Result = psi().Message(&PluginId, &Id, Flags & ~FMSG_ALLINONE, HelpTopic.data(), AllItems.data(), AllItems.size(), Buttons.size());
+		return PyLong_FromSsize_t(Result);
+	}
+
+	static PyObject* GetUserScreen(PyObject* Self, PyObject* Args)
 	{
 		psi().PanelControl(PANEL_NONE, FCTL_GETUSERSCREEN, 0, nullptr);
 
-		Py_INCREF(Py_None);
-		return Py_None;
+		Py_RETURN_NONE;
 	}
 
-	static PyObject* SetUserScreen(PyObject* self, PyObject* args)
+	static PyObject* SetUserScreen(PyObject* Self, PyObject* Args)
 	{
 		psi().PanelControl(PANEL_NONE, FCTL_SETUSERSCREEN, 0, nullptr);
 
-		Py_INCREF(Py_None);
-		return Py_None;
+		Py_RETURN_NONE;
 	}
 
 
 	static PyMethodDef Methods[] =
 	{
-#define FUNC_NAME_VALUE(x) #x, x
+#define FUNC_NAME_VALUE(x) "__" #x, x
+
+		{ FUNC_NAME_VALUE(Message), METH_VARARGS, "Show message" },
 		{ FUNC_NAME_VALUE(GetUserScreen), METH_NOARGS, "Get user screen" },
 		{ FUNC_NAME_VALUE(SetUserScreen), METH_NOARGS, "Set user screen" },
 

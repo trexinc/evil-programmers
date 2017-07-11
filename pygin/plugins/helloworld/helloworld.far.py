@@ -31,6 +31,9 @@ class HelloWorldPlugin:
 			print("------------")
 		finally:
 			self.far.SetUserScreen()
+
+		mf = self.far.MessageFlags;
+		self.far.Message(self.Guid, uuid.UUID("{DAF1257B-E011-4B5A-B5DC-732581BDF3BA}"), mf.Warning | mf.LeftAlign, "Topic", "Title", ["Hello", "World", "\1", "Status line"], ["Left", "Right"])
 		return None
 
 	def ConfigureW(self, info):

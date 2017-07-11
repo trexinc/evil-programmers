@@ -77,7 +77,7 @@ intptr_t module::ConfigureW(const ConfigureInfo* Info)
 
 	ConfigureInstance["Guid"] = py::uuid(*Info->Guid);
 
-	return py::cast<py::boolean>(call(STR(ConfigureW), ConfigureInstance));
+	return py::cast<bool>(call(STR(ConfigureW), ConfigureInstance));
 }
 
 intptr_t module::DeleteFilesW(const DeleteFilesInfo* Info)
@@ -113,10 +113,10 @@ intptr_t module::GetFindDataW(GetFindDataInfo* Info)
 
 void module::GetGlobalInfoW(GlobalInfo* Info)
 {
-	Info->Title = (m_Title = py::cast<py::string>(m_PluginModuleClass["Title"])).data();
-	Info->Author = (m_Author = py::cast<py::string>(m_PluginModuleClass["Author"])).data();
-	Info->Description = (m_Description = py::cast<py::string>(m_PluginModuleClass["Description"])).data();
-	Info->Guid = py::cast<py::uuid>(m_PluginModuleClass["Guid"]);
+	Info->Title = (m_Title = py::cast<std::wstring>(m_PluginModuleClass["Title"])).data();
+	Info->Author = (m_Author = py::cast<std::wstring>(m_PluginModuleClass["Author"])).data();
+	Info->Description = (m_Description = py::cast<std::wstring>(m_PluginModuleClass["Description"])).data();
+	Info->Guid = py::cast<UUID>(m_PluginModuleClass["Guid"]);
 }
 
 void module::GetOpenPanelInfoW(OpenPanelInfo* Info)
@@ -125,8 +125,9 @@ void module::GetOpenPanelInfoW(OpenPanelInfo* Info)
 
 void module::GetPluginInfoW(PluginInfo* Info)
 {
+	auto PluginInfoType = far_api::type("PluginInfo"s);
 	const auto PyInfo = call(STR(GetPluginInfoW));
-	PyInfo.ensure_type_name("PluginInfo");
+	PyInfo.ensure_type(PluginInfoType);
 
 	const auto& ConvertPluginMenuItem = [&](const char* Kind, menu_items& MenuItems, PluginMenuItem& Destination)
 	{
@@ -148,9 +149,9 @@ void module::GetPluginInfoW(PluginInfo* Info)
 		for (size_t i = 0; i != ListSize; ++i)
 		{
 			const auto Tuple = py::cast<py::tuple>(ItemsList[i]);
-			MenuItems.StringsData.emplace_back(py::cast<py::string>(Tuple[0]));
+			MenuItems.StringsData.emplace_back(py::cast<std::wstring>(Tuple[0]));
 			MenuItems.Strings.emplace_back(MenuItems.StringsData.back().data());
-			MenuItems.Uuids.emplace_back(py::cast<py::uuid>(Tuple[1]));
+			MenuItems.Uuids.emplace_back(py::cast<UUID>(Tuple[1]));
 		}
 
 		Destination.Strings = MenuItems.Strings.data();

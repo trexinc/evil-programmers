@@ -11,12 +11,10 @@ namespace py
 	class type: public object
 	{
 	public:
-		static auto type_name() { return "type"; }
+		static const type& get_type();
 
 		type() = default;
 		type(const object& Object, const char* Name);
 		type(cast_guard, const object& Object);
-
-		bool is_same(const type& Object) const;
 	};
 }

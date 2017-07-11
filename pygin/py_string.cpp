@@ -4,10 +4,20 @@
 
 #include "py_common.hpp"
 
+#include "types_cache.hpp"
+
 #include "python.hpp"
 
 namespace py
 {
+	const type& string::get_type()
+	{
+		return types_cache::get_type(types::string, []()
+		{
+			return type(cast_guard{}, string(static_cast<const char*>(nullptr), 0));
+		});
+	}
+
 	string::string(const char* Str, size_t Size):
 		object(invoke(PyUnicode_FromStringAndSize, Str, Size))
 	{

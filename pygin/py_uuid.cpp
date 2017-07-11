@@ -8,6 +8,7 @@
 #include "py_type.hpp"
 
 #include "error_handling.hpp"
+#include "types_cache.hpp"
 
 #include "python.hpp"
 
@@ -41,6 +42,14 @@ namespace
 
 namespace py
 {
+	const type& uuid::get_type()
+	{
+		return types_cache::get_type(types::uuid, []()
+		{
+			return type(cast_guard{}, uuid(UUID{}));
+		});
+	}
+
 	uuid::uuid(const UUID& Uuid):
 		object(import::import("uuid"_py).get_attribute("UUID")(string(UuidToString(Uuid))))
 	{

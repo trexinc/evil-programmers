@@ -5,10 +5,20 @@
 #include "py_common.hpp"
 #include "py_integer.hpp"
 
+#include "types_cache.hpp"
+
 #include "python.hpp"
 
 namespace py
 {
+	const type& dictionary::get_type()
+	{
+		return types_cache::get_type(types::dictionary, []()
+		{
+			return type(cast_guard{}, dictionary());
+		});
+	}
+
 	dictionary::dictionary():
 		object(invoke(PyDict_New))
 	{

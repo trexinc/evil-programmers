@@ -2,12 +2,28 @@
 
 #include "py_module.hpp"
 
+#include "py_dictionary.hpp"
+#include "py_string.hpp"
+#include "py_sys.hpp"
+
 #include "py_common.hpp"
+
+#include "types_cache.hpp"
 
 #include "python.hpp"
 
 namespace py
 {
+	const type& module::get_type()
+	{
+		return types_cache::get_type(types::module, []()
+		{
+			const auto ModulesDict = cast<dictionary>(sys::get_object("modules"));
+			using namespace literals;
+			return type(cast_guard{}, ModulesDict.get_at("sys"_py));
+		});
+	}
+
 	module::module(cast_guard, const object& Object):
 		object(Object)
 	{

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "py_object.hpp"
+#include "py_type.hpp"
 
 using PyTypeObject = struct _typeobject;
 
@@ -11,7 +11,7 @@ namespace py
 	class function: public object
 	{
 	public:
-		static auto type_name() { return "function"; }
+		static const type& get_type();
 
 		function() = default;
 		function(const object& Object, const char* Name);

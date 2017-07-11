@@ -93,6 +93,12 @@
     <ClInclude Include="py_function.hpp">
       <Filter>Header Files\cpp api</Filter>
     </ClInclude>
+    <ClInclude Include="types_cache.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="critical_section.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pygin.cpp">
@@ -163,6 +169,9 @@
     </ClCompile>
     <ClCompile Include="py_function.cpp">
       <Filter>Source Files\cpp api</Filter>
+    </ClCompile>
+    <ClCompile Include="types_cache.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

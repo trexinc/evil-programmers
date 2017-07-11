@@ -1,6 +1,6 @@
 #pragma once
 
-#include "py_object.hpp"
+#include "py_type.hpp"
 
 namespace py
 {
@@ -8,7 +8,8 @@ namespace py
 	{
 	public:
 		using proxy_owner<dictionary, object>::operator[];
-		static auto type_name() { return "dict"; }
+
+		static const type& get_type();
 
 		dictionary();
 		dictionary(cast_guard, const object& Object);

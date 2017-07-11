@@ -1,13 +1,13 @@
 #pragma once
 
-#include "py_object.hpp"
+#include "py_type.hpp"
 
 namespace py
 {
 	class string: public object
 	{
 	public:
-		static auto type_name() { return "str"; }
+		static const type& get_type();
 
 		string(const char* Str, size_t Size);
 		string(const wchar_t* Str, size_t Size);
@@ -34,5 +34,17 @@ namespace py
 		{
 			return string(Data, Size);
 		}
+	}
+
+	template<>
+	inline std::wstring cast(const object& Object) 
+	{
+		return cast<string>(Object);
+	}
+
+	template<>
+	inline std::string cast(const object& Object)
+	{
+		return cast<string>(Object);
 	}
 }

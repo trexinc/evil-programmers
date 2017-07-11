@@ -4,10 +4,20 @@
 
 #include "py_common.hpp"
 
+#include "types_cache.hpp"
+
 #include "python.hpp"
 
 namespace py
 {
+	const type& integer::get_type()
+	{
+		return types_cache::get_type(types::integer, []()
+		{
+			return type(cast_guard{}, integer(0));
+		});
+	}
+
 	integer::integer(int Value):
 		object(invoke(PyLong_FromLong, Value))
 	{

@@ -1,17 +1,24 @@
 #pragma once
 
-#include "py_object.hpp"
+#include "py_type.hpp"
 
 namespace py
 {
 	class boolean: public object
 	{
 	public:
-		static auto type_name() { return "bool"; }
+		static const type& get_type();
 
 		boolean(bool Value);
 		boolean(cast_guard, const object& Object);
 
 		operator bool() const;
 	};
+
+	template<>
+	inline bool cast(const object& Object)
+	{
+		return cast<boolean>(Object);
+	}
+
 }

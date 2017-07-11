@@ -1,17 +1,23 @@
 #pragma once
 
-#include "py_object.hpp"
+#include "py_type.hpp"
 
 namespace py
 {
 	class uuid: public object
 	{
 	public:
-		static auto type_name() { return "UUID"; }
+		static const type& get_type();
 
 		uuid(const UUID& Uuid);
 		uuid(cast_guard, const object& Object);
 
 		operator UUID() const;
 	};
+
+	template<>
+	inline UUID cast(const object& Object)
+	{
+		return cast<uuid>(Object);
+	}
 }
