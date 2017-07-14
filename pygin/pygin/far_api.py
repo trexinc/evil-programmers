@@ -26,20 +26,69 @@ class ExitInfo(object):
 	def __init__(self):
 		pass
 
+def GetMsg(PluginId, MsgId):
+	return __GetMsg(PluginId, MsgId)
+
+def bit(n):
+	return 1 << n
+
 class MessageFlags(enum.IntFlag):
-	Warning                = 0x0000000000000001
-	ErrorType              = 0x0000000000000002
-	KeepBackground         = 0x0000000000000004
-	LeftAlign              = 0x0000000000000008
-	ButtonOk               = 0x0000000000010000
-	ButtonOkCancel         = 0x0000000000020000
-	ButtonAbortRertyIgnore = 0x0000000000030000
-	ButtonYesNo            = 0x0000000000040000
-	ButtonYesNoCancel      = 0x0000000000050000
-	ButtonRetryCancel      = 0x0000000000060000
+	Warning                = bit(0)
+	ErrorType              = bit(1)
+	KeepBackground         = bit(2)
+	LeftAlign              = bit(3)
+	ButtonOk               = bit(16) * 1
+	ButtonOkCancel         = bit(16) * 2
+	ButtonAbortRertyIgnore = bit(16) * 3
+	ButtonYesNo            = bit(16) * 4
+	ButtonYesNoCancel      = bit(16) * 5
+	ButtonRetryCancel      = bit(16) * 6
 
 def Message(PluginId, Id, Flags, HelpTopic, Title, Items, Buttons):
 	return __Message(PluginId, Id, Flags, HelpTopic, Title, Items, Buttons)
+
+class InputBoxFlags(enum.IntFlag):
+	EnableEmpty      = bit(0)
+	Password         = bit(1)
+	ExpandEnv        = bit(2)
+	NoUseLastHistory = bit(3)
+	Buttons          = bit(4)
+	NoAmpersand      = bit(5)
+	EditPath         = bit(6)
+	EditPathExec     = bit(7)
+
+def InputBox(PluginId, Id, Title, SubTitle, HistoryName, SrcText, DestSize, HelpTopic, Flags):
+	return __InputBox(PluginId, Id, Title, SubTitle, HistoryName, SrcText, DestSize, HelpTopic, Flags)
+
+class MenuItemFlags(enum.IntFlag):
+	Selected   = bit(16)
+	Checked    = bit(17)
+	Separator  = bit(18)
+	Disabled   = bit(19)
+	Grayed     = bit(20)
+	Hidden     = bit(21)
+
+class FarKey:
+	def __init__(self, VirtualKeyCode, ControlKeyState):
+		self.VirtualKeyCode = VirtualKeyCode
+		self.ControlKeyState = ControlKeyState
+
+class MenuItem:
+	def __init__(self, Text, Flags = 0, AccelKey = None, UserData = 0):
+		self.Text = Text
+		self.Flags = Flags
+		self.AccelKey = AccelKey
+		self.UserData = UserData
+
+class MenuFlags(enum.IntFlag):
+	ShowAmpersand        = bit(0)
+	WrapMode             = bit(1)
+	Autohighlight        = bit(2)
+	ReverseAutohighlight = bit(3)
+	ChangeConsoleTitle   = bit(4)
+
+def Menu(PluginId, Id, X, Y, MaxHeight, Flags, Title, Bottom, HelpTopic, BreakKeys, BreakCode, Items):
+	return __Menu(PluginId, Id, X, Y, MaxHeight, Flags, Title, Bottom, HelpTopic, BreakKeys, BreakCode, Items)
 
 def GetUserScreen():
 	return __GetUserScreen()

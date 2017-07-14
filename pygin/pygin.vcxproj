@@ -161,6 +161,18 @@
       <Outputs>artefacts\product\%(Identity)</Outputs>
       <Message>%(Identity)</Message>
     </CustomBuild>
+    <CustomBuild Include="plugins\helloworld\helloworld.eng.lng">
+      <FileType>Document</FileType>
+      <Command>copy %(Identity) artefacts\product\%(Identity) &gt; nul</Command>
+      <Outputs>artefacts\product\%(Identity)</Outputs>
+      <Message>%(Identity)</Message>
+    </CustomBuild>
+    <CustomBuild Include="plugins\helloworld\helloworld.eng.hlf">
+      <FileType>Document</FileType>
+      <Command>copy %(Identity) artefacts\product\%(Identity) &gt; nul</Command>
+      <Outputs>artefacts\product\%(Identity)</Outputs>
+      <Message>%(Identity)</Message>
+    </CustomBuild>
     <None Include="pygin.def" />
     <CustomBuild Include="pygin\far_api.py">
       <FileType>Document</FileType>

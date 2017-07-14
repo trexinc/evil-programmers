@@ -72,6 +72,7 @@ namespace py
 		bool operator!() const;
 
 		PyObject* get() const;
+		PyObject* release();
 
 		bool has_attribute(const char* Name) const;
 		bool has_attribute(const object& Name) const;

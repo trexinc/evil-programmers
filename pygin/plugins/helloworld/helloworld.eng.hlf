@@ -1,0 +1,17 @@
+﻿.Language=English,English
+
+@MenuTopic
+$ #Menu#
+    Choose your destiny.
+
+@InputBoxTopic
+$ #InputBox#
+    Freedom of speech is the right to articulate one's opinions and ideas without fear of government retaliation or censorship, or societal sanction.
+
+@Message1Topic
+$ #Message#
+    We're watching you.
+
+@Message2Topic
+$ #Message#
+    Lorem Ipsum is simply dummy text of the printing and typesetting industry.

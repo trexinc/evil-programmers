@@ -49,6 +49,16 @@ namespace far_api_implementation
 		return Args;
 	}
 
+	static PyObject* GetMsg(PyObject* Self, PyObject* RawArgs)
+	{
+		const auto Args = get_args(RawArgs, 2);
+
+		const auto PluginId = py::cast<UUID>(Args[0]);
+		const auto MsgId = py::cast<intptr_t>(Args[1]);
+
+		return py::string(psi().GetMsg(&PluginId, MsgId)).release();
+	}
+
 	static PyObject* Message(PyObject* Self, PyObject* RawArgs)
 	{
 		const auto Args = get_args(RawArgs, 7);
@@ -71,6 +81,97 @@ namespace far_api_implementation
 		return PyLong_FromSsize_t(Result);
 	}
 
+	static PyObject* InputBox(PyObject* Self, PyObject* RawArgs)
+	{
+		const auto Args = get_args(RawArgs, 9);
+
+		const auto PluginId = py::cast<UUID>(Args[0]);
+		const auto Id = py::cast<UUID>(Args[1]);
+		const auto Title = py::cast<std::wstring>(Args[2]);
+		const auto SubTitle = py::cast<std::wstring>(Args[3]);
+		const auto HistoryName = py::cast<std::wstring>(Args[4]);
+		const auto SrcText = py::cast<std::wstring>(Args[5]);
+		const auto DestSize = py::cast<size_t>(Args[6]);
+		const auto HelpTopic = py::cast<std::wstring>(Args[7]);
+		const auto Flags = py::cast<INPUTBOXFLAGS>(Args[8]);
+		std::vector<wchar_t> Buffer(DestSize);
+
+		const auto Result = psi().InputBox(&PluginId, &Id, Title.data(), SubTitle.data(), HistoryName.data(), SrcText.data(), Buffer.data(), Buffer.size(), HelpTopic.data(), Flags);
+		if (Result)
+			return py::string(Buffer.data()).release();
+
+		Py_RETURN_NONE;
+	}
+
+	static FarKey PyFarKeyToFarKey(const py::object& PyFarKey)
+	{
+		return{ py::cast<WORD>(PyFarKey["VirtualKeyCode"]), py::cast<DWORD>(PyFarKey["ControlKeyState"]) };
+	}
+
+	static PyObject* Menu(PyObject* Self, PyObject* RawArgs)
+	{
+		const auto Args = get_args(RawArgs, 12);
+
+		const auto PluginId = py::cast<UUID>(Args[0]);
+		const auto Id = py::cast<UUID>(Args[1]);
+		const auto X = py::cast<intptr_t>(Args[2]);
+		const auto Y = py::cast<intptr_t>(Args[3]);
+		const auto MaxHeight = py::cast<intptr_t>(Args[4]);
+		const auto Flags = py::cast<FARMENUFLAGS>(Args[5]);
+		const auto Title = py::cast<std::wstring>(Args[6]);
+		const auto Bottom = py::cast<std::wstring>(Args[7]);
+		const auto HelpTopic = py::cast<std::wstring>(Args[8]);
+
+		std::vector<FarKey> OptionalBreakKeys;
+		FarKey* BreakKeys = nullptr;
+
+		if (Args[9])
+		{
+			const auto List = py::cast<py::list>(Args[9]);
+			const auto ListSize = List.size();
+
+			OptionalBreakKeys.reserve(ListSize);
+
+			for (size_t i = 0; i != ListSize; ++i)
+			{
+				OptionalBreakKeys.emplace_back(PyFarKeyToFarKey(List[i]));
+			}
+
+			BreakKeys = OptionalBreakKeys.data();
+		}
+
+		const auto Items = py::cast<py::list>(Args[11]);
+		const auto ItemsSize = Items.size();
+		std::vector<FarMenuItem> MenuItems;
+		MenuItems.reserve(ItemsSize);
+		std::vector<std::wstring> MenuStrings;
+		MenuStrings.reserve(ItemsSize);
+
+		for(size_t i = 0; i != ItemsSize; ++i)
+		{
+			auto Item = Items[i];
+			FarMenuItem MenuItem{};
+			MenuStrings.emplace_back(py::cast<std::wstring>(Item["Text"]));
+			MenuItem.Text = MenuStrings.back().data();
+			MenuItem.Flags = py::cast<MENUITEMFLAGS>(Item["Flags"]);
+			if (const py::object AccelKey = Item["AccelKey"])
+			{
+				MenuItem.AccelKey = PyFarKeyToFarKey(AccelKey);
+			}
+			MenuItem.UserData = py::cast<intptr_t>(Item["UserData"]);
+			MenuItems.emplace_back(MenuItem);
+		}
+
+		intptr_t BreakCode = 0;
+		const auto Result = psi().Menu(&PluginId, &Id, X, Y, MaxHeight, Flags, Title.data(), Bottom.data(), HelpTopic.data(), BreakKeys, &BreakCode, MenuItems.data(), MenuItems.size());
+		if (Args[10])
+		{
+			auto BreakCodeContainer = py::cast<py::list>(Args[10]);
+			BreakCodeContainer[0] = py::integer(BreakCode);
+		}
+		return py::integer(Result).release();
+	}
+
 	static PyObject* GetUserScreen(PyObject* Self, PyObject* Args)
 	{
 		psi().PanelControl(PANEL_NONE, FCTL_GETUSERSCREEN, 0, nullptr);
@@ -90,7 +191,10 @@ namespace far_api_implementation
 	{
 #define FUNC_NAME_VALUE(x) "__" #x, x
 
+		{ FUNC_NAME_VALUE(GetMsg), METH_VARARGS, "Get localised message by Id" },
 		{ FUNC_NAME_VALUE(Message), METH_VARARGS, "Show message" },
+		{ FUNC_NAME_VALUE(InputBox), METH_VARARGS, "Input box" },
+		{ FUNC_NAME_VALUE(Menu), METH_VARARGS, "Menu" },
 		{ FUNC_NAME_VALUE(GetUserScreen), METH_NOARGS, "Get user screen" },
 		{ FUNC_NAME_VALUE(SetUserScreen), METH_NOARGS, "Set user screen" },
 

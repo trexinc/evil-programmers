@@ -15,8 +15,12 @@ namespace py
 		integer(unsigned long long Value);
 		integer(cast_guard, const object& Object);
 
+		operator short() const;
+		operator unsigned short() const;
 		operator int() const;
 		operator unsigned int() const;
+		operator long() const;
+		operator unsigned long() const;
 		operator long long() const;
 		operator unsigned long long() const;
 	};
@@ -30,6 +34,18 @@ namespace py
 	}
 
 	template<>
+	inline short cast(const object& Object)
+	{
+		return cast<integer>(Object);
+	}
+
+	template<>
+	inline unsigned short cast(const object& Object)
+	{
+		return cast<integer>(Object);
+	}
+
+	template<>
 	inline int cast(const object& Object)
 	{
 		return cast<integer>(Object);
@@ -37,6 +53,18 @@ namespace py
 
 	template<>
 	inline unsigned int cast(const object& Object)
+	{
+		return cast<integer>(Object);
+	}
+
+	template<>
+	inline long cast(const object& Object)
+	{
+		return cast<integer>(Object);
+	}
+
+	template<>
+	inline unsigned long cast(const object& Object)
 	{
 		return cast<integer>(Object);
 	}

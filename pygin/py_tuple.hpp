@@ -13,8 +13,6 @@ namespace py
 
 		explicit tuple(size_t Size = 0);
 		tuple(const std::initializer_list<object>& Args);
-		template<typename... args>
-		tuple(const args&... Args): tuple({ Args... }) {}
 		tuple(cast_guard, const object& Object);
 
 		void set_at(size_t Position, const object& Object);

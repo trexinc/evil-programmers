@@ -199,5 +199,11 @@
     <CustomBuild Include="pygin\loader.py">
       <Filter>python api</Filter>
     </CustomBuild>
+    <CustomBuild Include="plugins\helloworld\helloworld.eng.hlf">
+      <Filter>plugins\helloworld</Filter>
+    </CustomBuild>
+    <CustomBuild Include="plugins\helloworld\helloworld.eng.lng">
+      <Filter>plugins\helloworld</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

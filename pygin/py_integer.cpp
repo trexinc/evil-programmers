@@ -43,12 +43,32 @@ namespace py
 	{
 	}
 
+	integer::operator short() const
+	{
+		return static_cast<short>(invoke(PyLong_AsLong, get()));
+	}
+
+	integer::operator unsigned short() const
+	{
+		return static_cast<unsigned short>(invoke(PyLong_AsUnsignedLong, get()));
+	}
+
 	integer::operator int() const
 	{
 		return invoke(PyLong_AsLong, get());
 	}
 
 	integer::operator unsigned int() const
+	{
+		return invoke(PyLong_AsUnsignedLong, get());
+	}
+
+	integer::operator long() const
+	{
+		return invoke(PyLong_AsLong, get());
+	}
+
+	integer::operator unsigned long() const
 	{
 		return invoke(PyLong_AsUnsignedLong, get());
 	}

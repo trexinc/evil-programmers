@@ -4,6 +4,7 @@
 
 #include "py_tuple.hpp"
 #include "py_type.hpp"
+#include "py_string.hpp"
 
 #include "error_handling.hpp"
 
@@ -65,17 +66,22 @@ namespace py
 
 	object::operator bool() const
 	{
-		return m_Object != nullptr;
+		return !!*this;
 	}
 
 	bool object::operator!() const
 	{
-		return !m_Object;
+		return !m_Object || m_Object == Py_None;
 	}
 
 	PyObject* object::get() const
 	{
 		return m_Object;
+	}
+
+	PyObject* object::release()
+	{
+		return std::exchange(m_Object, nullptr);
 	}
 
 	bool object::has_attribute(const char* Name) const
@@ -142,6 +148,6 @@ namespace py
 	void object::ensure_type(const type& Type) const
 	{
 		if (!check_type(Type))
-			throw MAKE_PYGIN_EXCEPTION(type_name() + " is not a "s + Type.type_name());
+			throw MAKE_PYGIN_EXCEPTION(type_name() + " is not "s + cast<std::string>(Type["__name__"]));
 	}
 }
