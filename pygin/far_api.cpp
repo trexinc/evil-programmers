@@ -2,6 +2,7 @@
 
 #include "far_api.hpp"
 
+#include "py_boolean.hpp"
 #include "py_import.hpp"
 #include "py_integer.hpp"
 #include "py_list.hpp"
@@ -29,14 +30,15 @@ namespace far_api_implementation
 		return far_api::get().psi();
 	}
 
-	static auto string_list_to_vector(const py::list& List)
+	template<typename T, typename converter = decltype(py::cast<T>)>
+	static auto list_to_vector(const py::list& List, const converter& Converter = py::cast<T>)
 	{
 		const auto Size = List.size();
-		std::vector<std::wstring> Result;
+		std::vector<T> Result;
 		Result.reserve(Size);
 		for (size_t i = 0; i != Size; ++i)
 		{
-			Result.push_back(py::cast<std::wstring>(List[i]));
+			Result.emplace_back(Converter(List[i]));
 		}
 		return Result;
 	}
@@ -68,8 +70,8 @@ namespace far_api_implementation
 		const auto Flags = py::cast<FARMESSAGEFLAGS>(Args[2]);
 		const auto HelpTopic = py::cast<std::wstring>(Args[3]);
 		const auto Title = py::cast<std::wstring>(Args[4]);
-		const auto Items = string_list_to_vector(py::cast<py::list>(Args[5]));
-		const auto Buttons = string_list_to_vector(py::cast<py::list>(Args[6]));
+		const auto Items = list_to_vector<std::wstring>(py::cast<py::list>(Args[5]));
+		const auto Buttons = list_to_vector<std::wstring>(py::cast<py::list>(Args[6]));
 
 		std::vector<const wchar_t*> AllItems;
 		AllItems.reserve(1 + Items.size() + Buttons.size());
@@ -78,7 +80,10 @@ namespace far_api_implementation
 		std::transform(Buttons.cbegin(), Buttons.cend(), std::back_inserter(AllItems), [](const auto& i) { return i.data(); });
 
 		const auto Result = psi().Message(&PluginId, &Id, Flags & ~FMSG_ALLINONE, HelpTopic.data(), AllItems.data(), AllItems.size(), Buttons.size());
-		return PyLong_FromSsize_t(Result);
+		if (Result != -1)
+			return py::integer(Result).release();
+
+		Py_RETURN_NONE;
 	}
 
 	static PyObject* InputBox(PyObject* Self, PyObject* RawArgs)
@@ -127,16 +132,7 @@ namespace far_api_implementation
 
 		if (Args[9])
 		{
-			const auto List = py::cast<py::list>(Args[9]);
-			const auto ListSize = List.size();
-
-			OptionalBreakKeys.reserve(ListSize);
-
-			for (size_t i = 0; i != ListSize; ++i)
-			{
-				OptionalBreakKeys.emplace_back(PyFarKeyToFarKey(List[i]));
-			}
-
+			OptionalBreakKeys = list_to_vector<FarKey>(py::cast<py::list>(Args[9]), PyFarKeyToFarKey);
 			BreakKeys = OptionalBreakKeys.data();
 		}
 
@@ -169,7 +165,36 @@ namespace far_api_implementation
 			auto BreakCodeContainer = py::cast<py::list>(Args[10]);
 			BreakCodeContainer[0] = py::integer(BreakCode);
 		}
-		return py::integer(Result).release();
+
+		if (Result != -1)
+			return py::integer(Result).release();
+
+		Py_RETURN_NONE;
+	}
+
+	static PyObject* ShowHelp(PyObject* Self, PyObject* RawArgs)
+	{
+		const auto Args = get_args(RawArgs, 3);
+
+		const auto Flags = py::cast<FARHELPFLAGS>(Args[2]);
+		const auto HelpTopic = py::cast<std::wstring>(Args[1]);
+
+		std::wstring ModuleStr;
+		GUID ModuleGuid;
+		const void* ModulePtr;
+
+		if (Flags & FHELP_GUID)
+		{
+			ModuleGuid = py::cast<UUID>(Args[0]);
+			ModulePtr = &ModuleGuid;
+		}
+		else
+		{
+			ModuleStr = py::cast<std::wstring>(Args[0]);
+			ModulePtr = &ModuleStr;
+		}
+
+		return py::boolean(psi().ShowHelp(static_cast<const wchar_t*>(ModulePtr), HelpTopic.data(), Flags) != FALSE).release();
 	}
 
 	static PyObject* GetUserScreen(PyObject* Self, PyObject* Args)
@@ -195,6 +220,7 @@ namespace far_api_implementation
 		{ FUNC_NAME_VALUE(Message), METH_VARARGS, "Show message" },
 		{ FUNC_NAME_VALUE(InputBox), METH_VARARGS, "Input box" },
 		{ FUNC_NAME_VALUE(Menu), METH_VARARGS, "Menu" },
+		{ FUNC_NAME_VALUE(ShowHelp), METH_VARARGS, "Show help" },
 		{ FUNC_NAME_VALUE(GetUserScreen), METH_NOARGS, "Get user screen" },
 		{ FUNC_NAME_VALUE(SetUserScreen), METH_NOARGS, "Set user screen" },
 

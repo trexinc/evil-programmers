@@ -51,6 +51,7 @@ class HelloWorldPlugin(pygin.PluginBoilerplate):
 				self.far.MenuItem("Do Console Stuff", 0x263A),
 				self.far.MenuItem("Do Input Box (press '7')", 0, self.far.FarKey(ord('7'), 0)),
 				self.far.MenuItem("Do Message", self.far.MenuItemFlags.Checked),
+				self.far.MenuItem("Do Help"),
 			])
 
 		if ItemId == 0:
@@ -114,6 +115,9 @@ class HelloWorldPlugin(pygin.PluginBoilerplate):
 					"ut labore et dolore magna aliqua."
 				],
 				["Left", "Right"])
+
+		elif ItemId == 3:
+			self.far.ShowHelp(self.Guid, "Contents", self.far.HelpFlags.Guid)
 
 		else:
 			pass

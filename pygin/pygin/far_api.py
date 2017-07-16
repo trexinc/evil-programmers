@@ -90,6 +90,22 @@ class MenuFlags(enum.IntFlag):
 def Menu(PluginId, Id, X, Y, MaxHeight, Flags, Title, Bottom, HelpTopic, BreakKeys, BreakCode, Items):
 	return __Menu(PluginId, Id, X, Y, MaxHeight, Flags, Title, Bottom, HelpTopic, BreakKeys, BreakCode, Items)
 
+class HelpFlags(enum.IntFlag):
+	# enum part
+	SelfHelp    = 0
+	FarHelp     = bit(0)
+	CustomFile  = bit(1)
+	CustomPath  = bit(2)
+	Guid        = bit(3)
+
+	#flags part
+	UseContents = bit(30)
+	NoShowError = bit(31)
+
+def ShowHelp(ModuleName, HelpTopic, Flags):
+	return __ShowHelp(ModuleName, HelpTopic, Flags)
+
+
 def GetUserScreen():
 	return __GetUserScreen()
 

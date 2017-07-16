@@ -31,15 +31,11 @@ namespace py
 		if (!PyErr_Occurred())
 			return;
 
-		PyObject* TypePtr, *ValuePtr, *TracebackPtr;
+		PyObject* TypePtr, * ValuePtr, * TracebackPtr;
 		PyErr_Fetch(&TypePtr, &ValuePtr, &TracebackPtr);
-		object Type(TypePtr), Value(ValuePtr), Traceback(TracebackPtr);
+		PyErr_NormalizeException(&TypePtr, &ValuePtr, &TracebackPtr);
 
-		// Seems to be a Python core bug :(
-		if (try_cast<string>(Value))
-		{
-			Value = object(PyExc_Exception)(Value);
-		}
+		object Type(TypePtr), Value(ValuePtr), Traceback(TracebackPtr);
 
 		const auto TracebackModule = import::import("traceback"_py);
 		const auto Formatter = TracebackModule[Traceback? "format_exception" : "format_exception_only"];
