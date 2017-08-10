@@ -15,6 +15,6 @@ namespace py
 		module(cast_guard, const object& Object);
 
 		void add_object(const char* Name, const object& Object);
-		void add_functions(const PyMethodDef* Methods);
+		void add_functions(PyMethodDef* Methods);
 	};
 }

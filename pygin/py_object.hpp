@@ -92,7 +92,6 @@ namespace py
 		}
 
 		static object from_borrowed(PyObject* Object);
-		const char* type_name() const;
 		bool check_type(const type& Type) const;
 		void ensure_type(const type& Type) const;
 

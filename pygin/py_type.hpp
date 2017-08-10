@@ -17,4 +17,6 @@ namespace py
 		type(const object& Object, const char* Name);
 		type(cast_guard, const object& Object);
 	};
+
+	type typeof(const object& Object);
 }

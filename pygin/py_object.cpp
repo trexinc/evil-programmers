@@ -135,11 +135,6 @@ namespace py
 		return object(Object);
 	}
 
-	const char* object::type_name() const
-	{
-		return *this? get()->ob_type->tp_name : "nullptr";
-	}
-
 	bool object::check_type(const type& Type) const
 	{
 		return py::invoke(PyObject_IsInstance, get(), Type.get()) != 0 || (*this && Type && get()->ob_type == Type.get()->ob_type);
@@ -148,6 +143,9 @@ namespace py
 	void object::ensure_type(const type& Type) const
 	{
 		if (!check_type(Type))
-			throw MAKE_PYGIN_EXCEPTION(type_name() + " is not "s + cast<std::string>(Type["__name__"]));
+		{
+			const auto ThisTypeName = *this? cast<std::string>(typeof(*this)["__name__"]) : "None"s;
+			throw MAKE_PYGIN_EXCEPTION(ThisTypeName + " is not "s + cast<std::string>(Type["__name__"]));
+		}
 	}
 }

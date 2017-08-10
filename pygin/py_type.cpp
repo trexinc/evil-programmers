@@ -27,4 +27,9 @@ namespace py
 		type(cast<type>(Object[Name]))
 	{
 	}
+
+	type typeof(const object& Object)
+	{
+		return type(cast_guard{}, Object);
+	}
 }

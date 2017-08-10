@@ -1,6 +1,8 @@
 #pragma once
 
-//#define USE_RELEASE_PYTHON_DLL
+#ifndef _DEBUG
+#define Py_LIMITED_API
+#endif
 
 #ifdef USE_RELEASE_PYTHON_DLL
 #pragma push_macro("_DEBUG")

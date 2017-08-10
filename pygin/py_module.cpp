@@ -35,8 +35,16 @@ namespace py
 		py::invoke(PyModule_AddObject, get(), Name, Object.get());
 	}
 
-	void module::add_functions(const PyMethodDef* Methods)
+	void module::add_functions(PyMethodDef* Methods)
 	{
-		py::invoke(PyModule_AddFunctions, get(), const_cast<PyMethodDef*>(Methods));
+		// Not available with Py_LIMITED_API
+		// py::invoke(PyModule_AddFunctions, get(), Methods);
+
+		const auto Name = get_attribute("__name__");
+		for(auto Method = Methods; Method->ml_name; ++Method)
+		{
+			object Function(py::invoke(PyCFunction_NewEx, Method, get(), Name.get()));
+			set_attribute(Method->ml_name, Function);
+		}
 	}
 }
