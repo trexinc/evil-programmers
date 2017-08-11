@@ -2,7 +2,7 @@ import sys
 import os
 import tempfile
 
-class Logger(object):
+class Logger:
 	def __init__(self):
 		self.terminal = sys.stdout
 		self.logfile = os.path.join(tempfile.gettempdir(), "pygin.log")

@@ -10,9 +10,9 @@ namespace py
 {
 	const type& boolean::get_type()
 	{
-		return types_cache::get_type(types::boolean, []()
+		return types_cache::get_type(types::boolean, []
 		{
-			return type(cast_guard{}, boolean(false));
+			return type(boolean(false));
 		});
 	}
 

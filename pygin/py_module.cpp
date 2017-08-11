@@ -16,11 +16,11 @@ namespace py
 {
 	const type& module::get_type()
 	{
-		return types_cache::get_type(types::module, []()
+		return types_cache::get_type(types::module, []
 		{
 			const auto ModulesDict = cast<dictionary>(sys::get_object("modules"));
 			using namespace literals;
-			return type(cast_guard{}, ModulesDict.get_at("sys"_py));
+			return type(ModulesDict.get_at("sys"_py));
 		});
 	}
 

@@ -2,37 +2,132 @@
 
 import uuid
 import enum
+from enum import unique
 
 NullUuid = uuid.UUID("{00000000-0000-0000-0000-000000000000}")
 
-class PluginInfo(object):
+def bit(n):
+	return 1 << n
+
+@unique
+class PluginFlags(enum.IntFlag):
+	Default        = 0
+	Preload        = bit(0)
+	DisablePanels  = bit(1)
+	Editor         = bit(2)
+	Viewer         = bit(3)
+	FullCmdLine    = bit(4)
+	Dialog         = bit(5)
+
+class PluginInfo:
 	def __init__(self):
+		self.Flags = PluginFlags.Default
 		# [(string, UUID), ...]
 		self.DiskMenuItems = []
 		self.PluginMenuItems = []
 		self.PluginConfigItems = []
+		self.CommandPrefix = ""
 
-class OpenInfo(object):
+@unique
+class OpenFrom(enum.IntEnum):
+	Unknown       = -1
+	LeftDiskMenu  = 0
+	PluginsMenu   = 1
+	FindList      = 2
+	Shortcut      = 3
+	CommandLine   = 4
+	Editor        = 5
+	Viewer        = 6
+	Filepanel     = 7
+	Dialog        = 8
+	Analyse       = 9
+	RightDiskMenu = 10
+	FromMacro     = 11
+	LuaMacro      = 100
+
+class OpenCommandLineInfo:
+	def __init__(self):
+		self.CommandLine = ""
+
+@unique
+class FarMacroVarType(enum.IntEnum):
+	Unknown = 0
+	Integer = 1
+	String  = 2
+	Double  = 3
+	Boolean = 4
+	Binary  = 5
+	Pointer = 6
+	Nil     = 7
+	Array   = 8
+	Panel   = 9
+
+class FarMacroValue:
+	def __init__(self):
+		self.Type = FarMacroVarType.Unknown
+		self.Value = None
+
+class OpenMacroInfo:
+	def __init__(self):
+		# [FarMacroValue, ...]
+		self.Values = []
+
+@unique
+class OperationModes(enum.IntFlag):
+	Default   = 0
+	Silent    = bit(0)
+	Find      = bit(1)
+	View      = bit(2)
+	Edit      = bit(3)
+	TopLevel  = bit(4)
+	Descr     = bit(5)
+	QuickView = bit(6)
+	PgDn      = bit(7)
+	Commands  = bit(8)
+
+class AnalyseInfo:
+	def __init__(self):
+		self.FileName = ""
+		self.Buffer = bytes()
+		self.OpMode = OperationModes.Default
+
+@unique
+class OpenShortcutFlags(enum.IntFlag):
+	Default = 0
+	Active  = bit(0)
+
+class OpenShortcutInfo:
+	def __init__(self):
+		self.HostFile = ""
+		self.ShortcutData = ""
+		self.Flags = OpenShortcutFlags.Default
+
+class OpenDlgPluginData:
+	def __init__(self):
+		self.Dialog = 0
+
+class OpenInfo:
+	def __init__(self):
+		self.OpenFrom = OpenFrom.Unknown
+		self.Guid = NullUuid
+		self.Data = None
+		pass
+
+class ConfigureInfo:
 	def __init__(self):
 		self.Guid = NullUuid
 		pass
 
-class ConfigureInfo(object):
-	def __init__(self):
-		self.Guid = NullUuid
-		pass
-
-class ExitInfo(object):
+class ExitInfo:
 	def __init__(self):
 		pass
 
 def GetMsg(PluginId, MsgId):
 	return __GetMsg(PluginId, MsgId)
 
-def bit(n):
-	return 1 << n
-
+@unique
 class MessageFlags(enum.IntFlag):
+	Default                = 0
 	Warning                = bit(0)
 	ErrorType              = bit(1)
 	KeepBackground         = bit(2)
@@ -47,7 +142,9 @@ class MessageFlags(enum.IntFlag):
 def Message(PluginId, Id, Flags, HelpTopic, Title, Items, Buttons):
 	return __Message(PluginId, Id, Flags, HelpTopic, Title, Items, Buttons)
 
+@unique
 class InputBoxFlags(enum.IntFlag):
+	Default          = 0
 	EnableEmpty      = bit(0)
 	Password         = bit(1)
 	ExpandEnv        = bit(2)
@@ -60,7 +157,9 @@ class InputBoxFlags(enum.IntFlag):
 def InputBox(PluginId, Id, Title, SubTitle, HistoryName, SrcText, DestSize, HelpTopic, Flags):
 	return __InputBox(PluginId, Id, Title, SubTitle, HistoryName, SrcText, DestSize, HelpTopic, Flags)
 
+@unique
 class MenuItemFlags(enum.IntFlag):
+	Default    = 0
 	Selected   = bit(16)
 	Checked    = bit(17)
 	Separator  = bit(18)
@@ -80,7 +179,9 @@ class MenuItem:
 		self.AccelKey = AccelKey
 		self.UserData = UserData
 
+@unique
 class MenuFlags(enum.IntFlag):
+	Default              = 0
 	ShowAmpersand        = bit(0)
 	WrapMode             = bit(1)
 	Autohighlight        = bit(2)
@@ -90,6 +191,7 @@ class MenuFlags(enum.IntFlag):
 def Menu(PluginId, Id, X, Y, MaxHeight, Flags, Title, Bottom, HelpTopic, BreakKeys, BreakCode, Items):
 	return __Menu(PluginId, Id, X, Y, MaxHeight, Flags, Title, Bottom, HelpTopic, BreakKeys, BreakCode, Items)
 
+@unique
 class HelpFlags(enum.IntFlag):
 	# enum part
 	SelfHelp    = 0

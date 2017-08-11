@@ -3,10 +3,12 @@ import enum
 
 import pygin
 
-class lng(enum.IntFlag):
-	PluginMenuItem                     = 0
-	PluginConfigItem                   = 1
-	TheMessage                         = 2
+@enum.unique
+class lng(enum.IntEnum):
+	PluginMenuItem     = 0
+	PluginDiskMenuItem = 1
+	PluginConfigItem   = 2
+	TheMessage         = 3
 
 
 class HelloWorldPlugin(pygin.PluginBoilerplate):
@@ -20,16 +22,36 @@ class HelloWorldPlugin(pygin.PluginBoilerplate):
 
 	def GetPluginInfoW(self):
 		info = self.far.PluginInfo()
+
+		PluginFlags = self.far.PluginFlags
+		info.Flags = PluginFlags.Editor | PluginFlags.Viewer | PluginFlags.Dialog | PluginFlags.FullCmdLine
+
 		info.PluginMenuItems = [
 			(self.Msg(lng.PluginMenuItem), uuid.UUID("{DAF1257B-E011-4B5A-B5DC-732581BDF3BA}"))
+		]
+
+		info.DiskMenuItems = [
+			(self.Msg(lng.PluginDiskMenuItem), uuid.UUID("{E1F617A7-A5EE-4672-8108-12500E4B9008}"))
 		]
 
 		info.PluginConfigItems = [
 			(self.Msg(lng.PluginConfigItem), uuid.UUID("{BD5CD4D2-E12E-40B9-876E-C0047CF2CF38}"))
 		]
+
+		info.CommandPrefix = "hi";
+
 		return info
 
 	def OpenW(self, info):
+		if info.OpenFrom == info.OpenFrom.FromMacro:
+			self.far.GetUserScreen()
+			try:
+				for value in info.Data.Values:
+					print(value.Type.name, ": ", value.Value)
+			finally:
+				self.far.SetUserScreen()
+			return None
+
 		BreakCode = [0]
 		ItemId = self.far.Menu(
 			self.Guid,
@@ -38,7 +60,7 @@ class HelloWorldPlugin(pygin.PluginBoilerplate):
 			-1,
 			0,
 			self.far.MenuFlags.WrapMode,
-			"Look, it's a menu!",
+			"Look, it's a menu! (opened from " + info.OpenFrom.name + ((": " + info.Data.CommandLine) if info.OpenFrom == info.OpenFrom.CommandLine else "") + ")",
 			"A, B, C work as Enter",
 			"MenuTopic",
 			[

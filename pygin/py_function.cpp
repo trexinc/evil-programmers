@@ -12,9 +12,9 @@ namespace py
 {
 	const type& function::get_type()
 	{
-		return types_cache::get_type(types::function, []()
+		return types_cache::get_type(types::function, []
 		{
-			return type(cast_guard{}, import::import("pygin").get_attribute("load_plugin"));
+			return type(import::import("pygin").get_attribute("load_plugin"));
 		});
 	}
 

@@ -283,7 +283,7 @@ const py::object& far_api::module()
 
 py::type far_api::type(const std::string& TypeName)
 {
-	return py::cast<py::type>(s_FarApi->m_Module[TypeName.data()]);
+	return py::type(s_FarApi->m_Module[TypeName.data()]);
 }
 
 void far_api::uninitialise()

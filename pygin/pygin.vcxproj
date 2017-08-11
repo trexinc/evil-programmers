@@ -103,7 +103,9 @@
     <ClInclude Include="pygin.hpp" />
     <ClInclude Include="python.hpp" />
     <ClInclude Include="py_boolean.hpp" />
+    <ClInclude Include="py_bytes.hpp" />
     <ClInclude Include="py_common.hpp" />
+    <ClInclude Include="py_floating.hpp" />
     <ClInclude Include="py_function.hpp" />
     <ClInclude Include="py_integer.hpp" />
     <ClInclude Include="py_module.hpp" />
@@ -129,6 +131,8 @@
     <ClCompile Include="pygin.cpp" />
     <ClCompile Include="pygin_interface.cpp" />
     <ClCompile Include="py_boolean.cpp" />
+    <ClCompile Include="py_bytes.cpp" />
+    <ClCompile Include="py_floating.cpp" />
     <ClCompile Include="py_function.cpp" />
     <ClCompile Include="py_integer.cpp" />
     <ClCompile Include="py_module.cpp" />

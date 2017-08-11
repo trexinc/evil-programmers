@@ -27,7 +27,7 @@ namespace py
 		}
 
 		exception::exception(const char* Name):
-			type(cast<type>(object(invoke(PyErr_NewException, Name, nullptr, nullptr))))
+			type(object(invoke(PyErr_NewException, Name, nullptr, nullptr)))
 		{
 		}
 	}

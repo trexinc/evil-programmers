@@ -11,7 +11,9 @@ namespace py
 enum class types
 {
 	boolean,
+	bytes,
 	dictionary,
+	floating,
 	function,
 	integer,
 	list,

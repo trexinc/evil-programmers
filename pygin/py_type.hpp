@@ -14,9 +14,6 @@ namespace py
 		static const type& get_type();
 
 		type() = default;
-		type(const object& Object, const char* Name);
-		type(cast_guard, const object& Object);
+		explicit type(const object& Object);
 	};
-
-	type typeof(const object& Object);
 }

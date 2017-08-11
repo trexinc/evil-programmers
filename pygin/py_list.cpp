@@ -12,9 +12,9 @@ namespace py
 {
 	const type& list::get_type()
 	{
-		return types_cache::get_type(types::list, []()
+		return types_cache::get_type(types::list, []
 		{
-			return type(cast_guard{}, list(0));
+			return type(list(0));
 		});
 	}
 

@@ -13,9 +13,9 @@ namespace py
 {
 	const type& dictionary::get_type()
 	{
-		return types_cache::get_type(types::dictionary, []()
+		return types_cache::get_type(types::dictionary, []
 		{
-			return type(cast_guard{}, dictionary());
+			return type(dictionary());
 		});
 	}
 

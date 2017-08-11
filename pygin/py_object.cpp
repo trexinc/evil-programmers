@@ -144,7 +144,7 @@ namespace py
 	{
 		if (!check_type(Type))
 		{
-			const auto ThisTypeName = *this? cast<std::string>(typeof(*this)["__name__"]) : "None"s;
+			const auto ThisTypeName = *this? cast<std::string>(type(*this)["__name__"]) : "None"s;
 			throw MAKE_PYGIN_EXCEPTION(ThisTypeName + " is not "s + cast<std::string>(Type["__name__"]));
 		}
 	}

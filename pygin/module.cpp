@@ -4,12 +4,15 @@
 
 #include "py_boolean.hpp"
 #include "py_common.hpp"
+#include "py_floating.hpp"
 #include "py_list.hpp"
 #include "py_string.hpp"
 #include "py_tuple.hpp"
 #include "py_uuid.hpp"
 
 #include "far_api.hpp"
+#include "py_integer.hpp"
+#include "py_bytes.hpp"
 
 using namespace py::literals;
 
@@ -129,6 +132,8 @@ void module::GetPluginInfoW(PluginInfo* Info)
 	const auto PyInfo = call(STR(GetPluginInfoW));
 	PyInfo.ensure_type(PluginInfoType);
 
+	Info->Flags = py::cast<unsigned long long>(PyInfo["Flags"]);
+
 	const auto& ConvertPluginMenuItem = [&](const char* Kind, menu_items& MenuItems, PluginMenuItem& Destination)
 	{
 		const auto ItemsList = py::cast<py::list>(PyInfo[Kind]);
@@ -163,7 +168,8 @@ void module::GetPluginInfoW(PluginInfo* Info)
 	ConvertPluginMenuItem("DiskMenuItems", m_DiskMenuItems, Info->DiskMenu);
 	ConvertPluginMenuItem("PluginConfigItems", m_PluginConfigItems, Info->PluginConfig);
 
-	Info->Flags |= PF_PRELOAD;
+	m_CommandPrefix = py::cast<std::wstring>(PyInfo["CommandPrefix"]);
+	Info->CommandPrefix = m_CommandPrefix.data();
 }
 
 intptr_t module::MakeDirectoryW(MakeDirectoryInfo* Info)
@@ -171,11 +177,122 @@ intptr_t module::MakeDirectoryW(MakeDirectoryInfo* Info)
 	return 0;
 }
 
+static py::list ConvertValues(const FarMacroValue* Value, size_t Size);
+
+static py::object ConvertValue(const FarMacroValue* Value)
+{
+	auto FarMacroValueInstance = far_api::type("FarMacroValue")();
+
+	const auto& Convert = [&]() -> py::object
+	{
+		switch (Value->Type)
+		{
+		case FMVT_UNKNOWN:
+			return 0_py;
+
+		case FMVT_INTEGER:
+			return py::integer(Value->Integer);
+
+		case FMVT_STRING:
+			return py::string(Value->String);
+
+		case FMVT_DOUBLE:
+			return py::floating(Value->Double);
+
+		case FMVT_BOOLEAN:
+			return py::boolean(Value->Boolean != 0);
+
+		case FMVT_BINARY:
+			return py::bytes(Value->Binary.Data, Value->Binary.Size);
+
+		case FMVT_POINTER:
+			return py::integer(reinterpret_cast<uintptr_t>(Value->Pointer));
+
+		case FMVT_NIL:
+			return {};
+
+		case FMVT_ARRAY:
+			return ConvertValues(Value->Array.Values, Value->Array.Count);
+
+		case FMVT_PANEL:
+			return py::integer(reinterpret_cast<uintptr_t>(Value->Pointer));
+
+		default:
+			return {};
+		}
+	};
+
+	FarMacroValueInstance["Type"] = far_api::type("FarMacroVarType")(py::integer(Value->Type));
+	FarMacroValueInstance["Value"] = Convert();
+	return FarMacroValueInstance;
+}
+
+static py::list ConvertValues(const FarMacroValue* Value, size_t Size)
+{
+	py::list List(0);
+	for (auto Iterator = Value, End = Value + Size; Iterator != End; ++Iterator)
+	{
+		List.push_back(ConvertValue(Iterator));
+	}
+	return List;
+}
+
 HANDLE module::OpenW(const OpenInfo* Info)
 {
 	auto OpenInfoInstance = far_api::type("OpenInfo"s)();
 
+	OpenInfoInstance["OpenFrom"] = far_api::type("OpenFrom"s)(py::integer(Info->OpenFrom));
 	OpenInfoInstance["Guid"] = py::uuid(*Info->Guid);
+
+	switch(Info->OpenFrom)
+	{
+	case OPEN_SHORTCUT:
+		{
+			const auto Data = reinterpret_cast<const OpenShortcutInfo*>(Info->Data);
+			auto OpenShortcutInfoInstance = far_api::type("OpenShortcutInfo")();
+			OpenShortcutInfoInstance["HostFile"] = py::string(Data->HostFile);
+			OpenShortcutInfoInstance["ShortcutData"] = py::string(Data->ShortcutData);
+			OpenShortcutInfoInstance["Flags"] = far_api::type("OpenShortcutFlags")(py::integer(Data->Flags));
+			OpenInfoInstance["Data"] = OpenShortcutInfoInstance;
+		}
+		break;
+
+	case OPEN_COMMANDLINE:
+		{
+			const auto Data = reinterpret_cast<const OpenCommandLineInfo*>(Info->Data);
+			auto OpenCommandLineInfoInstance = far_api::type("OpenCommandLineInfo")();
+			OpenCommandLineInfoInstance["CommandLine"] = py::string(Data->CommandLine);
+			OpenInfoInstance["Data"] = OpenCommandLineInfoInstance;
+		}
+		break;
+
+	case OPEN_DIALOG:
+		// OpenDlgPluginData
+		break;
+
+	case OPEN_ANALYSE:
+		{
+			const auto Data = reinterpret_cast<const AnalyseInfo*>(Info->Data);
+			auto AnalyseInfoInstance = far_api::type("AnalyseInfo")();
+			AnalyseInfoInstance["FileName"] = py::string(Data->FileName);
+			AnalyseInfoInstance["Buffer"] = py::bytes(Data->Buffer, Data->BufferSize);
+			AnalyseInfoInstance["OpMode"] = far_api::type("OperationModes")(py::integer(Data->OpMode));
+			OpenInfoInstance["Data"] = AnalyseInfoInstance;
+		}
+		break;
+
+	case OPEN_FROMMACRO:
+		{
+			const auto Data = reinterpret_cast<const OpenMacroInfo*>(Info->Data);
+			auto OpenMacroInfoInstance = far_api::type("OpenMacroInfo")();
+			OpenMacroInfoInstance["Values"] = ConvertValues(Data->Values, Data->Count);
+			OpenInfoInstance["Data"] = OpenMacroInfoInstance;
+		}
+		break;
+
+	default:
+		break;
+	}
 
 	const auto Result = call(STR(OpenW), OpenInfoInstance);
 

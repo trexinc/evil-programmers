@@ -67,4 +67,6 @@ private:
 	menu_items m_PluginMenuItems;
 	menu_items m_DiskMenuItems;
 	menu_items m_PluginConfigItems;
+
+	std::wstring m_CommandPrefix;
 };

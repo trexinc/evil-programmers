@@ -44,9 +44,9 @@ namespace py
 {
 	const type& uuid::get_type()
 	{
-		return types_cache::get_type(types::uuid, []()
+		return types_cache::get_type(types::uuid, []
 		{
-			return type(cast_guard{}, uuid(UUID{}));
+			return type(uuid(UUID{}));
 		});
 	}
 

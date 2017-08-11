@@ -12,9 +12,9 @@ namespace py
 {
 	const type& tuple::get_type()
 	{
-		return types_cache::get_type(types::tuple, []()
+		return types_cache::get_type(types::tuple, []
 		{
-			return type(cast_guard{}, tuple(0u));
+			return type(tuple(0u));
 		});
 	}
 

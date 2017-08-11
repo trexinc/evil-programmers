@@ -12,9 +12,9 @@ namespace py
 {
 	const type& string::get_type()
 	{
-		return types_cache::get_type(types::string, []()
+		return types_cache::get_type(types::string, []
 		{
-			return type(cast_guard{}, string(static_cast<const char*>(nullptr), 0));
+			return type(string(static_cast<const char*>(nullptr), 0));
 		});
 	}
 
