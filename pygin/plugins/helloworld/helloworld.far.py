@@ -47,7 +47,7 @@ class HelloWorldPlugin(pygin.PluginBoilerplate):
 			self.far.GetUserScreen()
 			try:
 				for value in info.Data.Values:
-					print(value.Type.name, ": ", value.Value)
+					print(value.Type.name, ": ", value.Value, sep="")
 			finally:
 				self.far.SetUserScreen()
 			return None

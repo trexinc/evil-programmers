@@ -267,7 +267,12 @@ HANDLE module::OpenW(const OpenInfo* Info)
 		break;
 
 	case OPEN_DIALOG:
-		// OpenDlgPluginData
+		{
+			const auto Data = reinterpret_cast<const OpenDlgPluginData*>(Info->Data);
+			auto OpenDlgPluginDataInstance = far_api::type("OpenDlgPluginData")();
+			OpenDlgPluginDataInstance["Dialog"] = py::integer(reinterpret_cast<uintptr_t>(Data->hDlg));
+			OpenInfoInstance["Data"] = OpenDlgPluginDataInstance;
+		}
 		break;
 
 	case OPEN_ANALYSE:
