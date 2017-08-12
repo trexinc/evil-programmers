@@ -1,8 +1,8 @@
 #include "headers.hpp"
 
-BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
+BOOL APIENTRY DllMain(HMODULE Module, DWORD Reason, LPVOID Reserved)
 {
-	switch (ul_reason_for_call)
+	switch (Reason)
 	{
 	case DLL_PROCESS_ATTACH:
 	case DLL_THREAD_ATTACH:

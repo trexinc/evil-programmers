@@ -2,9 +2,9 @@
 
 #include "py_object.hpp"
 
+#include "py_string.hpp"
 #include "py_tuple.hpp"
 #include "py_type.hpp"
-#include "py_string.hpp"
 
 #include "error_handling.hpp"
 

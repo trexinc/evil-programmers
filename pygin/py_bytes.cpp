@@ -7,7 +7,6 @@
 #include "types_cache.hpp"
 
 #include "python.hpp"
-#include "py_floating.hpp"
 
 namespace py
 {

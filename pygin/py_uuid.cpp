@@ -2,13 +2,15 @@
 
 #include "py_uuid.hpp"
 
-#include "py_common.hpp"
 #include "py_import.hpp"
 #include "py_string.hpp"
 #include "py_type.hpp"
 
-#include "error_handling.hpp"
+#include "py_common.hpp"
+
 #include "types_cache.hpp"
+
+#include "error_handling.hpp"
 
 #include "python.hpp"
 

@@ -2,8 +2,9 @@
 
 #include "py_dictionary.hpp"
 
-#include "py_common.hpp"
 #include "py_integer.hpp"
+
+#include "py_common.hpp"
 
 #include "types_cache.hpp"
 
