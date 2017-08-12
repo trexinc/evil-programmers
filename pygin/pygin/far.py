@@ -5,11 +5,13 @@ import uuid
 import enum
 from enum import unique
 
-def dynamic_call(Name):
-	try:
-		return getattr(sys.modules[__name__], "__" + Name)
-	except AttributeError as e:
-		raise NameError("'{0}' cannot be called before plugin is loaded".format(Name))
+def dynamic(function):
+	def function_wrapper(*args):
+		try:
+			return getattr(sys.modules[__name__], "__" + function.__name__)(*args)
+		except AttributeError as e:
+			raise NameError("'{0}' cannot be called before plugin is loaded".format(function.__name__))
+	return function_wrapper
 
 def bit(n):
 	return 1 << n
@@ -144,8 +146,8 @@ class ExitInfo:
 	def __init__(self):
 		pass
 
-def GetMsg(PluginId, MsgId):
-	return dynamic_call("GetMsg")(PluginId, MsgId)
+@dynamic
+def GetMsg(PluginId, MsgId): pass
 
 @unique
 class MessageFlags(enum.IntFlag):
@@ -161,8 +163,8 @@ class MessageFlags(enum.IntFlag):
 	ButtonYesNoCancel      = bit(16) * 5
 	ButtonRetryCancel      = bit(16) * 6
 
-def Message(PluginId, Id, Flags, HelpTopic, Title, Items, Buttons):
-	return dynamic_call("Message")(PluginId, Id, Flags, HelpTopic, Title, Items, Buttons)
+@dynamic
+def Message(PluginId, Id, Flags, HelpTopic, Title, Items, Buttons): pass
 
 @unique
 class InputBoxFlags(enum.IntFlag):
@@ -176,8 +178,8 @@ class InputBoxFlags(enum.IntFlag):
 	EditPath         = bit(6)
 	EditPathExec     = bit(7)
 
-def InputBox(PluginId, Id, Title, SubTitle, HistoryName, SrcText, DestSize, HelpTopic, Flags):
-	return dynamic_call("InputBox")(PluginId, Id, Title, SubTitle, HistoryName, SrcText, DestSize, HelpTopic, Flags)
+@dynamic
+def InputBox(PluginId, Id, Title, SubTitle, HistoryName, SrcText, DestSize, HelpTopic, Flags): pass
 
 @unique
 class MenuItemFlags(enum.IntFlag):
@@ -210,8 +212,8 @@ class MenuFlags(enum.IntFlag):
 	ReverseAutohighlight = bit(3)
 	ChangeConsoleTitle   = bit(4)
 
-def Menu(PluginId, Id, X, Y, MaxHeight, Flags, Title, Bottom, HelpTopic, BreakKeys, BreakCode, Items):
-	return dynamic_call("Menu")(PluginId, Id, X, Y, MaxHeight, Flags, Title, Bottom, HelpTopic, BreakKeys, BreakCode, Items)
+@dynamic
+def Menu(PluginId, Id, X, Y, MaxHeight, Flags, Title, Bottom, HelpTopic, BreakKeys, BreakCode, Items): pass
 
 @unique
 class HelpFlags(enum.IntFlag):
@@ -226,12 +228,11 @@ class HelpFlags(enum.IntFlag):
 	UseContents = bit(30)
 	NoShowError = bit(31)
 
-def ShowHelp(ModuleName, HelpTopic, Flags):
-	return dynamic_call("ShowHelp")(ModuleName, HelpTopic, Flags)
+@dynamic
+def ShowHelp(ModuleName, HelpTopic, Flags): pass
 
+@dynamic
+def GetUserScreen(): pass
 
-def GetUserScreen():
-	return dynamic_call("GetUserScreen")()
-
-def SetUserScreen():
-	return dynamic_call("SetUserScreen")()
+@dynamic
+def SetUserScreen(): pass
