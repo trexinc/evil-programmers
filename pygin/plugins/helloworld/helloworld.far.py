@@ -19,9 +19,6 @@ class HelloWorldPlugin(pygin.PluginBoilerplate):
 	Guid = uuid.UUID("{31A0D11E-B9D8-4A9B-88C7-2D2983802C51}")
 	Version = far.VersionInfo(1, 0, 0, 1, far.VersionStage.Alpha)
 
-	def __init__(self):
-		super().__init__()
-
 	def GetPluginInfoW(self):
 		info = far.PluginInfo()
 

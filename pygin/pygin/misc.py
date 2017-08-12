@@ -1,8 +1,5 @@
 import pygin
 
 class PluginBoilerplate:
-	def __init__(self):
-		pass
-
-	def Msg(self, Id):
+	def Msg(self, Id: int) -> str:
 		return pygin.far.GetMsg(self.Guid, Id)

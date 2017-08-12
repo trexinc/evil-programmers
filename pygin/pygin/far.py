@@ -4,6 +4,7 @@ import sys
 import uuid
 import enum
 from enum import unique
+from typing import *
 
 def dynamic(function):
 	def function_wrapper(*args):
@@ -13,7 +14,7 @@ def dynamic(function):
 			raise NameError("'{0}' cannot be called before plugin is loaded".format(function.__name__))
 	return function_wrapper
 
-def bit(n):
+def bit(n: int) -> int:
 	return 1 << n
 
 NullUuid = uuid.UUID("{00000000-0000-0000-0000-000000000000}")
@@ -26,7 +27,7 @@ class VersionStage(enum.IntEnum):
 	RC      = 3
 
 class VersionInfo:
-	def __init__(self, Major, Minor, Revision, Build, Stage):
+	def __init__(self, Major: int, Minor: int, Revision: int, Build: int, Stage: VersionStage):
 		self.Major = Major
 		self.Minor = Minor
 		self.Revision = Revision
@@ -147,7 +148,7 @@ class ExitInfo:
 		pass
 
 @dynamic
-def GetMsg(PluginId, MsgId): pass
+def GetMsg(PluginId: uuid, MsgId: int) -> str: pass
 
 @unique
 class MessageFlags(enum.IntFlag):
@@ -164,7 +165,7 @@ class MessageFlags(enum.IntFlag):
 	ButtonRetryCancel      = bit(16) * 6
 
 @dynamic
-def Message(PluginId, Id, Flags, HelpTopic, Title, Items, Buttons): pass
+def Message(PluginId: uuid, Id: uuid, Flags: MessageFlags, HelpTopic: str, Title: str, Items: list, Buttons: list) -> Union[int, None]: pass
 
 @unique
 class InputBoxFlags(enum.IntFlag):
@@ -179,7 +180,7 @@ class InputBoxFlags(enum.IntFlag):
 	EditPathExec     = bit(7)
 
 @dynamic
-def InputBox(PluginId, Id, Title, SubTitle, HistoryName, SrcText, DestSize, HelpTopic, Flags): pass
+def InputBox(PluginId: uuid, Id: uuid, Title: str, SubTitle: str, HistoryName: str, SrcText: str, DestSize: int, HelpTopic: str, Flags: InputBoxFlags) -> Union[str, None]: pass
 
 @unique
 class MenuItemFlags(enum.IntFlag):
@@ -192,12 +193,12 @@ class MenuItemFlags(enum.IntFlag):
 	Hidden     = bit(21)
 
 class FarKey:
-	def __init__(self, VirtualKeyCode, ControlKeyState):
+	def __init__(self, VirtualKeyCode: int, ControlKeyState: int):
 		self.VirtualKeyCode = VirtualKeyCode
 		self.ControlKeyState = ControlKeyState
 
 class MenuItem:
-	def __init__(self, Text, Flags = 0, AccelKey = None, UserData = 0):
+	def __init__(self, Text: str, Flags: MenuItemFlags = 0, AccelKey: FarKey = None, UserData: int = 0):
 		self.Text = Text
 		self.Flags = Flags
 		self.AccelKey = AccelKey
@@ -213,7 +214,7 @@ class MenuFlags(enum.IntFlag):
 	ChangeConsoleTitle   = bit(4)
 
 @dynamic
-def Menu(PluginId, Id, X, Y, MaxHeight, Flags, Title, Bottom, HelpTopic, BreakKeys, BreakCode, Items): pass
+def Menu(PluginId: uuid, Id: uuid, X: int, Y: int, MaxHeight: int, Flags: MenuFlags, Title: str, Bottom: str, HelpTopic: str, BreakKeys: list, BreakCode, Items: list) -> Union[int, None]: pass
 
 @unique
 class HelpFlags(enum.IntFlag):
@@ -229,7 +230,7 @@ class HelpFlags(enum.IntFlag):
 	NoShowError = bit(31)
 
 @dynamic
-def ShowHelp(ModuleName, HelpTopic, Flags): pass
+def ShowHelp(ModuleName: str, HelpTopic: str, Flags: HelpFlags) -> bool: pass
 
 @dynamic
 def GetUserScreen(): pass
