@@ -2,6 +2,7 @@ import uuid
 import enum
 
 import pygin
+from pygin import far
 
 @enum.unique
 class lng(enum.IntEnum):
@@ -16,15 +17,15 @@ class HelloWorldPlugin(pygin.PluginBoilerplate):
 	Author = "Far group"
 	Description = "Python plugin very basic example"
 	Guid = uuid.UUID("{31A0D11E-B9D8-4A9B-88C7-2D2983802C51}")
+	Version = far.VersionInfo(1, 0, 0, 1, far.VersionStage.Alpha)
 
-	def __init__(self, far):
-		super().__init__(far)
+	def __init__(self):
+		super().__init__()
 
 	def GetPluginInfoW(self):
-		info = self.far.PluginInfo()
+		info = far.PluginInfo()
 
-		PluginFlags = self.far.PluginFlags
-		info.Flags = PluginFlags.Editor | PluginFlags.Viewer | PluginFlags.Dialog | PluginFlags.FullCmdLine
+		info.Flags = far.PluginFlags.Editor | far.PluginFlags.Viewer | far.PluginFlags.Dialog | far.PluginFlags.FullCmdLine
 
 		info.PluginMenuItems = [
 			(self.Msg(lng.PluginMenuItem), uuid.UUID("{DAF1257B-E011-4B5A-B5DC-732581BDF3BA}"))
@@ -44,40 +45,40 @@ class HelloWorldPlugin(pygin.PluginBoilerplate):
 
 	def OpenW(self, info):
 		if info.OpenFrom == info.OpenFrom.FromMacro:
-			self.far.GetUserScreen()
+			far.GetUserScreen()
 			try:
 				for value in info.Data.Values:
 					print(value.Type.name, ": ", value.Value, sep="")
 			finally:
-				self.far.SetUserScreen()
+				far.SetUserScreen()
 			return None
 
 		BreakCode = [0]
-		ItemId = self.far.Menu(
+		ItemId = far.Menu(
 			self.Guid,
 			uuid.UUID("{F86FD79D-21A7-4CCA-BD37-D2151AE5DA4E}"),
 			-1,
 			-1,
 			0,
-			self.far.MenuFlags.WrapMode,
+			far.MenuFlags.WrapMode,
 			"Look, it's a menu! (opened from " + info.OpenFrom.name + ((": " + info.Data.CommandLine) if info.OpenFrom == info.OpenFrom.CommandLine else "") + ")",
 			"A, B, C work as Enter",
 			"MenuTopic",
 			[
-				self.far.FarKey(ord('A'), 0),
-				self.far.FarKey(ord('B'), 0),
-				self.far.FarKey(ord('C'), 0),
+				far.FarKey(ord('A'), 0),
+				far.FarKey(ord('B'), 0),
+				far.FarKey(ord('C'), 0),
 			],
 			BreakCode,
 			[
-				self.far.MenuItem("Do Console Stuff", 0x263A),
-				self.far.MenuItem("Do Input Box (press '7')", 0, self.far.FarKey(ord('7'), 0)),
-				self.far.MenuItem("Do Message", self.far.MenuItemFlags.Checked),
-				self.far.MenuItem("Do Help"),
+				far.MenuItem("Do Console Stuff", 0x263A),
+				far.MenuItem("Do Input Box (press '7')", 0, far.FarKey(ord('7'), 0)),
+				far.MenuItem("Do Message", far.MenuItemFlags.Checked),
+				far.MenuItem("Do Help"),
 			])
 
 		if ItemId == 0:
-			self.far.GetUserScreen()
+			far.GetUserScreen()
 			try:
 				print("------------")
 				print(self.Msg(lng.TheMessage))
@@ -85,10 +86,10 @@ class HelloWorldPlugin(pygin.PluginBoilerplate):
 				print("BreakCode is " + str(BreakCode[0]))
 				print("------------")
 			finally:
-				self.far.SetUserScreen()
+				far.SetUserScreen()
 
 		elif ItemId == 1:
-			Response = self.far.InputBox(
+			Response = far.InputBox(
 				self.Guid,
 				uuid.UUID("{0F87C22C-4F6F-4B71-90EC-C3C89B03010B}"),
 				"Attention",
@@ -97,17 +98,17 @@ class HelloWorldPlugin(pygin.PluginBoilerplate):
 				"",
 				1024,
 				"InputBoxTopic",
-				self.far.InputBoxFlags.Buttons)
+				far.InputBoxFlags.Buttons)
 
 			if Response is not None:
 				Style = 0
 				Message = "Isn't that awesome?"
 			else:
 				Response = "Nothing"
-				Style = self.far.MessageFlags.Warning
+				Style = far.MessageFlags.Warning
 				Message = "Shame on you."
 
-			self.far.Message(
+			far.Message(
 				self.Guid,
 				uuid.UUID("{49A144B8-C0BB-4EDF-B8AD-8F3590BA9C64}"),
 				Style,
@@ -123,8 +124,8 @@ class HelloWorldPlugin(pygin.PluginBoilerplate):
 				["Indeed"])
 
 		elif ItemId == 2:
-			fmf = self.far.MessageFlags
-			self.far.Message(
+			fmf = far.MessageFlags
+			far.Message(
 				self.Guid,
 				uuid.UUID("{49A144B8-C0BB-4EDF-B8AD-8F3590BA9C64}"),
 				fmf.Warning | fmf.LeftAlign,
@@ -139,22 +140,26 @@ class HelloWorldPlugin(pygin.PluginBoilerplate):
 				["Left", "Right"])
 
 		elif ItemId == 3:
-			self.far.ShowHelp(self.Guid, "Contents", self.far.HelpFlags.Guid)
+			far.ShowHelp(self.Guid, "Contents", far.HelpFlags.Guid)
 
 		else:
 			pass
 
+		# for panel:
+		# return id(Instance)
+
+		# for nothing
 		return None
 
 	def ConfigureW(self, info):
-		self.far.GetUserScreen()
+		far.GetUserScreen()
 		try:
 			print("------------")
 			print("Very configure. Wow.")
 			print("Config Menu id: " + str(info.Guid))
 			print("------------")
 		finally:
-			self.far.SetUserScreen()
+			far.SetUserScreen()
 		return True
 
 

@@ -38,13 +38,26 @@ namespace py
 		object Type(TypePtr), Value(ValuePtr), Traceback(TracebackPtr);
 
 		const auto TracebackModule = import::import("traceback"_py);
-		const auto Formatter = TracebackModule[Traceback? "format_exception" : "format_exception_only"];
-		const auto List = cast<list>(Traceback? Formatter(Type, Value, Traceback) : Formatter(Type, Value));
 
 		std::string Message;
-		for (size_t i = 0, size = List.size(); i != size; ++i)
+
 		{
-			Message += cast<string>(List[i]);
+			const auto List = cast<list>(TracebackModule["format_exception_only"](Type, Value));
+			for (size_t i = 0, size = List.size(); i != size; ++i)
+			{
+				Message += cast<string>(List[i]);
+			}
+		}
+
+		if (Traceback)
+		{
+			Message += "\1\nTraceback (most recent call last):\n"s;
+
+			const auto List = cast<list>(TracebackModule["format_tb"](Traceback));
+			for (size_t i = 0, size = List.size(); i != size; ++i)
+			{
+				Message += cast<string>(List[i]);
+			}
 		}
 
 		throw exception(Message);

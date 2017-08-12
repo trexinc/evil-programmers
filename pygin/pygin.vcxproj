@@ -178,7 +178,7 @@
       <Message>%(Identity)</Message>
     </CustomBuild>
     <None Include="pygin.def" />
-    <CustomBuild Include="pygin\far_api.py">
+    <CustomBuild Include="pygin\far.py">
       <FileType>Document</FileType>
       <Command>copy %(Identity) $(OutDir)%(Identity) &gt; nul</Command>
       <Outputs>$(OutDir)%(Identity)</Outputs>

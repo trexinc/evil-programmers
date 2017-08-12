@@ -3,18 +3,24 @@
 #include "module.hpp"
 
 #include "py_boolean.hpp"
+#include "py_bytes.hpp"
 #include "py_common.hpp"
 #include "py_floating.hpp"
+#include "py_integer.hpp"
 #include "py_list.hpp"
 #include "py_string.hpp"
 #include "py_tuple.hpp"
 #include "py_uuid.hpp"
 
 #include "far_api.hpp"
-#include "py_integer.hpp"
-#include "py_bytes.hpp"
+#include "error_handling.hpp"
 
 using namespace py::literals;
+
+auto EmptyToNull(const wchar_t* Str)
+{
+	return Str && *Str? Str : nullptr;
+}
 
 module::module(const py::object& Object):
 	m_PluginModule(Object),
@@ -51,6 +57,9 @@ bool module::check_function(const wchar_t* FunctionName) const
 template<typename ... args>
 py::object module::call(const char* FunctionName, const args&... Args) const
 {
+	if (!m_PluginModuleInstance)
+		throw silent_exception{};
+
 	return m_PluginModuleClassFunctions.at(FunctionName)(m_PluginModuleInstance, Args...);
 }
 
@@ -120,6 +129,18 @@ void module::GetGlobalInfoW(GlobalInfo* Info)
 	Info->Author = (m_Author = py::cast<std::wstring>(m_PluginModuleClass["Author"])).data();
 	Info->Description = (m_Description = py::cast<std::wstring>(m_PluginModuleClass["Description"])).data();
 	Info->Guid = py::cast<UUID>(m_PluginModuleClass["Guid"]);
+
+	const auto Version = m_PluginModuleClass.get_attribute("Version");
+
+	// This won't work as far_api is not initialised yet
+	// Consider 2-stage iitialisation
+	//Version.ensure_type(far_api::type("VersionInfo"s));
+
+	Info->Version.Major = py::cast<DWORD>(Version["Major"]);
+	Info->Version.Minor = py::cast<DWORD>(Version["Minor"]);
+	Info->Version.Revision = py::cast<DWORD>(Version["Revision"]);
+	Info->Version.Build = py::cast<DWORD>(Version["Build"]);
+	Info->Version.Stage = static_cast<VERSION_STAGE>(py::cast<DWORD>(Version["Stage"]));
 }
 
 void module::GetOpenPanelInfoW(OpenPanelInfo* Info)
@@ -300,9 +321,7 @@ HANDLE module::OpenW(const OpenInfo* Info)
 	}
 
 	const auto Result = call(STR(OpenW), OpenInfoInstance);
-
-	// BUGBUG
-	return nullptr;
+	return Result? reinterpret_cast<HANDLE>(py::cast<uintptr_t>(Result)) : nullptr;
 }
 
 intptr_t module::ProcessDialogEventW(const ProcessDialogEventInfo* Info)
@@ -368,7 +387,7 @@ intptr_t module::SetFindListW(const SetFindListInfo* Info)
 void module::SetStartupInfoW(const PluginStartupInfo* Info)
 {
 	far_api::initialise(Info);
-	m_PluginModuleInstance = m_PluginModuleClass(far_api::module());
+	m_PluginModuleInstance = m_PluginModuleClass();
 }
 
 intptr_t module::GetContentFieldsW(const GetContentFieldsInfo* Info)

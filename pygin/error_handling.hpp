@@ -27,6 +27,9 @@ public:
 	pygin_exception(const std::string& Message, const char* Function, const char* File, int Line);
 };
 
+class silent_exception
+{};
+
 #define MAKE_EXCEPTION(ExceptionType, ...) ExceptionType(__VA_ARGS__, __FUNCTION__, __FILE__, __LINE__)
 #define MAKE_PYGIN_EXCEPTION(...) MAKE_EXCEPTION(pygin_exception, __VA_ARGS__)
 
@@ -50,6 +53,9 @@ auto try_call(const callable& Callable, const fallback& Fallback) noexcept
 	catch (const std::exception& e)
 	{
 		set_error_context(L"Pygin: std::exception", e.what());
+	}
+	catch (const silent_exception&)
+	{
 	}
 	catch (...)
 	{

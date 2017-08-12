@@ -230,8 +230,8 @@ namespace far_api_implementation
 }
 
 far_api::far_api(const PluginStartupInfo* Psi):
-	m_Module(py::import::import("pygin.far_api"_py)),
-	m_Exception("pygin.far_api.error"),
+	m_Module(py::import::import("pygin.far"_py)),
+	m_Exception("pygin.far.error"),
 	m_Psi(*Psi),
 	m_Fsf(*Psi->FSF)
 {
