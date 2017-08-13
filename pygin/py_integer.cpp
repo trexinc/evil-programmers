@@ -19,11 +19,21 @@ namespace py
 	}
 
 	integer::integer(int Value):
-		object(invoke(PyLong_FromLong, Value))
+		integer(static_cast<long>(Value))
 	{
 	}
 
 	integer::integer(unsigned int Value):
+		integer(static_cast<unsigned long>(Value))
+	{
+	}
+
+	integer::integer(long Value):
+		object(invoke(PyLong_FromLong, Value))
+	{
+	}
+
+	integer::integer(unsigned long Value):
 		object(invoke(PyLong_FromUnsignedLong, Value))
 	{
 	}

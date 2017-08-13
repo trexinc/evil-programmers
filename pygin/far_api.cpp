@@ -43,17 +43,17 @@ namespace far_api_implementation
 		return Result;
 	}
 
-	static auto get_args(PyObject* RawArgs, size_t Count)
+	static auto get_args(const char* Name, PyObject* RawArgs, size_t Count)
 	{
 		const auto Args = py::cast<py::tuple>(py::object::from_borrowed(RawArgs));
 		if (Args.size() != Count)
-			throw MAKE_PYGIN_EXCEPTION("Message: wrong number of arguments");
+			throw MAKE_PYGIN_EXCEPTION(Name + ": wrong number of arguments (expected: "s + std::to_string(Count) + ", actual: "s + std::to_string(Args.size()) + ")"s);
 		return Args;
 	}
 
 	static PyObject* GetMsg(PyObject* Self, PyObject* RawArgs)
 	{
-		const auto Args = get_args(RawArgs, 2);
+		const auto Args = get_args(__FUNCTION__, RawArgs, 2);
 
 		const auto PluginId = py::cast<UUID>(Args[0]);
 		const auto MsgId = py::cast<intptr_t>(Args[1]);
@@ -63,7 +63,7 @@ namespace far_api_implementation
 
 	static PyObject* Message(PyObject* Self, PyObject* RawArgs)
 	{
-		const auto Args = get_args(RawArgs, 7);
+		const auto Args = get_args(__FUNCTION__, RawArgs, 7);
 
 		const auto PluginId = py::cast<UUID>(Args[0]);
 		const auto Id = py::cast<UUID>(Args[1]);
@@ -88,7 +88,7 @@ namespace far_api_implementation
 
 	static PyObject* InputBox(PyObject* Self, PyObject* RawArgs)
 	{
-		const auto Args = get_args(RawArgs, 9);
+		const auto Args = get_args(__FUNCTION__, RawArgs, 9);
 
 		const auto PluginId = py::cast<UUID>(Args[0]);
 		const auto Id = py::cast<UUID>(Args[1]);
@@ -115,7 +115,7 @@ namespace far_api_implementation
 
 	static PyObject* Menu(PyObject* Self, PyObject* RawArgs)
 	{
-		const auto Args = get_args(RawArgs, 12);
+		const auto Args = get_args(__FUNCTION__, RawArgs, 12);
 
 		const auto PluginId = py::cast<UUID>(Args[0]);
 		const auto Id = py::cast<UUID>(Args[1]);
@@ -174,7 +174,7 @@ namespace far_api_implementation
 
 	static PyObject* ShowHelp(PyObject* Self, PyObject* RawArgs)
 	{
-		const auto Args = get_args(RawArgs, 3);
+		const auto Args = get_args(__FUNCTION__, RawArgs, 3);
 
 		const auto Flags = py::cast<FARHELPFLAGS>(Args[2]);
 		const auto HelpTopic = py::cast<std::wstring>(Args[1]);
@@ -197,20 +197,268 @@ namespace far_api_implementation
 		return py::boolean(psi().ShowHelp(static_cast<const wchar_t*>(ModulePtr), HelpTopic.data(), Flags) != FALSE).release();
 	}
 
-	static PyObject* GetUserScreen(PyObject* Self, PyObject* Args)
+	static PyObject* AdvControl(PyObject* Self, PyObject* RawArgs)
 	{
-		psi().PanelControl(PANEL_NONE, FCTL_GETUSERSCREEN, 0, nullptr);
+		const auto Args = get_args(__FUNCTION__, RawArgs, 4);
+		
+		const auto PluginId = py::cast<UUID>(Args[0]);
+		const auto Command = static_cast<ADVANCED_CONTROL_COMMANDS>(py::cast<int>(Args[1]));
+		const auto Param1 = py::cast<intptr_t>(Args[2]);
+		auto Param2 = Args[3];
 
-		Py_RETURN_NONE;
+		const auto& DefaultCall = [&]
+		{
+			return psi().AdvControl(&PluginId, Command, Param1, nullptr);
+		};
+
+		switch (Command)
+		{
+		case ACTL_SETCURRENTWINDOW:
+		case ACTL_COMMIT:
+		case ACTL_REDRAWALL:
+		case ACTL_QUIT:
+		case ACTL_PROGRESSNOTIFY:
+			return py::boolean(DefaultCall() != 0).release();
+
+		case ACTL_GETWINDOWCOUNT:
+		case ACTL_GETFARHWND:
+			return py::integer(DefaultCall()).release();
+
+		case ACTL_GETFARMANAGERVERSION:
+			{
+				VersionInfo Info;
+				if (!psi().AdvControl(&PluginId, Command, Param1, &Info))
+					Py_RETURN_NONE;
+
+				return far_api::type("VersionInfo")(
+					py::integer(Info.Major),
+					py::integer(Info.Minor),
+					py::integer(Info.Revision),
+					py::integer(Info.Build),
+					far_api::type("VersionStage")(py::integer(Info.Stage))
+					).release();
+			}
+
+		case ACTL_WAITKEY:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case ACTL_GETCOLOR:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case ACTL_GETARRAYCOLOR:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case ACTL_GETWINDOWINFO:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case ACTL_SETARRAYCOLOR:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case ACTL_SYNCHRO:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case ACTL_SETPROGRESSSTATE:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case ACTL_SETPROGRESSVALUE:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case ACTL_GETFARRECT:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case ACTL_GETCURSORPOS:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case ACTL_SETCURSORPOS:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case ACTL_GETWINDOWTYPE:
+			{
+				WindowType Type;
+				if (!psi().AdvControl(&PluginId, Command, 0, &Type))
+					Py_RETURN_NONE;
+
+				auto WindowTypeInstance = far_api::type("WindowType")();
+				WindowTypeInstance["Type"] = far_api::type("WindowInfoType")(py::integer(Type.Type));
+				return WindowTypeInstance.release();
+			}
+
+		default:
+			Py_RETURN_NONE;
+		}
 	}
 
-	static PyObject* SetUserScreen(PyObject* Self, PyObject* Args)
+	static PyObject* PanelControl(PyObject* Self, PyObject* RawArgs)
 	{
-		psi().PanelControl(PANEL_NONE, FCTL_SETUSERSCREEN, 0, nullptr);
+		const auto Args = get_args(__FUNCTION__, RawArgs, 4);
 
-		Py_RETURN_NONE;
+		const auto Panel = reinterpret_cast<HANDLE>(py::cast<intptr_t>(Args[0]));
+		const auto Command = static_cast<FILE_CONTROL_COMMANDS>(py::cast<int>(Args[1]));
+		const auto Param1 = py::cast<intptr_t>(Args[2]);
+		auto Param2 = Args[3];
+
+		const auto& DefaultCall = [&]
+		{
+			return psi().PanelControl(Panel, Command, Param1, nullptr);
+		};
+
+		switch (Command)
+		{
+		case FCTL_CLOSEPANEL:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case FCTL_GETPANELINFO:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case FCTL_UPDATEPANEL:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case FCTL_REDRAWPANEL:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case FCTL_GETCMDLINE:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case FCTL_SETCMDLINE:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case FCTL_SETSELECTION:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case FCTL_SETVIEWMODE:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case FCTL_INSERTCMDLINE:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case FCTL_SETUSERSCREEN:
+		case FCTL_GETUSERSCREEN:
+			return py::boolean(DefaultCall() != 0).release();
+
+		case FCTL_SETPANELDIRECTORY:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case FCTL_SETCMDLINEPOS:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case FCTL_GETCMDLINEPOS:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case FCTL_SETSORTMODE:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case FCTL_SETSORTORDER:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case FCTL_SETCMDLINESELECTION:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case FCTL_GETCMDLINESELECTION:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case FCTL_CHECKPANELSEXIST:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case FCTL_SETNUMERICSORT:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case FCTL_ISACTIVEPANEL:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case FCTL_GETPANELITEM:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case FCTL_GETSELECTEDPANELITEM:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case FCTL_GETCURRENTPANELITEM:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case FCTL_GETPANELDIRECTORY:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case FCTL_GETCOLUMNTYPES:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case FCTL_GETCOLUMNWIDTHS:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case FCTL_BEGINSELECTION:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case FCTL_ENDSELECTION:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case FCTL_CLEARSELECTION:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case FCTL_SETDIRECTORIESFIRST:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case FCTL_GETPANELFORMAT:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case FCTL_GETPANELHOSTFILE:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case FCTL_SETCASESENSITIVESORT:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case FCTL_GETPANELPREFIX:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		case FCTL_SETACTIVEPANEL:
+			// BUGBUG
+			Py_RETURN_NONE;
+
+		default:
+			Py_RETURN_NONE;
+		}
 	}
-
 
 	static PyMethodDef Methods[] =
 	{
@@ -221,8 +469,8 @@ namespace far_api_implementation
 		{ FUNC_NAME_VALUE(InputBox), METH_VARARGS, "Input box" },
 		{ FUNC_NAME_VALUE(Menu), METH_VARARGS, "Menu" },
 		{ FUNC_NAME_VALUE(ShowHelp), METH_VARARGS, "Show help" },
-		{ FUNC_NAME_VALUE(GetUserScreen), METH_NOARGS, "Get user screen" },
-		{ FUNC_NAME_VALUE(SetUserScreen), METH_NOARGS, "Set user screen" },
+		{ FUNC_NAME_VALUE(AdvControl), METH_VARARGS, "Advanced Control Commands" },
+		{ FUNC_NAME_VALUE(PanelControl), METH_VARARGS, "Panel Control Commands" },
 
 #undef FUNC_NAME_VALUE
 		{}

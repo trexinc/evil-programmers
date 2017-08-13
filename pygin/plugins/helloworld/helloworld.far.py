@@ -42,12 +42,9 @@ class HelloWorldPlugin(pygin.PluginBoilerplate):
 
 	def OpenW(self, info):
 		if info.OpenFrom == info.OpenFrom.FromMacro:
-			far.GetUserScreen()
-			try:
+			with(pygin.Console()):
 				for value in info.Data.Values:
 					print(value.Type.name, ": ", value.Value, sep="")
-			finally:
-				far.SetUserScreen()
 			return None
 
 		BreakCode = [0]
@@ -75,17 +72,10 @@ class HelloWorldPlugin(pygin.PluginBoilerplate):
 			])
 
 		if ItemId == 0:
-			far.GetUserScreen()
-			try:
-				print("------------")
-				print(self.Msg(lng.TheMessage))
-				print("Plugin Menu id: " + str(info.Guid))
-				print("BreakCode is " + str(BreakCode[0]))
-				print("------------")
-			finally:
-				far.SetUserScreen()
+			self.DoConsoleStuff(info, BreakCode)
 
 		elif ItemId == 1:
+			far.AdvControl(self.Guid, far.AdvancedControlCommands.RedrawAll)
 			Response = far.InputBox(
 				self.Guid,
 				uuid.UUID("{0F87C22C-4F6F-4B71-90EC-C3C89B03010B}"),
@@ -149,15 +139,29 @@ class HelloWorldPlugin(pygin.PluginBoilerplate):
 		return None
 
 	def ConfigureW(self, info):
-		far.GetUserScreen()
-		try:
+		with(pygin.Console()):
 			print("------------")
 			print("Very configure. Wow.")
 			print("Config Menu id: " + str(info.Guid))
 			print("------------")
-		finally:
-			far.SetUserScreen()
 		return True
 
+	def DoConsoleStuff(self, info, BreakCode):
+		WindowType = far.AdvControl(self.Guid, far.AdvancedControlCommands.GetWindowType)
+
+		with(pygin.Console()):
+			print("------------")
+			print(self.Msg(lng.TheMessage))
+			print("Plugin Menu id: " + str(info.Guid))
+			print("BreakCode is " + str(BreakCode[0]))
+
+			Version = far.AdvControl(self.Guid, far.AdvancedControlCommands.GetFarManagerVersion)
+			if Version is not None:
+				print("Far version: {0}".format(Version))
+
+			if WindowType is not None:
+				print("Current window: {0}".format(WindowType.Type.name))
+
+			print("------------")
 
 FarPluginClass = HelloWorldPlugin

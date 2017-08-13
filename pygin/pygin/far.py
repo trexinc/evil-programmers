@@ -2,17 +2,20 @@
 
 import sys
 import uuid
+import inspect
 import enum
 from enum import unique
 from typing import *
 
-def dynamic(function):
-	def function_wrapper(*args):
-		try:
-			return getattr(sys.modules[__name__], "__" + function.__name__)(*args)
-		except AttributeError as e:
-			raise NameError("'{0}' cannot be called before plugin is loaded".format(function.__name__))
-	return function_wrapper
+def invoke_api():
+	Module = sys.modules[__name__]
+	Frame = sys._getframe(1)
+	CallerName = Frame.f_code.co_name
+	Args = inspect.getargvalues(Frame).locals
+	try:
+		return getattr(Module, "__" + CallerName)(*[Args[Arg] for Arg in inspect.getfullargspec(getattr(Module, CallerName)).args])
+	except AttributeError as e:
+		raise NameError("'{0}' cannot be called before plugin is loaded".format(CallerName))
 
 def bit(n: int) -> int:
 	return 1 << n
@@ -21,10 +24,10 @@ NullUuid = uuid.UUID("{00000000-0000-0000-0000-000000000000}")
 
 @unique
 class VersionStage(enum.IntEnum):
-	Release = 0
-	Alpha   = 1
-	Beta    = 2
-	RC      = 3
+	Release                                         = 0
+	Alpha                                           = 1
+	Beta                                            = 2
+	RC                                              = 3
 
 class VersionInfo:
 	def __init__(self, Major: int, Minor: int, Revision: int, Build: int, Stage: VersionStage):
@@ -34,15 +37,19 @@ class VersionInfo:
 		self.Build = Build
 		self.Stage = Stage
 
+	def __str__(self):
+		return "{0}.{1}.{2}.{3} {4}".format(self.Major, self.Minor, self.Revision, self.Build, self.Stage.name)
+
+
 @unique
 class PluginFlags(enum.IntFlag):
-	Default        = 0
-	Preload        = bit(0)
-	DisablePanels  = bit(1)
-	Editor         = bit(2)
-	Viewer         = bit(3)
-	FullCmdLine    = bit(4)
-	Dialog         = bit(5)
+	Default                                         = 0
+	Preload                                         = bit(0)
+	DisablePanels                                   = bit(1)
+	Editor                                          = bit(2)
+	Viewer                                          = bit(3)
+	FullCmdLine                                     = bit(4)
+	Dialog                                          = bit(5)
 
 class PluginInfo:
 	def __init__(self):
@@ -55,20 +62,20 @@ class PluginInfo:
 
 @unique
 class OpenFrom(enum.IntEnum):
-	Unknown       = -1
-	LeftDiskMenu  = 0
-	PluginsMenu   = 1
-	FindList      = 2
-	Shortcut      = 3
-	CommandLine   = 4
-	Editor        = 5
-	Viewer        = 6
-	Filepanel     = 7
-	Dialog        = 8
-	Analyse       = 9
-	RightDiskMenu = 10
-	FromMacro     = 11
-	LuaMacro      = 100
+	Unknown                                         = -1
+	LeftDiskMenu                                    = 0
+	PluginsMenu                                     = 1
+	FindList                                        = 2
+	Shortcut                                        = 3
+	CommandLine                                     = 4
+	Editor                                          = 5
+	Viewer                                          = 6
+	Filepanel                                       = 7
+	Dialog                                          = 8
+	Analyse                                         = 9
+	RightDiskMenu                                   = 10
+	FromMacro                                       = 11
+	LuaMacro                                        = 100
 
 class OpenCommandLineInfo:
 	def __init__(self):
@@ -76,16 +83,16 @@ class OpenCommandLineInfo:
 
 @unique
 class FarMacroVarType(enum.IntEnum):
-	Unknown = 0
-	Integer = 1
-	String  = 2
-	Double  = 3
-	Boolean = 4
-	Binary  = 5
-	Pointer = 6
-	Nil     = 7
-	Array   = 8
-	Panel   = 9
+	Unknown                                         = 0
+	Integer                                         = 1
+	String                                          = 2
+	Double                                          = 3
+	Boolean                                         = 4
+	Binary                                          = 5
+	Pointer                                         = 6
+	Nil                                             = 7
+	Array                                           = 8
+	Panel                                           = 9
 
 class FarMacroValue:
 	def __init__(self):
@@ -99,16 +106,16 @@ class OpenMacroInfo:
 
 @unique
 class OperationModes(enum.IntFlag):
-	Default   = 0
-	Silent    = bit(0)
-	Find      = bit(1)
-	View      = bit(2)
-	Edit      = bit(3)
-	TopLevel  = bit(4)
-	Descr     = bit(5)
-	QuickView = bit(6)
-	PgDn      = bit(7)
-	Commands  = bit(8)
+	Default                                         = 0
+	Silent                                          = bit(0)
+	Find                                            = bit(1)
+	View                                            = bit(2)
+	Edit                                            = bit(3)
+	TopLevel                                        = bit(4)
+	Descr                                           = bit(5)
+	QuickView                                       = bit(6)
+	PgDn                                            = bit(7)
+	Commands                                        = bit(8)
 
 class AnalyseInfo:
 	def __init__(self):
@@ -147,50 +154,50 @@ class ExitInfo:
 	def __init__(self):
 		pass
 
-@dynamic
-def GetMsg(PluginId: uuid, MsgId: int) -> str: pass
+def GetMsg(PluginId: uuid, MsgId: int) -> str:
+	return invoke_api()
 
 @unique
 class MessageFlags(enum.IntFlag):
-	Default                = 0
-	Warning                = bit(0)
-	ErrorType              = bit(1)
-	KeepBackground         = bit(2)
-	LeftAlign              = bit(3)
-	ButtonOk               = bit(16) * 1
-	ButtonOkCancel         = bit(16) * 2
-	ButtonAbortRertyIgnore = bit(16) * 3
-	ButtonYesNo            = bit(16) * 4
-	ButtonYesNoCancel      = bit(16) * 5
-	ButtonRetryCancel      = bit(16) * 6
+	Default                                         = 0
+	Warning                                         = bit(0)
+	ErrorType                                       = bit(1)
+	KeepBackground                                  = bit(2)
+	LeftAlign                                       = bit(3)
+	ButtonOk                                        = bit(16) * 1
+	ButtonOkCancel                                  = bit(16) * 2
+	ButtonAbortRertyIgnore                          = bit(16) * 3
+	ButtonYesNo                                     = bit(16) * 4
+	ButtonYesNoCancel                               = bit(16) * 5
+	ButtonRetryCancel                               = bit(16) * 6
 
-@dynamic
-def Message(PluginId: uuid, Id: uuid, Flags: MessageFlags, HelpTopic: str, Title: str, Items: list, Buttons: list) -> Union[int, None]: pass
+def Message(PluginId: uuid, Id: uuid, Flags: MessageFlags, HelpTopic: str, Title: str, Items: list, Buttons: list) -> Union[int, None]:
+	return invoke_api()
 
 @unique
 class InputBoxFlags(enum.IntFlag):
-	Default          = 0
-	EnableEmpty      = bit(0)
-	Password         = bit(1)
-	ExpandEnv        = bit(2)
-	NoUseLastHistory = bit(3)
-	Buttons          = bit(4)
-	NoAmpersand      = bit(5)
-	EditPath         = bit(6)
-	EditPathExec     = bit(7)
+	Default                                         = 0
+	EnableEmpty                                     = bit(0)
+	Password                                        = bit(1)
+	ExpandEnv                                       = bit(2)
+	NoUseLastHistory                                = bit(3)
+	Buttons                                         = bit(4)
+	NoAmpersand                                     = bit(5)
+	EditPath                                        = bit(6)
+	EditPathExec                                    = bit(7)
 
-@dynamic
-def InputBox(PluginId: uuid, Id: uuid, Title: str, SubTitle: str, HistoryName: str, SrcText: str, DestSize: int, HelpTopic: str, Flags: InputBoxFlags) -> Union[str, None]: pass
+def InputBox(PluginId: uuid, Id: uuid, Title: str, SubTitle: str, HistoryName: str, SrcText: str, DestSize: int, HelpTopic: str, Flags: InputBoxFlags) -> Union[str, None]:
+	return invoke_api()
 
 @unique
 class MenuItemFlags(enum.IntFlag):
-	Default    = 0
-	Selected   = bit(16)
-	Checked    = bit(17)
-	Separator  = bit(18)
-	Disabled   = bit(19)
-	Grayed     = bit(20)
-	Hidden     = bit(21)
+	Default                                         = 0
+	Selected                                        = bit(16)
+	Checked                                         = bit(17)
+	Separator                                       = bit(18)
+	Disabled                                        = bit(19)
+	Grayed                                          = bit(20)
+	Hidden                                          = bit(21)
 
 class FarKey:
 	def __init__(self, VirtualKeyCode: int, ControlKeyState: int):
@@ -206,34 +213,117 @@ class MenuItem:
 
 @unique
 class MenuFlags(enum.IntFlag):
-	Default              = 0
-	ShowAmpersand        = bit(0)
-	WrapMode             = bit(1)
-	Autohighlight        = bit(2)
-	ReverseAutohighlight = bit(3)
-	ChangeConsoleTitle   = bit(4)
+	Default                                         = 0
+	ShowAmpersand                                   = bit(0)
+	WrapMode                                        = bit(1)
+	Autohighlight                                   = bit(2)
+	ReverseAutohighlight                            = bit(3)
+	ChangeConsoleTitle                              = bit(4)
 
-@dynamic
-def Menu(PluginId: uuid, Id: uuid, X: int, Y: int, MaxHeight: int, Flags: MenuFlags, Title: str, Bottom: str, HelpTopic: str, BreakKeys: list, BreakCode, Items: list) -> Union[int, None]: pass
+def Menu(PluginId: uuid, Id: uuid, X: int, Y: int, MaxHeight: int, Flags: MenuFlags, Title: str, Bottom: str, HelpTopic: str, BreakKeys: list, BreakCode, Items: list) -> Union[int, None]:
+	return invoke_api()
 
 @unique
 class HelpFlags(enum.IntFlag):
 	# enum part
-	SelfHelp    = 0
-	FarHelp     = bit(0)
-	CustomFile  = bit(1)
-	CustomPath  = bit(2)
-	Guid        = bit(3)
+	SelfHelp                                        = 0
+	FarHelp                                         = bit(0)
+	CustomFile                                      = bit(1)
+	CustomPath                                      = bit(2)
+	Guid                                            = bit(3)
 
 	#flags part
 	UseContents = bit(30)
 	NoShowError = bit(31)
 
-@dynamic
-def ShowHelp(ModuleName: str, HelpTopic: str, Flags: HelpFlags) -> bool: pass
+def ShowHelp(ModuleName: str, HelpTopic: str, Flags: HelpFlags) -> bool:
+	return invoke_api()
 
-@dynamic
-def GetUserScreen(): pass
+@unique
+class AdvancedControlCommands(enum.IntEnum):
+	GetFarManagerVersion                            = 0
+	WaitKey                                         = 2
+	GetColor                                        = 3
+	GetArrayColor                                   = 4
+	GetWindowInfo                                   = 6
+	GetWindowCount                                  = 7
+	SetCurrentWindow                                = 8
+	Commit                                          = 9
+	GetFarHwnd                                      = 10
+	SetArrayColor                                   = 16
+	RedrawAll                                       = 19
+	Synchro                                         = 20
+	SetProgressState                                = 21
+	SetProgressValue                                = 22
+	Quit                                            = 23
+	GetFarRect                                      = 24
+	GetCursorPos                                    = 25
+	SetCursorPos                                    = 26
+	ProgressNotify                                  = 27
+	GetWindowType                                   = 28
 
-@dynamic
-def SetUserScreen(): pass
+@unique
+class WindowInfoType(enum.IntEnum):
+	Unknown                                         = -1
+	Desktop                                         = 0
+	Panels                                          = 1
+	Viewer                                          = 2
+	Editor                                          = 3
+	Dialog                                          = 4
+	Vmenu                                           = 5
+	Help                                            = 6
+	Combobox                                        = 7
+
+class WindowType:
+	def __init__(self):
+		self.Type = WindowInfoType.Unknown
+
+def AdvControl(PluginId: uuid, Command: AdvancedControlCommands, Param1: int = 0, Param2 = None):
+	return invoke_api()
+
+@unique
+class FileControlCommands(enum.IntEnum):
+	Unknown                                         = -1
+	ClosePanel                                      = 0,
+	GetPanelInfo                                    = 1,
+	UpdatePanel                                     = 2,
+	RedrawPanel                                     = 3,
+	GetCmdline                                      = 4,
+	SetCmdline                                      = 5,
+	SetSelection                                    = 6,
+	SetViewMode                                     = 7,
+	Insertcmdline                                   = 8,
+	SetUserScreen                                   = 9,
+	SetPanelDirectory                               = 10,
+	SetCmdlinePos                                   = 11,
+	GetCmdlinePos                                   = 12,
+	SetSortMode                                     = 13,
+	SetSortOrder                                    = 14,
+	SetCmdlineSelection                             = 15,
+	GetCmdlineSelection                             = 16,
+	CheckPanelsExist                                = 17,
+	SetNumericSort                                  = 18,
+	GetUserScreen                                   = 19,
+	IsActivePanel                                   = 20,
+	GetPanelItem                                    = 21,
+	GetSelectedPanelItem                            = 22,
+	GetCurrentPanelItem                             = 23,
+	GetPanelDirectory                               = 24,
+	GetColumnTypes                                  = 25,
+	GetColumnWidths                                 = 26,
+	BeginSelection                                  = 27,
+	EndSelection                                    = 28,
+	ClearSelection                                  = 29,
+	SetDirectoriesFirst                             = 30,
+	GetPanelFormat                                  = 31,
+	GetPanelHostFile                                = 32,
+	SetCaseSensitiveSort                            = 33,
+	GetPanelPrefix                                  = 34,
+	SetActivePanel                                  = 35,
+
+class Panels(enum.IntEnum):
+	Active = -1
+	Passive = -2
+
+def PanelControl(Panel: int, Command: FileControlCommands, Param1: int = 0, Param2 = None):
+	return invoke_api()

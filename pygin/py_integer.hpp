@@ -11,6 +11,8 @@ namespace py
 
 		integer(int Value);
 		integer(unsigned int Value);
+		integer(long Value);
+		integer(unsigned long Value);
 		integer(long long Value);
 		integer(unsigned long long Value);
 		integer(cast_guard, const object& Object);
