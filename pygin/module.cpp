@@ -140,7 +140,7 @@ void module::GetGlobalInfoW(GlobalInfo* Info)
 	Info->Version.Minor = py::cast<DWORD>(Version["Minor"]);
 	Info->Version.Revision = py::cast<DWORD>(Version["Revision"]);
 	Info->Version.Build = py::cast<DWORD>(Version["Build"]);
-	Info->Version.Stage = static_cast<VERSION_STAGE>(py::cast<DWORD>(Version["Stage"]));
+	Info->Version.Stage = py::cast<VERSION_STAGE>(Version["Stage"]);
 }
 
 void module::GetOpenPanelInfoW(OpenPanelInfo* Info)
@@ -227,7 +227,7 @@ static py::object ConvertValue(const FarMacroValue* Value)
 			return py::bytes(Value->Binary.Data, Value->Binary.Size);
 
 		case FMVT_POINTER:
-			return py::integer(reinterpret_cast<uintptr_t>(Value->Pointer));
+			return py::integer(Value->Pointer);
 
 		case FMVT_NIL:
 			return {};
@@ -236,7 +236,7 @@ static py::object ConvertValue(const FarMacroValue* Value)
 			return ConvertValues(Value->Array.Values, Value->Array.Count);
 
 		case FMVT_PANEL:
-			return py::integer(reinterpret_cast<uintptr_t>(Value->Pointer));
+			return py::integer(Value->Pointer);
 
 		default:
 			return {};
@@ -291,7 +291,7 @@ HANDLE module::OpenW(const OpenInfo* Info)
 		{
 			const auto Data = reinterpret_cast<const OpenDlgPluginData*>(Info->Data);
 			auto OpenDlgPluginDataInstance = far_api::type("OpenDlgPluginData")();
-			OpenDlgPluginDataInstance["Dialog"] = py::integer(reinterpret_cast<uintptr_t>(Data->hDlg));
+			OpenDlgPluginDataInstance["Dialog"] = py::integer(Data->hDlg);
 			OpenInfoInstance["Data"] = OpenDlgPluginDataInstance;
 		}
 		break;
@@ -321,7 +321,7 @@ HANDLE module::OpenW(const OpenInfo* Info)
 	}
 
 	const auto Result = call(STR(OpenW), OpenInfoInstance);
-	return Result? reinterpret_cast<HANDLE>(py::cast<uintptr_t>(Result)) : nullptr;
+	return Result? py::cast<HANDLE>(Result) : nullptr;
 }
 
 intptr_t module::ProcessDialogEventW(const ProcessDialogEventInfo* Info)

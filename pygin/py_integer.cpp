@@ -48,6 +48,11 @@ namespace py
 	{
 	}
 
+	integer::integer(void* Value):
+		object(invoke(PyLong_FromVoidPtr, Value))
+	{
+	}
+
 	integer::integer(cast_guard, const object& Object):
 		object(Object)
 	{
@@ -91,5 +96,10 @@ namespace py
 	integer::operator unsigned long long() const
 	{
 		return invoke(PyLong_AsUnsignedLongLong, get());
+	}
+
+	integer::operator void*() const
+	{
+		return invoke(PyLong_AsVoidPtr, get());
 	}
 }

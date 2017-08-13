@@ -6,7 +6,10 @@ class PluginBoilerplate:
 
 class Console:
 	def __enter__(self):
-		far.PanelControl(far.Panels.Active, far.FileControlCommands.GetUserScreen)
+		self.__cmd(far.FileControlCommands.GetUserScreen)
 
 	def __exit__(self, *args):
-		far.PanelControl(far.Panels.Active, far.FileControlCommands.SetUserScreen)
+		self.__cmd(far.FileControlCommands.SetUserScreen)
+
+	def __cmd(self, Command):
+		far.PanelControl(far.Panels.Active, Command)

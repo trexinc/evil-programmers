@@ -22,7 +22,7 @@ class HelloWorldPlugin(pygin.PluginBoilerplate):
 	def GetPluginInfoW(self):
 		info = far.PluginInfo()
 
-		info.Flags = far.PluginFlags.Editor | far.PluginFlags.Viewer | far.PluginFlags.Dialog | far.PluginFlags.FullCmdLine
+		info.Flags = far.PluginFlags.Editor | far.PluginFlags.Viewer | far.PluginFlags.Dialog
 
 		info.PluginMenuItems = [
 			(self.Msg(lng.PluginMenuItem), uuid.UUID("{DAF1257B-E011-4B5A-B5DC-732581BDF3BA}"))
@@ -42,9 +42,16 @@ class HelloWorldPlugin(pygin.PluginBoilerplate):
 
 	def OpenW(self, info):
 		if info.OpenFrom == info.OpenFrom.FromMacro:
-			with(pygin.Console()):
+			with pygin.Console():
 				for value in info.Data.Values:
 					print(value.Type.name, ": ", value.Value, sep="")
+			return None
+
+		elif info.OpenFrom == info.OpenFrom.CommandLine:
+			with pygin.Console():
+				Result = eval(info.Data.CommandLine)
+				if Result is not None:
+					print("Result: {0}".format(Result))
 			return None
 
 		BreakCode = [0]
@@ -55,7 +62,7 @@ class HelloWorldPlugin(pygin.PluginBoilerplate):
 			-1,
 			0,
 			far.MenuFlags.WrapMode,
-			"Look, it's a menu! (opened from " + info.OpenFrom.name + ((": " + info.Data.CommandLine) if info.OpenFrom == info.OpenFrom.CommandLine else "") + ")",
+			"Look, it's a menu! (opened from " + info.OpenFrom.name + ")",
 			"A, B, C work as Enter",
 			"MenuTopic",
 			[
@@ -139,7 +146,7 @@ class HelloWorldPlugin(pygin.PluginBoilerplate):
 		return None
 
 	def ConfigureW(self, info):
-		with(pygin.Console()):
+		with pygin.Console():
 			print("------------")
 			print("Very configure. Wow.")
 			print("Config Menu id: " + str(info.Guid))
@@ -149,7 +156,7 @@ class HelloWorldPlugin(pygin.PluginBoilerplate):
 	def DoConsoleStuff(self, info, BreakCode):
 		WindowType = far.AdvControl(self.Guid, far.AdvancedControlCommands.GetWindowType)
 
-		with(pygin.Console()):
+		with pygin.Console():
 			print("------------")
 			print(self.Msg(lng.TheMessage))
 			print("Plugin Menu id: " + str(info.Guid))

@@ -202,7 +202,7 @@ namespace far_api_implementation
 		const auto Args = get_args(__FUNCTION__, RawArgs, 4);
 		
 		const auto PluginId = py::cast<UUID>(Args[0]);
-		const auto Command = static_cast<ADVANCED_CONTROL_COMMANDS>(py::cast<int>(Args[1]));
+		const auto Command = py::cast<ADVANCED_CONTROL_COMMANDS>(Args[1]);
 		const auto Param1 = py::cast<intptr_t>(Args[2]);
 		auto Param2 = Args[3];
 
@@ -303,8 +303,8 @@ namespace far_api_implementation
 	{
 		const auto Args = get_args(__FUNCTION__, RawArgs, 4);
 
-		const auto Panel = reinterpret_cast<HANDLE>(py::cast<intptr_t>(Args[0]));
-		const auto Command = static_cast<FILE_CONTROL_COMMANDS>(py::cast<int>(Args[1]));
+		const auto Panel = py::cast<HANDLE>(Args[0]);
+		const auto Command = py::cast<FILE_CONTROL_COMMANDS>(Args[1]);
 		const auto Param1 = py::cast<intptr_t>(Args[2]);
 		auto Param2 = Args[3];
 

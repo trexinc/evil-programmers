@@ -15,6 +15,7 @@ namespace py
 		integer(unsigned long Value);
 		integer(long long Value);
 		integer(unsigned long long Value);
+		explicit integer(void* Value);
 		integer(cast_guard, const object& Object);
 
 		operator short() const;
@@ -25,6 +26,8 @@ namespace py
 		operator unsigned long() const;
 		operator long long() const;
 		operator unsigned long long() const;
+
+		explicit operator void*() const;
 	};
 
 	inline namespace literals
@@ -82,4 +85,20 @@ namespace py
 	{
 		return cast<integer>(Object);
 	}
+
+	template<>
+	inline void* cast(const object& Object)
+	{
+		return static_cast<void*>(cast<integer>(Object));
+	}
+
+	template<typename Type>
+	struct cast_impl<Type, false>
+	{
+		static auto impl(const object& Object)
+		{
+			static_assert(std::is_enum<Type>::value, "Only enums are supported");
+			return static_cast<Type>(cast<std::underlying_type_t<Type>>(Object));
+		}
+	};
 }

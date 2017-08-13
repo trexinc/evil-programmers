@@ -107,11 +107,23 @@ namespace py
 		return m_Owner->get_at(m_Key);
 	}
 
+	template<typename T, bool IsClass>
+	struct cast_impl;
+
+	template<typename T>
+	struct cast_impl<T, true>
+	{
+		static T impl(const object& Object)
+		{
+			Object.ensure_type(T::get_type());
+			return T(cast_guard{}, Object);
+		}
+	};
+
 	template<typename T>
 	T cast(const object& Object)
 	{
-		Object.ensure_type(T::get_type());
-		return T(cast_guard{}, Object);
+		return cast_impl<T, std::is_class<T>::value>::impl(Object);
 	}
 
 	template<typename T>
