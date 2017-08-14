@@ -306,36 +306,94 @@ namespace far_api_implementation
 		const auto Panel = py::cast<HANDLE>(Args[0]);
 		const auto Command = py::cast<FILE_CONTROL_COMMANDS>(Args[1]);
 		const auto Param1 = py::cast<intptr_t>(Args[2]);
-		auto Param2 = Args[3];
+		const auto Param2 = Args[3];
 
 		const auto& DefaultCall = [&]
 		{
 			return psi().PanelControl(Panel, Command, Param1, nullptr);
 		};
 
+		const auto& ReceiveString = [&]
+		{
+			auto Size = psi().PanelControl(Panel, Command, 0, nullptr);
+			if (!Size)
+				Py_RETURN_NONE;
+
+			std::vector<wchar_t> Buffer(Size);
+			for (;;)
+			{
+				const auto FillSize = psi().PanelControl(Panel, Command, Size, Buffer.data());
+				if (FillSize == Size)
+					return py::string(Buffer.data(), FillSize).release();
+
+				Buffer.resize(Size = FillSize);
+			}
+		};
+
+		const auto& PassString = [&]
+		{
+			std::wstring Str;
+			if (Param2)
+				Str = py::cast<std::wstring>(Param2);
+			return py::boolean(psi().PanelControl(Panel, Command, Param1, const_cast<wchar_t*>(Str.data())) != 0).release();
+		};
+
 		switch (Command)
 		{
 		case FCTL_CLOSEPANEL:
-			// BUGBUG
-			Py_RETURN_NONE;
-
-		case FCTL_GETPANELINFO:
-			// BUGBUG
-			Py_RETURN_NONE;
-
-		case FCTL_UPDATEPANEL:
-			// BUGBUG
-			Py_RETURN_NONE;
-
-		case FCTL_REDRAWPANEL:
-			// BUGBUG
-			Py_RETURN_NONE;
+		case FCTL_SETCMDLINE:
+		case FCTL_INSERTCMDLINE:
+			return PassString();
 
 		case FCTL_GETCMDLINE:
-			// BUGBUG
-			Py_RETURN_NONE;
+		case FCTL_GETCOLUMNTYPES:
+		case FCTL_GETCOLUMNWIDTHS:
+		case FCTL_GETPANELFORMAT:
+		case FCTL_GETPANELHOSTFILE:
+		case FCTL_GETPANELPREFIX:
+			return ReceiveString();
 
-		case FCTL_SETCMDLINE:
+		case FCTL_UPDATEPANEL:
+		case FCTL_SETVIEWMODE:
+		case FCTL_SETUSERSCREEN:
+		case FCTL_SETCMDLINEPOS:
+		case FCTL_SETSORTMODE:
+		case FCTL_SETSORTORDER:
+		case FCTL_CHECKPANELSEXIST:
+		case FCTL_SETNUMERICSORT:
+		case FCTL_GETUSERSCREEN:
+		case FCTL_ISACTIVEPANEL:
+		case FCTL_BEGINSELECTION:
+		case FCTL_ENDSELECTION:
+		case FCTL_CLEARSELECTION:
+		case FCTL_SETDIRECTORIESFIRST:
+		case FCTL_SETCASESENSITIVESORT:
+		case FCTL_SETACTIVEPANEL:
+			return py::boolean(DefaultCall() != 0).release();
+
+		case FCTL_GETPANELINFO:
+			{
+				PanelInfo Info;
+				if (!psi().PanelControl(Panel, Command, Param1, &Info))
+					Py_RETURN_NONE;
+
+				auto PanelInfoInstance = far_api::type("PanelInfo")();
+				PanelInfoInstance["PluginHandle"] = py::integer(Info.PluginHandle);
+				PanelInfoInstance["OwnerGuid"] = py::uuid(Info.OwnerGuid);
+				PanelInfoInstance["Flags"] = far_api::type("PanelInfoFlags")(py::integer(Info.Flags));
+				PanelInfoInstance["ItemsNumber"] = py::integer(Info.ItemsNumber);
+				PanelInfoInstance["SelectedItemsNumber"] = py::integer(Info.SelectedItemsNumber);
+				PanelInfoInstance["PanelRect"] = far_api::type("Rect")(py::integer(Info.PanelRect.left), py::integer(Info.PanelRect.top), py::integer(Info.PanelRect.right), py::integer(Info.PanelRect.bottom));
+				PanelInfoInstance["CurrentItem"] = py::integer(Info.CurrentItem);
+				PanelInfoInstance["TopPanelItem"] = py::integer(Info.TopPanelItem);
+				PanelInfoInstance["ViewMode"] = py::integer(Info.ViewMode);
+				PanelInfoInstance["PanelType"] = far_api::type("PanelInfoType")(py::integer(Info.PanelType));
+				PanelInfoInstance["SortMode"] = far_api::type("SortModes")(py::integer(Info.SortMode));
+
+				return PanelInfoInstance.release();
+			}
+
+		case FCTL_REDRAWPANEL:
 			// BUGBUG
 			Py_RETURN_NONE;
 
@@ -343,55 +401,24 @@ namespace far_api_implementation
 			// BUGBUG
 			Py_RETURN_NONE;
 
-		case FCTL_SETVIEWMODE:
-			// BUGBUG
-			Py_RETURN_NONE;
-
-		case FCTL_INSERTCMDLINE:
-			// BUGBUG
-			Py_RETURN_NONE;
-
-		case FCTL_SETUSERSCREEN:
-		case FCTL_GETUSERSCREEN:
-			return py::boolean(DefaultCall() != 0).release();
-
 		case FCTL_SETPANELDIRECTORY:
 			// BUGBUG
 			Py_RETURN_NONE;
 
-		case FCTL_SETCMDLINEPOS:
-			// BUGBUG
-			Py_RETURN_NONE;
-
 		case FCTL_GETCMDLINEPOS:
-			// BUGBUG
-			Py_RETURN_NONE;
+			{
+				int Pos;
+				if (!psi().PanelControl(Panel, Command, Param1, &Pos))
+					Py_RETURN_NONE;
 
-		case FCTL_SETSORTMODE:
-			// BUGBUG
-			Py_RETURN_NONE;
-
-		case FCTL_SETSORTORDER:
-			// BUGBUG
-			Py_RETURN_NONE;
+				return py::integer(Pos).release();
+			}
 
 		case FCTL_SETCMDLINESELECTION:
 			// BUGBUG
 			Py_RETURN_NONE;
 
 		case FCTL_GETCMDLINESELECTION:
-			// BUGBUG
-			Py_RETURN_NONE;
-
-		case FCTL_CHECKPANELSEXIST:
-			// BUGBUG
-			Py_RETURN_NONE;
-
-		case FCTL_SETNUMERICSORT:
-			// BUGBUG
-			Py_RETURN_NONE;
-
-		case FCTL_ISACTIVEPANEL:
 			// BUGBUG
 			Py_RETURN_NONE;
 
@@ -411,49 +438,6 @@ namespace far_api_implementation
 			// BUGBUG
 			Py_RETURN_NONE;
 
-		case FCTL_GETCOLUMNTYPES:
-			// BUGBUG
-			Py_RETURN_NONE;
-
-		case FCTL_GETCOLUMNWIDTHS:
-			// BUGBUG
-			Py_RETURN_NONE;
-
-		case FCTL_BEGINSELECTION:
-			// BUGBUG
-			Py_RETURN_NONE;
-
-		case FCTL_ENDSELECTION:
-			// BUGBUG
-			Py_RETURN_NONE;
-
-		case FCTL_CLEARSELECTION:
-			// BUGBUG
-			Py_RETURN_NONE;
-
-		case FCTL_SETDIRECTORIESFIRST:
-			// BUGBUG
-			Py_RETURN_NONE;
-
-		case FCTL_GETPANELFORMAT:
-			// BUGBUG
-			Py_RETURN_NONE;
-
-		case FCTL_GETPANELHOSTFILE:
-			// BUGBUG
-			Py_RETURN_NONE;
-
-		case FCTL_SETCASESENSITIVESORT:
-			// BUGBUG
-			Py_RETURN_NONE;
-
-		case FCTL_GETPANELPREFIX:
-			// BUGBUG
-			Py_RETURN_NONE;
-
-		case FCTL_SETACTIVEPANEL:
-			// BUGBUG
-			Py_RETURN_NONE;
 
 		default:
 			Py_RETURN_NONE;

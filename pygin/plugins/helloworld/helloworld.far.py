@@ -169,6 +169,21 @@ class HelloWorldPlugin(pygin.PluginBoilerplate):
 			if WindowType is not None:
 				print("Current window: {0}".format(WindowType.Type.name))
 
+			PanelInfo = far.PanelControl(far.Panels.Active, far.FileControlCommands.GetPanelInfo)
+			if PanelInfo is not None:
+				print(vars(PanelInfo))
+
+			for Command in [
+				far.FileControlCommands.GetColumnTypes,
+				far.FileControlCommands.GetColumnWidths,
+				far.FileControlCommands.GetPanelPrefix,
+				far.FileControlCommands.GetPanelHostFile,
+				far.FileControlCommands.GetPanelFormat,
+			]:
+				Value = far.PanelControl(far.Panels.Active, Command)
+				if Value is not None:
+					print("{0}: {1}".format(Command.name, Value))
+
 			print("------------")
 
 FarPluginClass = HelloWorldPlugin

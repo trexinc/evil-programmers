@@ -7,7 +7,7 @@ import enum
 from enum import unique
 from typing import *
 
-def invoke_api():
+def __invoke_api():
 	Module = sys.modules[__name__]
 	Frame = sys._getframe(1)
 	CallerName = Frame.f_code.co_name
@@ -155,7 +155,7 @@ class ExitInfo:
 		pass
 
 def GetMsg(PluginId: uuid, MsgId: int) -> str:
-	return invoke_api()
+	return __invoke_api()
 
 @unique
 class MessageFlags(enum.IntFlag):
@@ -172,7 +172,7 @@ class MessageFlags(enum.IntFlag):
 	ButtonRetryCancel                               = bit(16) * 6
 
 def Message(PluginId: uuid, Id: uuid, Flags: MessageFlags, HelpTopic: str, Title: str, Items: list, Buttons: list) -> Union[int, None]:
-	return invoke_api()
+	return __invoke_api()
 
 @unique
 class InputBoxFlags(enum.IntFlag):
@@ -187,7 +187,7 @@ class InputBoxFlags(enum.IntFlag):
 	EditPathExec                                    = bit(7)
 
 def InputBox(PluginId: uuid, Id: uuid, Title: str, SubTitle: str, HistoryName: str, SrcText: str, DestSize: int, HelpTopic: str, Flags: InputBoxFlags) -> Union[str, None]:
-	return invoke_api()
+	return __invoke_api()
 
 @unique
 class MenuItemFlags(enum.IntFlag):
@@ -221,7 +221,7 @@ class MenuFlags(enum.IntFlag):
 	ChangeConsoleTitle                              = bit(4)
 
 def Menu(PluginId: uuid, Id: uuid, X: int, Y: int, MaxHeight: int, Flags: MenuFlags, Title: str, Bottom: str, HelpTopic: str, BreakKeys: list, BreakCode, Items: list) -> Union[int, None]:
-	return invoke_api()
+	return __invoke_api()
 
 @unique
 class HelpFlags(enum.IntFlag):
@@ -237,7 +237,7 @@ class HelpFlags(enum.IntFlag):
 	NoShowError = bit(31)
 
 def ShowHelp(ModuleName: str, HelpTopic: str, Flags: HelpFlags) -> bool:
-	return invoke_api()
+	return __invoke_api()
 
 @unique
 class AdvancedControlCommands(enum.IntEnum):
@@ -279,28 +279,27 @@ class WindowType:
 		self.Type = WindowInfoType.Unknown
 
 def AdvControl(PluginId: uuid, Command: AdvancedControlCommands, Param1: int = 0, Param2 = None):
-	return invoke_api()
+	return __invoke_api()
 
 @unique
 class FileControlCommands(enum.IntEnum):
-	Unknown                                         = -1
 	ClosePanel                                      = 0,
 	GetPanelInfo                                    = 1,
 	UpdatePanel                                     = 2,
 	RedrawPanel                                     = 3,
-	GetCmdline                                      = 4,
-	SetCmdline                                      = 5,
+	GetCmdLine                                      = 4,
+	SetCmdLine                                      = 5,
 	SetSelection                                    = 6,
 	SetViewMode                                     = 7,
-	Insertcmdline                                   = 8,
+	InsertCmdLine                                   = 8,
 	SetUserScreen                                   = 9,
 	SetPanelDirectory                               = 10,
-	SetCmdlinePos                                   = 11,
-	GetCmdlinePos                                   = 12,
+	SetCmdLinePos                                   = 11,
+	GetCmdLinePos                                   = 12,
 	SetSortMode                                     = 13,
 	SetSortOrder                                    = 14,
-	SetCmdlineSelection                             = 15,
-	GetCmdlineSelection                             = 16,
+	SetCmdLineSelection                             = 15,
+	GetCmdLineSelection                             = 16,
 	CheckPanelsExist                                = 17,
 	SetNumericSort                                  = 18,
 	GetUserScreen                                   = 19,
@@ -321,9 +320,78 @@ class FileControlCommands(enum.IntEnum):
 	GetPanelPrefix                                  = 34,
 	SetActivePanel                                  = 35,
 
+@unique
 class Panels(enum.IntEnum):
 	Active = -1
 	Passive = -2
 
+@unique
+class SortModes(enum.IntEnum):
+	Default                                         =  0,
+	Unsorted                                        =  1,
+	Name                                            =  2,
+	Extension                                       =  3,
+	ModificationTime                                =  4,
+	CreationTime                                    =  5,
+	AccessTime                                      =  6,
+	Size                                            =  7,
+	Description                                     =  8,
+	Owner                                           =  9,
+	CompressedSize                                  = 10,
+	NumberOfLinks                                   = 11,
+	NumberOfStreams                                 = 12,
+	StreamsSize                                     = 13,
+	FullName                                        = 14,
+	ChangeTime                                      = 15,
+
+@unique
+class PanelInfoFlags(enum.IntFlag):
+	Default                                         = 0
+	ShowHidden                                      = bit(0)
+	Highlight                                       = bit(1)
+	ReverseSortOrder                                = bit(2)
+	UseSortGroups                                   = bit(3)
+	SelectedFirst                                   = bit(4)
+	RealNames                                       = bit(5)
+	NumericSort                                     = bit(6)
+	PanelLeft                                       = bit(7)
+	DirectoriesFirst                                = bit(8)
+	UseCRC32                                        = bit(9)
+	CaseSensitiveSort                               = bit(10)
+	Plugin                                          = bit(11)
+	Visible                                         = bit(12)
+	Focus                                           = bit(13)
+	AlternativeNames                                = bit(14)
+	Shortcut                                        = bit(15)
+
+@unique
+class PanelInfoType(enum.IntEnum):
+	Unknown                                         = -1
+	FilePanel                                       = 0
+	TreePanel                                       = 1
+	QViewPanel                                      = 2
+	InfoPanel                                       = 3
+
+class Rect:
+	def __init__(self, left: int, top: int, right: int, bottom: int):
+		self.left = left
+		self.top = top
+		self.right = right
+		self.bottom = bottom
+
+class PanelInfo:
+	def __init__(self):
+		self.PluginHandle = 0
+		self.OwnerGuid = NullUuid
+		self.Flags = PanelInfoFlags.Default
+		self.ItemsNumber = 0
+		self.SelectedItemsNumber = 0
+		self.PanelRect = Rect(0, 0, 0, 0)
+		self.CurrentItem = 0
+		self.TopPanelItem = 0
+		self.ViewMode = 0
+		self.PanelType = PanelInfoType.Unknown
+		self.SortMode = SortModes.Default
+
 def PanelControl(Panel: int, Command: FileControlCommands, Param1: int = 0, Param2 = None):
-	return invoke_api()
+	return __invoke_api()
