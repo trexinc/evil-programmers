@@ -243,6 +243,7 @@
     <ClInclude Include="hide_cursor.hpp" />
     <ClInclude Include="imported_functions.hpp" />
     <ClInclude Include="prop_variant.hpp" />
+    <ClInclude Include="scope_exit.hpp" />
     <ClInclude Include="system.hpp" />
     <ClInclude Include="text_color.hpp" />
     <ClInclude Include="seven_zip_module_manager.hpp" />
