@@ -1,0 +1,8 @@
+EXPORTS
+Initialize = loader_Initialize
+IsPlugin = loader_IsPlugin
+CreateInstance = loader_CreateInstance
+GetFunctionAddress = loader_GetFunctionAddress
+GetError = loader_GetError
+DestroyInstance = loader_DestroyInstance
+Free = loader_Free

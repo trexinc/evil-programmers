@@ -1,5 +1,6 @@
 import uuid
 import enum
+from pprint import pprint
 
 import pygin
 from pygin import far
@@ -171,7 +172,7 @@ class HelloWorldPlugin(pygin.PluginBoilerplate):
 
 			PanelInfo = far.PanelControl(far.Panels.Active, far.FileControlCommands.GetPanelInfo)
 			if PanelInfo is not None:
-				print(vars(PanelInfo))
+				pprint(vars(PanelInfo))
 
 			for Command in [
 				far.FileControlCommands.GetColumnTypes,

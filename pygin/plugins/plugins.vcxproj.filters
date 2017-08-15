@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="helloworld">
+      <UniqueIdentifier>{17e525b3-7590-4f89-85a7-4e082ee18d9c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="helloworld\helloworld.eng.hlf">
+      <Filter>helloworld</Filter>
+    </CustomBuild>
+    <CustomBuild Include="helloworld\helloworld.eng.lng">
+      <Filter>helloworld</Filter>
+    </CustomBuild>
+    <CustomBuild Include="helloworld\helloworld.far.py">
+      <Filter>helloworld</Filter>
+    </CustomBuild>
+  </ItemGroup>
+</Project>

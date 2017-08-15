@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="modules">
+      <UniqueIdentifier>{c86177af-02b3-45d7-a15b-36e2428384a0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="modules\pygin">
+      <UniqueIdentifier>{51bfdec0-8330-48b5-bd19-d3a5fda466a9}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="pygin\__init__.py">
+      <Filter>modules\pygin</Filter>
+    </CustomBuild>
+    <CustomBuild Include="pygin\far.py">
+      <Filter>modules\pygin</Filter>
+    </CustomBuild>
+    <CustomBuild Include="pygin\loader.py">
+      <Filter>modules\pygin</Filter>
+    </CustomBuild>
+    <CustomBuild Include="pygin\logging.py">
+      <Filter>modules\pygin</Filter>
+    </CustomBuild>
+    <CustomBuild Include="pygin\misc.py">
+      <Filter>modules\pygin</Filter>
+    </CustomBuild>
+  </ItemGroup>
+</Project>
