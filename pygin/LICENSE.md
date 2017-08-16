@@ -1,11 +1,4 @@
-﻿#pragma once
-
-/*
-types_cache.hpp
-
-*/
-/*
-Copyright 2017 Alex Alabuzhev
+﻿Copyright 2016 Alex Alabuzhev
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -19,7 +12,7 @@ are met:
 3. The name of the authors may not be used to endorse or promote products
    derived from this software without specific prior written permission.
 
-THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS" AND ANY EXPRESS OR
 IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
 OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
 IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
@@ -29,40 +22,3 @@ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
-
-#include "critical_section.hpp"
-
-namespace py
-{
-	class object;
-	class type;
-}
-
-enum class types
-{
-	boolean,
-	bytes,
-	dictionary,
-	floating,
-	function,
-	integer,
-	list,
-	module,
-	string,
-	tuple,
-	type,
-	uuid,
-};
-
-class types_cache
-{
-public:
-	static const py::type& get_type(types TypeId, const std::function<py::type()>& Getter);
-	static void clear();
-
-private:
-	static std::unordered_map<types, py::type> m_TypesCache;
-	static critical_section m_Cs;
-};
-

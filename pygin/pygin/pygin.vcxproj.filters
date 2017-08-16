@@ -113,9 +113,6 @@
     <ClCompile Include="src\module_interface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\pygin_interface.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\far_api.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -175,6 +172,9 @@
     </ClCompile>
     <ClCompile Include="src\py.import.cpp">
       <Filter>Source Files\cpp api</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pygin.interface.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

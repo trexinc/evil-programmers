@@ -1,10 +1,10 @@
-﻿#pragma once
-
-/*
-types_cache.hpp
-
-*/
-/*
+﻿"""
+Helpers
+"""
+"""
+helpers.py
+"""
+"""
 Copyright 2017 Alex Alabuzhev
 All rights reserved.
 
@@ -29,40 +29,20 @@ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+"""
 
-#include "critical_section.hpp"
+from pygin import far
 
-namespace py
-{
-	class object;
-	class type;
-}
+class PluginBoilerplate:
+	def Msg(self, Id: int) -> str:
+		return far.GetMsg(self.Guid, Id)
 
-enum class types
-{
-	boolean,
-	bytes,
-	dictionary,
-	floating,
-	function,
-	integer,
-	list,
-	module,
-	string,
-	tuple,
-	type,
-	uuid,
-};
+class Console:
+	def __enter__(self):
+		self.__cmd(far.FileControlCommands.GetUserScreen)
 
-class types_cache
-{
-public:
-	static const py::type& get_type(types TypeId, const std::function<py::type()>& Getter);
-	static void clear();
+	def __exit__(self, *args):
+		self.__cmd(far.FileControlCommands.SetUserScreen)
 
-private:
-	static std::unordered_map<types, py::type> m_TypesCache;
-	static critical_section m_Cs;
-};
-
+	def __cmd(self, Command):
+		far.PanelControl(far.Panels.Active, Command)

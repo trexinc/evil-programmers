@@ -42,6 +42,12 @@
     <OutDir>$(SolutionDir)artefacts\product\adapters\$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemGroup>
+    <CustomBuild Include="LICENSE.md">
+      <FileType>Document</FileType>
+      <Command>copy %(Identity) $(SolutionDir)artefacts\product\%(Identity) &gt; nul</Command>
+      <Outputs>$(SolutionDir)artefacts\product\%(Identity)</Outputs>
+      <Message>%(Identity)</Message>
+    </CustomBuild>
     <CustomBuild Include="README.md">
       <FileType>Document</FileType>
       <Command>copy %(Identity) $(SolutionDir)artefacts\product\%(Identity) &gt; nul</Command>

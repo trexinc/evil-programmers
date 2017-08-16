@@ -48,25 +48,25 @@
       <Outputs>$(OutDir)%(Identity)</Outputs>
       <Message>%(Identity)</Message>
     </CustomBuild>
+    <CustomBuild Include="pygin\_loader.py">
+      <FileType>Document</FileType>
+      <Command>copy %(Identity) $(OutDir)%(Identity) &gt; nul</Command>
+      <Outputs>$(OutDir)%(Identity)</Outputs>
+      <Message>%(Identity)</Message>
+    </CustomBuild>
+    <CustomBuild Include="pygin\_logging.py">
+      <FileType>Document</FileType>
+      <Command>copy %(Identity) $(OutDir)%(Identity) &gt; nul</Command>
+      <Outputs>$(OutDir)%(Identity)</Outputs>
+      <Message>%(Identity)</Message>
+    </CustomBuild>
     <CustomBuild Include="pygin\far.py">
       <FileType>Document</FileType>
       <Command>copy %(Identity) $(OutDir)%(Identity) &gt; nul</Command>
       <Outputs>$(OutDir)%(Identity)</Outputs>
       <Message>%(Identity)</Message>
     </CustomBuild>
-    <CustomBuild Include="pygin\logging.py">
-      <FileType>Document</FileType>
-      <Command>copy %(Identity) $(OutDir)%(Identity) &gt; nul</Command>
-      <Outputs>$(OutDir)%(Identity)</Outputs>
-      <Message>%(Identity)</Message>
-    </CustomBuild>
-    <CustomBuild Include="pygin\misc.py">
-      <FileType>Document</FileType>
-      <Command>copy %(Identity) $(OutDir)%(Identity) &gt; nul</Command>
-      <Outputs>$(OutDir)%(Identity)</Outputs>
-      <Message>%(Identity)</Message>
-    </CustomBuild>
-    <CustomBuild Include="pygin\loader.py">
+    <CustomBuild Include="pygin\helpers.py">
       <FileType>Document</FileType>
       <Command>copy %(Identity) $(OutDir)%(Identity) &gt; nul</Command>
       <Outputs>$(OutDir)%(Identity)</Outputs>

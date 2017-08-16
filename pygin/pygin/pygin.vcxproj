@@ -133,7 +133,7 @@
     <ClCompile Include="src\module.cpp" />
     <ClCompile Include="src\module_interface.cpp" />
     <ClCompile Include="src\pygin.cpp" />
-    <ClCompile Include="src\pygin_interface.cpp" />
+    <ClCompile Include="src\pygin.interface.cpp" />
     <ClCompile Include="src\py.boolean.cpp" />
     <ClCompile Include="src\py.bytes.cpp" />
     <ClCompile Include="src\py.floating.cpp" />

@@ -3,6 +3,7 @@
   <ItemGroup>
   </ItemGroup>
   <ItemGroup>
+    <CustomBuild Include="LICENSE.md" />
     <CustomBuild Include="README.md" />
   </ItemGroup>
 </Project>

@@ -1,10 +1,10 @@
-﻿#pragma once
-
-/*
-types_cache.hpp
-
-*/
-/*
+﻿"""
+Logging facilities
+"""
+"""
+_logging.py
+"""
+"""
 Copyright 2017 Alex Alabuzhev
 All rights reserved.
 
@@ -29,40 +29,26 @@ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+"""
 
-#include "critical_section.hpp"
+import sys
+import os
+import tempfile
 
-namespace py
-{
-	class object;
-	class type;
-}
+class Logger:
+	def __init__(self):
+		self.terminal = sys.stdout
+		self.logfile = os.path.join(tempfile.gettempdir(), "pygin.log")
 
-enum class types
-{
-	boolean,
-	bytes,
-	dictionary,
-	floating,
-	function,
-	integer,
-	list,
-	module,
-	string,
-	tuple,
-	type,
-	uuid,
-};
+	def write(self, message):
+		with open(self.logfile, "a") as log:
+			log.write(message)
+		self.terminal.write(message)
+		self.flush()
 
-class types_cache
-{
-public:
-	static const py::type& get_type(types TypeId, const std::function<py::type()>& Getter);
-	static void clear();
+	def flush(self):
+		self.terminal.flush()
 
-private:
-	static std::unordered_map<types, py::type> m_TypesCache;
-	static critical_section m_Cs;
-};
-
+Log = Logger()
+sys.stdout = Log
+sys.stderr = Log

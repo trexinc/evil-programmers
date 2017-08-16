@@ -12,16 +12,16 @@
     <CustomBuild Include="pygin\__init__.py">
       <Filter>modules\pygin</Filter>
     </CustomBuild>
+    <CustomBuild Include="pygin\_loader.py">
+      <Filter>modules\pygin</Filter>
+    </CustomBuild>
+    <CustomBuild Include="pygin\_logging.py">
+      <Filter>modules\pygin</Filter>
+    </CustomBuild>
     <CustomBuild Include="pygin\far.py">
       <Filter>modules\pygin</Filter>
     </CustomBuild>
-    <CustomBuild Include="pygin\loader.py">
-      <Filter>modules\pygin</Filter>
-    </CustomBuild>
-    <CustomBuild Include="pygin\logging.py">
-      <Filter>modules\pygin</Filter>
-    </CustomBuild>
-    <CustomBuild Include="pygin\misc.py">
+    <CustomBuild Include="pygin\helpers.py">
       <Filter>modules\pygin</Filter>
     </CustomBuild>
   </ItemGroup>
