@@ -51,4 +51,6 @@ namespace py
 	{
 		return cast<uuid>(Object);
 	}
+
+	object from(const UUID& Value);
 }

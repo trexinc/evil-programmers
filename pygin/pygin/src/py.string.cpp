@@ -110,4 +110,24 @@ namespace py
 
 		return Result;
 	}
+
+	object from(const char* Value)
+	{
+		return string(Value);
+	}
+
+	object from(const wchar_t* Value)
+	{
+		return string(Value);
+	}
+
+	object from(const std::string& Value)
+	{
+		return string(Value);
+	}
+
+	object from(const std::wstring& Value)
+	{
+		return string(Value);
+	}
 }

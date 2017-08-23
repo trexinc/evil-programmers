@@ -194,7 +194,7 @@ namespace far_api_implementation
 		if (Args[10])
 		{
 			auto BreakCodeContainer = py::cast<py::list>(Args[10]);
-			BreakCodeContainer[0] = py::integer(BreakCode);
+			BreakCodeContainer[0] = BreakCode;
 		}
 
 		if (Result != -1)
@@ -262,11 +262,11 @@ namespace far_api_implementation
 					Py_RETURN_NONE;
 
 				return far_api::type("VersionInfo")(
-					py::integer(Info.Major),
-					py::integer(Info.Minor),
-					py::integer(Info.Revision),
-					py::integer(Info.Build),
-					far_api::type("VersionStage")(py::integer(Info.Stage))
+					Info.Major,
+					Info.Minor,
+					Info.Revision,
+					Info.Build,
+					far_api::type("VersionStage")(Info.Stage)
 					).release();
 			}
 
@@ -321,7 +321,7 @@ namespace far_api_implementation
 					Py_RETURN_NONE;
 
 				auto WindowTypeInstance = far_api::type("WindowType")();
-				WindowTypeInstance["Type"] = far_api::type("WindowInfoType")(py::integer(Type.Type));
+				WindowTypeInstance["Type"] = far_api::type("WindowInfoType")(Type.Type);
 				return WindowTypeInstance.release();
 			}
 
@@ -410,16 +410,16 @@ namespace far_api_implementation
 
 				auto PanelInfoInstance = far_api::type("PanelInfo")();
 				PanelInfoInstance["PluginHandle"] = py::integer(Info.PluginHandle);
-				PanelInfoInstance["OwnerGuid"] = py::uuid(Info.OwnerGuid);
-				PanelInfoInstance["Flags"] = far_api::type("PanelInfoFlags")(py::integer(Info.Flags));
-				PanelInfoInstance["ItemsNumber"] = py::integer(Info.ItemsNumber);
-				PanelInfoInstance["SelectedItemsNumber"] = py::integer(Info.SelectedItemsNumber);
-				PanelInfoInstance["PanelRect"] = far_api::type("Rect")(py::integer(Info.PanelRect.left), py::integer(Info.PanelRect.top), py::integer(Info.PanelRect.right), py::integer(Info.PanelRect.bottom));
-				PanelInfoInstance["CurrentItem"] = py::integer(Info.CurrentItem);
-				PanelInfoInstance["TopPanelItem"] = py::integer(Info.TopPanelItem);
-				PanelInfoInstance["ViewMode"] = py::integer(Info.ViewMode);
-				PanelInfoInstance["PanelType"] = far_api::type("PanelInfoType")(py::integer(Info.PanelType));
-				PanelInfoInstance["SortMode"] = far_api::type("SortModes")(py::integer(Info.SortMode));
+				PanelInfoInstance["OwnerGuid"] = Info.OwnerGuid;
+				PanelInfoInstance["Flags"] = far_api::type("PanelInfoFlags")(Info.Flags);
+				PanelInfoInstance["ItemsNumber"] = Info.ItemsNumber;
+				PanelInfoInstance["SelectedItemsNumber"] = Info.SelectedItemsNumber;
+				PanelInfoInstance["PanelRect"] = far_api::type("Rect")(Info.PanelRect.left, Info.PanelRect.top, Info.PanelRect.right, Info.PanelRect.bottom);
+				PanelInfoInstance["CurrentItem"] = Info.CurrentItem;
+				PanelInfoInstance["TopPanelItem"] = Info.TopPanelItem;
+				PanelInfoInstance["ViewMode"] = Info.ViewMode;
+				PanelInfoInstance["PanelType"] = far_api::type("PanelInfoType")(Info.PanelType);
+				PanelInfoInstance["SortMode"] = far_api::type("SortModes")(Info.SortMode);
 
 				return PanelInfoInstance.release();
 			}
@@ -500,7 +500,7 @@ far_api::far_api(const PluginStartupInfo* Psi):
 {
 	m_Psi.FSF = &m_Fsf;
 
-	// We use single instances of PSI and FSF for all plugins.
+	// We use single instance of PSI and FSF for all plugins.
 	// This is perfectly fine for FSF as it is completely static.
 	// PSI, however, has some dynamic fields.
 	// It is better to reset all of them to avoid any misusing.
@@ -546,7 +546,7 @@ const py::object& far_api::module()
 
 py::type far_api::type(const std::string& TypeName)
 {
-	return py::type(s_FarApi->m_Module[TypeName.data()]);
+	return py::type(s_FarApi->m_Module[TypeName]);
 }
 
 void far_api::uninitialise()

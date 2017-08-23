@@ -132,4 +132,18 @@ namespace py
 			return static_cast<Type>(cast<std::underlying_type_t<Type>>(Object));
 		}
 	};
+
+	object from(unsigned short Value);
+	object from(int Value);
+	object from(unsigned int Value);
+	object from(long Value);
+	object from(unsigned long Value);
+	object from(long long Value);
+	object from(unsigned long long Value);
+
+	template<typename Type>
+	std::enable_if_t<std::is_enum<Type>::value, object> from(Type Value)
+	{
+		return from(static_cast<std::underlying_type_t<Type>>(Value));
+	}
 }

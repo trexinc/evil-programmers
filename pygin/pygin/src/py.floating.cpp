@@ -63,4 +63,19 @@ namespace py
 	{
 		return invoke(PyLong_AsDouble, get());
 	}
+
+	object from(float Value)
+	{
+		return floating(Value);
+	}
+
+	object from(double Value)
+	{
+		return floating(Value);
+	}
+
+	object from(long double Value)
+	{
+		return floating(Value);
+	}
 }

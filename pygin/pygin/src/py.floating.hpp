@@ -59,4 +59,8 @@ namespace py
 	{
 		return cast<floating>(Object);
 	}
+
+	object from(float Value);
+	object from(double Value);
+	object from(long double Value);
 }

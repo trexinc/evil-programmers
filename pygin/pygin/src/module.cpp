@@ -74,10 +74,10 @@ bool module::check_function(const wchar_t* FunctionName) const
 	// Not perfect, but that should always be pure ASCII anyway, so why not.
 	std::string NarrowName(FunctionName, FunctionName + wcslen(FunctionName));
 
-	if (!m_PluginModuleClass.has_attribute(NarrowName.data()))
+	if (!m_PluginModuleClass.has_attribute(NarrowName))
 		return false;
 
-	const auto Function = m_PluginModuleClass[NarrowName.data()];
+	const auto Function = m_PluginModuleClass[NarrowName];
 	if (!py::callable_check(Function))
 		return false;
 
@@ -118,7 +118,7 @@ intptr_t module::ConfigureW(const ConfigureInfo* Info)
 {
 	auto ConfigureInstance = far_api::type("ConfigureInfo"s)();
 
-	ConfigureInstance["Guid"] = py::uuid(*Info->Guid);
+	ConfigureInstance["Guid"] = *Info->Guid;
 
 	return py::cast<bool>(call(STR(ConfigureW), ConfigureInstance));
 }
@@ -274,7 +274,7 @@ static py::object ConvertValue(const FarMacroValue* Value)
 		}
 	};
 
-	FarMacroValueInstance["Type"] = far_api::type("FarMacroVarType")(py::integer(Value->Type));
+	FarMacroValueInstance["Type"] = far_api::type("FarMacroVarType")(Value->Type);
 	FarMacroValueInstance["Value"] = Convert();
 	return FarMacroValueInstance;
 }
@@ -293,8 +293,8 @@ HANDLE module::OpenW(const OpenInfo* Info)
 {
 	auto OpenInfoInstance = far_api::type("OpenInfo"s)();
 
-	OpenInfoInstance["OpenFrom"] = far_api::type("OpenFrom"s)(py::integer(Info->OpenFrom));
-	OpenInfoInstance["Guid"] = py::uuid(*Info->Guid);
+	OpenInfoInstance["OpenFrom"] = far_api::type("OpenFrom"s)(Info->OpenFrom);
+	OpenInfoInstance["Guid"] = *Info->Guid;
 
 	switch(Info->OpenFrom)
 	{
@@ -302,9 +302,9 @@ HANDLE module::OpenW(const OpenInfo* Info)
 		{
 			const auto Data = reinterpret_cast<const OpenShortcutInfo*>(Info->Data);
 			auto OpenShortcutInfoInstance = far_api::type("OpenShortcutInfo")();
-			OpenShortcutInfoInstance["HostFile"] = py::string(Data->HostFile);
-			OpenShortcutInfoInstance["ShortcutData"] = py::string(Data->ShortcutData);
-			OpenShortcutInfoInstance["Flags"] = far_api::type("OpenShortcutFlags")(py::integer(Data->Flags));
+			OpenShortcutInfoInstance["HostFile"] = Data->HostFile;
+			OpenShortcutInfoInstance["ShortcutData"] = Data->ShortcutData;
+			OpenShortcutInfoInstance["Flags"] = far_api::type("OpenShortcutFlags")(Data->Flags);
 			OpenInfoInstance["Data"] = OpenShortcutInfoInstance;
 		}
 		break;
@@ -313,7 +313,7 @@ HANDLE module::OpenW(const OpenInfo* Info)
 		{
 			const auto Data = reinterpret_cast<const OpenCommandLineInfo*>(Info->Data);
 			auto OpenCommandLineInfoInstance = far_api::type("OpenCommandLineInfo")();
-			OpenCommandLineInfoInstance["CommandLine"] = py::string(Data->CommandLine);
+			OpenCommandLineInfoInstance["CommandLine"] = Data->CommandLine;
 			OpenInfoInstance["Data"] = OpenCommandLineInfoInstance;
 		}
 		break;
@@ -331,9 +331,9 @@ HANDLE module::OpenW(const OpenInfo* Info)
 		{
 			const auto Data = reinterpret_cast<const AnalyseInfo*>(Info->Data);
 			auto AnalyseInfoInstance = far_api::type("AnalyseInfo")();
-			AnalyseInfoInstance["FileName"] = py::string(Data->FileName);
+			AnalyseInfoInstance["FileName"] = Data->FileName;
 			AnalyseInfoInstance["Buffer"] = py::bytes(Data->Buffer, Data->BufferSize);
-			AnalyseInfoInstance["OpMode"] = far_api::type("OperationModes")(py::integer(Data->OpMode));
+			AnalyseInfoInstance["OpMode"] = far_api::type("OperationModes")(Data->OpMode);
 			OpenInfoInstance["Data"] = AnalyseInfoInstance;
 		}
 		break;

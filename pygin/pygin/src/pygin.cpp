@@ -130,7 +130,7 @@ std::unique_ptr<module> pygin::create_module(const wchar_t* FileName) const
 	const auto NamePtr = std::wcsrchr(FileName, L'\\') + 1;
 	const auto NameSize = wcslen(NamePtr) - wcslen(PluginFileNameSuffix);
 
-	const auto Module = m_PyginLoadPlugin(py::string(NamePtr, NameSize), py::string(FileName));
+	const auto Module = m_PyginLoadPlugin(py::string(NamePtr, NameSize), FileName);
 
 	if (!Module)
 		return nullptr;

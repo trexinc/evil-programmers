@@ -120,6 +120,11 @@ namespace py
 		return invoke(PyObject_HasAttrString, get(), Name) != 0;
 	}
 
+	bool object::has_attribute(const std::string& Name) const
+	{
+		return has_attribute(Name.data());
+	}
+
 	bool object::has_attribute(const object& Name) const
 	{
 		return invoke(PyObject_HasAttr, get(), Name.get()) != 0;
@@ -130,6 +135,11 @@ namespace py
 		return object(invoke(PyObject_GetAttrString, get(), Name));
 	}
 
+	object object::get_attribute(const std::string& Name) const
+	{
+		return get_attribute(Name.data());
+	}
+
 	object object::get_attribute(const object& Name) const
 	{
 		return object(invoke(PyObject_GetAttr, get(), Name.get()));
@@ -138,6 +148,11 @@ namespace py
 	object object::get_at(const char* Name) const
 	{
 		return get_attribute(Name);
+	}
+
+	object object::get_at(const std::string& Name) const
+	{
+		return get_at(Name.data());
 	}
 
 	bool object::set_attribute(const char* Name, const object& Value) const

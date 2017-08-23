@@ -133,4 +133,39 @@ namespace py
 	{
 		return invoke(PyLong_AsVoidPtr, get());
 	}
+
+	object from(unsigned short Value)
+	{
+		return integer(Value);
+	}
+
+	object from(int Value)
+	{
+		return integer(Value);
+	}
+
+	object from(unsigned int Value)
+	{
+		return integer(Value);
+	}
+
+	object from(long Value)
+	{
+		return integer(Value);
+	}
+
+	object from(unsigned long Value)
+	{
+		return integer(Value);
+	}
+
+	object from(long long Value)
+	{
+		return integer(Value);
+	}
+
+	object from(unsigned long long Value)
+	{
+		return integer(Value);
+	}
 }

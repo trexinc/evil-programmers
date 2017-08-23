@@ -52,4 +52,6 @@ namespace py
 		return cast<boolean>(Object);
 	}
 
+	object from(bool Value);
+	object from(const void* Value) = delete;
 }

@@ -78,4 +78,9 @@ namespace py
 	{
 		return cast<string>(Object);
 	}
+
+	object from(const char* Value);
+	object from(const wchar_t* Value);
+	object from(const std::string& Value);
+	object from(const std::wstring& Value);
 }

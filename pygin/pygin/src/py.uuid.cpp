@@ -84,7 +84,7 @@ namespace py
 	}
 
 	uuid::uuid(const UUID& Uuid):
-		object(import::import("uuid"_py).get_attribute("UUID")(string(UuidToString(Uuid))))
+		object(import::import("uuid"_py).get_attribute("UUID")(UuidToString(Uuid)))
 	{
 	}
 
@@ -99,5 +99,10 @@ namespace py
 		UUID Result;
 		std::memcpy(&Result, invoke(PyBytes_AsString, Bytes.get()), sizeof(Result));
 		return Result;
+	}
+
+	object from(const UUID& Value)
+	{
+		return uuid(Value);
 	}
 }

@@ -42,21 +42,22 @@ namespace py
 	class cast_guard {};
 
 	template<typename owner_type, typename key_type>
-	class value_proxy_t
+	class value_proxy
 	{
 	public:
-		MOVABLE(value_proxy_t);
-		NONCOPYABLE(value_proxy_t);
+		MOVABLE(value_proxy);
+		NONCOPYABLE(value_proxy);
 
-		value_proxy_t(owner_type* Owner, const key_type& Key):
+		value_proxy(owner_type* Owner, key_type&& Key):
 			m_Owner(Owner),
-			m_Key(Key)
+			m_Key(std::forward<key_type>(Key))
 		{
 		}
 
-		value_proxy_t& operator=(const object& value)
+		template<typename Type>
+		value_proxy& operator=(const Type& value)
 		{
-			m_Owner->set_at(m_Key, value);
+			m_Owner->set_at(m_Key, from(value));
 			return *this;
 		}
 
@@ -71,20 +72,23 @@ namespace py
 	class proxy_owner
 	{
 	public:
-		using value_proxy = value_proxy_t<owner_type, key_type>;
-
 		auto operator[](key_type Key)
 		{
-			return value_proxy{ static_cast<owner_type*>(this), Key };
+			return value_proxy<owner_type, key_type>{ static_cast<owner_type*>(this), std::move(Key) };
 		}
 
-		auto operator[](key_type Key) const
+		auto operator[](const key_type& Key) const
 		{
 			return static_cast<const owner_type*>(this)->get_at(Key);
 		}
 	};
 
-	class object: public proxy_owner<object, const char*>
+	template<typename owner_type, typename... keys>
+	class proxies_owner: public proxy_owner<owner_type, keys>...
+	{
+	};
+
+	class object: public proxies_owner<object, const char*, std::string>
 	{
 	public:
 		object();
@@ -106,11 +110,14 @@ namespace py
 		PyObject* release();
 
 		bool has_attribute(const char* Name) const;
+		bool has_attribute(const std::string& Name) const;
 		bool has_attribute(const object& Name) const;
 
 		object get_attribute(const char* Name) const;
+		object get_attribute(const std::string& Name) const;
 		object get_attribute(const object& Name) const;
 		object get_at(const char* Name) const;
+		object get_at(const std::string& Name) const;
 
 		bool set_attribute(const char* Name, const object& Value) const;
 		bool set_attribute(const object& Name, const object& Value) const;
@@ -119,7 +126,7 @@ namespace py
 		template<typename... args>
 		object operator()(const args&... Args) const
 		{
-			return operator()({ Args... });
+			return operator()({ from(Args)... });
 		}
 
 		static object from_borrowed(PyObject* Object);
@@ -133,7 +140,7 @@ namespace py
 	};
 
 	template<typename owner_type, typename key_type>
-	value_proxy_t<owner_type, key_type>::operator object() const
+	value_proxy<owner_type, key_type>::operator object() const
 	{
 		return m_Owner->get_at(m_Key);
 	}
@@ -163,4 +170,8 @@ namespace py
 		return T(cast_guard{}, Object && Object.check_type(T::get_type())? Object : object(nullptr));
 	}
 
+	inline object from(const object& Value)
+	{
+		return Value;
+	}
 }
