@@ -42,40 +42,10 @@ namespace py
 	class cast_guard {};
 
 	template<typename owner_type, typename key_type>
-	class value_proxy
-	{
-	public:
-		MOVABLE(value_proxy);
-		NONCOPYABLE(value_proxy);
-
-		value_proxy(owner_type* Owner, key_type&& Key):
-			m_Owner(Owner),
-			m_Key(std::forward<key_type>(Key))
-		{
-		}
-
-		template<typename Type>
-		value_proxy& operator=(const Type& value)
-		{
-			m_Owner->set_at(m_Key, from(value));
-			return *this;
-		}
-
-		operator object() const;
-
-	private:
-		owner_type* m_Owner;
-		key_type m_Key;
-	};
-
-	template<typename owner_type, typename key_type>
 	class proxy_owner
 	{
 	public:
-		auto operator[](key_type Key)
-		{
-			return value_proxy<owner_type, key_type>{ static_cast<owner_type*>(this), std::move(Key) };
-		}
+		auto operator[](key_type Key);
 
 		auto operator[](const key_type& Key) const
 		{
@@ -88,9 +58,52 @@ namespace py
 	{
 	};
 
-	class object: public proxies_owner<object, const char*, std::string>
+	template<typename owner_type, typename key_type>
+	class value_proxy: public proxies_owner<value_proxy<owner_type, key_type>, const char*, const wchar_t*, std::string, std::wstring>
 	{
 	public:
+		MOVABLE(value_proxy);
+		NONCOPYABLE(value_proxy);
+
+		value_proxy(owner_type* Owner, key_type&& Key):
+			m_Owner(Owner),
+			m_Key(std::forward<key_type>(Key))
+		{
+		}
+
+		template<typename type>
+		value_proxy& operator=(const type& Value)
+		{
+			m_Owner->set_at(m_Key, from(Value));
+			return *this;
+		}
+
+		template<typename type>
+		object get_at(const type& Name) const;
+
+		bool set_at(const char* Name, const object& Value) const;
+
+		operator object() const;
+
+	private:
+		owner_type* m_Owner;
+		key_type m_Key;
+	};
+
+	template<typename owner_type, typename key_type>
+	auto proxy_owner<owner_type, key_type>::operator[](key_type Key)
+	{
+		return value_proxy<owner_type, key_type>{ static_cast<owner_type*>(this), std::move(Key) };
+	}
+
+	class object: public proxies_owner<object, const char*, const wchar_t*, std::string, std::wstring>
+	{
+	public:
+		using proxy_owner<object, const char*>::operator[];
+		using proxy_owner<object, const wchar_t*>::operator[];
+		using proxy_owner<object, std::string>::operator[];
+		using proxy_owner<object, std::wstring>::operator[];
+
 		object();
 		explicit object(PyObject* Object);
 		object(const object& rhs);
@@ -110,18 +123,29 @@ namespace py
 		PyObject* release();
 
 		bool has_attribute(const char* Name) const;
+		bool has_attribute(const wchar_t* Name) const;
 		bool has_attribute(const std::string& Name) const;
+		bool has_attribute(const std::wstring& Name) const;
 		bool has_attribute(const object& Name) const;
 
 		object get_attribute(const char* Name) const;
+		object get_attribute(const wchar_t* Name) const;
 		object get_attribute(const std::string& Name) const;
+		object get_attribute(const std::wstring& Name) const;
 		object get_attribute(const object& Name) const;
-		object get_at(const char* Name) const;
-		object get_at(const std::string& Name) const;
 
-		bool set_attribute(const char* Name, const object& Value) const;
-		bool set_attribute(const object& Name, const object& Value) const;
-		bool set_at(const char* Name, const object& Value) const;
+		template<typename type>
+		object get_at(const type& Type) const
+		{
+			return get_attribute(Type);
+		}
+
+		bool set_attribute(const char* Name, const object& Value);
+		bool set_attribute(const wchar_t* Name, const object& Value);
+		bool set_attribute(const std::string& Name, const object& Value);
+		bool set_attribute(const std::wstring& Name, const object& Value);
+		bool set_attribute(const object& Name, const object& Value);
+		bool set_at(const char* Name, const object& Value);
 
 		template<typename... args>
 		object operator()(const args&... Args) const
@@ -138,6 +162,19 @@ namespace py
 
 		PyObject* m_Object;
 	};
+
+	template<typename owner_type, typename key_type>
+	template<typename type>
+	object value_proxy<owner_type, key_type>::get_at(const type& Name) const
+	{
+		return operator object().get_at(Name);
+	}
+
+	template<typename owner_type, typename key_type>
+	bool value_proxy<owner_type, key_type>::set_at(const char* Name, const object& Value) const
+	{
+		return operator object().set_at(Name, Value);
+	}
 
 	template<typename owner_type, typename key_type>
 	value_proxy<owner_type, key_type>::operator object() const

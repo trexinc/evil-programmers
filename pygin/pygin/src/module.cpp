@@ -71,30 +71,25 @@ bool module::check_function(const wchar_t* FunctionName) const
 
 	// The rest is as is
 
-	// Not perfect, but that should always be pure ASCII anyway, so why not.
-	std::string NarrowName(FunctionName, FunctionName + wcslen(FunctionName));
-
-	if (!m_PluginModuleClass.has_attribute(NarrowName))
+	if (!m_PluginModuleClass.has_attribute(FunctionName))
 		return false;
 
-	const auto Function = m_PluginModuleClass[NarrowName];
+	const auto Function = m_PluginModuleClass[FunctionName];
 	if (!py::callable_check(Function))
 		return false;
 
-	m_PluginModuleClassFunctions.emplace(std::move(NarrowName), Function);
+	m_PluginModuleClassFunctions.emplace(FunctionName, Function);
 	return true;
 }
 
 template<typename ... args>
-py::object module::call(const char* FunctionName, const args&... Args) const
+py::object module::call(const wchar_t* FunctionName, const args&... Args) const
 {
 	if (!m_PluginModuleInstance)
 		throw silent_exception{};
 
 	return m_PluginModuleClassFunctions.at(FunctionName)(m_PluginModuleInstance, Args...);
 }
-
-#define STR(x) #x
 
 HANDLE module::AnalyseW(const AnalyseInfo* Info)
 {
@@ -120,7 +115,7 @@ intptr_t module::ConfigureW(const ConfigureInfo* Info)
 
 	ConfigureInstance["Guid"] = *Info->Guid;
 
-	return py::cast<bool>(call(STR(ConfigureW), ConfigureInstance));
+	return py::cast<bool>(call(L"ConfigureW", ConfigureInstance));
 }
 
 intptr_t module::DeleteFilesW(const DeleteFilesInfo* Info)
@@ -131,7 +126,7 @@ intptr_t module::DeleteFilesW(const DeleteFilesInfo* Info)
 void module::ExitFARW(const ExitInfo* Info)
 {
 	const auto ExitInfoInstance = far_api::type("ExitInfo"s)();
-	call(STR(ExitFARW), ExitInfoInstance);
+	call(L"ExitFARW", ExitInfoInstance);
 
 	// Point of no return
 	m_PluginModuleInstance = {};
@@ -181,7 +176,7 @@ void module::GetOpenPanelInfoW(OpenPanelInfo* Info)
 void module::GetPluginInfoW(PluginInfo* Info)
 {
 	auto PluginInfoType = far_api::type("PluginInfo"s);
-	const auto PyInfo = call(STR(GetPluginInfoW));
+	const auto PyInfo = call(L"GetPluginInfoW");
 	PyInfo.ensure_type(PluginInfoType);
 
 	Info->Flags = py::cast<unsigned long long>(PyInfo["Flags"]);
@@ -351,7 +346,7 @@ HANDLE module::OpenW(const OpenInfo* Info)
 		break;
 	}
 
-	const auto Result = call(STR(OpenW), OpenInfoInstance);
+	const auto Result = call(L"OpenW", OpenInfoInstance);
 	return Result? py::cast<HANDLE>(Result) : nullptr;
 }
 

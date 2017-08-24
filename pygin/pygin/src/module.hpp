@@ -43,7 +43,7 @@ public:
 	bool check_function(const wchar_t* FunctionName) const;
 
 	template<typename... args>
-	py::object call(const char* FunctionName, const args&... Args) const;
+	py::object call(const wchar_t* FunctionName, const args&... Args) const;
 
 	HANDLE AnalyseW(const AnalyseInfo* Info);
 	void CloseAnalyseW(const CloseAnalyseInfo* Info);
@@ -80,7 +80,7 @@ public:
 private:
 	py::object m_PluginModule;
 	py::object m_PluginModuleClass;
-	mutable std::unordered_map<std::string, py::object> m_PluginModuleClassFunctions;
+	mutable std::unordered_map<std::wstring, py::object> m_PluginModuleClassFunctions;
 	py::object m_PluginModuleInstance;
 
 	std::wstring m_Title;

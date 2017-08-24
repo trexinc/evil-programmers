@@ -123,13 +123,13 @@ namespace py
 		return static_cast<void*>(cast<integer>(Object));
 	}
 
-	template<typename Type>
-	struct cast_impl<Type, false>
+	template<typename type>
+	struct cast_impl<type, false>
 	{
 		static auto impl(const object& Object)
 		{
-			static_assert(std::is_enum<Type>::value, "Only enums are supported");
-			return static_cast<Type>(cast<std::underlying_type_t<Type>>(Object));
+			static_assert(std::is_enum<type>::value, "Only enums are supported");
+			return static_cast<type>(cast<std::underlying_type_t<type>>(Object));
 		}
 	};
 
@@ -141,9 +141,9 @@ namespace py
 	object from(long long Value);
 	object from(unsigned long long Value);
 
-	template<typename Type>
-	std::enable_if_t<std::is_enum<Type>::value, object> from(Type Value)
+	template<typename type>
+	std::enable_if_t<std::is_enum<type>::value, object> from(type Value)
 	{
-		return from(static_cast<std::underlying_type_t<Type>>(Value));
+		return from(static_cast<std::underlying_type_t<type>>(Value));
 	}
 }

@@ -71,22 +71,21 @@ static py::module add_or_reload_module(const std::wstring& Name)
 	return py::import::import(ModuleName);
 }
 
-static py::module create_python_module(const wchar_t* FileName)
-{
-	std::wstring Dir(FileName);
-	const auto SlashPos = Dir.rfind(L'\\');
-	Dir.resize(SlashPos);
-	const auto PrevSlashPos = Dir.rfind(L'\\');
-	const std::wstring Path(Dir, 0, PrevSlashPos);
-	const std::wstring ModuleName(Dir, PrevSlashPos + 1);
-	add_to_python_path(Path);
-	const auto Object = add_or_reload_module(ModuleName);
-	return Object;
-}
-
 extern "C" IMAGE_DOS_HEADER __ImageBase;
 
-pygin::pygin(GlobalInfo* Info)
+static auto create_pygin_module()
+{
+	wchar_t AdaptherPath[MAX_PATH];
+	GetModuleFileName(reinterpret_cast<HINSTANCE>(&__ImageBase), AdaptherPath, static_cast<DWORD>(std::size(AdaptherPath)));
+	*wcsrchr(AdaptherPath, L'\\') = 0;
+
+	add_to_python_path(AdaptherPath);
+	return add_or_reload_module(L"pygin");
+}
+
+pygin::pygin(GlobalInfo* Info):
+	m_PyginModule(create_pygin_module()),
+	m_PyginLoadPlugin(py::cast<py::function>(m_PyginModule["_loader"]["_load_plugin"]))
 {
 	Info->StructSize = sizeof(GlobalInfo);
 
@@ -99,13 +98,6 @@ pygin::pygin(GlobalInfo* Info)
 	Info->Title = L"Pygin";
 	Info->Author = L"Alex Alabuzhev";
 	Info->Description = L"Python language support for Far Manager";
-
-	wchar_t AdaptherPath[MAX_PATH];
-	GetModuleFileName(reinterpret_cast<HINSTANCE>(&__ImageBase), AdaptherPath, static_cast<DWORD>(std::size(AdaptherPath)));
-	*(wcsrchr(AdaptherPath, L'\\') + 1) = 0;
-
-	m_PyginModule = create_python_module((AdaptherPath + L"pygin\\__init__.py"s).data());
-	m_PyginLoadPlugin = py::cast<py::function>(m_PyginModule.get_attribute("_loader").get_attribute("_load_plugin"));
 }
 
 pygin::~pygin()

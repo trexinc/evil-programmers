@@ -120,9 +120,19 @@ namespace py
 		return invoke(PyObject_HasAttrString, get(), Name) != 0;
 	}
 
+	bool object::has_attribute(const wchar_t* Name) const
+	{
+		return has_attribute(string(Name));
+	}
+
 	bool object::has_attribute(const std::string& Name) const
 	{
 		return has_attribute(Name.data());
+	}
+
+	bool object::has_attribute(const std::wstring& Name) const
+	{
+		return has_attribute(string(Name));
 	}
 
 	bool object::has_attribute(const object& Name) const
@@ -135,9 +145,19 @@ namespace py
 		return object(invoke(PyObject_GetAttrString, get(), Name));
 	}
 
+	object object::get_attribute(const wchar_t* Name) const
+	{
+		return get_attribute(string(Name));
+	}
+
 	object object::get_attribute(const std::string& Name) const
 	{
 		return get_attribute(Name.data());
+	}
+
+	object object::get_attribute(const std::wstring& Name) const
+	{
+		return get_attribute(string(Name));
 	}
 
 	object object::get_attribute(const object& Name) const
@@ -145,27 +165,32 @@ namespace py
 		return object(invoke(PyObject_GetAttr, get(), Name.get()));
 	}
 
-	object object::get_at(const char* Name) const
-	{
-		return get_attribute(Name);
-	}
-
-	object object::get_at(const std::string& Name) const
-	{
-		return get_at(Name.data());
-	}
-
-	bool object::set_attribute(const char* Name, const object& Value) const
+	bool object::set_attribute(const char* Name, const object& Value)
 	{
 		return invoke(PyObject_SetAttrString, get(), Name, Value.get()) == 0;
 	}
 
-	bool object::set_attribute(const object& Name, const object& Value) const
+	bool object::set_attribute(const wchar_t* Name, const object& Value)
+	{
+		return set_attribute(string(Name), Value);
+	}
+
+	bool object::set_attribute(const std::string& Name, const object& Value)
+	{
+		return set_attribute(Name.data(), Value);
+	}
+
+	bool object::set_attribute(const std::wstring& Name, const object& Value)
+	{
+		return set_attribute(string(Name), Value);
+	}
+
+	bool object::set_attribute(const object& Name, const object& Value)
 	{
 		return invoke(PyObject_SetAttr, get(), Name.get(), Value.get()) == 0;
 	}
 
-	bool object::set_at(const char* Name, const object& Value) const
+	bool object::set_at(const char* Name, const object& Value)
 	{
 		return set_attribute(Name, Value);
 	}
