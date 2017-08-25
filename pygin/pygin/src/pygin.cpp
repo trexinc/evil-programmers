@@ -90,9 +90,9 @@ pygin::pygin(GlobalInfo* Info):
 	Info->StructSize = sizeof(GlobalInfo);
 
 	Info->MinFarVersion = MAKEFARVERSION(3, 0, 0, 3000, VS_RELEASE);
-	Info->Version = MAKEFARVERSION(0, 0, 0, 3, VS_ALPHA);
+	Info->Version = MAKEFARVERSION(1, 0, 0, 0, VS_ALPHA);
 
-	static const UUID PyginID = { 0x66714600, 0xd5fa, 0x4fae, { 0xac, 0x4b, 0x77, 0x25, 0xe5, 0x7a, 0x87, 0x39 } };
+	static const UUID PyginID{ 0x66714600, 0xd5fa, 0x4fae, { 0xac, 0x4b, 0x77, 0x25, 0xe5, 0x7a, 0x87, 0x39 } };
 	Info->Guid = PyginID;
 
 	Info->Title = L"Pygin";

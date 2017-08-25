@@ -60,12 +60,12 @@ namespace py
 	}
 
 	string::string(const char* Str):
-		string(Str, strlen(Str))
+		string(Str, Str? strlen(Str) : 0)
 	{
 	}
 
 	string::string(const wchar_t* Str):
-		string(Str, wcslen(Str))
+		string(Str, Str? wcslen(Str) : 0)
 	{
 	}
 

@@ -101,6 +101,7 @@
     <ClInclude Include="src\critical_section.hpp" />
     <ClInclude Include="src\error_handling.hpp" />
     <ClInclude Include="src\far_api.hpp" />
+    <ClInclude Include="src\helpers.hpp" />
     <ClInclude Include="src\module.hpp" />
     <ClInclude Include="src\pygin.hpp" />
     <ClInclude Include="src\python.hpp" />

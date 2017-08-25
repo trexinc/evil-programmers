@@ -45,6 +45,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "far_api.hpp"
 #include "error_handling.hpp"
+#include "helpers.hpp"
 
 using namespace py::literals;
 
@@ -224,64 +225,52 @@ intptr_t module::MakeDirectoryW(MakeDirectoryInfo* Info)
 	return 0;
 }
 
-static py::list ConvertValues(const FarMacroValue* Value, size_t Size);
-
-static py::object ConvertValue(const FarMacroValue* Value)
+static py::object ConvertValue(const FarMacroValue& Value)
 {
 	auto FarMacroValueInstance = far_api::type("FarMacroValue")();
 
 	const auto& Convert = [&]() -> py::object
 	{
-		switch (Value->Type)
+		switch (Value.Type)
 		{
 		case FMVT_UNKNOWN:
 			return 0_py;
 
 		case FMVT_INTEGER:
-			return py::integer(Value->Integer);
+			return py::integer(Value.Integer);
 
 		case FMVT_STRING:
-			return py::string(Value->String);
+			return py::string(Value.String);
 
 		case FMVT_DOUBLE:
-			return py::floating(Value->Double);
+			return py::floating(Value.Double);
 
 		case FMVT_BOOLEAN:
-			return py::boolean(Value->Boolean != 0);
+			return py::boolean(Value.Boolean != 0);
 
 		case FMVT_BINARY:
-			return py::bytes(Value->Binary.Data, Value->Binary.Size);
+			return py::bytes(Value.Binary.Data, Value.Binary.Size);
 
 		case FMVT_POINTER:
-			return py::integer(Value->Pointer);
+			return py::integer(Value.Pointer);
 
 		case FMVT_NIL:
 			return {};
 
 		case FMVT_ARRAY:
-			return ConvertValues(Value->Array.Values, Value->Array.Count);
+			return helpers::list::from_array(Value.Array.Values, Value.Array.Count, ConvertValue);
 
 		case FMVT_PANEL:
-			return py::integer(Value->Pointer);
+			return py::integer(Value.Pointer);
 
 		default:
 			return {};
 		}
 	};
 
-	FarMacroValueInstance["Type"] = far_api::type("FarMacroVarType")(Value->Type);
+	FarMacroValueInstance["Type"] = far_api::type("FarMacroVarType")(Value.Type);
 	FarMacroValueInstance["Value"] = Convert();
 	return FarMacroValueInstance;
-}
-
-static py::list ConvertValues(const FarMacroValue* Value, size_t Size)
-{
-	py::list List(0);
-	for (auto Iterator = Value, End = Value + Size; Iterator != End; ++Iterator)
-	{
-		List.push_back(ConvertValue(Iterator));
-	}
-	return List;
 }
 
 HANDLE module::OpenW(const OpenInfo* Info)
@@ -337,7 +326,7 @@ HANDLE module::OpenW(const OpenInfo* Info)
 		{
 			const auto Data = reinterpret_cast<const OpenMacroInfo*>(Info->Data);
 			auto OpenMacroInfoInstance = far_api::type("OpenMacroInfo")();
-			OpenMacroInfoInstance["Values"] = ConvertValues(Data->Values, Data->Count);
+			OpenMacroInfoInstance["Values"] = helpers::list::from_array(Data->Values, Data->Count, ConvertValue);
 			OpenInfoInstance["Data"] = OpenMacroInfoInstance;
 		}
 		break;

@@ -44,10 +44,16 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "py.common.hpp"
 
 #include "error_handling.hpp"
+#include "helpers.hpp"
 
 #include "python.hpp"
 
 using namespace py::literals;
+
+static auto FileTimeToUI64(const FILETIME& ft)
+{
+	return ULARGE_INTEGER{ ft.dwLowDateTime, ft.dwHighDateTime }.QuadPart;
+}
 
 namespace far_api_implementation
 {
@@ -454,16 +460,39 @@ namespace far_api_implementation
 			Py_RETURN_NONE;
 
 		case FCTL_GETPANELITEM:
-			// BUGBUG
-			Py_RETURN_NONE;
-
 		case FCTL_GETSELECTEDPANELITEM:
-			// BUGBUG
-			Py_RETURN_NONE;
-
 		case FCTL_GETCURRENTPANELITEM:
-			// BUGBUG
-			Py_RETURN_NONE;
+			{
+				const size_t Size = psi().PanelControl(Panel, Command, Param1, nullptr);
+				if (!Size)
+					Py_RETURN_NONE;
+				std::vector<char> Buffer(Size);
+				const auto PPI = reinterpret_cast<PluginPanelItem*>(Buffer.data());
+				FarGetPluginPanelItem FGPPI { sizeof(FGPPI), Size, PPI };
+				if (!psi().PanelControl(Panel, Command, Param1, &FGPPI))
+					Py_RETURN_NONE;
+				auto PluginPanelItemInstance = far_api::type("PluginPanelItem")();
+				const auto FileTimeType = far_api::type("FileTime");
+				PluginPanelItemInstance["CreationTime"] = FileTimeType(FileTimeToUI64(PPI->CreationTime));
+				PluginPanelItemInstance["LastAccessTime"] = FileTimeType(FileTimeToUI64(PPI->LastAccessTime));
+				PluginPanelItemInstance["LastWriteTime"] = FileTimeType(FileTimeToUI64(PPI->LastWriteTime));
+				PluginPanelItemInstance["ChangeTime"] = FileTimeType(FileTimeToUI64(PPI->ChangeTime));
+				PluginPanelItemInstance["FileSize"] = PPI->FileSize;
+				PluginPanelItemInstance["AllocationSize"] = PPI->AllocationSize;
+				PluginPanelItemInstance["FileName"] = PPI->FileName;
+				PluginPanelItemInstance["AlternateFileName"] = PPI->AlternateFileName;
+				PluginPanelItemInstance["Description"] = PPI->Description;
+				PluginPanelItemInstance["Owner"] = PPI->Owner;
+				PluginPanelItemInstance["CustomColumnData"] = helpers::list::from_array(PPI->CustomColumnData, PPI->CustomColumnNumber, [](auto i) { return py::from(i); });
+				PluginPanelItemInstance["Flags"] = far_api::type("PluginPanelItemFlags")(PPI->Flags);
+				//PluginPanelItemInstance["UserData"] = PPI->UserData;
+				PluginPanelItemInstance["FileAttributes"] = PPI->FileAttributes;
+				PluginPanelItemInstance["NumberOfLinks"] = PPI->NumberOfLinks;
+				PluginPanelItemInstance["CRC32"] = PPI->CRC32;
+				//PluginPanelItemInstance["Reserved"] = PPI->Reserved;
+
+				return PluginPanelItemInstance.release();
+			}
 
 		case FCTL_GETPANELDIRECTORY:
 			// BUGBUG

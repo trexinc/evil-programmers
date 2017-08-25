@@ -31,10 +31,11 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
+import datetime
+import enum
+import inspect
 import sys
 import uuid
-import inspect
-import enum
 from enum import unique
 from typing import *
 
@@ -410,6 +411,9 @@ class Rect:
 		self.right = right
 		self.bottom = bottom
 
+	def __repr__(self):
+		return "Rect(left: {0}, top: {1}, right: {2}, bottom: {3})".format(self.left, self. top, self.right, self.bottom)
+
 class PanelInfo:
 	def __init__(self):
 		self.PluginHandle = 0
@@ -423,6 +427,39 @@ class PanelInfo:
 		self.ViewMode = 0
 		self.PanelType = PanelInfoType.Unknown
 		self.SortMode = SortModes.Default
+
+_EPOCH_AS_FILETIME = 116444736000000000  # January 1, 1970 as MS file time
+_HUNDREDS_OF_NANOSECONDS = 10000000
+
+class FileTime(datetime.datetime):
+	def __new__(self, Value = 0):
+		return datetime.datetime.utcfromtimestamp((max(Value, _EPOCH_AS_FILETIME) - _EPOCH_AS_FILETIME) / _HUNDREDS_OF_NANOSECONDS)
+
+@unique
+class PluginPanelItemFlags(enum.IntFlag):
+	Default                                         = 0
+	Selected                                        = bit(30)
+	ProcessDescription                              = bit(31)
+
+class PluginPanelItem:
+	def __init__(self):
+		self.CreationTime = FileTime()
+		self.LastAccessTime = FileTime()
+		self.LastWriteTime = FileTime()
+		self.ChangeTime = FileTime()
+		self.FileSize = 0
+		self.AllocationSize = 0
+		self.FileName = ""
+		self.AlternateFileName = ""
+		self.Description = ""
+		self.Owner = ""
+		self.CustomColumnData = []
+		self.Flags = PluginPanelItemFlags.Default
+		#self.UserData = UserDataItem()
+		self.FileAttributes = 0
+		self.NumberOfLinks = 0
+		self.CRC32 = 0
+		#self.Reserved
 
 def PanelControl(Panel: int, Command: FileControlCommands, Param1: int = 0, Param2 = None):
 	return __invoke_api()

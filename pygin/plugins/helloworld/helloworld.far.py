@@ -205,7 +205,12 @@ class HelloWorldPlugin(pygin.PluginBoilerplate):
 
 			PanelInfo = far.PanelControl(far.Panels.Active, far.FileControlCommands.GetPanelInfo)
 			if PanelInfo is not None:
+				print("Panel info:")
 				pprint(vars(PanelInfo))
+			PanelItem = far.PanelControl(far.Panels.Active, far.FileControlCommands.GetCurrentPanelItem)
+			if PanelItem is not None:
+				print("Current panel item:")
+				pprint(vars(PanelItem))
 
 			for Command in [
 				far.FileControlCommands.GetColumnTypes,
