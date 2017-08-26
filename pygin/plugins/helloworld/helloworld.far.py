@@ -46,7 +46,7 @@ class lng(enum.IntEnum):
 	TheMessage         = 3
 
 
-class HelloWorldPlugin(pygin.PluginBoilerplate):
+class HelloWorldPlugin(pygin.Plugin):
 	Title = "Hello Python world"
 	Author = "Alex Alabuzhev"
 	Description = "Python plugin example"
@@ -59,15 +59,15 @@ class HelloWorldPlugin(pygin.PluginBoilerplate):
 		info.Flags = far.PluginFlags.Editor | far.PluginFlags.Viewer | far.PluginFlags.Dialog
 
 		info.PluginMenuItems = [
-			(self.Msg(lng.PluginMenuItem), uuid.UUID("{DAF1257B-E011-4B5A-B5DC-732581BDF3BA}"))
+			(self.GetMsg(lng.PluginMenuItem), uuid.UUID("{DAF1257B-E011-4B5A-B5DC-732581BDF3BA}"))
 		]
 
 		info.DiskMenuItems = [
-			(self.Msg(lng.PluginDiskMenuItem), uuid.UUID("{E1F617A7-A5EE-4672-8108-12500E4B9008}"))
+			(self.GetMsg(lng.PluginDiskMenuItem), uuid.UUID("{E1F617A7-A5EE-4672-8108-12500E4B9008}"))
 		]
 
 		info.PluginConfigItems = [
-			(self.Msg(lng.PluginConfigItem), uuid.UUID("{BD5CD4D2-E12E-40B9-876E-C0047CF2CF38}"))
+			(self.GetMsg(lng.PluginConfigItem), uuid.UUID("{BD5CD4D2-E12E-40B9-876E-C0047CF2CF38}"))
 		]
 
 		info.CommandPrefix = "hi";
@@ -89,8 +89,7 @@ class HelloWorldPlugin(pygin.PluginBoilerplate):
 			return None
 
 		BreakCode = [0]
-		ItemId = far.Menu(
-			self.Guid,
+		ItemId = self.Menu(
 			uuid.UUID("{F86FD79D-21A7-4CCA-BD37-D2151AE5DA4E}"),
 			-1,
 			-1,
@@ -116,9 +115,8 @@ class HelloWorldPlugin(pygin.PluginBoilerplate):
 			self.DoConsoleStuff(info, BreakCode)
 
 		elif ItemId == 1:
-			far.AdvControl(self.Guid, far.AdvancedControlCommands.RedrawAll)
-			Response = far.InputBox(
-				self.Guid,
+			self.AdvControl(far.AdvancedControlCommands.RedrawAll)
+			Response = self.InputBox(
 				uuid.UUID("{0F87C22C-4F6F-4B71-90EC-C3C89B03010B}"),
 				"Attention",
 				"Your opinion is very important to us:",
@@ -136,8 +134,7 @@ class HelloWorldPlugin(pygin.PluginBoilerplate):
 				Style = far.MessageFlags.Warning
 				Message = "Shame on you."
 
-			far.Message(
-				self.Guid,
+			self.Message(
 				uuid.UUID("{49A144B8-C0BB-4EDF-B8AD-8F3590BA9C64}"),
 				Style,
 				"Message1Topic",
@@ -153,8 +150,7 @@ class HelloWorldPlugin(pygin.PluginBoilerplate):
 
 		elif ItemId == 2:
 			fmf = far.MessageFlags
-			far.Message(
-				self.Guid,
+			self.Message(
 				uuid.UUID("{49A144B8-C0BB-4EDF-B8AD-8F3590BA9C64}"),
 				fmf.Warning | fmf.LeftAlign,
 				"Message2Topic",
@@ -168,7 +164,7 @@ class HelloWorldPlugin(pygin.PluginBoilerplate):
 				["Left", "Right"])
 
 		elif ItemId == 3:
-			far.ShowHelp(self.Guid, "Contents", far.HelpFlags.Guid)
+			self.ShowHelp("Contents", far.HelpFlags.Guid)
 
 		else:
 			pass
@@ -188,26 +184,26 @@ class HelloWorldPlugin(pygin.PluginBoilerplate):
 		return True
 
 	def DoConsoleStuff(self, info, BreakCode):
-		WindowType = far.AdvControl(self.Guid, far.AdvancedControlCommands.GetWindowType)
+		WindowType = self.AdvControl(far.AdvancedControlCommands.GetWindowType)
 
 		with pygin.Console():
 			print("------------")
-			print(self.Msg(lng.TheMessage))
+			print(self.GetMsg(lng.TheMessage))
 			print("Plugin Menu id: " + str(info.Guid))
 			print("BreakCode is " + str(BreakCode[0]))
 
-			Version = far.AdvControl(self.Guid, far.AdvancedControlCommands.GetFarManagerVersion)
+			Version = self.AdvControl(far.AdvancedControlCommands.GetFarManagerVersion)
 			if Version is not None:
 				print("Far version: {0}".format(Version))
 
 			if WindowType is not None:
 				print("Current window: {0}".format(WindowType.Type.name))
 
-			PanelInfo = far.PanelControl(far.Panels.Active, far.FileControlCommands.GetPanelInfo)
+			PanelInfo = self.ActivePanel.PanelControl(far.FileControlCommands.GetPanelInfo)
 			if PanelInfo is not None:
 				print("Panel info:")
 				pprint(vars(PanelInfo))
-			PanelItem = far.PanelControl(far.Panels.Active, far.FileControlCommands.GetCurrentPanelItem)
+			PanelItem = self.ActivePanel.PanelControl(far.FileControlCommands.GetCurrentPanelItem)
 			if PanelItem is not None:
 				print("Current panel item:")
 				pprint(vars(PanelItem))
@@ -219,7 +215,7 @@ class HelloWorldPlugin(pygin.PluginBoilerplate):
 				far.FileControlCommands.GetPanelHostFile,
 				far.FileControlCommands.GetPanelFormat,
 			]:
-				Value = far.PanelControl(far.Panels.Active, Command)
+				Value = self.ActivePanel.PanelControl(Command)
 				if Value is not None:
 					print("{0}: {1}".format(Command.name, Value))
 

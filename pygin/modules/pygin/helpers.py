@@ -31,11 +31,24 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
+from functools import partial
 from pygin import far
 
-class PluginBoilerplate:
-	def Msg(self, Id: int) -> str:
-		return far.GetMsg(self.Guid, Id)
+class Plugin:
+	class Panel:
+		def __init__(self, PanelId):
+			self.PanelId = PanelId
+			self.PanelControl = partial(far.PanelControl, self.PanelId)
+
+	def __init__(self):
+		self.GetMsg = partial(far.GetMsg, self.Guid)
+		self.Message = partial(far.Message, self.Guid)
+		self.InputBox = partial(far.InputBox, self.Guid)
+		self.Menu = partial(far.Menu, self.Guid)
+		self.ShowHelp = partial(far.ShowHelp, self.Guid)
+		self.AdvControl = partial(far.AdvControl, self.Guid)
+		self.ActivePanel = self.Panel(far.Panels.Active)
+		self.PassivePanel = self.Panel(far.Panels.Passive)
 
 class Console:
 	def __enter__(self):
