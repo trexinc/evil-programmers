@@ -111,6 +111,7 @@
     <ClInclude Include="src\py.floating.hpp" />
     <ClInclude Include="src\py.function.hpp" />
     <ClInclude Include="src\py.integer.hpp" />
+    <ClInclude Include="src\py.method_definitions.hpp" />
     <ClInclude Include="src\py.module.hpp" />
     <ClInclude Include="src\py.string.hpp" />
     <ClInclude Include="src\py.dictionary.hpp" />
@@ -140,6 +141,7 @@
     <ClCompile Include="src\py.floating.cpp" />
     <ClCompile Include="src\py.function.cpp" />
     <ClCompile Include="src\py.integer.cpp" />
+    <ClCompile Include="src\py.method_definitions.cpp" />
     <ClCompile Include="src\py.module.cpp" />
     <ClCompile Include="src\py.string.cpp" />
     <ClCompile Include="src\py.common.cpp" />

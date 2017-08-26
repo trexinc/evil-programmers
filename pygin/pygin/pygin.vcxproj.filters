@@ -75,6 +75,9 @@
     <ClInclude Include="src\py.list.hpp">
       <Filter>Header Files\cpp api</Filter>
     </ClInclude>
+    <ClInclude Include="src\py.method_definitions.hpp">
+      <Filter>Header Files\cpp api</Filter>
+    </ClInclude>
     <ClInclude Include="src\py.module.hpp">
       <Filter>Header Files\cpp api</Filter>
     </ClInclude>
@@ -168,6 +171,9 @@
       <Filter>Source Files\cpp api</Filter>
     </ClCompile>
     <ClCompile Include="src\py.object.cpp">
+      <Filter>Source Files\cpp api</Filter>
+    </ClCompile>
+    <ClCompile Include="src\py.method_definitions.cpp">
       <Filter>Source Files\cpp api</Filter>
     </ClCompile>
     <ClCompile Include="src\py.module.cpp">

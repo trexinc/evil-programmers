@@ -112,6 +112,8 @@ namespace py
 
 		~object();
 
+		static object none();
+
 		object& operator=(PyObject* rhs) &;
 		object& operator=(const object& rhs) &;
 		object& operator=(object&& Object) & noexcept;

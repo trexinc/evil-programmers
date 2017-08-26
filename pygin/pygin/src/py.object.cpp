@@ -74,6 +74,11 @@ namespace py
 		Py_XDECREF(m_Object);
 	}
 
+	object object::none()
+	{
+		return from_borrowed(Py_None);
+	}
+
 	object& object::operator=(PyObject* Rhs) &
 	{
 		Py_XDECREF(m_Object);

@@ -46,29 +46,17 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "error_handling.hpp"
 #include "helpers.hpp"
 
-#include "python.hpp"
-
 using namespace py::literals;
 
-static auto FileTimeToUI64(const FILETIME& ft)
+namespace
 {
-	return ULARGE_INTEGER{ ft.dwLowDateTime, ft.dwHighDateTime }.QuadPart;
-}
-
-namespace far_api_implementation
-{
-	static const auto& fsf()
+	auto FileTimeToUI64(const FILETIME& ft)
 	{
-		return far_api::get().fsf();
-	}
-
-	static const auto& psi()
-	{
-		return far_api::get().psi();
+		return ULARGE_INTEGER{ ft.dwLowDateTime, ft.dwHighDateTime }.QuadPart;
 	}
 
 	template<typename T, typename converter = decltype(py::cast<T>)>
-	static auto list_to_vector(const py::list& List, const converter& Converter = py::cast<T>)
+	auto list_to_vector(const py::list& List, const converter& Converter = py::cast<T>)
 	{
 		const auto Size = List.size();
 		std::vector<T> Result;
@@ -80,7 +68,12 @@ namespace far_api_implementation
 		return Result;
 	}
 
-	static auto get_args(const char* Name, PyObject* RawArgs, size_t Count)
+	FarKey PyFarKeyToFarKey(const py::object& PyFarKey)
+	{
+		return { py::cast<WORD>(PyFarKey["VirtualKeyCode"]), py::cast<DWORD>(PyFarKey["ControlKeyState"]) };
+	}
+
+	auto get_args(const char* Name, PyObject* RawArgs, size_t Count)
 	{
 		const auto Args = py::cast<py::tuple>(py::object::from_borrowed(RawArgs));
 		if (Args.size() != Count)
@@ -88,440 +81,502 @@ namespace far_api_implementation
 		return Args;
 	}
 
-	static PyObject* GetMsg(PyObject* Self, PyObject* RawArgs)
+	template <typename type>
+	struct get_arity: get_arity<decltype(&type::Do)>
 	{
-		const auto Args = get_args(__FUNCTION__, RawArgs, 2);
+	};
 
-		const auto PluginId = py::cast<UUID>(Args[0]);
-		const auto MsgId = py::cast<intptr_t>(Args[1]);
+	template <typename type, typename... args>
+	struct get_arity<type(*)(args...)>: std::integral_constant<size_t, sizeof...(args)>
+	{
+	};
 
-		return py::string(psi().GetMsg(&PluginId, MsgId)).release();
+	template<typename type, size_t... Indexes>
+	auto apply_py_tuple(const py::tuple& Args, std::index_sequence<Indexes...>)
+	{
+		return type::Do(Args[Indexes]...);
 	}
 
-	static PyObject* Message(PyObject* Self, PyObject* RawArgs)
+	template<typename type>
+	PyObject* Method(PyObject* Self, PyObject* RawArgs)
 	{
-		const auto Args = get_args(__FUNCTION__, RawArgs, 7);
-
-		const auto PluginId = py::cast<UUID>(Args[0]);
-		const auto Id = py::cast<UUID>(Args[1]);
-		const auto Flags = py::cast<FARMESSAGEFLAGS>(Args[2]);
-		const auto HelpTopic = py::cast<std::wstring>(Args[3]);
-		const auto Title = py::cast<std::wstring>(Args[4]);
-		const auto Items = list_to_vector<std::wstring>(py::cast<py::list>(Args[5]));
-		const auto Buttons = list_to_vector<std::wstring>(py::cast<py::list>(Args[6]));
-
-		std::vector<const wchar_t*> AllItems;
-		AllItems.reserve(1 + Items.size() + Buttons.size());
-		AllItems.emplace_back(Title.data());
-		std::transform(Items.cbegin(), Items.cend(), std::back_inserter(AllItems), [](const auto& i) { return i.data(); });
-		std::transform(Buttons.cbegin(), Buttons.cend(), std::back_inserter(AllItems), [](const auto& i) { return i.data(); });
-
-		const auto Result = psi().Message(&PluginId, &Id, Flags & ~FMSG_ALLINONE, HelpTopic.data(), AllItems.data(), AllItems.size(), Buttons.size());
-		if (Result != -1)
-			return py::integer(Result).release();
-
-		Py_RETURN_NONE;
+		const auto Args = get_args(type::HrName, RawArgs, get_arity<type>::value);
+		return apply_py_tuple<type>(Args, std::make_index_sequence<get_arity<type>::value>{}).release();
 	}
 
-	static PyObject* InputBox(PyObject* Self, PyObject* RawArgs)
+	template<typename T>
+	py::method_definition Define()
 	{
-		const auto Args = get_args(__FUNCTION__, RawArgs, 9);
-
-		const auto PluginId = py::cast<UUID>(Args[0]);
-		const auto Id = py::cast<UUID>(Args[1]);
-		const auto Title = py::cast<std::wstring>(Args[2]);
-		const auto SubTitle = py::cast<std::wstring>(Args[3]);
-		const auto HistoryName = py::cast<std::wstring>(Args[4]);
-		const auto SrcText = py::cast<std::wstring>(Args[5]);
-		const auto DestSize = py::cast<size_t>(Args[6]);
-		const auto HelpTopic = py::cast<std::wstring>(Args[7]);
-		const auto Flags = py::cast<INPUTBOXFLAGS>(Args[8]);
-		std::vector<wchar_t> Buffer(DestSize);
-
-		const auto Result = psi().InputBox(&PluginId, &Id, Title.data(), SubTitle.data(), HistoryName.data(), SrcText.data(), Buffer.data(), Buffer.size(), HelpTopic.data(), Flags);
-		if (Result)
-			return py::string(Buffer.data()).release();
-
-		Py_RETURN_NONE;
+		return { T::DecoratedName, Method<T>, T::Doc };
 	}
 
-	static FarKey PyFarKeyToFarKey(const py::object& PyFarKey)
+	const auto& fsf()
 	{
-		return{ py::cast<WORD>(PyFarKey["VirtualKeyCode"]), py::cast<DWORD>(PyFarKey["ControlKeyState"]) };
+		return far_api::get().fsf();
 	}
 
-	static PyObject* Menu(PyObject* Self, PyObject* RawArgs)
+	const auto& psi()
 	{
-		const auto Args = get_args(__FUNCTION__, RawArgs, 12);
+		return far_api::get().psi();
+	}
+}
 
-		const auto PluginId = py::cast<UUID>(Args[0]);
-		const auto Id = py::cast<UUID>(Args[1]);
-		const auto X = py::cast<intptr_t>(Args[2]);
-		const auto Y = py::cast<intptr_t>(Args[3]);
-		const auto MaxHeight = py::cast<intptr_t>(Args[4]);
-		const auto Flags = py::cast<FARMENUFLAGS>(Args[5]);
-		const auto Title = py::cast<std::wstring>(Args[6]);
-		const auto Bottom = py::cast<std::wstring>(Args[7]);
-		const auto HelpTopic = py::cast<std::wstring>(Args[8]);
+namespace far_api_implementation
+{
+#define METHOD(name, doc) \
+	static constexpr auto HrName = #name; \
+	static constexpr auto DecoratedName = "__" ## #name; \
+	static constexpr auto Doc = doc;
 
-		std::vector<FarKey> OptionalBreakKeys;
-		FarKey* BreakKeys = nullptr;
+	struct GetMsg
+	{
+		METHOD(GetMsg, "Get localised message by Id")
 
-		if (Args[9])
+		static py::object Do(const py::object& PyPluginId, const py::object& PyMsgId)
 		{
-			OptionalBreakKeys = list_to_vector<FarKey>(py::cast<py::list>(Args[9]), PyFarKeyToFarKey);
-			BreakKeys = OptionalBreakKeys.data();
+			const auto PluginId = py::cast<UUID>(PyPluginId);
+			const auto MsgId = py::cast<intptr_t>(PyMsgId);
+
+			return py::string(psi().GetMsg(&PluginId, MsgId));
 		}
+	};
 
-		const auto Items = py::cast<py::list>(Args[11]);
-		const auto ItemsSize = Items.size();
-		std::vector<FarMenuItem> MenuItems;
-		MenuItems.reserve(ItemsSize);
-		std::vector<std::wstring> MenuStrings;
-		MenuStrings.reserve(ItemsSize);
-
-		for(size_t i = 0; i != ItemsSize; ++i)
-		{
-			auto Item = Items[i];
-			FarMenuItem MenuItem{};
-			MenuStrings.emplace_back(py::cast<std::wstring>(Item["Text"]));
-			MenuItem.Text = MenuStrings.back().data();
-			MenuItem.Flags = py::cast<MENUITEMFLAGS>(Item["Flags"]);
-			if (const py::object AccelKey = Item["AccelKey"])
-			{
-				MenuItem.AccelKey = PyFarKeyToFarKey(AccelKey);
-			}
-			MenuItem.UserData = py::cast<intptr_t>(Item["UserData"]);
-			MenuItems.emplace_back(MenuItem);
-		}
-
-		intptr_t BreakCode = 0;
-		const auto Result = psi().Menu(&PluginId, &Id, X, Y, MaxHeight, Flags, Title.data(), Bottom.data(), HelpTopic.data(), BreakKeys, &BreakCode, MenuItems.data(), MenuItems.size());
-		if (Args[10])
-		{
-			auto BreakCodeContainer = py::cast<py::list>(Args[10]);
-			BreakCodeContainer[0] = BreakCode;
-		}
-
-		if (Result != -1)
-			return py::integer(Result).release();
-
-		Py_RETURN_NONE;
-	}
-
-	static PyObject* ShowHelp(PyObject* Self, PyObject* RawArgs)
+	struct Message
 	{
-		const auto Args = get_args(__FUNCTION__, RawArgs, 3);
+		METHOD(Message, "Show message")
 
-		const auto Flags = py::cast<FARHELPFLAGS>(Args[2]);
-		const auto HelpTopic = py::cast<std::wstring>(Args[1]);
-
-		std::wstring ModuleStr;
-		GUID ModuleGuid;
-		const void* ModulePtr;
-
-		if (Flags & FHELP_GUID)
+		static py::object Do(const py::object& PyPluginId, const py::object& PyId, const py::object& PyFlags, const py::object& PyHelpTopic, const py::object& PyTitle, const py::object& PyItems, const py::object& PyButtons)
 		{
-			ModuleGuid = py::cast<UUID>(Args[0]);
-			ModulePtr = &ModuleGuid;
-		}
-		else
-		{
-			ModuleStr = py::cast<std::wstring>(Args[0]);
-			ModulePtr = &ModuleStr;
-		}
+			const auto PluginId = py::cast<UUID>(PyPluginId);
+			const auto Id = py::cast<UUID>(PyId);
+			const auto Flags = py::cast<FARMESSAGEFLAGS>(PyFlags);
+			const auto HelpTopic = py::cast<std::wstring>(PyHelpTopic);
+			const auto Title = py::cast<std::wstring>(PyTitle);
+			const auto Items = list_to_vector<std::wstring>(py::cast<py::list>(PyItems));
+			const auto Buttons = list_to_vector<std::wstring>(py::cast<py::list>(PyButtons));
 
-		return py::boolean(psi().ShowHelp(static_cast<const wchar_t*>(ModulePtr), HelpTopic.data(), Flags) != FALSE).release();
-	}
+			std::vector<const wchar_t*> AllItems;
+			AllItems.reserve(1 + Items.size() + Buttons.size());
+			AllItems.emplace_back(Title.data());
+			std::transform(Items.cbegin(), Items.cend(), std::back_inserter(AllItems), [](const auto& i) { return i.data(); });
+			std::transform(Buttons.cbegin(), Buttons.cend(), std::back_inserter(AllItems), [](const auto& i) { return i.data(); });
 
-	static PyObject* AdvControl(PyObject* Self, PyObject* RawArgs)
+			const auto Result = psi().Message(&PluginId, &Id, Flags & ~FMSG_ALLINONE, HelpTopic.data(), AllItems.data(), AllItems.size(), Buttons.size());
+			if (Result != -1)
+				return py::integer(Result);
+
+			return py::object::none();
+		}
+	};
+
+	struct InputBox
 	{
-		const auto Args = get_args(__FUNCTION__, RawArgs, 4);
+		METHOD(InputBox, "Input box")
 		
-		const auto PluginId = py::cast<UUID>(Args[0]);
-		const auto Command = py::cast<ADVANCED_CONTROL_COMMANDS>(Args[1]);
-		const auto Param1 = py::cast<intptr_t>(Args[2]);
-		auto Param2 = Args[3];
-
-		const auto& DefaultCall = [&]
+		static py::object Do(const py::object& PyPluginId, const py::object& PyId, const py::object& PyTitle, const py::object& PySubTitle, const py::object& PyHistoryName, const py::object& PySrcText, const py::object& PyDestSize, const py::object& PyHelpTopic, const py::object& PyFlags)
 		{
-			return psi().AdvControl(&PluginId, Command, Param1, nullptr);
-		};
+			const auto PluginId = py::cast<UUID>(PyPluginId);
+			const auto Id = py::cast<UUID>(PyId);
+			const auto Title = py::cast<std::wstring>(PyTitle);
+			const auto SubTitle = py::cast<std::wstring>(PySubTitle);
+			const auto HistoryName = py::cast<std::wstring>(PyHistoryName);
+			const auto SrcText = py::cast<std::wstring>(PySrcText);
+			const auto DestSize = py::cast<size_t>(PyDestSize);
+			const auto HelpTopic = py::cast<std::wstring>(PyHelpTopic);
+			const auto Flags = py::cast<INPUTBOXFLAGS>(PyFlags);
+			std::vector<wchar_t> Buffer(DestSize);
 
-		switch (Command)
-		{
-		case ACTL_SETCURRENTWINDOW:
-		case ACTL_COMMIT:
-		case ACTL_REDRAWALL:
-		case ACTL_QUIT:
-		case ACTL_PROGRESSNOTIFY:
-			return py::boolean(DefaultCall() != 0).release();
+			const auto Result = psi().InputBox(&PluginId, &Id, Title.data(), SubTitle.data(), HistoryName.data(), SrcText.data(), Buffer.data(), Buffer.size(), HelpTopic.data(), Flags);
+			if (Result)
+				return py::string(Buffer.data());
 
-		case ACTL_GETWINDOWCOUNT:
-		case ACTL_GETFARHWND:
-			return py::integer(DefaultCall()).release();
-
-		case ACTL_GETFARMANAGERVERSION:
-			{
-				VersionInfo Info;
-				if (!psi().AdvControl(&PluginId, Command, Param1, &Info))
-					Py_RETURN_NONE;
-
-				return far_api::type("VersionInfo")(
-					Info.Major,
-					Info.Minor,
-					Info.Revision,
-					Info.Build,
-					far_api::type("VersionStage")(Info.Stage)
-					).release();
-			}
-
-		case ACTL_WAITKEY:
-			// BUGBUG
-			Py_RETURN_NONE;
-
-		case ACTL_GETCOLOR:
-			// BUGBUG
-			Py_RETURN_NONE;
-
-		case ACTL_GETARRAYCOLOR:
-			// BUGBUG
-			Py_RETURN_NONE;
-
-		case ACTL_GETWINDOWINFO:
-			// BUGBUG
-			Py_RETURN_NONE;
-
-		case ACTL_SETARRAYCOLOR:
-			// BUGBUG
-			Py_RETURN_NONE;
-
-		case ACTL_SYNCHRO:
-			// BUGBUG
-			Py_RETURN_NONE;
-
-		case ACTL_SETPROGRESSSTATE:
-			// BUGBUG
-			Py_RETURN_NONE;
-
-		case ACTL_SETPROGRESSVALUE:
-			// BUGBUG
-			Py_RETURN_NONE;
-
-		case ACTL_GETFARRECT:
-			// BUGBUG
-			Py_RETURN_NONE;
-
-		case ACTL_GETCURSORPOS:
-			// BUGBUG
-			Py_RETURN_NONE;
-
-		case ACTL_SETCURSORPOS:
-			// BUGBUG
-			Py_RETURN_NONE;
-
-		case ACTL_GETWINDOWTYPE:
-			{
-				WindowType Type;
-				if (!psi().AdvControl(&PluginId, Command, 0, &Type))
-					Py_RETURN_NONE;
-
-				auto WindowTypeInstance = far_api::type("WindowType")();
-				WindowTypeInstance["Type"] = far_api::type("WindowInfoType")(Type.Type);
-				return WindowTypeInstance.release();
-			}
-
-		default:
-			Py_RETURN_NONE;
+			return py::object::none();
 		}
-	}
+	};
 
-	static PyObject* PanelControl(PyObject* Self, PyObject* RawArgs)
+	struct Menu
 	{
-		const auto Args = get_args(__FUNCTION__, RawArgs, 4);
+		METHOD(Menu, "Menu")
 
-		const auto Panel = py::cast<HANDLE>(Args[0]);
-		const auto Command = py::cast<FILE_CONTROL_COMMANDS>(Args[1]);
-		const auto Param1 = py::cast<intptr_t>(Args[2]);
-		const auto Param2 = Args[3];
-
-		const auto& DefaultCall = [&]
+		static py::object Do(const py::object& PyPluginId, const py::object& PyId, const py::object& PyX, const py::object& PyY, const py::object& PyMaxHeight, const py::object& PyFlags, const py::object& PyTitle, const py::object& PyBottom, const py::object& PyHelpTopic, const py::object& PyBreakKeys, const py::object& PyBreakCode, const py::object& PyItems)
 		{
-			return psi().PanelControl(Panel, Command, Param1, nullptr);
-		};
+			const auto PluginId = py::cast<UUID>(PyPluginId);
+			const auto Id = py::cast<UUID>(PyId);
+			const auto X = py::cast<intptr_t>(PyX);
+			const auto Y = py::cast<intptr_t>(PyY);
+			const auto MaxHeight = py::cast<intptr_t>(PyMaxHeight);
+			const auto Flags = py::cast<FARMENUFLAGS>(PyFlags);
+			const auto Title = py::cast<std::wstring>(PyTitle);
+			const auto Bottom = py::cast<std::wstring>(PyBottom);
+			const auto HelpTopic = py::cast<std::wstring>(PyHelpTopic);
 
-		const auto& ReceiveString = [&]
-		{
-			auto Size = psi().PanelControl(Panel, Command, 0, nullptr);
-			if (!Size)
-				Py_RETURN_NONE;
+			std::vector<FarKey> OptionalBreakKeys;
+			FarKey* BreakKeys = nullptr;
 
-			std::vector<wchar_t> Buffer(Size);
-			for (;;)
+			if (PyBreakKeys)
 			{
-				const auto FillSize = psi().PanelControl(Panel, Command, Size, Buffer.data());
-				if (FillSize == Size)
-					return py::string(Buffer.data(), FillSize).release();
-
-				Buffer.resize(Size = FillSize);
-			}
-		};
-
-		const auto& PassString = [&]
-		{
-			std::wstring Str;
-			if (Param2)
-				Str = py::cast<std::wstring>(Param2);
-			return py::boolean(psi().PanelControl(Panel, Command, Param1, const_cast<wchar_t*>(Str.data())) != 0).release();
-		};
-
-		switch (Command)
-		{
-		case FCTL_CLOSEPANEL:
-		case FCTL_SETCMDLINE:
-		case FCTL_INSERTCMDLINE:
-			return PassString();
-
-		case FCTL_GETCMDLINE:
-		case FCTL_GETCOLUMNTYPES:
-		case FCTL_GETCOLUMNWIDTHS:
-		case FCTL_GETPANELFORMAT:
-		case FCTL_GETPANELHOSTFILE:
-		case FCTL_GETPANELPREFIX:
-			return ReceiveString();
-
-		case FCTL_UPDATEPANEL:
-		case FCTL_SETVIEWMODE:
-		case FCTL_SETUSERSCREEN:
-		case FCTL_SETCMDLINEPOS:
-		case FCTL_SETSORTMODE:
-		case FCTL_SETSORTORDER:
-		case FCTL_CHECKPANELSEXIST:
-		case FCTL_SETNUMERICSORT:
-		case FCTL_GETUSERSCREEN:
-		case FCTL_ISACTIVEPANEL:
-		case FCTL_BEGINSELECTION:
-		case FCTL_ENDSELECTION:
-		case FCTL_CLEARSELECTION:
-		case FCTL_SETDIRECTORIESFIRST:
-		case FCTL_SETCASESENSITIVESORT:
-		case FCTL_SETACTIVEPANEL:
-			return py::boolean(DefaultCall() != 0).release();
-
-		case FCTL_GETPANELINFO:
-			{
-				PanelInfo Info;
-				if (!psi().PanelControl(Panel, Command, Param1, &Info))
-					Py_RETURN_NONE;
-
-				auto PanelInfoInstance = far_api::type("PanelInfo")();
-				PanelInfoInstance["PluginHandle"] = py::integer(Info.PluginHandle);
-				PanelInfoInstance["OwnerGuid"] = Info.OwnerGuid;
-				PanelInfoInstance["Flags"] = far_api::type("PanelInfoFlags")(Info.Flags);
-				PanelInfoInstance["ItemsNumber"] = Info.ItemsNumber;
-				PanelInfoInstance["SelectedItemsNumber"] = Info.SelectedItemsNumber;
-				PanelInfoInstance["PanelRect"] = far_api::type("Rect")(Info.PanelRect.left, Info.PanelRect.top, Info.PanelRect.right, Info.PanelRect.bottom);
-				PanelInfoInstance["CurrentItem"] = Info.CurrentItem;
-				PanelInfoInstance["TopPanelItem"] = Info.TopPanelItem;
-				PanelInfoInstance["ViewMode"] = Info.ViewMode;
-				PanelInfoInstance["PanelType"] = far_api::type("PanelInfoType")(Info.PanelType);
-				PanelInfoInstance["SortMode"] = far_api::type("SortModes")(Info.SortMode);
-
-				return PanelInfoInstance.release();
+				OptionalBreakKeys = list_to_vector<FarKey>(py::cast<py::list>(PyBreakKeys), PyFarKeyToFarKey);
+				BreakKeys = OptionalBreakKeys.data();
 			}
 
-		case FCTL_REDRAWPANEL:
-			// BUGBUG
-			Py_RETURN_NONE;
+			const auto Items = py::cast<py::list>(PyItems);
+			const auto ItemsSize = Items.size();
+			std::vector<FarMenuItem> MenuItems;
+			MenuItems.reserve(ItemsSize);
+			std::vector<std::wstring> MenuStrings;
+			MenuStrings.reserve(ItemsSize);
 
-		case FCTL_SETSELECTION:
-			// BUGBUG
-			Py_RETURN_NONE;
-
-		case FCTL_SETPANELDIRECTORY:
-			// BUGBUG
-			Py_RETURN_NONE;
-
-		case FCTL_GETCMDLINEPOS:
+			for(size_t i = 0; i != ItemsSize; ++i)
 			{
-				int Pos;
-				if (!psi().PanelControl(Panel, Command, Param1, &Pos))
-					Py_RETURN_NONE;
-
-				return py::integer(Pos).release();
+				auto Item = Items[i];
+				FarMenuItem MenuItem{};
+				MenuStrings.emplace_back(py::cast<std::wstring>(Item["Text"]));
+				MenuItem.Text = MenuStrings.back().data();
+				MenuItem.Flags = py::cast<MENUITEMFLAGS>(Item["Flags"]);
+				if (const py::object AccelKey = Item["AccelKey"])
+				{
+					MenuItem.AccelKey = PyFarKeyToFarKey(AccelKey);
+				}
+				MenuItem.UserData = py::cast<intptr_t>(Item["UserData"]);
+				MenuItems.emplace_back(MenuItem);
 			}
 
-		case FCTL_SETCMDLINESELECTION:
-			// BUGBUG
-			Py_RETURN_NONE;
-
-		case FCTL_GETCMDLINESELECTION:
-			// BUGBUG
-			Py_RETURN_NONE;
-
-		case FCTL_GETPANELITEM:
-		case FCTL_GETSELECTEDPANELITEM:
-		case FCTL_GETCURRENTPANELITEM:
+			intptr_t BreakCode = 0;
+			const auto Result = psi().Menu(&PluginId, &Id, X, Y, MaxHeight, Flags, Title.data(), Bottom.data(), HelpTopic.data(), BreakKeys, &BreakCode, MenuItems.data(), MenuItems.size());
+			if (PyBreakCode)
 			{
-				const size_t Size = psi().PanelControl(Panel, Command, Param1, nullptr);
+				auto BreakCodeContainer = py::cast<py::list>(PyBreakCode);
+				BreakCodeContainer[0] = BreakCode;
+			}
+
+			if (Result != -1)
+				return py::integer(Result);
+
+			return py::object::none();
+		}
+	};
+
+	struct ShowHelp
+	{
+		METHOD(ShowHelp, "Show help")
+
+		static py::object Do(const py::object& PyGuid, const py::object& PyHelpTopic, const py::object& PyFlags)
+		{
+
+			const auto HelpTopic = py::cast<std::wstring>(PyHelpTopic);
+			const auto Flags = py::cast<FARHELPFLAGS>(PyFlags);
+
+			std::wstring ModuleStr;
+			GUID ModuleGuid;
+			const void* ModulePtr;
+
+			if (Flags & FHELP_GUID)
+			{
+				ModuleGuid = py::cast<UUID>(PyGuid);
+				ModulePtr = &ModuleGuid;
+			}
+			else
+			{
+				ModuleStr = py::cast<std::wstring>(PyGuid);
+				ModulePtr = &ModuleStr;
+			}
+
+			return py::boolean(psi().ShowHelp(static_cast<const wchar_t*>(ModulePtr), HelpTopic.data(), Flags) != FALSE);
+		}
+	};
+
+	struct AdvControl
+	{
+		METHOD(AdvControl, "Advanced Control Commands")
+
+		static py::object Do(const py::object& PyPluginId, const py::object& PyCommand, const py::object& PyParam1, const py::object& PyParam2)
+		{
+			const auto PluginId = py::cast<UUID>(PyPluginId);
+			const auto Command = py::cast<ADVANCED_CONTROL_COMMANDS>(PyCommand);
+			const auto Param1 = py::cast<intptr_t>(PyParam1);
+
+			const auto& DefaultCall = [&]
+			{
+				return psi().AdvControl(&PluginId, Command, Param1, nullptr);
+			};
+
+			switch (Command)
+			{
+			case ACTL_SETCURRENTWINDOW:
+			case ACTL_COMMIT:
+			case ACTL_REDRAWALL:
+			case ACTL_QUIT:
+			case ACTL_PROGRESSNOTIFY:
+				return py::boolean(DefaultCall() != 0);
+
+			case ACTL_GETWINDOWCOUNT:
+			case ACTL_GETFARHWND:
+				return py::integer(DefaultCall());
+
+			case ACTL_GETFARMANAGERVERSION:
+				{
+					VersionInfo Info;
+					if (!psi().AdvControl(&PluginId, Command, Param1, &Info))
+						return py::object::none();
+
+					return far_api::type("VersionInfo")(
+						Info.Major,
+						Info.Minor,
+						Info.Revision,
+						Info.Build,
+						far_api::type("VersionStage")(Info.Stage)
+						);
+				}
+
+			case ACTL_WAITKEY:
+				// BUGBUG
+				return py::object::none();
+
+			case ACTL_GETCOLOR:
+				// BUGBUG
+				return py::object::none();
+
+			case ACTL_GETARRAYCOLOR:
+				// BUGBUG
+				return py::object::none();
+
+			case ACTL_GETWINDOWINFO:
+				// BUGBUG
+				return py::object::none();
+
+			case ACTL_SETARRAYCOLOR:
+				// BUGBUG
+				return py::object::none();
+
+			case ACTL_SYNCHRO:
+				// BUGBUG
+				return py::object::none();
+
+			case ACTL_SETPROGRESSSTATE:
+				// BUGBUG
+				return py::object::none();
+
+			case ACTL_SETPROGRESSVALUE:
+				// BUGBUG
+				return py::object::none();
+
+			case ACTL_GETFARRECT:
+				// BUGBUG
+				return py::object::none();
+
+			case ACTL_GETCURSORPOS:
+				// BUGBUG
+				return py::object::none();
+
+			case ACTL_SETCURSORPOS:
+				// BUGBUG
+				return py::object::none();
+
+			case ACTL_GETWINDOWTYPE:
+				{
+					WindowType Type;
+					if (!psi().AdvControl(&PluginId, Command, 0, &Type))
+						return py::object::none();
+
+					auto WindowTypeInstance = far_api::type("WindowType")();
+					WindowTypeInstance["Type"] = far_api::type("WindowInfoType")(Type.Type);
+					return WindowTypeInstance;
+				}
+
+			default:
+				return py::object::none();
+			}
+		}
+	};
+
+	struct PanelControl
+	{
+		METHOD(PanelControl, "Panel Control Commands")
+
+		static py::object Do(const py::object& PyPanel, const py::object& PyCommand, const py::object& PyParam1, const py::object& PyParam2)
+		{
+			const auto Panel = py::cast<HANDLE>(PyPanel);
+			const auto Command = py::cast<FILE_CONTROL_COMMANDS>(PyCommand);
+			const auto Param1 = py::cast<intptr_t>(PyParam1);
+
+			const auto& DefaultCall = [&]
+			{
+				return psi().PanelControl(Panel, Command, Param1, nullptr);
+			};
+
+			const auto& ReceiveString = [&]() -> py::object
+			{
+				auto Size = psi().PanelControl(Panel, Command, 0, nullptr);
 				if (!Size)
-					Py_RETURN_NONE;
-				std::vector<char> Buffer(Size);
-				const auto PPI = reinterpret_cast<PluginPanelItem*>(Buffer.data());
-				FarGetPluginPanelItem FGPPI { sizeof(FGPPI), Size, PPI };
-				if (!psi().PanelControl(Panel, Command, Param1, &FGPPI))
-					Py_RETURN_NONE;
-				auto PluginPanelItemInstance = far_api::type("PluginPanelItem")();
-				const auto FileTimeType = far_api::type("FileTime");
-				PluginPanelItemInstance["CreationTime"] = FileTimeType(FileTimeToUI64(PPI->CreationTime));
-				PluginPanelItemInstance["LastAccessTime"] = FileTimeType(FileTimeToUI64(PPI->LastAccessTime));
-				PluginPanelItemInstance["LastWriteTime"] = FileTimeType(FileTimeToUI64(PPI->LastWriteTime));
-				PluginPanelItemInstance["ChangeTime"] = FileTimeType(FileTimeToUI64(PPI->ChangeTime));
-				PluginPanelItemInstance["FileSize"] = PPI->FileSize;
-				PluginPanelItemInstance["AllocationSize"] = PPI->AllocationSize;
-				PluginPanelItemInstance["FileName"] = PPI->FileName;
-				PluginPanelItemInstance["AlternateFileName"] = PPI->AlternateFileName;
-				PluginPanelItemInstance["Description"] = PPI->Description;
-				PluginPanelItemInstance["Owner"] = PPI->Owner;
-				PluginPanelItemInstance["CustomColumnData"] = helpers::list::from_array(PPI->CustomColumnData, PPI->CustomColumnNumber, [](auto i) { return py::from(i); });
-				PluginPanelItemInstance["Flags"] = far_api::type("PluginPanelItemFlags")(PPI->Flags);
-				//PluginPanelItemInstance["UserData"] = PPI->UserData;
-				PluginPanelItemInstance["FileAttributes"] = PPI->FileAttributes;
-				PluginPanelItemInstance["NumberOfLinks"] = PPI->NumberOfLinks;
-				PluginPanelItemInstance["CRC32"] = PPI->CRC32;
-				//PluginPanelItemInstance["Reserved"] = PPI->Reserved;
+					return py::object::none();
 
-				return PluginPanelItemInstance.release();
+				std::vector<wchar_t> Buffer(Size);
+				for (;;)
+				{
+					const auto FillSize = psi().PanelControl(Panel, Command, Size, Buffer.data());
+					if (FillSize == Size)
+						return py::string(Buffer.data(), FillSize);
+
+					Buffer.resize(Size = FillSize);
+				}
+			};
+
+			const auto& PassString = [&]
+			{
+				std::wstring Str;
+				if (PyParam2)
+					Str = py::cast<std::wstring>(PyParam2);
+				return py::boolean(psi().PanelControl(Panel, Command, Param1, const_cast<wchar_t*>(Str.data())) != 0);
+			};
+
+			switch (Command)
+			{
+			case FCTL_CLOSEPANEL:
+			case FCTL_SETCMDLINE:
+			case FCTL_INSERTCMDLINE:
+				return PassString();
+
+			case FCTL_GETCMDLINE:
+			case FCTL_GETCOLUMNTYPES:
+			case FCTL_GETCOLUMNWIDTHS:
+			case FCTL_GETPANELFORMAT:
+			case FCTL_GETPANELHOSTFILE:
+			case FCTL_GETPANELPREFIX:
+				return ReceiveString();
+
+			case FCTL_UPDATEPANEL:
+			case FCTL_SETVIEWMODE:
+			case FCTL_SETUSERSCREEN:
+			case FCTL_SETCMDLINEPOS:
+			case FCTL_SETSORTMODE:
+			case FCTL_SETSORTORDER:
+			case FCTL_CHECKPANELSEXIST:
+			case FCTL_SETNUMERICSORT:
+			case FCTL_GETUSERSCREEN:
+			case FCTL_ISACTIVEPANEL:
+			case FCTL_BEGINSELECTION:
+			case FCTL_ENDSELECTION:
+			case FCTL_CLEARSELECTION:
+			case FCTL_SETDIRECTORIESFIRST:
+			case FCTL_SETCASESENSITIVESORT:
+			case FCTL_SETACTIVEPANEL:
+				return py::boolean(DefaultCall() != 0);
+
+			case FCTL_GETPANELINFO:
+				{
+					PanelInfo Info;
+					if (!psi().PanelControl(Panel, Command, Param1, &Info))
+						return py::object::none();
+
+					auto PanelInfoInstance = far_api::type("PanelInfo")();
+					PanelInfoInstance["PluginHandle"] = py::integer(Info.PluginHandle);
+					PanelInfoInstance["OwnerGuid"] = Info.OwnerGuid;
+					PanelInfoInstance["Flags"] = far_api::type("PanelInfoFlags")(Info.Flags);
+					PanelInfoInstance["ItemsNumber"] = Info.ItemsNumber;
+					PanelInfoInstance["SelectedItemsNumber"] = Info.SelectedItemsNumber;
+					PanelInfoInstance["PanelRect"] = far_api::type("Rect")(Info.PanelRect.left, Info.PanelRect.top, Info.PanelRect.right, Info.PanelRect.bottom);
+					PanelInfoInstance["CurrentItem"] = Info.CurrentItem;
+					PanelInfoInstance["TopPanelItem"] = Info.TopPanelItem;
+					PanelInfoInstance["ViewMode"] = Info.ViewMode;
+					PanelInfoInstance["PanelType"] = far_api::type("PanelInfoType")(Info.PanelType);
+					PanelInfoInstance["SortMode"] = far_api::type("SortModes")(Info.SortMode);
+
+					return PanelInfoInstance;
+				}
+
+			case FCTL_REDRAWPANEL:
+				// BUGBUG
+				return py::object::none();
+
+			case FCTL_SETSELECTION:
+				// BUGBUG
+				return py::object::none();
+
+			case FCTL_SETPANELDIRECTORY:
+				// BUGBUG
+				return py::object::none();
+
+			case FCTL_GETCMDLINEPOS:
+				{
+					int Pos;
+					if (!psi().PanelControl(Panel, Command, Param1, &Pos))
+						return py::object::none();
+
+					return py::integer(Pos);
+				}
+
+			case FCTL_SETCMDLINESELECTION:
+				// BUGBUG
+				return py::object::none();
+
+			case FCTL_GETCMDLINESELECTION:
+				// BUGBUG
+				return py::object::none();
+
+			case FCTL_GETPANELITEM:
+			case FCTL_GETSELECTEDPANELITEM:
+			case FCTL_GETCURRENTPANELITEM:
+				{
+					const size_t Size = psi().PanelControl(Panel, Command, Param1, nullptr);
+					if (!Size)
+						return py::object::none();
+
+					std::vector<char> Buffer(Size);
+					const auto PPI = reinterpret_cast<PluginPanelItem*>(Buffer.data());
+					FarGetPluginPanelItem FGPPI { sizeof(FGPPI), Size, PPI };
+					if (!psi().PanelControl(Panel, Command, Param1, &FGPPI))
+						return py::object::none();
+
+					auto PluginPanelItemInstance = far_api::type("PluginPanelItem")();
+					const auto FileTimeType = far_api::type("FileTime");
+					PluginPanelItemInstance["CreationTime"] = FileTimeType(FileTimeToUI64(PPI->CreationTime));
+					PluginPanelItemInstance["LastAccessTime"] = FileTimeType(FileTimeToUI64(PPI->LastAccessTime));
+					PluginPanelItemInstance["LastWriteTime"] = FileTimeType(FileTimeToUI64(PPI->LastWriteTime));
+					PluginPanelItemInstance["ChangeTime"] = FileTimeType(FileTimeToUI64(PPI->ChangeTime));
+					PluginPanelItemInstance["FileSize"] = PPI->FileSize;
+					PluginPanelItemInstance["AllocationSize"] = PPI->AllocationSize;
+					PluginPanelItemInstance["FileName"] = PPI->FileName;
+					PluginPanelItemInstance["AlternateFileName"] = PPI->AlternateFileName;
+					PluginPanelItemInstance["Description"] = PPI->Description;
+					PluginPanelItemInstance["Owner"] = PPI->Owner;
+					PluginPanelItemInstance["CustomColumnData"] = helpers::list::from_array(PPI->CustomColumnData, PPI->CustomColumnNumber, [](auto i) { return py::from(i); });
+					PluginPanelItemInstance["Flags"] = far_api::type("PluginPanelItemFlags")(PPI->Flags);
+					//PluginPanelItemInstance["UserData"] = PPI->UserData;
+					PluginPanelItemInstance["FileAttributes"] = PPI->FileAttributes;
+					PluginPanelItemInstance["NumberOfLinks"] = PPI->NumberOfLinks;
+					PluginPanelItemInstance["CRC32"] = PPI->CRC32;
+					//PluginPanelItemInstance["Reserved"] = PPI->Reserved;
+
+					return PluginPanelItemInstance;
+				}
+
+			case FCTL_GETPANELDIRECTORY:
+				// BUGBUG
+				return py::object::none();
+
+
+			default:
+				return py::object::none();
 			}
-
-		case FCTL_GETPANELDIRECTORY:
-			// BUGBUG
-			Py_RETURN_NONE;
-
-
-		default:
-			Py_RETURN_NONE;
 		}
-	}
+	};
 
-	static PyMethodDef Methods[] =
+#undef METHOD
+
+	static const py::method_definition Methods[] =
 	{
-#define FUNC_NAME_VALUE(x) "__" #x, x
-
-		{ FUNC_NAME_VALUE(GetMsg), METH_VARARGS, "Get localised message by Id" },
-		{ FUNC_NAME_VALUE(Message), METH_VARARGS, "Show message" },
-		{ FUNC_NAME_VALUE(InputBox), METH_VARARGS, "Input box" },
-		{ FUNC_NAME_VALUE(Menu), METH_VARARGS, "Menu" },
-		{ FUNC_NAME_VALUE(ShowHelp), METH_VARARGS, "Show help" },
-		{ FUNC_NAME_VALUE(AdvControl), METH_VARARGS, "Advanced Control Commands" },
-		{ FUNC_NAME_VALUE(PanelControl), METH_VARARGS, "Panel Control Commands" },
-
-#undef FUNC_NAME_VALUE
-		{}
+		Define<GetMsg>(),
+		Define<Message>(),
+		Define<InputBox>(),
+		Define<Menu>(),
+		Define<ShowHelp>(),
+		Define<AdvControl>(),
+		Define<PanelControl>(),
 	};
 }
 
 far_api::far_api(const PluginStartupInfo* Psi):
+	m_PyMethods(far_api_implementation::Methods, std::size(far_api_implementation::Methods)),
 	m_Module(py::import::import("pygin.far"_py)),
 	m_Exception("pygin.far.error"),
 	m_Psi(*Psi),
@@ -538,7 +593,7 @@ far_api::far_api(const PluginStartupInfo* Psi):
 	m_Psi.Instance = nullptr;
 
 	m_Module.add_object("error", m_Exception);
-	m_Module.add_functions(far_api_implementation::Methods);
+	m_Module.add_functions(m_PyMethods.get());
 }
 
 const PluginStartupInfo& far_api::psi() const

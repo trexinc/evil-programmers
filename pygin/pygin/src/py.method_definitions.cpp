@@ -1,7 +1,5 @@
-﻿#pragma once
-
-/*
-far_api.hpp
+﻿/*
+py.method_definitions.cpp
 
 */
 /*
@@ -31,37 +29,28 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "py.err.hpp"
+#include "headers.hpp"
+
 #include "py.method_definitions.hpp"
-#include "py.module.hpp"
+
+#include "python.hpp"
 
 namespace py
 {
-	class type;
+	method_definitions::method_definitions(const method_definition* Methods, size_t Size)
+	{
+		m_Methods.reserve(Size + 1);
+		std::transform(Methods, Methods + Size, std::back_inserter(m_Methods), [](const method_definition& Method)
+		{
+			return PyMethodDef{ Method.Name, Method.Method, METH_VARARGS, Method.Doc };
+		});
+		m_Methods.emplace_back();
+	}
+
+	method_definitions::~method_definitions() = default;
+
+	PyMethodDef* method_definitions::get()
+	{
+		return m_Methods.data();
+	}
 }
-
-class far_api
-{
-public:
-	NONCOPYABLE(far_api);
-
-	explicit far_api(const PluginStartupInfo* Psi);
-
-	const PluginStartupInfo& psi() const;
-	const FarStandardFunctions& fsf() const;
-
-	const py::object& get_module() const;
-
-	static void initialise(const PluginStartupInfo* Psi);
-	static const far_api& get();
-	static const py::object& module();
-	static py::type type(const std::string& TypeName);
-	static void uninitialise();
-
-private:
-	py::method_definitions m_PyMethods;
-	py::module m_Module;
-	py::err::exception m_Exception;
-	PluginStartupInfo m_Psi;
-	FarStandardFunctions m_Fsf;
-};
