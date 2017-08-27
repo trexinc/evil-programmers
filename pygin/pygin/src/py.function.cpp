@@ -45,7 +45,7 @@ namespace py
 	{
 		return types_cache::get_type(types::function, []
 		{
-			return type(import::import("pygin")["_loader"]["_load_plugin"]);
+			return type(import::import("importlib.util")["spec_from_file_location"]);
 		});
 	}
 

@@ -32,11 +32,32 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
 import sys
+import imp
+import importlib
 from importlib.util import spec_from_file_location, module_from_spec
 
+
+def _reload_plugin(name: str, spec):
+	# Python isn't smart enough to find a spec for a module that wasn't loaded from sys.path
+	class FarPluginSpecImporter:
+		@classmethod
+		def find_spec(cls, fullname, path=None, target=None):
+			return spec if fullname == name else None
+
+	sys.meta_path.append(FarPluginSpecImporter)
+	try:
+		return importlib.reload(sys.modules[name])
+	finally:
+		sys.meta_path.remove(FarPluginSpecImporter)
+
+
 def _load_plugin(name: str, path: str):
-	spec_file = spec_from_file_location(name, path)
-	spec_module = module_from_spec(spec_file)
-	spec_file.loader.exec_module(spec_module)
-	sys.modules[name] = spec_module
-	return spec_module
+	spec = spec_from_file_location(name, path)
+
+	if name in sys.modules.keys():
+		return _reload_plugin(name, spec)
+
+	module = module_from_spec(spec)
+	sys.modules[name] = module
+	spec.loader.exec_module(module)
+	return module

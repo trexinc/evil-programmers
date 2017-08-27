@@ -46,41 +46,21 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using namespace py::literals;
 
-static void add_to_python_path(const std::wstring& Path)
-{
-	auto PathList = py::cast<py::list>(py::sys::get_object("path"));
-	const py::string NewItem(Path);
-
-	for (size_t i = 0, size = PathList.size();  i != size; ++i)
-	{
-		if (const auto Str = py::try_cast<py::string>(PathList[i]))
-			if (Str == NewItem)
-				return;
-	}
-
-	PathList.push_back(NewItem);
-}
-
-static py::module add_or_reload_module(const std::wstring& Name)
-{
-	const auto ModulesDict = py::cast<py::dictionary>(py::sys::get_object("modules"));
-	const py::string ModuleName(Name);
-	if (const auto ExistingModule = py::try_cast<py::module>(ModulesDict[ModuleName]))
-		return py::import::reload(ExistingModule);
-
-	return py::import::import(ModuleName);
-}
-
 extern "C" IMAGE_DOS_HEADER __ImageBase;
 
 static auto create_pygin_module()
 {
 	wchar_t AdaptherPath[MAX_PATH];
 	GetModuleFileName(reinterpret_cast<HINSTANCE>(&__ImageBase), AdaptherPath, static_cast<DWORD>(std::size(AdaptherPath)));
-	*wcsrchr(AdaptherPath, L'\\') = 0;
+	wcsrchr(AdaptherPath, L'\\')[1] = 0;
 
-	add_to_python_path(AdaptherPath);
-	return add_or_reload_module(L"pygin");
+	// This is essentially the same as pygin._loader._load_plugin, but since pygin isn't loaded yet we have to reinvent it:
+	const auto ImportlibUtil = py::import::import("importlib.util");
+	const auto Spec = ImportlibUtil["spec_from_file_location"]("pygin", AdaptherPath + L"pygin\\__init__.py"s);
+	const auto Module = py::cast<py::module>(ImportlibUtil["module_from_spec"](Spec));
+	py::cast<py::dictionary>(py::import::import("sys")["modules"])["pygin"_py] = Module;
+	Spec["loader"].get_attribute("exec_module")(Module);
+	return Module;
 }
 
 pygin::pygin(GlobalInfo* Info):
