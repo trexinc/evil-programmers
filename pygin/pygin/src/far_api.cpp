@@ -100,8 +100,24 @@ namespace
 	template<typename type>
 	PyObject* Method(PyObject* Self, PyObject* RawArgs)
 	{
-		const auto Args = get_args(type::HrName, RawArgs, get_arity<type>::value);
-		return apply_py_tuple<type>(Args, std::make_index_sequence<get_arity<type>::value>{}).release();
+		try
+		{
+			const auto Args = get_args(type::HrName, RawArgs, get_arity<type>::value);
+			return apply_py_tuple<type>(Args, std::make_index_sequence<get_arity<type>::value>{}).release();
+		}
+		catch(const py::exception& e)
+		{
+			py::err::raise(far_api::get().exception(), e.what());
+		}
+		catch (const pygin_exception& e)
+		{
+			py::err::raise(far_api::get().exception(), e.what());
+		}
+		catch (const std::exception& e)
+		{
+			py::err::raise(far_api::get().exception(), e.what());
+		}
+		return nullptr;
 	}
 
 	template<typename T>
@@ -603,6 +619,11 @@ const PluginStartupInfo& far_api::psi() const
 const FarStandardFunctions& far_api::fsf() const
 {
 	return m_Fsf;
+}
+
+const py::object& far_api::exception() const
+{
+	return m_Exception;
 }
 
 const py::object& far_api::get_module() const

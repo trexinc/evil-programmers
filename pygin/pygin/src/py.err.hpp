@@ -37,6 +37,7 @@ namespace py
 {
 	namespace err
 	{
+		void raise(const object& Exception, const char* Message);
 		object occurred();
 		void clear();
 		void print();

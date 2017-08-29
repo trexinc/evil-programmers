@@ -49,6 +49,7 @@ public:
 
 	const PluginStartupInfo& psi() const;
 	const FarStandardFunctions& fsf() const;
+	const py::object& exception() const;
 
 	const py::object& get_module() const;
 

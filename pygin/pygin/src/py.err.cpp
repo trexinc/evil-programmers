@@ -41,6 +41,12 @@ namespace py
 {
 	namespace err
 	{
+		void raise(const object& Exception, const char* Message)
+		{
+			// No invoke() here
+			PyErr_SetString(Exception.get(), Message);
+		}
+
 		object occurred()
 		{
 			return object::from_borrowed(PyErr_Occurred());
