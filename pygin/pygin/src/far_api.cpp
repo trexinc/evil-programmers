@@ -479,7 +479,7 @@ namespace far_api_implementation
 					PanelInfoInstance["TopPanelItem"] = Info.TopPanelItem;
 					PanelInfoInstance["ViewMode"] = Info.ViewMode;
 					PanelInfoInstance["PanelType"] = far_api::type("PanelInfoType")(Info.PanelType);
-					PanelInfoInstance["SortMode"] = far_api::type("SortModes")(Info.SortMode);
+					PanelInfoInstance["SortMode"] = Info.SortMode < SM_COUNT? far_api::type("SortModes")(Info.SortMode) : py::integer(Info.SortMode);
 
 					return PanelInfoInstance;
 				}
