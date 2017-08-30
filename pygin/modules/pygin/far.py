@@ -52,10 +52,21 @@ def __invoke_api():
 def bit(n: int) -> int:
 	return 1 << n
 
+class IntEnum(enum.IntEnum):
+	@classmethod
+	def _missing_(cls, value):
+		pseudo_member = int.__new__(cls, value)
+		pseudo_member._name_ = "Unknown_{}".format(value)
+		pseudo_member._value_ = value
+		return pseudo_member
+
+class IntFlag(enum.IntFlag):
+	pass
+
 NullUuid = uuid.UUID("{00000000-0000-0000-0000-000000000000}")
 
 @unique
-class VersionStage(enum.IntEnum):
+class VersionStage(IntEnum):
 	Release                                         = 0
 	Alpha                                           = 1
 	Beta                                            = 2
@@ -72,9 +83,8 @@ class VersionInfo:
 	def __str__(self):
 		return "{0}.{1}.{2}.{3} {4}".format(self.Major, self.Minor, self.Revision, self.Build, self.Stage.name)
 
-
 @unique
-class PluginFlags(enum.IntFlag):
+class PluginFlags(IntFlag):
 	Default                                         = 0
 	Preload                                         = bit(0)
 	DisablePanels                                   = bit(1)
@@ -93,7 +103,7 @@ class PluginInfo:
 		self.CommandPrefix = ""
 
 @unique
-class OpenFrom(enum.IntEnum):
+class OpenFrom(IntEnum):
 	Unknown                                         = -1
 	LeftDiskMenu                                    = 0
 	PluginsMenu                                     = 1
@@ -114,7 +124,7 @@ class OpenCommandLineInfo:
 		self.CommandLine = ""
 
 @unique
-class FarMacroVarType(enum.IntEnum):
+class FarMacroVarType(IntEnum):
 	Unknown                                         = 0
 	Integer                                         = 1
 	String                                          = 2
@@ -137,7 +147,7 @@ class OpenMacroInfo:
 		self.Values = []
 
 @unique
-class OperationModes(enum.IntFlag):
+class OperationModes(IntFlag):
 	Default                                         = 0
 	Silent                                          = bit(0)
 	Find                                            = bit(1)
@@ -156,7 +166,7 @@ class AnalyseInfo:
 		self.OpMode = OperationModes.Default
 
 @unique
-class OpenShortcutFlags(enum.IntFlag):
+class OpenShortcutFlags(IntFlag):
 	Default = 0
 	Active  = bit(0)
 
@@ -190,7 +200,7 @@ def GetMsg(PluginId: uuid, MsgId: int) -> str:
 	return __invoke_api()
 
 @unique
-class MessageFlags(enum.IntFlag):
+class MessageFlags(IntFlag):
 	Default                                         = 0
 	Warning                                         = bit(0)
 	ErrorType                                       = bit(1)
@@ -207,7 +217,7 @@ def Message(PluginId: uuid, Id: uuid, Flags: MessageFlags, HelpTopic: str, Title
 	return __invoke_api()
 
 @unique
-class InputBoxFlags(enum.IntFlag):
+class InputBoxFlags(IntFlag):
 	Default                                         = 0
 	EnableEmpty                                     = bit(0)
 	Password                                        = bit(1)
@@ -222,7 +232,7 @@ def InputBox(PluginId: uuid, Id: uuid, Title: str, SubTitle: str, HistoryName: s
 	return __invoke_api()
 
 @unique
-class MenuItemFlags(enum.IntFlag):
+class MenuItemFlags(IntFlag):
 	Default                                         = 0
 	Selected                                        = bit(16)
 	Checked                                         = bit(17)
@@ -244,7 +254,7 @@ class MenuItem:
 		self.UserData = UserData
 
 @unique
-class MenuFlags(enum.IntFlag):
+class MenuFlags(IntFlag):
 	Default                                         = 0
 	ShowAmpersand                                   = bit(0)
 	WrapMode                                        = bit(1)
@@ -256,7 +266,7 @@ def Menu(PluginId: uuid, Id: uuid, X: int, Y: int, MaxHeight: int, Flags: MenuFl
 	return __invoke_api()
 
 @unique
-class HelpFlags(enum.IntFlag):
+class HelpFlags(IntFlag):
 	# enum part
 	SelfHelp                                        = 0
 	FarHelp                                         = bit(0)
@@ -272,7 +282,7 @@ def ShowHelp(ModuleName: str, HelpTopic: str, Flags: HelpFlags) -> bool:
 	return __invoke_api()
 
 @unique
-class AdvancedControlCommands(enum.IntEnum):
+class AdvancedControlCommands(IntEnum):
 	GetFarManagerVersion                            = 0
 	WaitKey                                         = 2
 	GetColor                                        = 3
@@ -295,7 +305,7 @@ class AdvancedControlCommands(enum.IntEnum):
 	GetWindowType                                   = 28
 
 @unique
-class WindowInfoType(enum.IntEnum):
+class WindowInfoType(IntEnum):
 	Unknown                                         = -1
 	Desktop                                         = 0
 	Panels                                          = 1
@@ -314,7 +324,7 @@ def AdvControl(PluginId: uuid, Command: AdvancedControlCommands, Param1: int = 0
 	return __invoke_api()
 
 @unique
-class FileControlCommands(enum.IntEnum):
+class FileControlCommands(IntEnum):
 	ClosePanel                                      = 0,
 	GetPanelInfo                                    = 1,
 	UpdatePanel                                     = 2,
@@ -353,12 +363,12 @@ class FileControlCommands(enum.IntEnum):
 	SetActivePanel                                  = 35,
 
 @unique
-class Panels(enum.IntEnum):
+class Panels(IntEnum):
 	Active = -1
 	Passive = -2
 
 @unique
-class SortModes(enum.IntEnum):
+class SortModes(IntEnum):
 	Default                                         =  0,
 	Unsorted                                        =  1,
 	Name                                            =  2,
@@ -377,7 +387,7 @@ class SortModes(enum.IntEnum):
 	ChangeTime                                      = 15,
 
 @unique
-class PanelInfoFlags(enum.IntFlag):
+class PanelInfoFlags(IntFlag):
 	Default                                         = 0
 	ShowHidden                                      = bit(0)
 	Highlight                                       = bit(1)
@@ -397,7 +407,7 @@ class PanelInfoFlags(enum.IntFlag):
 	Shortcut                                        = bit(15)
 
 @unique
-class PanelInfoType(enum.IntEnum):
+class PanelInfoType(IntEnum):
 	Unknown                                         = -1
 	FilePanel                                       = 0
 	TreePanel                                       = 1
@@ -436,7 +446,7 @@ class FileTime(datetime.datetime):
 		return datetime.datetime.utcfromtimestamp((max(Value, _EPOCH_AS_FILETIME) - _EPOCH_AS_FILETIME) / _HUNDREDS_OF_NANOSECONDS)
 
 @unique
-class PluginPanelItemFlags(enum.IntFlag):
+class PluginPanelItemFlags(IntFlag):
 	Default                                         = 0
 	Selected                                        = bit(30)
 	ProcessDescription                              = bit(31)

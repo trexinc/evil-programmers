@@ -75,13 +75,13 @@ class HelloWorldPlugin(pygin.Plugin):
 		return info
 
 	def OpenW(self, info):
-		if info.OpenFrom == info.OpenFrom.FromMacro:
+		if info.OpenFrom == far.OpenFrom.FromMacro:
 			with pygin.Console():
 				for value in info.Data.Values:
 					print(value.Type.name, ": ", value.Value, sep="")
 			return None
 
-		elif info.OpenFrom == info.OpenFrom.CommandLine:
+		elif info.OpenFrom == far.OpenFrom.CommandLine:
 			with pygin.Console():
 				Result = eval(info.Data.CommandLine)
 				if Result is not None:
