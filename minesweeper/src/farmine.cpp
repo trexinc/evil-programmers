@@ -28,7 +28,7 @@ void WINAPI GetGlobalInfoW(struct GlobalInfo* Info)
 {
   Info->StructSize=sizeof(GlobalInfo);
   Info->MinFarVersion=FARMANAGERVERSION;
-  Info->Version=MAKEFARVERSION(VER_MAJOR,VER_MINOR,0,VER_BUILD,VS_ALPHA);
+  Info->Version=MAKEFARVERSION(VER_MAJOR,VER_MINOR,0,VER_BUILD,VS_RELEASE);
   Info->Guid=MainGuid;
   Info->Title=L"Mine Sweeper";
   Info->Description=L"Mine Sweeper";
@@ -96,10 +96,13 @@ struct BoardParams
   int width,height,mines;
   int curr_row,curr_col;
   unsigned long start_time;
+  unsigned long pause_time;
   unsigned long end_time;
   bool started;
+  bool paused;
   int finished;
   int curr_mines;
+  FAR_CHAR_INFO* vbuffer;
 };
 
 static int context_colors[]=
@@ -349,209 +352,236 @@ static void RunKey(const wchar_t* Key)
   Info.MacroControl(&MainGuid,MCTL_SENDSTRING,MSSC_POST,&macro);
 }
 
+static void FreeBoardParams(BoardParams* bp)
+{
+  if(bp)
+  {
+    if(bp->vbuffer) HeapFree(GetProcessHeap(),0,bp->vbuffer);
+    HeapFree(GetProcessHeap(),0,bp);
+  }
+}
+
 static intptr_t WINAPI MainDialogProc(HANDLE hDlg,intptr_t Msg,intptr_t Param1,void* Param2)
 {
   BoardParams* DlgParams=(BoardParams*)Info.SendDlgMessage(hDlg,DM_GETDLGDATA,0,0);
-  //if(Msg==DN_KEY&&Param2==KEY_ENTER) return TRUE;
-  switch(Msg)
+  if(DlgParams)
   {
-    case DN_INITDIALOG:
-      Info.SendDlgMessage(hDlg,DM_RESETBOARD,0,0);
-      SetFocus(true);
-      break;
-    case DN_CONTROLINPUT:
-      {
-        const INPUT_RECORD* record=(const INPUT_RECORD*)Param2;
-        if(record->EventType==KEY_EVENT&&record->Event.KeyEvent.bKeyDown)
+    switch(Msg)
+    {
+      case DN_INITDIALOG:
+        Info.SendDlgMessage(hDlg,DM_RESETBOARD,0,0);
+        SetFocus(true);
+        break;
+      case DN_CONTROLINPUT:
         {
-          KillFocus();
-          if(IsNone(record))
+          const INPUT_RECORD* record=(const INPUT_RECORD*)Param2;
+          if(record->EventType==KEY_EVENT&&record->Event.KeyEvent.bKeyDown)
           {
-            switch(record->Event.KeyEvent.wVirtualKeyCode)
+            KillFocus();
+            if(IsNone(record))
             {
-              case VK_UP:
-                DlgParams->curr_col--;
-                break;
-              case VK_DOWN:
-                DlgParams->curr_col++;
-                break;
-              case VK_LEFT:
-                DlgParams->curr_row--;
-                break;
-              case VK_RIGHT:
-                DlgParams->curr_row++;
-                break;
-              case VK_HOME:
-                DlgParams->curr_row=0;
-                break;
-              case VK_END:
-                DlgParams->curr_row=DlgParams->width-1;
-                break;
-              case VK_PRIOR:
-                DlgParams->curr_col=0;
-                break;
-              case VK_NEXT:
-                DlgParams->curr_col=DlgParams->height-1;
-                break;
-              case L' ':
-                {
-                  Info.SendDlgMessage(hDlg,DM_ENABLEREDRAW,FALSE,0);
-                  if(!DlgParams->finished)
+              switch(record->Event.KeyEvent.wVirtualKeyCode)
+              {
+                case VK_UP:
+                  DlgParams->curr_col--;
+                  break;
+                case VK_DOWN:
+                  DlgParams->curr_col++;
+                  break;
+                case VK_LEFT:
+                  DlgParams->curr_row--;
+                  break;
+                case VK_RIGHT:
+                  DlgParams->curr_row++;
+                  break;
+                case VK_HOME:
+                  DlgParams->curr_row=0;
+                  break;
+                case VK_END:
+                  DlgParams->curr_row=DlgParams->width-1;
+                  break;
+                case VK_PRIOR:
+                  DlgParams->curr_col=0;
+                  break;
+                case VK_NEXT:
+                  DlgParams->curr_col=DlgParams->height-1;
+                  break;
+                case L' ':
                   {
-                    if(!DlgParams->started) Info.SendDlgMessage(hDlg,DM_START_GAME,0,0);
-                    OpenPlace(hDlg,DlgParams,DlgParams->curr_row,DlgParams->curr_col,COP_CHECK_ALL);
-                  }
-                  Info.SendDlgMessage(hDlg,DM_ENABLEREDRAW,TRUE,0);
-                }
-                break;
-              case VK_DELETE:
-                {
-                  Info.SendDlgMessage(hDlg,DM_ENABLEREDRAW,FALSE,0);
-                  if(!DlgParams->finished)
-                  {
-                    FarDialogItem DialogItem;
-                    Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,DlgParams->width*DlgParams->curr_col+DlgParams->curr_row,&DialogItem);
-                    switch(GET_DATA_1(DialogItem))
+                    Info.SendDlgMessage(hDlg,DM_ENABLEREDRAW,FALSE,0);
+                    if(!DlgParams->finished)
                     {
-                      case STATE_CLOSE:
-                        SET_DATA_1(DialogItem,STATE_MARKED);
-                        DlgParams->curr_mines++;
-                        break;
-                      case STATE_OPEN:
-                        break;
-                      case STATE_MARKED:
-                        SET_DATA_1(DialogItem,STATE_CLOSE);
-                        DlgParams->curr_mines--;
-                        break;
+                      if(!DlgParams->started) Info.SendDlgMessage(hDlg,DM_START_GAME,0,0);
+                      OpenPlace(hDlg,DlgParams,DlgParams->curr_row,DlgParams->curr_col,COP_CHECK_ALL);
                     }
-                    Info.SendDlgMessage(hDlg,DM_SETDLGITEMSHORT,DlgParams->width*DlgParams->curr_col+DlgParams->curr_row,&DialogItem);
-                    Info.SendDlgMessage(hDlg,DM_SHOWTIME,0,0);
+                    Info.SendDlgMessage(hDlg,DM_ENABLEREDRAW,TRUE,0);
                   }
-                  Info.SendDlgMessage(hDlg,DM_ENABLEREDRAW,TRUE,0);
-                }
-                break;
-              case VK_F2:
-                DlgParams->started=false;
-                DlgParams->finished=FINISH_NO;
-                Info.SendDlgMessage(hDlg,DM_SETTEXTPTR,DlgParams->width*DlgParams->height,const_cast<wchar_t*>(GetMsg(mStart)));
-                Info.SendDlgMessage(hDlg,DM_RESETBOARD,0,0);
-                break;
-              case VK_F3:
-                {
-                  wchar_t ScoreKeyName[1024],PlayerKeyName[1024];
-                  FSF.sprintf(ScoreKeyName,L"Score_%d_%d_%d",DlgParams->width,DlgParams->height,DlgParams->mines);
-                  FSF.sprintf(PlayerKeyName,L"Player_%d_%d_%d",DlgParams->width,DlgParams->height,DlgParams->mines);
-                  CFarSettings settings(MainGuid);
-                  __int64 Score; wchar_t Name[512];
-                  Score=settings.Get(ScoreKeyName,-1);
-                  if(!settings.Get(PlayerKeyName,Name,sizeofa(Name))) Name[0]=0;
-                  if(Score>=0&&Name[0])
+                  break;
+                case VK_DELETE:
                   {
-                    wchar_t buffer[1024];
-                    FSF.sprintf(buffer,GetMsg(mHighscoreFormat),Name,(long)Score);
-                    const wchar_t* MsgItems[]={GetMsg(mHighscoreTitle),buffer,GetMsg(mOk)};
-                    Info.Message(&MainGuid,&HiscoreGuid,0,NULL,MsgItems,sizeofa(MsgItems),1);
+                    Info.SendDlgMessage(hDlg,DM_ENABLEREDRAW,FALSE,0);
+                    if(!DlgParams->finished)
+                    {
+                      FarDialogItem DialogItem;
+                      Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,DlgParams->width*DlgParams->curr_col+DlgParams->curr_row,&DialogItem);
+                      switch(GET_DATA_1(DialogItem))
+                      {
+                        case STATE_CLOSE:
+                          SET_DATA_1(DialogItem,STATE_MARKED);
+                          DlgParams->curr_mines++;
+                          break;
+                        case STATE_OPEN:
+                          break;
+                        case STATE_MARKED:
+                          SET_DATA_1(DialogItem,STATE_CLOSE);
+                          DlgParams->curr_mines--;
+                          break;
+                      }
+                      Info.SendDlgMessage(hDlg,DM_SETDLGITEMSHORT,DlgParams->width*DlgParams->curr_col+DlgParams->curr_row,&DialogItem);
+                      Info.SendDlgMessage(hDlg,DM_SHOWTIME,0,0);
+                    }
+                    Info.SendDlgMessage(hDlg,DM_ENABLEREDRAW,TRUE,0);
                   }
-                }
-                break;
+                  break;
+                case VK_F2:
+                  DlgParams->started=false;
+                  DlgParams->finished=FINISH_NO;
+                  Info.SendDlgMessage(hDlg,DM_SETTEXTPTR,DlgParams->width*DlgParams->height,const_cast<wchar_t*>(GetMsg(mStart)));
+                  Info.SendDlgMessage(hDlg,DM_RESETBOARD,0,0);
+                  break;
+                case VK_F3:
+                  {
+                    wchar_t ScoreKeyName[1024],PlayerKeyName[1024];
+                    FSF.sprintf(ScoreKeyName,L"Score_%d_%d_%d",DlgParams->width,DlgParams->height,DlgParams->mines);
+                    FSF.sprintf(PlayerKeyName,L"Player_%d_%d_%d",DlgParams->width,DlgParams->height,DlgParams->mines);
+                    CFarSettings settings(MainGuid);
+                    __int64 Score; wchar_t Name[512];
+                    Score=settings.Get(ScoreKeyName,-1);
+                    if(!settings.Get(PlayerKeyName,Name,sizeofa(Name))) Name[0]=0;
+                    if(Score>=0&&Name[0])
+                    {
+                      wchar_t buffer[1024];
+                      FSF.sprintf(buffer,GetMsg(mHighscoreFormat),Name,(long)Score);
+                      const wchar_t* MsgItems[]={GetMsg(mHighscoreTitle),buffer,GetMsg(mOk)};
+                      Info.Message(&MainGuid,&HiscoreGuid,0,NULL,MsgItems,sizeofa(MsgItems),1);
+                    }
+                  }
+                  break;
+              }
             }
+            if(DlgParams->curr_row>=DlgParams->width) DlgParams->curr_row=0;
+            if(DlgParams->curr_row<0) DlgParams->curr_row=DlgParams->width-1;
+            if(DlgParams->curr_col>=DlgParams->height) DlgParams->curr_col=0;
+            if(DlgParams->curr_col<0) DlgParams->curr_col=DlgParams->height-1;
+            SetFocus(true);
+            Info.SendDlgMessage(hDlg,DM_REDRAW,0,0);
           }
-          if(DlgParams->curr_row>=DlgParams->width) DlgParams->curr_row=0;
-          if(DlgParams->curr_row<0) DlgParams->curr_row=DlgParams->width-1;
-          if(DlgParams->curr_col>=DlgParams->height) DlgParams->curr_col=0;
-          if(DlgParams->curr_col<0) DlgParams->curr_col=DlgParams->height-1;
-          SetFocus(true);
-          Info.SendDlgMessage(hDlg,DM_REDRAW,0,0);
-        }
-        else if(record->EventType==MOUSE_EVENT)
-        {
-          DWORD Buttons=record->Event.MouseEvent.dwButtonState;
-          if(Buttons&FROM_LEFT_1ST_BUTTON_PRESSED) RunKey(L"Keys([[Space]])");
-          else if(Buttons&RIGHTMOST_BUTTON_PRESSED) RunKey(L"Keys([[Del]])");
-        }
-      }
-      break;
-    case DN_GOTFOCUS:
-      SetFocus(false);
-      break;
-    case DN_KILLFOCUS:
-      KillFocus();
-      break;
-    case DM_RESETBOARD:
-      {
-        int curr_mines=DlgParams->mines,color;
-        FarDialogItem DialogItem;
-        Info.SendDlgMessage(hDlg,DM_ENABLEREDRAW,FALSE,0);
-        for(int i=0;i<DlgParams->height;i++)
-          for(int j=0;j<DlgParams->width;j++)
+          else if(record->EventType==MOUSE_EVENT)
           {
-            int k=i*DlgParams->width+j;
-            Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,k,&DialogItem);
-            SET_DATA_0(DialogItem,0);
-            SET_DATA_1(DialogItem,0);
-            color=0;
-            DialogItem.VBuf[1].Char=GetChar(GET_DATA_0(DialogItem),GET_DATA_1(DialogItem),&color);
-            int bgcolor=GetBG(i,j,STATE_CLOSE);
-            DialogItem.VBuf[0].Attributes.ForegroundColor=DialogItem.VBuf[1].Attributes.ForegroundColor=DialogItem.VBuf[2].Attributes.ForegroundColor=color;
-            DialogItem.VBuf[0].Attributes.BackgroundColor=DialogItem.VBuf[1].Attributes.BackgroundColor=DialogItem.VBuf[2].Attributes.BackgroundColor=bgcolor;
-            Info.SendDlgMessage(hDlg,DM_SETDLGITEMSHORT,k,&DialogItem);
+            DWORD Buttons=record->Event.MouseEvent.dwButtonState;
+            if(Buttons&FROM_LEFT_1ST_BUTTON_PRESSED) RunKey(L"Keys([[Space]])");
+            else if(Buttons&RIGHTMOST_BUTTON_PRESSED) RunKey(L"Keys([[Del]])");
           }
-        //set mines
-        while(curr_mines)
+        }
+        break;
+      case DN_GOTFOCUS:
+        if(Param1>=0)
+          SetFocus(false);
+        else if(Param1==-1&&DlgParams->paused)
+        {
+          DlgParams->start_time+=GetTickCount()-DlgParams->pause_time;
+          DlgParams->paused=false;
+        }
+        break;
+      case DN_KILLFOCUS:
+        if(Param1>=0)
+          KillFocus();
+        else if(Param1==-1&&!DlgParams->paused)
+        {
+          DlgParams->paused=true;
+          DlgParams->pause_time=GetTickCount();
+        }
+        break;
+      case DM_RESETBOARD:
+        {
+          int curr_mines=DlgParams->mines,color;
+          FarDialogItem DialogItem;
+          Info.SendDlgMessage(hDlg,DM_ENABLEREDRAW,FALSE,0);
           for(int i=0;i<DlgParams->height;i++)
             for(int j=0;j<DlgParams->width;j++)
             {
               int k=i*DlgParams->width+j;
               Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,k,&DialogItem);
-              if(curr_mines&&(!GET_DATA_0(DialogItem)))
-              {
-                if(rand()<=(RAND_MAX*DlgParams->mines/(DlgParams->width*DlgParams->height)))
-                {
-                  curr_mines--;
-                  SET_DATA_0(DialogItem,9);
-                  Info.SendDlgMessage(hDlg,DM_SETDLGITEMSHORT,k,&DialogItem);
-                }
-              }
-            }
-        //set places
-        for(int i=0;i<DlgParams->height;i++)
-          for(int j=0;j<DlgParams->width;j++)
-          {
-            int k=i*DlgParams->width+j;
-            Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,k,&DialogItem);
-            if(GET_DATA_0(DialogItem)==0)
-            {
-              SET_DATA_0(DialogItem,GET_DATA_0(DialogItem)+GetMine(j-1,i-1,hDlg,DlgParams,false));
-              SET_DATA_0(DialogItem,GET_DATA_0(DialogItem)+GetMine(j-1,i,hDlg,DlgParams,false));
-              SET_DATA_0(DialogItem,GET_DATA_0(DialogItem)+GetMine(j-1,i+1,hDlg,DlgParams,false));
-              SET_DATA_0(DialogItem,GET_DATA_0(DialogItem)+GetMine(j,i-1,hDlg,DlgParams,false));
-              SET_DATA_0(DialogItem,GET_DATA_0(DialogItem)+GetMine(j,i+1,hDlg,DlgParams,false));
-              SET_DATA_0(DialogItem,GET_DATA_0(DialogItem)+GetMine(j+1,i-1,hDlg,DlgParams,false));
-              SET_DATA_0(DialogItem,GET_DATA_0(DialogItem)+GetMine(j+1,i,hDlg,DlgParams,false));
-              SET_DATA_0(DialogItem,GET_DATA_0(DialogItem)+GetMine(j+1,i+1,hDlg,DlgParams,false));
+              SET_DATA_0(DialogItem,0);
+              SET_DATA_1(DialogItem,0);
+              color=0;
+              DialogItem.VBuf[1].Char=GetChar(GET_DATA_0(DialogItem),GET_DATA_1(DialogItem),&color);
+              int bgcolor=GetBG(i,j,STATE_CLOSE);
+              DialogItem.VBuf[0].Attributes.ForegroundColor=DialogItem.VBuf[1].Attributes.ForegroundColor=DialogItem.VBuf[2].Attributes.ForegroundColor=color;
+              DialogItem.VBuf[0].Attributes.BackgroundColor=DialogItem.VBuf[1].Attributes.BackgroundColor=DialogItem.VBuf[2].Attributes.BackgroundColor=bgcolor;
               Info.SendDlgMessage(hDlg,DM_SETDLGITEMSHORT,k,&DialogItem);
             }
-          }
-        DlgParams->curr_mines=0;
+          //set mines
+          while(curr_mines)
+            for(int i=0;i<DlgParams->height;i++)
+              for(int j=0;j<DlgParams->width;j++)
+              {
+                int k=i*DlgParams->width+j;
+                Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,k,&DialogItem);
+                if(curr_mines&&(!GET_DATA_0(DialogItem)))
+                {
+                  if(rand()<=(RAND_MAX*DlgParams->mines/(DlgParams->width*DlgParams->height)))
+                  {
+                    curr_mines--;
+                    SET_DATA_0(DialogItem,9);
+                    Info.SendDlgMessage(hDlg,DM_SETDLGITEMSHORT,k,&DialogItem);
+                  }
+                }
+              }
+          //set places
+          for(int i=0;i<DlgParams->height;i++)
+            for(int j=0;j<DlgParams->width;j++)
+            {
+              int k=i*DlgParams->width+j;
+              Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,k,&DialogItem);
+              if(GET_DATA_0(DialogItem)==0)
+              {
+                SET_DATA_0(DialogItem,GET_DATA_0(DialogItem)+GetMine(j-1,i-1,hDlg,DlgParams,false));
+                SET_DATA_0(DialogItem,GET_DATA_0(DialogItem)+GetMine(j-1,i,hDlg,DlgParams,false));
+                SET_DATA_0(DialogItem,GET_DATA_0(DialogItem)+GetMine(j-1,i+1,hDlg,DlgParams,false));
+                SET_DATA_0(DialogItem,GET_DATA_0(DialogItem)+GetMine(j,i-1,hDlg,DlgParams,false));
+                SET_DATA_0(DialogItem,GET_DATA_0(DialogItem)+GetMine(j,i+1,hDlg,DlgParams,false));
+                SET_DATA_0(DialogItem,GET_DATA_0(DialogItem)+GetMine(j+1,i-1,hDlg,DlgParams,false));
+                SET_DATA_0(DialogItem,GET_DATA_0(DialogItem)+GetMine(j+1,i,hDlg,DlgParams,false));
+                SET_DATA_0(DialogItem,GET_DATA_0(DialogItem)+GetMine(j+1,i+1,hDlg,DlgParams,false));
+                Info.SendDlgMessage(hDlg,DM_SETDLGITEMSHORT,k,&DialogItem);
+              }
+            }
+          DlgParams->curr_mines=0;
+          Info.SendDlgMessage(hDlg,DM_SHOWTIME,0,0);
+          Info.SendDlgMessage(hDlg,DM_ENABLEREDRAW,TRUE,0);
+        }
+        break;
+      case DN_ENTERIDLE:
         Info.SendDlgMessage(hDlg,DM_SHOWTIME,0,0);
-        Info.SendDlgMessage(hDlg,DM_ENABLEREDRAW,TRUE,0);
-      }
-      break;
-    case DN_ENTERIDLE:
-      Info.SendDlgMessage(hDlg,DM_SHOWTIME,0,0);
-      break;
-    case DM_SHOWTIME:
-      {
-        wchar_t buffer[1024]; DWORD diff_time=DlgParams->started?((DlgParams->finished?DlgParams->end_time:GetTickCount())-DlgParams->start_time)/1000:0;
-        FSF.sprintf(buffer,GetMsg(mTime),diff_time,DlgParams->curr_mines);
-        Info.SendDlgMessage(hDlg,DM_SETTEXTPTR,DlgParams->width*DlgParams->height+1,buffer);
-      }
-      break;
-    case DM_START_GAME:
-      Info.SendDlgMessage(hDlg,DM_SETTEXTPTR,DlgParams->width*DlgParams->height,const_cast<wchar_t*>(GetMsg(mGame)));
-      DlgParams->started=true;
-      DlgParams->start_time=GetTickCount();
-      break;
+        break;
+      case DM_SHOWTIME:
+        {
+          wchar_t buffer[1024]; DWORD diff_time=DlgParams->started?((DlgParams->finished?DlgParams->end_time:GetTickCount())-DlgParams->start_time)/1000:0;
+          FSF.sprintf(buffer,GetMsg(mTime),diff_time,DlgParams->curr_mines);
+          Info.SendDlgMessage(hDlg,DM_SETTEXTPTR,DlgParams->width*DlgParams->height+1,buffer);
+        }
+        break;
+      case DM_START_GAME:
+        Info.SendDlgMessage(hDlg,DM_SETTEXTPTR,DlgParams->width*DlgParams->height,const_cast<wchar_t*>(GetMsg(mGame)));
+        DlgParams->started=true;
+        DlgParams->start_time=GetTickCount();
+        break;
+      case DN_CLOSE:
+        FreeBoardParams(DlgParams);
+        Info.SendDlgMessage(hDlg,DM_SETDLGDATA,0,NULL);
+        break;
+    }
   }
   return Info.DefDlgProc(hDlg,Msg,Param1,Param2);
 }
@@ -589,86 +619,86 @@ HANDLE WINAPI OpenW(const struct OpenInfo* Info)
   intptr_t MenuCode=::Info.Menu(&MainGuid,&MainMenuGuid,-1,-1,0,FMENU_WRAPMODE,GetMsg(mName),NULL,L"Contents",NULL,NULL,MenuItems,sizeofa(MenuItems));
   if(MenuCode>=0)
   {
-    BoardParams bp; int curr_color;
-    bp.width=widths[MenuCode]; bp.height=heights[MenuCode]; bp.mines=mines[MenuCode];
-    bp.curr_row=0; bp.curr_col=0;
-    bp.started=false; bp.finished=FINISH_NO;
-    FarDialogItem* DialogItems=(FarDialogItem*)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,(bp.width*bp.height+4)*sizeof(FarDialogItem));
-    FAR_CHAR_INFO* VirtualBuffer=(FAR_CHAR_INFO*)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,bp.width*bp.height*sizeof(FAR_CHAR_INFO)*3);
-    wchar_t* Separator=(wchar_t*)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,(bp.width*3+1)*sizeof(wchar_t));
-    if(DialogItems&&VirtualBuffer&&Separator)
+    HANDLE dlg=INVALID_HANDLE_VALUE;
+    BoardParams* bp=(BoardParams*)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,sizeof(BoardParams));
+    if(bp)
     {
-      for(int i=0;i<bp.height;i++)
-        for(int j=0;j<bp.width;j++)
-        {
-          int k=i*bp.width+j;
-          DialogItems[k].Type=DI_USERCONTROL;
-          DialogItems[k].X1=1+j*3;
-          DialogItems[k].X2=1+j*3+2;
-          DialogItems[k].Y1=1+i;
-          DialogItems[k].Y2=1+i;
-          DialogItems[k].VBuf=VirtualBuffer+k*3;
-          DialogItems[k].VBuf[0].Char=L' ';
-          DialogItems[k].VBuf[1].Char=0x25a0;
-          DialogItems[k].VBuf[2].Char=L' ';
-          curr_color=GetBG(j,i,STATE_CLOSE);
-          for(int l=0;l<3;l++)
+      int curr_color;
+      bp->width=widths[MenuCode]; bp->height=heights[MenuCode]; bp->mines=mines[MenuCode];
+      bp->curr_row=0; bp->curr_col=0;
+      bp->started=false; bp->finished=FINISH_NO;
+      FarDialogItem* DialogItems=(FarDialogItem*)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,(bp->width*bp->height+4)*sizeof(FarDialogItem));
+      bp->vbuffer=(FAR_CHAR_INFO*)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,bp->width*bp->height*sizeof(FAR_CHAR_INFO)*3);
+      wchar_t* Separator=(wchar_t*)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,(bp->width*3+1)*sizeof(wchar_t));
+      if(bp&&DialogItems&&bp->vbuffer&&Separator)
+      {
+        for(int i=0;i<bp->height;i++)
+          for(int j=0;j<bp->width;j++)
           {
-            DialogItems[k].VBuf[l].Attributes.Flags=FCF_4BITMASK;
-            DialogItems[k].VBuf[l].Attributes.BackgroundColor=curr_color;
-            DialogItems[k].VBuf[l].Attributes.ForegroundColor=FOREGROUND_INTENSITY;
+            int k=i*bp->width+j;
+            DialogItems[k].Type=DI_USERCONTROL;
+            DialogItems[k].X1=1+j*3;
+            DialogItems[k].X2=1+j*3+2;
+            DialogItems[k].Y1=1+i;
+            DialogItems[k].Y2=1+i;
+            DialogItems[k].VBuf=bp->vbuffer+k*3;
+            DialogItems[k].VBuf[0].Char=L' ';
+            DialogItems[k].VBuf[1].Char=0x25a0;
+            DialogItems[k].VBuf[2].Char=L' ';
+            curr_color=GetBG(j,i,STATE_CLOSE);
+            for(int l=0;l<3;l++)
+            {
+              DialogItems[k].VBuf[l].Attributes.Flags=FCF_4BITMASK;
+              DialogItems[k].VBuf[l].Attributes.BackgroundColor=curr_color;
+              DialogItems[k].VBuf[l].Attributes.ForegroundColor=FOREGROUND_INTENSITY;
+            }
           }
+        //Status
+        {
+          int k=bp->width*bp->height;
+          DialogItems[k].Type=DI_TEXT;
+          DialogItems[k].X1=1;
+          DialogItems[k].X2=0;
+          DialogItems[k].Y1=bp->height+2;
+          DialogItems[k].Y2=0;
+          DialogItems[k].Data=GetMsg(mStart);
         }
-      //Status
-      {
-        int k=bp.width*bp.height;
-        DialogItems[k].Type=DI_TEXT;
-        DialogItems[k].X1=1;
-        DialogItems[k].X2=0;
-        DialogItems[k].Y1=bp.height+2;
-        DialogItems[k].Y2=0;
-        DialogItems[k].Data=GetMsg(mStart);
+        //time
+        {
+          int k=bp->width*bp->height+1;
+          DialogItems[k].Type=DI_TEXT;
+          DialogItems[k].X1=1;
+          DialogItems[k].X2=0;
+          DialogItems[k].Y1=bp->height+3;
+          DialogItems[k].Y2=0;
+        }
+        //delimiter
+        {
+          int k=bp->width*bp->height+2;
+          DialogItems[k].Type=DI_TEXT;
+          DialogItems[k].X1=1;
+          DialogItems[k].X2=0;
+          DialogItems[k].Y1=bp->height+1;
+          DialogItems[k].Y2=0;
+          DialogItems[k].Data=Separator;
+          for(int ii=0;ii<bp->width*3;++ii) Separator[ii]=0x2500;
+        }
+        //border
+        {
+          int k=bp->width*bp->height+3;
+          DialogItems[k].Type=DI_DOUBLEBOX;
+          DialogItems[k].X1=0;
+          DialogItems[k].X2=bp->width*3+1;
+          DialogItems[k].Y1=0;
+          DialogItems[k].Y2=bp->height+4;
+          DialogItems[k].Data=GetMsg(mName);
+        }
+        dlg=::Info.DialogInit(&MainGuid,&MainDialogGuid,-1,-1,bp->width*3+2,bp->height+5,L"Contents",DialogItems,bp->width*bp->height+4,0,FDLG_NONMODAL,MainDialogProc,bp);
       }
-      //time
-      {
-        int k=bp.width*bp.height+1;
-        DialogItems[k].Type=DI_TEXT;
-        DialogItems[k].X1=1;
-        DialogItems[k].X2=0;
-        DialogItems[k].Y1=bp.height+3;
-        DialogItems[k].Y2=0;
-      }
-      //delimiter
-      {
-        int k=bp.width*bp.height+2;
-        DialogItems[k].Type=DI_TEXT;
-        DialogItems[k].X1=1;
-        DialogItems[k].X2=0;
-        DialogItems[k].Y1=bp.height+1;
-        DialogItems[k].Y2=0;
-        DialogItems[k].Data=Separator;
-        for(int ii=0;ii<bp.width*3;++ii) Separator[ii]=0x2500;
-      }
-      //border
-      {
-        int k=bp.width*bp.height+3;
-        DialogItems[k].Type=DI_DOUBLEBOX;
-        DialogItems[k].X1=0;
-        DialogItems[k].X2=bp.width*3+1;
-        DialogItems[k].Y1=0;
-        DialogItems[k].Y2=bp.height+4;
-        DialogItems[k].Data=GetMsg(mName);
-      }
-      HANDLE dlg=::Info.DialogInit(&MainGuid,&MainDialogGuid,-1,-1,bp.width*3+2,bp.height+5,L"Contents",DialogItems,bp.width*bp.height+4,0,0,MainDialogProc,&bp);
-      if(dlg!=INVALID_HANDLE_VALUE)
-      {
-        ::Info.DialogRun(dlg);
-        ::Info.DialogFree(dlg);
-      }
+      if(DialogItems) HeapFree(GetProcessHeap(),0,DialogItems);
+      if(Separator) HeapFree(GetProcessHeap(),0,Separator);
     }
-    if(DialogItems) HeapFree(GetProcessHeap(),0,DialogItems);
-    if(VirtualBuffer) HeapFree(GetProcessHeap(),0,VirtualBuffer);
-    if(Separator) HeapFree(GetProcessHeap(),0,Separator);
+    if(dlg==INVALID_HANDLE_VALUE) FreeBoardParams(bp);
   }
   return NULL;
 }
