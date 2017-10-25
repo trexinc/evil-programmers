@@ -31,7 +31,6 @@ KillSpaces1=(id,lineno,mms=false,spaces=true,eol)->
       (ffi.cast "const wchar_t*",eol),true
     else
       egs.StringEOL,false
-    collectgarbage!
     if spaces and (not mms or not IsMms ess.StringText)
       while ess.StringLength>0
         if not IsSpace ess.StringText[ess.StringLength-1] then break
