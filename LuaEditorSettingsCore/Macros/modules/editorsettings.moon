@@ -1,6 +1,6 @@
 ﻿ChangeLogMask="*changelog*"
 CMask="*.[ch],*.[ch]pp,*.ii,*.cc,*.cxx,*.hrh,*.re,*.inl"
-FarFolder=(Compare,Mask,FileName)->if FileName\match[[\far\trunk\]] then Compare Mask,FileName else false
+FarFolder=(Compare,Mask,FileName)->if FileName\match[[\far\FarManager\]] then Compare Mask,FileName else false
 WhiteSpaceColor=
   Flags: bit64.bor far.Flags.FCF_FG_4BIT,far.Flags.FCF_BG_4BIT
   ForegroundColor: 0x8
