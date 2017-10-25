@@ -17,6 +17,7 @@
 #include "cursor_pos.hpp"
 #include "hide_cursor.hpp"
 #include "text_color.hpp"
+#include "scope_exit.hpp"
 
 enum class update_status
 {
@@ -52,6 +53,8 @@ struct IPC
 	wchar_t SelfUpdateList[MAX_PATH];
 	wchar_t FarUpdateList[MAX_PATH];
 	wchar_t SevenZip[MAX_PATH];
+	wchar_t SingletonName[MAX_PATH * 2];
+	wchar_t UpdaterEventName[MAX_PATH * 2];
 	bool UseMsi;
 	bool Self;
 } ipc;
@@ -91,28 +94,28 @@ void InitPaths()
 {
 	GetModuleFileName(nullptr, ipc.FarModule, ARRAYSIZE(ipc.FarModule));
 
-	wcscpy(ipc.FarDirectory, ipc.FarModule);
-	*(wcsrchr(ipc.FarDirectory, L'\\') + 1) = 0;
+	std::wcscpy(ipc.FarDirectory, ipc.FarModule);
+	*(std::wcsrchr(ipc.FarDirectory, L'\\') + 1) = 0;
 
 	GetTempPath(ARRAYSIZE(ipc.TempDirectory), ipc.TempDirectory);
-	wcscat(ipc.TempDirectory, L"FarUpdate\\");
+	std::wcscat(ipc.TempDirectory, L"FarUpdate\\");
 
-	wcscpy(ipc.FarUpdateList, ipc.TempDirectory);
-	wcscat(ipc.FarUpdateList, FarUpdateFile);
+	std::wcscpy(ipc.FarUpdateList, ipc.TempDirectory);
+	std::wcscat(ipc.FarUpdateList, FarUpdateFile);
 
-	wcscpy(ipc.SelfUpdateList, ipc.TempDirectory);
-	wcscat(ipc.SelfUpdateList, SelfUpdateFile);
+	std::wcscpy(ipc.SelfUpdateList, ipc.TempDirectory);
+	std::wcscat(ipc.SelfUpdateList, SelfUpdateFile);
 
-	wcscpy(ipc.PluginModule, PsInfo.ModuleName);
+	std::wcscpy(ipc.PluginModule, PsInfo.ModuleName);
 
-	wcscpy(ipc.PluginDirectory, ipc.PluginModule);
-	*(wcsrchr(ipc.PluginDirectory, '\\') + 1) = 0;
+	std::wcscpy(ipc.PluginDirectory, ipc.PluginModule);
+	*(std::wcsrchr(ipc.PluginDirectory, '\\') + 1) = 0;
 
-	wcscpy(ipc.Config, ipc.PluginModule);
-	wcscat(ipc.Config, L".config");
+	std::wcscpy(ipc.Config, ipc.PluginModule);
+	std::wcscat(ipc.Config, L".config");
 
-	wcscpy(ipc.SevenZip, ipc.PluginDirectory);
-	wcscat(ipc.SevenZip, L"7zxr.dll");
+	std::wcscpy(ipc.SevenZip, ipc.PluginDirectory);
+	std::wcscat(ipc.SevenZip, L"7zxr.dll");
 }
 
 auto GetPrivateProfileString(const wchar_t* AppName, const wchar_t* KeyName, const wchar_t* Default, const wchar_t* FileName)
@@ -124,16 +127,30 @@ auto GetPrivateProfileString(const wchar_t* AppName, const wchar_t* KeyName, con
 
 using download_callback = void(*)(int);
 
+auto GetProcessSpecificName(const std::wstring& BaseName)
+{
+	wchar_t ModuleName[MAX_PATH];
+	GetModuleFileName(nullptr, ModuleName, ARRAYSIZE(ModuleName));
+	auto ObjectName = BaseName + ModuleName;
+	std::replace(ObjectName.begin(), ObjectName.end(), L'\\', L'/');
+	return ObjectName;
+}
+
+auto GetSingleton()
+{
+	return handle(CreateMutex(nullptr, false, ipc.SingletonName));
+}
+
+auto GetUpdaterEvent()
+{
+	return handle(CreateEvent(nullptr, true, false, ipc.UpdaterEventName));
+}
+
 class update_plugin
 {
 public:
 	update_plugin()
 	{
-		wchar_t ModuleName[MAX_PATH];
-		GetModuleFileName(nullptr, ModuleName, ARRAYSIZE(ModuleName));
-		m_GuardName = L"FarUpdateGuard_"s + ModuleName;
-		std::replace(m_GuardName.begin(), m_GuardName.end(), L'\\', L'/');
-
 		*ProxyName = 0;
 		*ProxyUser = 0;
 		*ProxyPass = 0;
@@ -142,10 +159,13 @@ public:
 
 		ReadSettings();
 
-		InitializeCriticalSection(&m_Cs);
 		m_ExitEvent.reset(CreateEvent(nullptr, TRUE, FALSE, nullptr));
 		m_WaitEvent.reset(CreateEvent(nullptr, FALSE, TRUE, nullptr));
-		m_SingletonEvent.reset(CreateEvent(nullptr, TRUE, TRUE, m_GuardName.data()));
+
+		std::wcscpy(ipc.SingletonName, GetProcessSpecificName(L"FarUpdateGuard_"s).data());
+		std::wcscpy(ipc.UpdaterEventName, GetProcessSpecificName(L"FarUpdaterEvent_"s).data());
+
+		m_Singleton = GetSingleton();
 
 		if (m_Mode)
 		{
@@ -157,7 +177,6 @@ public:
 	{
 		SetEvent(m_ExitEvent.get());
 		WaitForSingleObject(m_Thread.get(), INFINITE);
-		DeleteCriticalSection(&m_Cs);
 	}
 
 	void GetPluginInfo(PluginInfo& Info)
@@ -192,11 +211,12 @@ public:
 	}
 
 private:
+	bool CheckAndQueueComponent(bool Self);
 	update_status CheckUpdates(bool Self, bool Manual) const;
 	bool DownloadUpdates(bool Self, bool Silent);
-	bool DownloadFile(bool Self, const wchar_t* RemoteFile, const wchar_t* LocalName, bool UseProxy, bool UseCallBack, bool DownloadAlways) const;
+	bool DownloadFile(const wchar_t* ServerName, const wchar_t* RemoteFile, const wchar_t* LocalName, bool UseProxy, bool UseCallBack, bool DownloadAlways) const;
 	DWORD WinInetDownload(const wchar_t* ServerName, const wchar_t* Url, const wchar_t* FileName, bool UseProxy, download_callback Callback) const;
-	void StartUpdate(bool Self, bool Silent);
+	bool StartUpdate(bool Self, bool Silent);
 
 	void ReadSettings();
 	void ThreadProc();
@@ -204,14 +224,12 @@ private:
 	int m_Mode = 0;
 	int m_Period = 0;
 	bool m_UseProxy = false;
-	bool NeedRestart = false;
-	std::wstring m_GuardName;
-	CRITICAL_SECTION m_Cs;
 	handle m_Thread;
 	handle m_ExitEvent;
 	handle m_WaitEvent;
-	handle m_SingletonEvent;
+	handle m_Singleton;
 	handle m_RunDll;
+	handle m_CurrentProcess;
 
 	std::wstring m_CommandPrefix = L"update";
 	const wchar_t* m_PluginMenuStrings[1];
@@ -273,7 +291,7 @@ static bool get_response(const wchar_t* Question)
 {
 	mprintf(color::yellow, (L"\n"s + Question + L" (Y/N) "s).data());
 
-	INPUT_RECORD ir = { 0 };
+	INPUT_RECORD ir { 0 };
 	while (!(ir.EventType == KEY_EVENT && !ir.Event.KeyEvent.bKeyDown && (ir.Event.KeyEvent.wVirtualKeyCode == L'Y' || ir.Event.KeyEvent.wVirtualKeyCode == L'N')))
 	{
 		DWORD BytesRead;
@@ -370,7 +388,7 @@ std::wstring expand_strings(const wchar_t* Str)
 
 bool NeedUpdate(bool Self)
 {
-	VersionInfo FarVersion = {};
+	VersionInfo FarVersion {};
 	if (Self)
 	{
 		FarVersion.Major = MAJOR_VER;
@@ -441,17 +459,17 @@ DWORD update_plugin::WinInetDownload(const wchar_t* ServerName, const wchar_t* U
 	{
 		if (*ProxyUser)
 		{
-			if (!InternetSetOption(Connection.get(), INTERNET_OPTION_PROXY_USERNAME, ProxyUser, static_cast<DWORD>(wcslen(ProxyUser))))
+			if (!InternetSetOption(Connection.get(), INTERNET_OPTION_PROXY_USERNAME, ProxyUser, static_cast<DWORD>(std::wcslen(ProxyUser))))
 				return GetLastError();
 		}
 		if (*ProxyPass)
 		{
-			if (!InternetSetOption(Connection.get(), INTERNET_OPTION_PROXY_PASSWORD, ProxyPass, static_cast<DWORD>(wcslen(ProxyPass))))
+			if (!InternetSetOption(Connection.get(), INTERNET_OPTION_PROXY_PASSWORD, ProxyPass, static_cast<DWORD>(std::wcslen(ProxyPass))))
 				return GetLastError();
 		}
 	}
 
-	HTTP_VERSION_INFO httpver = { 1, 1 };
+	HTTP_VERSION_INFO httpver { 1, 1 };
 	if (!InternetSetOption(Connection.get(), INTERNET_OPTION_HTTP_VERSION, &httpver, sizeof httpver))
 		return GetLastError();
 
@@ -516,7 +534,7 @@ DWORD update_plugin::WinInetDownload(const wchar_t* ServerName, const wchar_t* U
 	return 0;
 }
 
-bool update_plugin::DownloadFile(bool Self, const wchar_t* RemoteFile, const wchar_t* LocalName, bool UseProxy, bool UseCallback, bool DownloadAlways) const
+bool update_plugin::DownloadFile(const wchar_t* ServerName, const wchar_t* RemoteFile, const wchar_t* LocalName, bool UseProxy, bool UseCallback, bool DownloadAlways) const
 {
 	const auto FileName = LocalName? LocalName : FSF.PointToName(RemoteFile);
 	const auto LocalFile = std::wstring(ipc.TempDirectory) + FileName;
@@ -528,7 +546,7 @@ bool update_plugin::DownloadFile(bool Self, const wchar_t* RemoteFile, const wch
 	DWORD DownloadResult;
 	for (;;)
 	{
-		DownloadResult = WinInetDownload(Self? SelfRemoteSrv : FarRemoteSrv, RemoteFile, LocalFile.data(), UseProxy, UseCallback? DownloadProc : nullptr);
+		DownloadResult = WinInetDownload(ServerName, RemoteFile, LocalFile.data(), UseProxy, UseCallback? DownloadProc : nullptr);
 		if (DownloadResult == ERROR_SUCCESS)
 			break;
 
@@ -552,7 +570,7 @@ update_status update_plugin::CheckUpdates(bool Self, bool Manual) const
 		SelfRemotePath + L"/"s + SelfUpdateFile :
 		FarRemotePath + L"/"s + FarUpdateFile + phpRequest;
 
-	if (!DownloadFile(Self, Url.data(), Self? SelfUpdateFile : FarUpdateFile, m_UseProxy, Manual, true))
+	if (!DownloadFile(Self? SelfRemoteSrv : FarRemoteSrv, Url.data(), Self? SelfUpdateFile : FarUpdateFile, m_UseProxy, Manual, true))
 		return update_status::S_CANTCONNECT;
 
 	const auto Version = GetPrivateProfileString(L"info", L"version", L"", Self? ipc.SelfUpdateList : ipc.FarUpdateList);
@@ -570,43 +588,40 @@ update_status update_plugin::CheckUpdates(bool Self, bool Manual) const
 
 bool update_plugin::DownloadUpdates(bool Self, bool Silent)
 {
-	std::wstring Url, File[2];
-	if (Self)
+	std::pair<std::wstring, std::wstring> SelfFiles[] =
 	{
-		File[0] = GetPrivateProfileString(SelfSection, L"arc", L"", ipc.SelfUpdateList);
-		File[1] = GetPrivateProfileString(SelfSection, L"pdb", L"", ipc.FarUpdateList);
-	}
-	else
-	{
-		File[0]  =GetPrivateProfileString(FarSection, ipc.UseMsi? L"msi" : L"arc", L"", ipc.FarUpdateList);
-		File[1] = GetPrivateProfileString(FarSection, L"pdb", L"", ipc.FarUpdateList);
-	}
+		{ L"Update", GetPrivateProfileString(SelfSection, L"arc", L"", ipc.SelfUpdateList) },
+		{ L"Update pdb", GetPrivateProfileString(SelfSection, L"pdb", L"", ipc.FarUpdateList) },
+	};
 
-	for (size_t i = 0; i != ARRAYSIZE(File); ++i)
+	std::pair<std::wstring, std::wstring> FarFiles[] =
+	{
+		{ L"Far", GetPrivateProfileString(FarSection, ipc.UseMsi? L"msi" : L"arc", L"", ipc.FarUpdateList) },
+		{ L"Far pdb", GetPrivateProfileString(FarSection, L"pdb", L"", ipc.FarUpdateList) },
+	};
+
+	const auto RemoteServer = Self? SelfRemoteSrv : FarRemoteSrv;
+	const auto RemotePath = Self? SelfRemotePath : FarRemotePath;
+
+	const auto& DownloadUpdate = [&](const std::pair<std::wstring, std::wstring>& File)
 	{
 		if (!Silent)
 		{
-			mprintf(L"%-60s", (MSG(MLoad) + L" "s + (Self? L"Update"s : L"Far"s) + (!i? L""s : L" pdb"s)).data());
+			mprintf(L"%-60s", (MSG(MLoad) + L" "s + File.first).data());
 		}
-		Url = (Self? SelfRemotePath : FarRemotePath) + L"/"s + File[i];
-		if (DownloadFile(Self, Url.data(), nullptr, m_UseProxy, !Silent, false))
+
+		const auto Result = DownloadFile(RemoteServer, (RemotePath + L"/"s + File.second).data(), nullptr, m_UseProxy, !Silent, false);
+
+		if (!Silent)
 		{
-			if (!Silent)
-			{
-				mprintf(color::green, L"OK\n");
-			}
-			NeedRestart = true;
+			Result? mprintf(color::green, L"OK\n") : mprintf(color::red, L"download error %d\n", GetLastError());
 		}
-		else
-		{
-			if (!Silent)
-			{
-				mprintf(color::red, L"download error %d\n", GetLastError());
-			}
-			return false;
-		}
-	}
-	return true;
+		
+		return Result;
+	};
+
+	const auto& Files = Self? SelfFiles : FarFiles;
+	return std::all_of(std::cbegin(Files), std::cend(Files), DownloadUpdate);
 }
 
 bool Clean()
@@ -617,147 +632,133 @@ bool Clean()
 	return true;
 }
 
-void update_plugin::StartUpdate(bool Self, bool Silent)
+bool update_plugin::StartUpdate(bool Self, bool Silent)
 {
-	DWORD RunDllExitCode = 0;
-	GetExitCodeProcess(m_RunDll.get(), &RunDllExitCode);
-	if (RunDllExitCode == STILL_ACTIVE)
-	{
-		if (!Silent)
-		{
-			mprintf(color::yellow, L"\n%s\n", MSG(MExitFAR));
-		}
-	}
-	else if (NeedRestart)
-	{
-		HANDLE ProcDup;
-		DuplicateHandle(GetCurrentProcess(), GetCurrentProcess(), GetCurrentProcess(), &ProcDup, 0, TRUE, DUPLICATE_SAME_ACCESS);
+	if (!DuplicateHandle(GetCurrentProcess(), GetCurrentProcess(), GetCurrentProcess(), &ptr_setter(m_CurrentProcess), 0, TRUE, DUPLICATE_SAME_ACCESS))
+		return false;
 
-		wchar_t cmdline[MAX_PATH];
+	wchar_t cmdline[MAX_PATH];
 
+	{
 		int NumArgs = 0;
-		auto Argv = CommandLineToArgvW(GetCommandLine(), &NumArgs);
+		const local_ptr<wchar_t*> Argv(CommandLineToArgvW(GetCommandLine(), &NumArgs));
 		*ipc.FarParams = 0;
 		for (int i = 1; i < NumArgs; i++)
 		{
-			wcscat(ipc.FarParams, Argv[i]);
+			std::wcscat(ipc.FarParams, Argv.get()[i]);
 			if (i < NumArgs - 1)
-				wcscat(ipc.FarParams, L" ");
+				std::wcscat(ipc.FarParams, L" ");
 		}
-		LocalFree(Argv);
-
-		wchar_t WinDir[MAX_PATH];
-		GetWindowsDirectory(WinDir, ARRAYSIZE(WinDir));
-		BOOL IsWow64 = FALSE;
-		ipc.Self = Self;
-		FSF.sprintf(cmdline, L"%s\\%s\\rundll32.exe \"%s\", RestartFAR %I64d %I64d", WinDir, ifn.IsWow64Process(GetCurrentProcess(), &IsWow64) && IsWow64? L"SysWOW64" : L"System32", ipc.PluginModule, reinterpret_cast<INT64>(ProcDup), reinterpret_cast<INT64>(&ipc));
-
-		STARTUPINFO si = { sizeof si };
-		PROCESS_INFORMATION pi;
-
-		if (CreateProcess(nullptr, cmdline, nullptr, nullptr, TRUE, 0, nullptr, nullptr, &si, &pi))
-		{
-			m_RunDll.reset(pi.hProcess);
-			CloseHandle(pi.hThread);
-			if (!Silent)
-			{
-				mprintf(color::yellow, L"\n%s\n", MSG(MExitFAR));
-			}
-			else
-			{
-				handle hEvent(CreateEvent(nullptr, FALSE, FALSE, nullptr));
-				EventStruct es = { E_DOWNLOADED, hEvent.get(), Self };
-				PsInfo.AdvControl(&MainGuid, ACTL_SYNCHRO, 0, &es);
-				WaitForSingleObject(hEvent.get(), INFINITE);
-			}
-		}
-		else
-		{
-			if (!Silent)
-			{
-				mprintf(color::red, L"%s - error %d\n", MSG(MCantCreateProcess), GetLastError());
-			}
-		}
-
 	}
-	else
+
+	wchar_t WinDir[MAX_PATH];
+	if (!GetWindowsDirectory(WinDir, ARRAYSIZE(WinDir)))
+		return false;
+
+	BOOL IsWow64 = FALSE;
+	ipc.Self = Self;
+	FSF.sprintf(cmdline, L"%s\\%s\\rundll32.exe \"%s\", RestartFAR %I64d %I64d", WinDir, ifn.IsWow64Process(GetCurrentProcess(), &IsWow64) && IsWow64? L"SysWOW64" : L"System32", ipc.PluginModule, reinterpret_cast<INT64>(m_CurrentProcess.get()), reinterpret_cast<INT64>(&ipc));
+
+	STARTUPINFO si { sizeof si };
+	PROCESS_INFORMATION pi;
+
+	const auto UpdaterEvent = GetUpdaterEvent();
+	ResetEvent(UpdaterEvent.get());
+
+	if (!CreateProcess(nullptr, cmdline, nullptr, nullptr, TRUE, 0, nullptr, nullptr, &si, &pi))
 	{
 		if (!Silent)
 		{
-			mprintf(color::white, L"%s\n", MSG(MDone));
+			mprintf(color::red, L"%s - error %d\n", MSG(MCantCreateProcess), GetLastError());
 		}
+		return false;
 	}
+
+	m_RunDll.reset(pi.hProcess);
+	CloseHandle(pi.hThread);
+
+	{
+		HANDLE Events[] { UpdaterEvent.get(), m_ExitEvent.get(), m_RunDll.get() };
+		if (WaitForMultipleObjects(ARRAYSIZE(Events), Events, false, INFINITE) != WAIT_OBJECT_0)
+			return false;
+	}
+
+	// rundll32 will hold it now
+	ReleaseMutex(m_Singleton.get());
+
+	if (!Silent)
+	{
+		mprintf(color::yellow, L"\n%s\n", MSG(MExitFAR));
+	}
+	else
+	{
+		handle hEvent(CreateEvent(nullptr, FALSE, FALSE, nullptr));
+		EventStruct es { E_DOWNLOADED, hEvent.get(), Self };
+		PsInfo.AdvControl(&MainGuid, ACTL_SYNCHRO, 0, &es);
+
+		HANDLE Handles[] { m_ExitEvent.get(), hEvent.get() };
+		WaitForMultipleObjects(ARRAYSIZE(Handles), Handles, false, INFINITE);
+	}
+	return true;
 }
 
 void update_plugin::ThreadProc()
 {
-	while (WaitForSingleObject(m_ExitEvent.get(), 0) != WAIT_OBJECT_0)
+	for (;;)
 	{
+		const auto& Exiting = [this]
 		{
-			HANDLE Handles[] = { m_ExitEvent.get(), m_SingletonEvent.get() };
-			if (WaitForMultipleObjects(ARRAYSIZE(Handles), Handles, false, INFINITE) == WAIT_OBJECT_0)
-				return;
-		}
+			HANDLE Handles[] { m_ExitEvent.get(), m_WaitEvent.get() };
+			return WaitForMultipleObjects(ARRAYSIZE(Handles), Handles, false, m_Period * 60 * 60 * 1000) == WAIT_OBJECT_0;
+		};
 
-		HANDLE Handles[] = { m_ExitEvent.get(), m_WaitEvent.get() };
-		const auto Result = WaitForMultipleObjects(ARRAYSIZE(Handles), Handles, false, m_Period * 60 * 60 * 1000);
-		if (Result == WAIT_OBJECT_0)
+		if (Exiting())
 			return;
 
-		if (Result == WAIT_OBJECT_0 + 1)
+		const auto& Locked = [this]
 		{
-			//for(int i=0;i<2;i++)
-			int i = 1;
+			HANDLE Handles[] { m_Singleton.get(), m_ExitEvent.get() };
+			return WaitForMultipleObjects(ARRAYSIZE(Handles), Handles, false, INFINITE) == WAIT_OBJECT_0;
+		};
+
+		if (!Locked())
+			continue;
+
+		const auto& CheckComponentInBackground = [this](bool Self)
+		{
+			switch (CheckUpdates(Self, false))
 			{
-				switch (CheckUpdates(!i, false))
+			case update_status::S_REQUIRED:
 				{
-				case update_status::S_REQUIRED:
+					auto Load = m_Mode == 2;
+					if (!Load)
 					{
-						ResetEvent(m_SingletonEvent.get());
-						auto Load = m_Mode == 2;
-						if (!Load)
-						{
-							const auto hEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-							EventStruct es = { E_ASKLOAD, hEvent, !i, &Load };
-							PsInfo.AdvControl(&MainGuid, ACTL_SYNCHRO, 0, &es);
-							WaitForSingleObject(hEvent, INFINITE);
-							CloseHandle(hEvent);
-						}
-						if (Load)
-						{
-							if (DownloadUpdates(!i, true))
-							{
-								StartUpdate(!i, true);
-							}
-						}
-						else
-						{
-							Clean();
-						}
-						SetEvent(m_SingletonEvent.get());
-					}
-					break;
+						const handle hEvent(CreateEvent(nullptr, FALSE, FALSE, nullptr));
+						EventStruct es { E_ASKLOAD, hEvent.get(), Self, &Load };
+						PsInfo.AdvControl(&MainGuid, ACTL_SYNCHRO, 0, &es);
 
-				case update_status::S_CANTCONNECT:
-					{
-						Clean();
+						HANDLE Handles[]{ m_ExitEvent.get(), hEvent.get() };
+						WaitForMultipleObjects(ARRAYSIZE(Handles), Handles, false, INFINITE);
 					}
-					break;
 
-				case update_status::S_INCOMPATIBLE:
-					{
-						Clean();
-					}
-					break;
+					if (Load && DownloadUpdates(Self, true) && StartUpdate(Self, true))
+						return true;
 
-				case update_status::S_UPTODATE:
-					{
-						Clean();
-					}
-					break;
+					Clean();
+					return false;
 				}
+
+			case update_status::S_CANTCONNECT:
+			case update_status::S_INCOMPATIBLE:
+			case update_status::S_UPTODATE:
+			default:
+				Clean();
+				return false;
 			}
-		}
+		};
+
+		if (!(/*CheckComponentInBackground(true) && */ CheckComponentInBackground(false)))
+			ReleaseMutex(m_Singleton.get());
 	}
 }
 
@@ -847,95 +848,106 @@ void update_plugin::ManualCheck()
 {
 	console console;
 
-	if (WaitForSingleObject(m_SingletonEvent.get(), 0) == WAIT_TIMEOUT)
+	switch (WaitForSingleObject(m_Singleton.get(), 0))
 	{
-		mprintf(color::white, L"%s\n", MSG(MInProgress));
+	case WAIT_TIMEOUT:
+		if (m_RunDll && WaitForSingleObject(m_RunDll.get(), 0) == WAIT_TIMEOUT)
+			mprintf(color::yellow, L"%s\n", MSG(MExitFAR));
+		else
+			mprintf(color::white, L"%s\n", MSG(MInProgress));
+
+		return;
+
+	case WAIT_OBJECT_0:
+		if (!(/*CheckAndQueueComponent(true) && */ CheckAndQueueComponent(false)))
+			ReleaseMutex(m_Singleton.get());
+		return;
+
+	default:
 		return;
 	}
-	ResetEvent(m_SingletonEvent.get());
+}
 
-	//for(int i=0;i<2;i++)
-	int i = 1;
+bool update_plugin::CheckAndQueueComponent(bool Self)
+{
+	mprintf(L"%-60s", (MSG(MChecking) + L" "s + (Self? L"Update"s : L"Far"s)).data());
+
+	const auto UpdateStatus = CheckUpdates(Self, true);
+	switch (UpdateStatus)
 	{
-		mprintf(L"%-60s", (MSG(MChecking) + L" "s + (!i? L"Update"s : L"Far"s)).data());
-
-		const auto UpdateStatus = CheckUpdates(!i, true);
-		switch (UpdateStatus)
+	case update_status::S_UPTODATE:
+	case update_status::S_REQUIRED:
 		{
-		case update_status::S_UPTODATE:
-		case update_status::S_REQUIRED:
-			{
-				mprintf(color::green, L"OK\n");
-				DWORD NewMajor, NewMinor, NewBuild;
-				wchar_t Str[128];
+			mprintf(color::green, L"OK\n");
+			DWORD NewMajor, NewMinor, NewBuild;
+			wchar_t Str[128];
 
-				std::wstring MsgUptodate;
-				std::vector<const wchar_t*> Items;
+			std::wstring MsgUptodate;
+			std::vector<const wchar_t*> Items;
+			if (UpdateStatus == update_status::S_REQUIRED)
+			{
+				GetNewModuleVersion(Self, Str, NewMajor, NewMinor, NewBuild);
+				Items =
+				{
+					MSG(MName),
+					MSG(MAvailableUpdates),
+					L"\x1",
+					Str,
+					L"\x1",
+					MSG(MAsk)
+				};
+			}
+			else
+			{
+				MsgUptodate = MSG(Self? MPlugin : MFar) + L" "s + MSG(MUpToDate);
+				Items =
+				{
+					MSG(MName),
+					MsgUptodate.data(),
+					MSG(MPluginsNote),
+					MSG(MAsk)
+				};
+			}
+
+			bool Download;
+			{
+				cursor_pos CursorPos;
+				Download = !PsInfo.Message(&MainGuid, nullptr, FMSG_MB_YESNO | FMSG_LEFTALIGN, nullptr, Items.data(), Items.size(), 2);
+			}
+
+			if (Download)
+			{
+				if (DownloadUpdates(Self, false) && StartUpdate(Self, false))
+					return true;
+			}
+			else
+			{
 				if (UpdateStatus == update_status::S_REQUIRED)
 				{
-					GetNewModuleVersion(!i, Str, NewMajor, NewMinor, NewBuild);
-					Items =
-					{
-						MSG(MName),
-						MSG(MAvailableUpdates),
-						L"\x1",
-						Str,
-						L"\x1",
-						MSG(MAsk)
-					};
-				}
-				else
-				{
-					MsgUptodate = MSG(!i? MPlugin : MFar) + L" "s + MSG(MUpToDate);
-					Items =
-					{
-						MSG(MName),
-						MsgUptodate.data(),
-						MSG(MPluginsNote),
-						MSG(MAsk)
-					};
-				}
-
-				bool Download;
-				{
-					cursor_pos CursorPos;
-					Download = !PsInfo.Message(&MainGuid, nullptr, FMSG_MB_YESNO | FMSG_LEFTALIGN, nullptr, Items.data(), Items.size(), 2);
-				}
-				if (Download)
-				{
-					if (DownloadUpdates(!i, false))
-					{
-						StartUpdate(!i, false);
-					}
-				}
-				else
-				{
-					if (UpdateStatus == update_status::S_REQUIRED)
-					{
-						mprintf(color::yellow, L"%s\n", MSG(MCancelled));
-					}
-					Clean();
+					mprintf(color::yellow, L"%s\n", MSG(MCancelled));
 				}
 			}
-			break;
 
-		case update_status::S_CANTCONNECT:
-			{
-				mprintf(color::red, L"Failed\n");
-				mprintf(color::red, L"%s\n", MSG(MCantConnect));
-			}
-			break;
-
-		case update_status::S_INCOMPATIBLE:
-			{
-				mprintf(color::green, L"OK\n");
-				mprintf(color::red, L"%s\n", MSG(MIncompatible));
-			}
-			break;
+			Clean();
+			return false;
 		}
-	}
 
-	SetEvent(m_SingletonEvent.get());
+	case update_status::S_CANTCONNECT:
+		mprintf(color::red, L"Failed\n");
+		mprintf(color::red, L"%s\n", MSG(MCantConnect));
+		Clean();
+		return false;
+
+	case update_status::S_INCOMPATIBLE:
+		mprintf(color::green, L"OK\n");
+		mprintf(color::red, L"%s\n", MSG(MIncompatible));
+		Clean();
+		return false;
+
+	default:
+		Clean();
+		return false;
+	}
 }
 
 bool Extract(const wchar_t* Arc, const wchar_t* Path, const wchar_t* DestDir)
@@ -979,7 +991,7 @@ extern "C" intptr_t WINAPI ProcessSynchroEventW(const ProcessSynchroEventInfo *p
 				wchar_t Str[128];
 				DWORD NewMajor, NewMinor, NewBuild;
 				GetNewModuleVersion(es->Self, Str, NewMajor, NewMinor, NewBuild);
-				const wchar_t* Items[] = { MSG(MName), MSG(MAvailableUpdates), L"\x1", Str, L"\x1", MSG(MAsk) };
+				const wchar_t* Items[] { MSG(MName), MSG(MAvailableUpdates), L"\x1", Str, L"\x1", MSG(MAsk) };
 				if (!PsInfo.Message(&MainGuid, nullptr, FMSG_MB_YESNO | FMSG_LEFTALIGN, nullptr, Items, ARRAYSIZE(Items), 2))
 				{
 					*es->Result = true;
@@ -990,7 +1002,7 @@ extern "C" intptr_t WINAPI ProcessSynchroEventW(const ProcessSynchroEventInfo *p
 
 			case E_DOWNLOADED:
 			{
-				const wchar_t* Items[] = { MSG(MName), MSG(MUpdatesDownloaded), MSG(MExitFAR) };
+				const wchar_t* Items[] { MSG(MName), MSG(MUpdatesDownloaded), MSG(MExitFAR) };
 				PsInfo.Message(&MainGuid, nullptr, FMSG_MB_OK, nullptr, Items, ARRAYSIZE(Items), 0);
 				SetEvent(reinterpret_cast<HANDLE>(es->Data));
 			}
@@ -1008,7 +1020,7 @@ extern "C" intptr_t WINAPI ProcessSynchroEventW(const ProcessSynchroEventInfo *p
 
 static void create_process_interactive(const std::wstring &Command, const wchar_t* Directory, bool Wait)
 {
-	STARTUPINFO si = { sizeof si };
+	STARTUPINFO si { sizeof si };
 	PROCESS_INFORMATION pi;
 
 	for (;;)
@@ -1032,99 +1044,131 @@ static void create_process_interactive(const std::wstring &Command, const wchar_
 	CloseHandle(pi.hProcess);
 }
 
+static bool ExtractOneFile(const std::wstring& File)
+{
+	if (File.empty())
+		return true;
+
+	const auto local_file = ipc.TempDirectory + File;
+	if (GetFileAttributes(local_file.data()) == INVALID_FILE_ATTRIBUTES)
+		return false;
+
+	for (;;)
+	{
+		mprintf(L"\n%-60s", (L"Processing "s + File).data());
+		const auto Extracted = Extract(ipc.SevenZip, local_file.data(), ipc.FarDirectory);
+		mprintf(L"\n%-60s", File.data());
+		mprintf(Extracted? color::green : color::red, Extracted? L"OK\n" : L"Failed\n");
+		if (Extracted)
+		{
+			if (GetPrivateProfileInt(L"Update", L"Delete", 1, ipc.Config))
+				DeleteFile(local_file.data());
+
+			return true;
+		}
+
+		if (!confirm_retry())
+			return false;
+	}
+}
 
 extern "C" void WINAPI RestartFARW(HWND, HINSTANCE, const wchar_t* Cmd, DWORD)
 {
 	ifn.Load();
+
 	int argc = 0;
 	local_ptr<wchar_t*> argv(CommandLineToArgvW(Cmd, &argc));
+
 	int n = 0;
-	if (argc == 2 + n)
+	if (argc != 2 + n)
+		return;
+
+	if (!ifn.AttachConsole(ATTACH_PARENT_PROCESS))
 	{
-		if (!ifn.AttachConsole(ATTACH_PARENT_PROCESS))
+		AllocConsole();
+	}
+
+	const auto ptr = std::wcstoull(argv.get()[n + 0], nullptr, 10);
+
+	handle hFar(reinterpret_cast<HANDLE>(static_cast<uintptr_t>(ptr)));
+	if (!hFar)
+		return;
+
+	/*
+	HMENU hMenu = GetSystemMenu(GetConsoleWindow(), FALSE);
+	int Count = GetMenuItemCount(hMenu);
+	int Pos = -1;
+	for (int i = 0; i < Count; i++)
+	{
+		if (GetMenuItemID(hMenu, i) == SC_CLOSE)
 		{
-			AllocConsole();
-		}
-		const auto ptr = std::wcstoull(argv.get()[n + 0], nullptr, 10);
-		handle hFar(reinterpret_cast<HANDLE>(static_cast<uintptr_t>(ptr)));
-		if (hFar)
-		{
-			/*
-			HMENU hMenu = GetSystemMenu(GetConsoleWindow(), FALSE);
-			int Count = GetMenuItemCount(hMenu);
-			int Pos = -1;
-			for (int i = 0; i < Count; i++)
-			{
-				if (GetMenuItemID(hMenu, i) == SC_CLOSE)
-				{
-					Pos = i;
-					break;
-				}
-			}
-			MENUITEMINFO mi = { sizeof mi, MIIM_ID, 0, 0, 0 };
-			if (Pos != -1)
-			{
-				SetMenuItemInfo(hMenu, Pos, MF_BYPOSITION, &mi);
-			}
-			*/
-			const auto IPCPtr = std::wcstoull(argv.get()[n + 1], nullptr, 10);
-			if (ReadProcessMemory(hFar.get(), reinterpret_cast<const void*>(static_cast<uintptr_t>(IPCPtr)), &ipc, sizeof ipc, nullptr))
-			{
-				WaitForSingleObject(hFar.get(), INFINITE);
-
-				hFar.reset();
-
-				std::wstring File[2];
-				File[0] = GetPrivateProfileString(L"far", ipc.UseMsi? L"msi" : L"arc", L"", ipc.Self? ipc.SelfUpdateList : ipc.FarUpdateList);
-				File[1] = GetPrivateProfileString(L"far", L"pdb", L"", ipc.Self? ipc.SelfUpdateList : ipc.FarUpdateList);
-				for(size_t i = 0; i != ARRAYSIZE(File); ++i)
-				{
-					if (!File[i].empty())
-					{
-						const auto local_file = ipc.TempDirectory + File[i];
-						if (GetFileAttributes(local_file.data()) != INVALID_FILE_ATTRIBUTES)
-						{
-							for (;;)
-							{
-								mprintf(L"\n%-60s", (L"Processing "s + File[i]).data());
-								const auto Result = Extract(ipc.SevenZip, local_file.data(), ipc.FarDirectory);
-								mprintf(L"\n%-60s", File[i].data());
-								mprintf(Result? color::green : color::red, Result? L"OK\n" : L"Failed\n");
-								if (Result)
-								{
-									if (GetPrivateProfileInt(L"Update", L"Delete", 1, ipc.Config))
-										DeleteFile(local_file.data());
-
-									break;
-								}
-
-								if (!confirm_retry())
-									break;
-							}
-						}
-					}
-				}
-
-				const auto UserCommand = expand_strings(GetPrivateProfileString(L"events", L"PostInstall", L"", ipc.Config).data());
-				if (!UserCommand.empty())
-				{
-					mprintf(color::white, L"\n%-60s", L"Starting user command");
-					create_process_interactive(UserCommand, ipc.PluginDirectory, true);
-				}
-				/*
-				if (Pos != -1)
-				{
-					mi.wID = SC_CLOSE;
-					SetMenuItemInfo(hMenu, Pos, MF_BYPOSITION, &mi);
-					DrawMenuBar(GetConsoleWindow());
-				}
-				*/
-
-				const auto FarCommand = ipc.FarModule + (*ipc.FarParams? L" "s + ipc.FarParams : L""s);
-				mprintf(color::white, L"\n%-60s", L"Starting Far");
-				create_process_interactive(FarCommand, nullptr, false);
-			}
+			Pos = i;
+			break;
 		}
 	}
-	Clean();
+
+	MENUITEMINFO mi { sizeof mi, MIIM_ID, 0, 0, 0 };
+	if (Pos != -1)
+	{
+		SetMenuItemInfo(hMenu, Pos, MF_BYPOSITION, &mi);
+	}
+	*/
+
+	const auto IPCPtr = std::wcstoull(argv.get()[n + 1], nullptr, 10);
+	if (!ReadProcessMemory(hFar.get(), reinterpret_cast<const void*>(static_cast<uintptr_t>(IPCPtr)), &ipc, sizeof ipc, nullptr))
+		return;
+
+	auto Singleton = GetSingleton();
+	if (!Singleton)
+		return;
+
+	scope_exit_t ScopeExit([&]
+	{
+		Clean();
+		ReleaseMutex(Singleton.get());
+	});
+
+	{
+		const auto UpdaterEvent = GetUpdaterEvent();
+		if (!UpdaterEvent)
+			return;
+		SetEvent(UpdaterEvent.get());
+	}
+
+	if (WaitForSingleObject(Singleton.get(), INFINITE) != WAIT_OBJECT_0)
+		return;
+
+	if (WaitForSingleObject(hFar.get(), INFINITE) != WAIT_OBJECT_0)
+		return;
+
+	hFar.reset();
+
+	const std::wstring Files[] =
+	{
+		GetPrivateProfileString(L"far", ipc.UseMsi? L"msi" : L"arc", L"", ipc.Self? ipc.SelfUpdateList : ipc.FarUpdateList),
+		GetPrivateProfileString(L"far", L"pdb", L"", ipc.Self? ipc.SelfUpdateList : ipc.FarUpdateList),
+	};
+
+	if (!std::all_of(std::cbegin(Files), std::cend(Files), ExtractOneFile))
+		return;
+
+	const auto UserCommand = expand_strings(GetPrivateProfileString(L"events", L"PostInstall", L"", ipc.Config).data());
+	if (!UserCommand.empty())
+	{
+		mprintf(color::white, L"\n%-60s", L"Starting user command");
+		create_process_interactive(UserCommand, ipc.PluginDirectory, true);
+	}
+
+	/*
+	if (Pos != -1)
+	{
+		mi.wID = SC_CLOSE;
+		SetMenuItemInfo(hMenu, Pos, MF_BYPOSITION, &mi);
+		DrawMenuBar(GetConsoleWindow());
+	}
+	*/
+
+	const auto FarCommand = ipc.FarModule + (*ipc.FarParams? L" "s + ipc.FarParams : L""s);
+	mprintf(color::white, L"\n%-60s", L"Starting Far");
+	create_process_interactive(FarCommand, nullptr, false);
 }

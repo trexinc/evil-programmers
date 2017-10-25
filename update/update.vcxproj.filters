@@ -90,6 +90,9 @@
     <ClInclude Include="cursor_pos.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="scope_exit.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="update.rc">

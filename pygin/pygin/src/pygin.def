@@ -1,0 +1,8 @@
+EXPORTS
+adapter_Initialize
+adapter_IsPlugin
+adapter_CreateInstance
+adapter_GetFunctionAddress
+adapter_GetError
+adapter_DestroyInstance
+adapter_Free

@@ -1,0 +1,166 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{3374A3B7-81FB-48EA-80B8-2FBD04CACC0B}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>pygin</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset Condition="'$(VisualStudioVersion)' == '14.0'">v140</PlatformToolset>
+    <PlatformToolset Condition="'$(VisualStudioVersion)' == '15.0'">v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros">
+    <PythonPath Condition="'$(PythonPath)'=='' AND '$(Platform)'=='x64'">C:\Program Files\Python36</PythonPath>
+    <PythonPath Condition="'$(PythonPath)'=='' AND '$(Platform)'=='win32'">C:\Program Files (x86)\Python36-32</PythonPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <IntDir>$(SolutionDir)artefacts\intermediate\adapters\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <OutDir>$(SolutionDir)artefacts\product\adapters\$(Platform)\$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(PythonPath)\include</AdditionalIncludeDirectories>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeaderFile>headers.hpp</PrecompiledHeaderFile>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <MinimalRebuild>false</MinimalRebuild>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>$(PythonPath)\libs</AdditionalLibraryDirectories>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ModuleDefinitionFile>src\pygin.def</ModuleDefinitionFile>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;rpcrt4.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;PYGIN_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;PYGIN_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="src\headers.hpp" />
+    <ClInclude Include="src\critical_section.hpp" />
+    <ClInclude Include="src\error_handling.hpp" />
+    <ClInclude Include="src\far_api.hpp" />
+    <ClInclude Include="src\helpers.hpp" />
+    <ClInclude Include="src\module.hpp" />
+    <ClInclude Include="src\pygin.hpp" />
+    <ClInclude Include="src\python.hpp" />
+    <ClInclude Include="src\py.boolean.hpp" />
+    <ClInclude Include="src\py.bytes.hpp" />
+    <ClInclude Include="src\py.common.hpp" />
+    <ClInclude Include="src\py.floating.hpp" />
+    <ClInclude Include="src\py.function.hpp" />
+    <ClInclude Include="src\py.integer.hpp" />
+    <ClInclude Include="src\py.method_definitions.hpp" />
+    <ClInclude Include="src\py.module.hpp" />
+    <ClInclude Include="src\py.string.hpp" />
+    <ClInclude Include="src\py.dictionary.hpp" />
+    <ClInclude Include="src\py.err.hpp" />
+    <ClInclude Include="src\py.import.hpp" />
+    <ClInclude Include="src\py.list.hpp" />
+    <ClInclude Include="src\py.object.hpp" />
+    <ClInclude Include="src\py.sys.hpp" />
+    <ClInclude Include="src\py.tuple.hpp" />
+    <ClInclude Include="src\py.type.hpp" />
+    <ClInclude Include="src\py.uuid.hpp" />
+    <ClInclude Include="src\types_cache.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\headers.cpp">
+      <PrecompiledHeader>Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="src\dllmain.cpp" />
+    <ClCompile Include="src\error_handling.cpp" />
+    <ClCompile Include="src\far_api.cpp" />
+    <ClCompile Include="src\module.cpp" />
+    <ClCompile Include="src\module_interface.cpp" />
+    <ClCompile Include="src\pygin.cpp" />
+    <ClCompile Include="src\pygin.interface.cpp" />
+    <ClCompile Include="src\py.boolean.cpp" />
+    <ClCompile Include="src\py.bytes.cpp" />
+    <ClCompile Include="src\py.floating.cpp" />
+    <ClCompile Include="src\py.function.cpp" />
+    <ClCompile Include="src\py.integer.cpp" />
+    <ClCompile Include="src\py.method_definitions.cpp" />
+    <ClCompile Include="src\py.module.cpp" />
+    <ClCompile Include="src\py.string.cpp" />
+    <ClCompile Include="src\py.common.cpp" />
+    <ClCompile Include="src\py.dictionary.cpp" />
+    <ClCompile Include="src\py.err.cpp" />
+    <ClCompile Include="src\py.import.cpp" />
+    <ClCompile Include="src\py.list.cpp" />
+    <ClCompile Include="src\py.object.cpp" />
+    <ClCompile Include="src\py.sys.cpp" />
+    <ClCompile Include="src\py.tuple.cpp" />
+    <ClCompile Include="src\py.type.cpp" />
+    <ClCompile Include="src\py.uuid.cpp" />
+    <ClCompile Include="src\types_cache.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\pygin.def" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
