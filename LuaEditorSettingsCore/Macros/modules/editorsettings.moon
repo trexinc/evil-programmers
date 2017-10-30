@@ -21,6 +21,7 @@ class UnixSources extends Sources
 class CFarSources extends Sources
   Title: "Far C/C++ Sources"
   Type: (Compare,FileName)->FarFolder Compare,CMask,FileName
+  Priority: 100
   TabSize: 4
   ExpandTabs: false
   ShowWhiteSpace: 2
@@ -175,8 +176,9 @@ class Html extends Xml
 class Default
   Title: "default"
   Type: "*"
+  Priority: 0
 {
-  CFarSources,CSources,PasSources,LuaSources,Io,Sql
+  CSources,CFarSources,PasSources,LuaSources,Io,Sql
   Makefile,MFour,Bash,LexAndYacc,Syntax
   JavaScript,VBScript,FarMail,BatFile,RegFile
   Diff,Resources,Postscript

@@ -131,6 +131,7 @@ FixSchemes=(Sch)->
       .Pair=true if .Left and .Right and 'nil'==type .Pair
   for s in *Sch
     s.First={s.First} if 'string'==type s.First
+    s.Priority=s.Priority or 1
     if s.Highlite
       fix with s.Highlite
         if not .Pairs then .Pairs={}
@@ -139,6 +140,8 @@ FixSchemes=(Sch)->
         .Case=true if 'nil'==type .Case
 
 FixSchemes Schemes
+SchemesP=[scheme for scheme in *Schemes]
+table.sort SchemesP,(a,b)->a.Priority>b.Priority
 
 Highlite=(id,tt,top)->
   if tt.o.Highlite
@@ -297,7 +300,7 @@ Highlite=(id,tt,top)->
 InitType=(obj)->{o:obj,cache:{{state:{0},data:{},pairs:{}}},startline:1}
 
 GetType1=(FileName,FirstLine)->
-  for scheme in *Schemes
+  for scheme in *SchemesP
     tt=type scheme.Type
     cmp=(mask,fn)->far.ProcessName F.PN_CMPNAMELIST,mask,fn,F.PN_SKIPPATH
     if (tt=='string' and cmp scheme.Type,FileName) or (tt=='function' and scheme.Type cmp,FileName)
