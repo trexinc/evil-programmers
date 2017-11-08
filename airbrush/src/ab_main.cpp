@@ -344,7 +344,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *Info)
                   fmc->Values[1].Binary.Data=&PluginsData[fl->type].Id;
                   fmc->Values[1].Binary.Size=sizeof(PluginsData[fl->type].Id);
                   fmc->Values[2].Type=FMVT_INTEGER;
-                  fmc->Values[2].Integer=fl->apitopline;
+                  fmc->Values[2].Integer=fl->apitopline+1;
                   return fmc;
                 }
               }
