@@ -4,6 +4,7 @@
   from require'editorsettings_helpers'
 ChangeLogMask="*changelog*"
 CMask="*.[ch],*.[ch]pp,*.ii,*.cc,*.cxx,*.hrh,*.re,*.inl"
+MFourMask="*.m4"
 FarFolder=(Compare,Mask,FileName)->if FileName\match[[\far\FarManager\]] then Compare Mask,FileName else false
 WhiteSpaceColor=
   Flags: bit64.bor far.Flags.FCF_FG_4BIT,far.Flags.FCF_BG_4BIT
@@ -40,9 +41,14 @@ class Makefile extends UnixSources
   Highlite:require'highlite.make'
   TabSize: 8
   ExpandTabs: false
+class MFourFar extends Sources
+  Title: "Far m4"
+  Type: (Compare,FileName)->FarFolder Compare,MFourMask,FileName
+  Highlite:require'highlite.m4'
+  Weight: 100
 class MFour extends UnixSources
   Title: "m4"
-  Type: "*.m4"
+  Type: MFourMask
   Highlite:require'highlite.m4'
 class Bash extends UnixSources
   Title: "bash"
@@ -171,7 +177,7 @@ class Default
   Weight: 0
 {
   :CFarSources, :CSources, :PasSources, :LuaSources, :Io, :Sql
-  :Makefile, :MFour, :Bash, :LexAndYacc, :Syntax
+  :Makefile, :MFourFar, :MFour, :Bash, :LexAndYacc, :Syntax
   :JavaScript, :VBScript, :FarMail, :BatFile, :RegFile
   :Diff, :Resources, :Postscript
   :Executables, :Archives, :Pictures, :Video, :Audio, :OtherBinaries
