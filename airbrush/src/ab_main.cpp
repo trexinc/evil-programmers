@@ -330,18 +330,21 @@ HANDLE WINAPI OpenW(const struct OpenInfo *Info)
               break;
             case 2:
               {
-                FarMacroCall* fmc=(FarMacroCall*)malloc(sizeof(FarMacroCall)+2*sizeof(FarMacroValue));
+                FarMacroCall* fmc=(FarMacroCall*)malloc(sizeof(FarMacroCall)+3*sizeof(FarMacroValue));
                 if(fmc)
                 {
                   fmc->StructSize=sizeof(*fmc);
-                  fmc->Count=2;
+                  fmc->Count=3;
                   fmc->Values=(FarMacroValue*)(fmc+1);
                   fmc->Callback=MacroCallback;
                   fmc->CallbackData=fmc;
                   fmc->Values[0].Type=FMVT_BOOLEAN;
                   fmc->Values[0].Boolean=true;
-                  fmc->Values[1].Type=FMVT_STRING;
-                  fmc->Values[1].String=PluginsData[fl->type].IdStr;
+                  fmc->Values[1].Type=FMVT_BINARY;
+                  fmc->Values[1].Binary.Data=&PluginsData[fl->type].Id;
+                  fmc->Values[1].Binary.Size=sizeof(PluginsData[fl->type].Id);
+                  fmc->Values[2].Type=FMVT_INTEGER;
+                  fmc->Values[2].Integer=fl->apitopline;
                   return fmc;
                 }
               }

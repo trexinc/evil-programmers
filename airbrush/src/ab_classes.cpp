@@ -39,6 +39,7 @@ PEditFile ef_create(bool m)
   result->cachesize=0;
   result->cache=NULL;
   result->topline=0;
+  result->apitopline=0;
   result->full=false;
   for(size_t ii=0;ii<ArraySize(result->bracket);++ii)
   {
@@ -106,33 +107,6 @@ bool ef_deletefile(int fid)
   return true;
 }
 
-struct ABShared
-{
-  intptr_t EditorID;
-  intptr_t Top;
-  GUID Id;
-};
-
-static ABShared* shared=NULL;
-
-static ABShared* Shared(void)
-{
-  if(!shared)
-  {
-    shared=(struct ABShared*)malloc(sizeof(ABShared));
-    if(shared)
-    {
-      shared->EditorID=-1;
-      FarMacroValue value;
-      value.Type=FMVT_POINTER;
-      value.Pointer=shared;
-      MacroExecuteString seq={sizeof(MacroExecuteString),KMFLAGS_NONE,_T("if 'nil'==type(_G.airbrush) then _G.airbrush={} end if 'table'==type(_G.airbrush) then _G.airbrush.shared=... end"),1,&value,0,NULL};
-      Info.MacroControl(0,MCTL_EXECSTRING,0,&seq);
-    }
-  }
-  return shared;
-}
-
 void OnLoad(void)
 {
   editfiles=ef_create(true);
@@ -141,13 +115,6 @@ void OnLoad(void)
 void OnExit(void)
 {
   ef_free(editfiles);
-  if(shared)
-  {
-    MacroExecuteString seq={sizeof(MacroExecuteString),KMFLAGS_NONE,_T("if 'table'==type(_G.airbrush) then _G.airbrush.shared=nil end"),0,NULL,0,NULL};
-    Info.MacroControl(0,MCTL_EXECSTRING,0,&seq);
-    free(shared);
-    shared=NULL;
-  }
 }
 
 PEditFile loadfile(int eid,int type)
@@ -271,15 +238,9 @@ int OnEditorEvent(int event,void *param,int editorid)
   if(!curfile) curfile=loadfile(ei.EditorID,-1);
   if(!curfile) return 0;
   intptr_t topline=curfile->topline;
+  curfile->apitopline=curfile->topline;
   curfile->topline=INTPTR_MAX;
   if(ei.TotalLines>Opt.MaxLines) curfile->type=-1;
-  ABShared* ss=Shared();
-  if(ss)
-  {
-    ss->EditorID=ei.EditorID;
-    ss->Top=topline;
-    ss->Id=(curfile->type<0)?FakeGuid:PluginsData[curfile->type].Id;
-  }
   if(curfile->type<0||!Opt.Active) return 0;
 
   ColorizeParams params; unsigned char *cache_data=NULL;
@@ -304,8 +265,8 @@ int OnEditorEvent(int event,void *param,int editorid)
   else
   {
     params.startline=ei.TopScreenLine;
-    if(topline<params.startline)
-      params.startline=topline;
+    if(curfile->apitopline<params.startline)
+      params.startline=curfile->apitopline;
     params.endline=ei.TopScreenLine+ei.WindowSizeY;
     if(params.endline>ei.TotalLines) params.endline=ei.TotalLines;
   }

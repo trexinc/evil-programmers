@@ -95,6 +95,7 @@ struct CEditFile
   intptr_t cachesize;
   intptr_t type;
   intptr_t topline;
+  intptr_t apitopline;
   bool full;
   struct
   {
