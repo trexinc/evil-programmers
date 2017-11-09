@@ -8,14 +8,7 @@ ess=ffi.new "struct EditorSetString"
 ess.StructSize=ffi.sizeof ess
 editors={}
 colorguid=win.Uuid "F018DA49-6EB9-49C3-84D8-0F5E7BA20EFB"
-pcall ffi.cdef,[[
-struct ABShared
-{
-  intptr_t EditorID;
-  intptr_t Top;
-  GUID Id;
-};
-]]
+abguid="9860393A-918D-450F-A3EA-84186F21B0A2"
 farguid=string.rep('\0',16)
 modeline=require"modeline"
 IsMms=(str)->return str[0]==45 and str[1]==45 and str[2]==32 and str[3]==0
@@ -360,7 +353,7 @@ ApplyModeline=(id,ml)->
     editor.SetParam id,p,def (isset l) and l or s if (isset l) or isset s
   syntax=ml.filetype or ml.ft
   if syntax and syntaxes[syntax]
-    mf.postmacro ->Plugin.Call("9860393A-918D-450F-A3EA-84186F21B0A2",0,id,syntaxes[syntax])
+    Plugin.SyncCall(abguid,0,id,syntaxes[syntax])
 
 redraw=0
 Event
@@ -380,9 +373,9 @@ Event
           if ml then ApplyModeline id,ml else ApplyType id,tt,true,fn
         elseif Event==F.EE_REDRAW and redraw==0
           redraw+=1
-          ab=_G.airbrush and _G.airbrush.shared and ffi.cast "struct ABShared*",_G.airbrush.shared
-          top,guid=if ab and ab.EditorID==id then (1+tonumber ab.Top),ffi.string ab.Id,16 else math.huge,farguid
-          Highlite id,tt,top if guid==farguid
+          ab,guid,top=Plugin.SyncCall(abguid,2,id)
+          guid,top={farguid},math.huge if not ab
+          Highlite id,tt,top if guid[1]==farguid
           if tt.o.WhiteSpaceColor
             ei=editor.GetInfo id
             if 0~=bit64.band ei.Options,F.EOPT_SHOWWHITESPACE
