@@ -239,7 +239,7 @@ int OnEditorEvent(int event,void *param,int editorid)
   if(!curfile) return 0;
   intptr_t topline=curfile->topline;
   curfile->apitopline=curfile->topline;
-  curfile->topline=INTPTR_MAX-1;
+  curfile->topline=INTPTR_MAX;
   if(ei.TotalLines>Opt.MaxLines) curfile->type=-1;
   if(curfile->type<0||!Opt.Active) return 0;
 

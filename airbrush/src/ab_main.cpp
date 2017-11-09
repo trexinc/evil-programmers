@@ -253,6 +253,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *Info)
   }
   else if(Info->OpenFrom==OPEN_FROMMACRO)
   {
+    const long long max53=0x1FFFFFFFFFFFFFLL;
     OpenMacroInfo* mi=(OpenMacroInfo*)Info->Data;
     if(mi->Count)
     {
@@ -291,12 +292,12 @@ HANDLE WINAPI OpenW(const struct OpenInfo *Info)
       else
       {
         PEditFile fl=ef_getfile(eid);
-        if(fl&&fl->type>=0)
+        if(fl)
         {
           switch(op)
           {
             case 1:
-              if(PluginsData[fl->type].Params&PAR_BRACKETS)
+              if(fl->type>=0&&PluginsData[fl->type].Params&PAR_BRACKETS)
               {
                 fl->full=true;
                 ::Info.EditorControl(eid,ECTL_REDRAW,0,NULL);
@@ -311,17 +312,14 @@ HANDLE WINAPI OpenW(const struct OpenInfo *Info)
                     fmc->Values=(FarMacroValue*)(fmc+1);
                     fmc->Callback=MacroCallback;
                     fmc->CallbackData=fmc;
-                    fmc->Values[0].Type=FMVT_BOOLEAN;
-                    fmc->Values[0].Boolean=true;
+                    fmc->Values[0]=true;
                     for(size_t ii=0;ii<ArraySize(fl->bracket);++ii)
                     {
                       size_t jj=ii*4;
-                      fmc->Values[jj+1].Type=fmc->Values[jj+2].Type=fmc->Values[jj+3].Type=FMVT_INTEGER;
-                      fmc->Values[jj+4].Type=FMVT_BOOLEAN;
-                      fmc->Values[jj+1].Integer=fl->bracket[ii].x+1;
-                      fmc->Values[jj+2].Integer=fl->bracket[ii].y+1;
-                      fmc->Values[jj+3].Integer=fl->bracket[ii].len;
-                      fmc->Values[jj+4].Boolean=fl->bracket[ii].active;
+                      fmc->Values[jj+1]=fl->bracket[ii].x+1;
+                      fmc->Values[jj+2]=fl->bracket[ii].y+1;
+                      fmc->Values[jj+3]=fl->bracket[ii].len;
+                      fmc->Values[jj+4]=fl->bracket[ii].active;
                     }
                     return fmc;
                   }
@@ -338,13 +336,9 @@ HANDLE WINAPI OpenW(const struct OpenInfo *Info)
                   fmc->Values=(FarMacroValue*)(fmc+1);
                   fmc->Callback=MacroCallback;
                   fmc->CallbackData=fmc;
-                  fmc->Values[0].Type=FMVT_BOOLEAN;
-                  fmc->Values[0].Boolean=true;
-                  fmc->Values[1].Type=FMVT_BINARY;
-                  fmc->Values[1].Binary.Data=&PluginsData[fl->type].Id;
-                  fmc->Values[1].Binary.Size=sizeof(PluginsData[fl->type].Id);
-                  fmc->Values[2].Type=FMVT_INTEGER;
-                  fmc->Values[2].Integer=fl->apitopline+1;
+                  fmc->Values[0]=true;
+                  fmc->Values[1]=(fl->type>=0)?PluginsData[fl->type].Id:FakeGuid;
+                  fmc->Values[2]=(fl->apitopline<max53)?fl->apitopline+1:max53;
                   return fmc;
                 }
               }
