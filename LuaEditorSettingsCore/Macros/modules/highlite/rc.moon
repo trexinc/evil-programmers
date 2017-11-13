@@ -1,5 +1,11 @@
 ﻿import P from lpeg
 {
+  Operators:{
+    {'#[a-z]+',Color:2}
+    {P'\0',Color:{15,0}}
+    {'{',Color:15,Open:"{}"}
+    {'}',Color:15,Close:"{}"}
+  }
   Keywords:{
     {
       P'LOADONCALL'+P'MOVEABLE'+P'DISCARDABLE'+P'PURE'+
@@ -23,11 +29,7 @@
     }
     {'BEGIN',Color:15,Open:"BEGIN/END"}
     {'END',Color:15,Close:"BEGIN/END"}
-    {'#[a-z]+',Color:2}
-    {P'\0',Color:{15,0}}
-    {'{',Color:15,Open:"{}"}
-    {'}',Color:15,Close:"{}"}
-    {'[%w]+'}
+    Word:'[%w]+'
   }
   Pairs:{Color:12}
   Regions:{

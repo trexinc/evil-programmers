@@ -2,24 +2,26 @@
 {:alpha,:alnum,:digit,:space}=locale!
 aps='\''
 ap=P aps
-word=(alpha+'_')*(alnum+'_')^0
+word=(alpha+S'_-')*(alnum+'_')^0
 quote=(q)->(q*(1-q)^0*q)
 parentheses=P{"("*((1-S"()")+V(1))^0*")"}
 range=(s,e)->(P s)*((1-S s..e..aps..'"')+(quote ap)+(quote P'"')+parentheses)^0*(P e)^-1
 escape={P"\\"*(P 1),Color:6}
 {
-  Keywords:{
+  Operators:{
     {P'$'*(S'!#?*@$'+(range '(',')')+(range '[',']')+(range '{','}')+(range '`','`')+digit^1+word),Color:13}
     {P'\\'*P 1}
+  }
+  Keywords:{
     {
-      (P'if'+P'then'+P'elif'+P'else'+P'fi'+P'case'+P'in'+P'esac'+P'while'+
+      P'if'+P'then'+P'elif'+P'else'+P'fi'+P'case'+P'in'+P'esac'+P'while'+
       P'for'+P'done'+P'do'+P'continue'+P'local'+P'return'+P'-nt'+P'-ot'+P'-ef'+
       P'-eq'+P'-ne'+P'-lt'+P'-le'+P'-gt'+P'-ge'+P'-a'+P'-b'+P'-c'+P'-d'+P'-e'+
       P'-f'+P'-g'+P'-h'+P'-k'+P'-p'+P'-r'+P'-s'+P'-t'+P'-u'+P'-w'+P'-x'+P'-O'+
-      P'-G'+P'-L'+P'-S'+P'-N'+P'-o'+P'-z'+P'-n')*#-word
+      P'-G'+P'-L'+P'-S'+P'-N'+P'-o'+P'-z'+P'-n'
       Color:15
     }
-    {word}
+    Word:word
   }
   Pairs:{Color:12}
   Regions:{

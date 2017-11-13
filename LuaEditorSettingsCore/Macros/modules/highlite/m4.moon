@@ -1,7 +1,18 @@
 ﻿import P,R,S,V,C,Ct,Cg from lpeg
-wordend=#-(R'az'+R'AZ'+R'09'+S'_')
+word=(R'az'+R'AZ'+R'09'+S'_')^1
 {
+  Operators:{
+    {'[,()]',Color:15}
+  }
   Keywords:{
+    {P'm4_'^-1*(
+      P'define'+P'defn'+P'undefine'+P'pushdef'+P'popdef'+P'indir'+P'builtin'+P'ifdef'+P'ifelse'+P'shift'+P'dumpdef'+P'traceon'+
+      P'traceoff'+P'debugmode'+P'm4wrap'+P'len'+P'index'+P'regexp'+P'substr'+P'translit'+P'patsubst'+P'format'+P'incr'+P'decr'+
+      P'eval'+P'syscmd'+P'esyscmd'+P'sysval'+P'maketemp'+P'errprint'+P'm4exit'
+    ),Color:15}
+    {P'm4_'^-1*(P'include'+P'sinclude'+P'divert'+P'undivert'+P'divnum'),Color:2}
+    {P'm4_'^-1*(P'changecom'+P'changeword'),Color:12}
+    {P'm4_'^-1*(P'dnl'+P'__file__'+P'__line__'),Color:13}
     {
       (s,str,init)->
         nil
@@ -13,17 +24,10 @@ wordend=#-(R'az'+R'AZ'+R'09'+S'_')
           s.start=f quotes.param1
           s.end=f quotes.param2
         res
-      Color:15
+      Color:{1,0}
+      Skip:true
     }
-    {P'm4_'^-1*(
-      P'define'+P'defn'+P'undefine'+P'pushdef'+P'popdef'+P'indir'+P'builtin'+P'ifdef'+P'ifelse'+P'shift'+P'dumpdef'+P'traceon'+
-      P'traceoff'+P'debugmode'+P'm4wrap'+P'len'+P'index'+P'regexp'+P'substr'+P'translit'+P'patsubst'+P'format'+P'incr'+P'decr'+
-      P'eval'+P'syscmd'+P'esyscmd'+P'sysval'+P'maketemp'+P'errprint'+P'm4exit'
-    )*wordend,Color:15}
-    {'[,()]',Color:15}
-    {P'm4_'^-1*(P'include'+P'sinclude'+P'divert'+P'undivert'+P'divnum')*wordend,Color:2}
-    {P'm4_'^-1*(P'changecom'+P'changeword')*wordend,Color:12}
-    {P'm4_'^-1*(P'dnl'+P'__file__'+P'__line__')*wordend,Color:13}
+    Word:word
   }
   Pairs:{Color:12}
   Regions:{
@@ -45,6 +49,5 @@ wordend=#-(R'az'+R'AZ'+R'09'+S'_')
         m
       Color:14
     }
-    {Left:'[%w_]+',Right:'',Pair:false}
   }
 }

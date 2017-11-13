@@ -88,6 +88,8 @@ dump=(o)->
   else
     tostring(o)
 
+Tokens={'Keywords','Numbers','Operators'}
+
 Schemes=require"editorsettings"
 
 FixSchemes=(Sch)->
@@ -114,12 +116,14 @@ FixSchemes=(Sch)->
     if regions
       for r in *regions
         fix r
+    for name in *Tokens
+      token=region[name]
+      if token
+        token.ColorFull or=decodeK token.Color
+        for ii=1,#token
+          token[ii]={token[ii]} if 'string'==type token[ii]
+          token[ii].ColorFull or=(decodeK token[ii].Color) or token.ColorFull
     with region
-      if .Keywords
-        .Keywords.ColorFull or=decodeK .Keywords.Color
-        for ii=1,#.Keywords
-          .Keywords[ii]={.Keywords[ii]} if 'string'==type .Keywords[ii]
-          .Keywords[ii].ColorFull or=(decodeK .Keywords[ii].Color) or .Keywords.ColorFull
       .ColorFull or=decodeR .Color
       .Pair=true if .Left and .Right and 'nil'==type .Pair
   for s in *Sch
@@ -241,46 +245,56 @@ Highlite=(id,tt,top)->
       match2=(patt)->match line,patt,posB
       while posU<=len
         stepU,stepB=1,string.len line\match '.',posB
+        updStep=(word)->stepU,stepB=word\len!,string.len word
         match3=(patt)->
           m=match2 patt
           if m
-            stepU,stepB=m\len!,string.len m
+            updStep m
             true
-        match4=(patt,s)->
+        matchR=(patt,s)->
           if match3 patt
             updateRegion s,ii,posU,stepU
             true
         skip=false
-        if region.Keywords
-          for keyword in *region.Keywords
-            if not (keyword.Start and posU>1)
-              if match3 keyword[1]
-                add=(c,p)->addcolor ii,posU,posU+stepU-1,c,p
-                addcolor ii,regionstart,posU-1,region.ColorFull[2]
-                add keyword.ColorFull
-                regionstart=posU+stepU
-                skip=true
-                if keyword.Open or keyword.Close
-                  curpair=checkCursor ii,posU,stepU
-                  if keyword.Open
-                    insert pairs,{line:ii,pos1:posU,pos2:posU+stepU-1,cur:curpair,type:keyword.Open}
-                    if curpair
-                      add tt.o.Highlite.Pairs.ColorFull,100
-                  else
-                    pair=remove pairs
-                    if curpair or (pair and pair.cur)
-                      addcolor pair.line,pair.pos1,pair.pos2,pair.type==keyword.Close and tt.o.Highlite.Pairs.ColorFull or tt.o.Highlite.Pairs.ColorErrorFull,100 if pair and curpair
-                      add (pair and pair.cur and pair.type~=keyword.Close) and tt.o.Highlite.Pairs.ColorErrorFull or tt.o.Highlite.Pairs.ColorFull,100
-                break
-        if not skip and region.Regions
+        if region.Regions
           for kk=1,#region.Regions
             if not (region.Regions[kk].Start and posU>1)
-              if match4 region.Regions[kk].Left,kk
+              if matchR region.Regions[kk].Left,kk
                 skip=true
                 break
-        if not skip
-          if region.Right
-            match4 region.Right,0
+        if not skip and region.Right
+          if matchR region.Right,0
+            skip=true
+        for name in *Tokens
+          break if skip
+          token=region[name]
+          if token
+            word=token.Word and match2 token.Word
+            if word
+              updStep word
+              skip=true
+            for keyword in *token
+              if not (keyword.Start and posU>1)
+                win.OutputDebugString"+(#{name}) #{keyword[1]}|#{word}|#{line} #{stepU} #{stepB}"
+                if if word and not keyword.Skip then (word==match word,keyword[1],1) else match3 keyword[1]
+                  add=(c,p)->addcolor ii,posU,posU+stepU-1,c,p
+                  addcolor ii,regionstart,posU-1,region.ColorFull[2]
+                  add keyword.ColorFull
+                  regionstart=posU+stepU
+                  skip=true
+                  if keyword.Open or keyword.Close
+                    curpair=checkCursor ii,posU,stepU
+                    if keyword.Open
+                      insert pairs,{line:ii,pos1:posU,pos2:posU+stepU-1,cur:curpair,type:keyword.Open}
+                      if curpair
+                        add tt.o.Highlite.Pairs.ColorFull,100
+                    else
+                      pair=remove pairs
+                      if curpair or (pair and pair.cur)
+                        addcolor pair.line,pair.pos1,pair.pos2,pair.type==keyword.Close and tt.o.Highlite.Pairs.ColorFull or tt.o.Highlite.Pairs.ColorErrorFull,100 if pair and curpair
+                        add (pair and pair.cur and pair.type~=keyword.Close) and tt.o.Highlite.Pairs.ColorErrorFull or tt.o.Highlite.Pairs.ColorFull,100
+                  break
+                win.OutputDebugString"-(#{name}) #{stepU} #{stepB}"
         posU+=stepU
         posB+=stepB
       if not region.Right or match2 region.Right then updateRegion 0,ii,len+1

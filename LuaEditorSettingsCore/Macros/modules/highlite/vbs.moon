@@ -1,20 +1,25 @@
 ﻿import B,P,R,S from lpeg
 word=R'az'+R'AZ'+R'09'+S'_'
-nw=#-word
-W=(patt)->(P patt)*nw
-rem=P'rem'
 {
+  Operators:{
+    {S[[^+-\/*,=<>]],Color:15}
+    {S[[&;:#]],Color:13}
+    {'%(',Color:2,Open:1}
+    {'%)',Color:2,Close:1}
+    {'%[',Color:2,Open:2}
+    {'%]',Color:2,Close:2}
+  }
   Keywords:{
-    {W'vbblack',Color:{0,15}}
-    {W'vbred',Color:{4,0}}
-    {W'vbgreen',Color:{2,0}}
-    {W'vbyellow',Color:{6,0}}
-    {W'vbblue',Color:{1,0}}
-    {W'vbmagenta',Color:{5,0}}
-    {W'vbcyan',Color:{3,0}}
-    {W'vbwhite',Color:{15,0}}
+    {'vbblack',Color:{0,15}}
+    {'vbred',Color:{4,0}}
+    {'vbgreen',Color:{2,0}}
+    {'vbyellow',Color:{6,0}}
+    {'vbblue',Color:{1,0}}
+    {'vbmagenta',Color:{5,0}}
+    {'vbcyan',Color:{3,0}}
+    {'vbwhite',Color:{15,0}}
     {
-      (P'abs'+P'array'+P'asc'+P'ascw'+P'atn'+P'boolean'+P'byte'+P'call'+P'cbool'+P'cbyte'+P'ccur'+P'cdate'+P'cdbl'+P'cint'+P'chr'+P'chrb'+
+      P'abs'+P'array'+P'asc'+P'ascw'+P'atn'+P'boolean'+P'byte'+P'call'+P'cbool'+P'cbyte'+P'ccur'+P'cdate'+P'cdbl'+P'cint'+P'chr'+P'chrb'+
       P'chrw'+P'clng'+P'const'+P'cos'+P'csng'+P'cstr'+P'currency'+P'date'+P'dateadd'+P'datediff'+P'datepart'+P'dateserial'+P'datevalue'+
       P'day'+P'double'+P'escape'+P'eval'+P'exp'+P'false'+P'filter'+P'fix'+P'formatcurrency'+P'formatnumber'+P'formatpercent'+P'formatdatetime'+
       P'function'+P'getlocale'+P'getobject'+P'getref'+P'hex'+P'hour'+P'inputbox'+P'instrrev'+P'instr'+P'int'+P'integer'+P'isarray'+P'isdate'+
@@ -22,10 +27,10 @@ rem=P'rem'
       P'minute'+P'month'+P'monthname'+P'msgbox'+P'new'+P'now'+P'object'+P'oct'+P'replace'+P'rgb'+P'right'+P'rightb'+P'round'+P'rtrim'+P'second'+
       P'setattr'+P'setlocale'+P'sgn'+P'sin'+P'single'+P'rnd'+P'space'+P'split'+P'sqr'+P'strcomp'+P'strconv'+P'string'+P'strreverse'+P'sub'+P'tan'+
       P'time'+P'timer'+P'timeserial'+P'timevalue'+P'trim'+P'true'+P'typename'+P'ubound'+P'ucase'+P'unescape'+P'vartype'+P'weekdayname'+P'weekday'+
-      P'year')*nw,Color:7
+      P'year',Color:7
     }
     {
-      (P'appactivate'+P'and'+P'as'+P'attribute'+P'begin'+P'beep'+P'byval'+P'case'+P'chdir'+P'chdrive'+P'circle'+P'class'+P'clear'+P'close'+P'command'+
+      P'appactivate'+P'and'+P'as'+P'attribute'+P'begin'+P'beep'+P'byval'+P'case'+P'chdir'+P'chdrive'+P'circle'+P'class'+P'clear'+P'close'+P'command'+
       P'compare'+P'createobject'+P'curdir'+P'cvar'+P'cverr'+P'ddb'+P'debug'+P'deftype'+P'dim'+P'dir'+P'do'+P'doevents'+P'each'+P'else'+P'elseif'+
       P'empty'+P'end'+P'environ'+P'eof'+P'eqv'+P'erase'+P'err'+P'error'+P'execute'+P'exit'+P'fileattr'+P'filecopy'+P'filedatetime'+P'filelen'+P'for'+
       P'form'+P'freefile'+P'fv'+P'get'+P'getattr'+P'gosub'+P'goto'+P'if'+P'iif'+P'imp'+P'input'+P'ipmt'+P'irr'+P'iserror'+P'ismissing'+P'kill'+
@@ -33,17 +38,17 @@ rem=P'rem'
       P'npv'+P'on'+P'open'+P'or'+P'pmt'+P'ppmt'+P'print'+P'private'+P'property'+P'pset'+P'public'+P'put'+P'pv'+P'qbcolor'+P'raise'+P'randomize'+
       P'rate'+P'redim'+P'regexp'+P'reset'+P'resume'+P'return'+P'rmdir'+P'rset'+P'seek'+P'select'+P'sendkeys'+P'set'+P'sln'+P'spc'+P'static'+P'stop'+
       P'str'+P'switch'+P'syd'+P'system'+P'tab'+P'then'+P'to'+P'unlock'+P'until'+P'val'+P'variant'+P'vbwizard'+P'version'+P'wend'+P'while'+P'with'+
-      P'xor')*nw,Color:15
+      P'xor',Color:15
     }
     {
-      (P'textstream'+P'vbbinarycompare'+P'vbcr'+P'vbcrlf'+P'vbfirstjan1'+P'vbfirstfourdays'+P'vbfirstfullweek'+P'vbformfeed'+P'vbfriday'+P'vblf'+
+      P'textstream'+P'vbbinarycompare'+P'vbcr'+P'vbcrlf'+P'vbfirstjan1'+P'vbfirstfourdays'+P'vbfirstfullweek'+P'vbformfeed'+P'vbfriday'+P'vblf'+
       P'vbmonday'+P'vbnewline'+P'vbnullchar'+P'vbnullstring'+P'vbsaturday'+P'vbsunday'+P'vbtab'+P'vbtextcompare'+P'vbthursday'+P'vbtuesday'+
       P'vbusesystemdayofweek'+P'vbverticaltab'+P'vbwednesday'+P'wscript'+P'wsharguments'+P'wshcontroller'+P'wshshortcut'+P'wshcollection'+
       P'wshenvironment'+P'wshnetwork'+P'wshremote'+P'wshscriptexec'+P'wshshell'+P'wshshortcut'+P'wshspecialfolders'+P'wshremoteerror'+
-      P'wshurlshortcut'+P'wshnamed'+P'wshunnamed'+P'wshshell')*nw,Color:13
+      P'wshurlshortcut'+P'wshnamed'+P'wshunnamed'+P'wshshell',Color:13
     }
     {
-      (P'.addprinterconnection'+P'.addwindowsprinterconnection'+P'.appactivate'+P'.application'+P'.arguments'+P'.atendofline'+P'.atendofstream'+
+      P'.addprinterconnection'+P'.addwindowsprinterconnection'+P'.appactivate'+P'.application'+P'.arguments'+P'.atendofline'+P'.atendofstream'+
       P'.browseforlolder'+P'.buildpath'+P'.buildversion'+P'.clear'+P'.close'+P'.column'+P'.computername'+P'.connectobject'+P'.copyfile'+
       P'.copyfolder'+P'.count'+P'.createfolder'+P'.createobject'+P'.createshortcut'+P'.createtextfile'+P'.currentdirectory'+P'.deletefile'+
       P'.deletefolder'+P'.description'+P'.disconnectobject'+P'.driveexists'+P'.drives'+P'.echo'+P'.enumnetworkdrives'+P'.enumprinterconnections'+
@@ -55,20 +60,14 @@ rem=P'rem'
       P'.readall'+P'.read'+P'.regdelete'+P'.regread'+P'.regwrite'+P'.removenetworkdrive'+P'.removeprinterconnection'+P'.remove'+P'.replace'+
       P'.raise'+P'.run'+P'.save'+P'.scriptfullname'+P'.scriptname'+P'.sendkeys'+P'.setdefaultprinter'+P'.shellexecute'+P'.shell'+P'.specialfolders'+
       P'.stderr'+P'.stdin'+P'.stdout'+P'.skipline'+P'.skip'+P'.sleep'+P'.submatches'+P'.targetpath'+P'.test'+P'.timeout'+P'.uppercase'+
-      P'.userdomain'+P'.username'+P'.version'+P'.wide'+P'.windowstyle'+P'.workingdirectory'+P'.writeline'+P'.writeblanklines'+P'.write')*nw,Color:5
+      P'.userdomain'+P'.username'+P'.version'+P'.wide'+P'.windowstyle'+P'.workingdirectory'+P'.writeline'+P'.writeblanklines'+P'.write',Color:5
     }
-    {S[[^+-\/*,=<>]],Color:15}
-    {S[[&;:#]],Color:13}
-    {'%(',Color:2,Open:1}
-    {'%)',Color:2,Close:1}
-    {'%[',Color:2,Open:2}
-    {'%]',Color:2,Close:2}
-    {(word+'.')*word^0-rem}
+    Word:(word+'.')*word^0
   }
   Case:false
   Pairs:{Color:12}
   Regions:{
-    {Left:P'\''+rem*(S' \t'+-1),Color:3}
+    {Left:P'\''+P'rem'*(S' \t'+-1),Color:3}
     {Left:'"',Right:'"',Color:14}
   }
 }
