@@ -283,14 +283,14 @@ colorize_string2:
     if(newcur&&Info.pInterpolation((const wchar_t*)yytok,newcur-yytok))
     {
       Info.pAddColor(params,lno,commentstart-line,yytok-commentstart,colors+HC_STRING1,EPriorityNormal);
-      PUSH_PAIR_1(3,HC_INTERPOL)
+      PUSH_PAIR_2(3,HC_INTERPOL)
       MoonState newstate={PARSER_CLEAR,0};
       ColorizeParams newparams=*params;
       newparams.callback=NULL;
       ColorizeInternal(lno,line,yycur-line,linelen,hl_row,hl_col,hl_state,&newstate,&newparams,true);
       yytok=newcur-1;
       yycur=newcur;
-      POP_PAIR_1(3,HC_INTERPOL)
+      POP_PAIR_2(3,HC_INTERPOL)
       commentstart=yycur;
     }
     goto colorize_string2;

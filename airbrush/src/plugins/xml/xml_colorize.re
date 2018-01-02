@@ -129,7 +129,7 @@ colorize_clear:
   "<" Name
   {
     pair_hash=hash(yytok+1,yycur-yytok-1);
-    PUSH_PAIR_0((int)pair_hash,0,0);
+    PUSH_PAIR_1((int)pair_hash,0,0);
     state[0]=PARSER_OPENTAG;
     Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_OPENTAG,EPriorityNormal);
     goto colorize_opentag;
@@ -138,7 +138,7 @@ colorize_clear:
   "</" Name
   {
 
-    POP_PAIR_00((int)hash(yytok+2,yycur-yytok-2),0,0);
+    POP_PAIR_11((int)hash(yytok+2,yycur-yytok-2),0,0);
     state[0]=PARSER_CLOSETAG;
     Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_CLOSETAG,EPriorityNormal);
     goto colorize_closetag;
@@ -239,7 +239,7 @@ colorize_opentag:
   {
     Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_CLOSETAG,EPriorityNormal);
     state[0]=PARSER_CLEAR;
-    POP_PAIR_00((int)pair_hash,0,0);
+    POP_PAIR_11((int)pair_hash,0,0);
     goto colorize_clear;
   }
   ">"

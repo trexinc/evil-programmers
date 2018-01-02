@@ -71,43 +71,47 @@ inline int PairStackCursor(int row,int col,int len,int cursor_row,int cursor_col
 //pair highlite stuff
 
 #define INIT_PAIR Info.pSetBracket(params->eid,-1,-1,-1,false,-1,-1,-1,false)
-#define PUSH_PAIR_0(LEVEL,COLOR,SIMPLE) \
+#define PUSH_PAIR_0(LEVEL,COLOR,SIMPLE,START,FINISH) \
 { \
-  int flag=PairStackCursor(lno,yytok-line,yycur-yytok,hl_row,hl_col); \
-  PairStackPush(params->LocalHeap,&hl_state,LEVEL,lno,yytok-line,yycur-yytok,flag); \
+  int flag=PairStackCursor(lno,START-line,FINISH-START,hl_row,hl_col); \
+  PairStackPush(params->LocalHeap,&hl_state,LEVEL,lno,START-line,FINISH-START,flag); \
   if(flag) \
-    Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_HIGHLITE,EPriorityBrackets); \
+    Info.pAddColor(params,lno,START-line,FINISH-START,colors+HC_HIGHLITE,EPriorityBrackets); \
   else if(SIMPLE)\
-    Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+COLOR,EPriorityNormal); \
+    Info.pAddColor(params,lno,START-line,FINISH-START,colors+COLOR,EPriorityNormal); \
 }
 
-#define POP_PAIR_0(LEVEL1,LEVEL2,COLOR,SIMPLE) \
+#define PUSH_PAIR_1(LEVEL,COLOR,SIMPLE) PUSH_PAIR_0(LEVEL,COLOR,SIMPLE,yytok,yycur)
+
+#define POP_PAIR_0(LEVEL1,LEVEL2,COLOR,SIMPLE,START,FINISH) \
 { \
-  int flag=PairStackCursor(lno,yytok-line,yycur-yytok,hl_row,hl_col); \
+  int flag=PairStackCursor(lno,START-line,FINISH-START,hl_row,hl_col); \
   if(flag) \
-    Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_HIGHLITE,EPriorityBrackets); \
+    Info.pAddColor(params,lno,START-line,FINISH-START,colors+HC_HIGHLITE,EPriorityBrackets); \
   else if(SIMPLE) \
-    Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+COLOR,EPriorityNormal); \
+    Info.pAddColor(params,lno,START-line,FINISH-START,colors+COLOR,EPriorityNormal); \
   if(hl_state) \
   { \
     bool err=!((hl_state->index>=LEVEL1)&&(hl_state->index<=LEVEL2)); \
-    if(hl_state->flag) Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_HIGHLITE+err,EPriorityBrackets); \
+    if(hl_state->flag) Info.pAddColor(params,lno,START-line,FINISH-START,colors+HC_HIGHLITE+err,EPriorityBrackets); \
     if(flag) Info.pAddColor(params,hl_state->row,hl_state->col,hl_state->len,colors+HC_HIGHLITE+err,EPriorityBrackets); \
-    if(flag||hl_state->flag) Info.pSetBracket(params->eid,hl_state->row,hl_state->col,hl_state->len,hl_state->flag,lno,yytok-line,yycur-yytok,flag); \
+    if(flag||hl_state->flag) Info.pSetBracket(params->eid,hl_state->row,hl_state->col,hl_state->len,hl_state->flag,lno,START-line,FINISH-START,flag); \
   } \
   PairStackPop(params->LocalHeap,&hl_state); \
 }
+#define POP_PAIR_00(LEVEL1,COLOR,SIMPLE,START,FINISH) POP_PAIR_0(LEVEL1,LEVEL1,COLOR,SIMPLE,START,FINISH)
 
-#define POP_PAIR_00(LEVEL1,COLOR,SIMPLE) POP_PAIR_0(LEVEL1,LEVEL1,COLOR,SIMPLE)
+#define POP_PAIR_1(LEVEL1,LEVEL2,COLOR,SIMPLE) POP_PAIR_0(LEVEL1,LEVEL2,COLOR,SIMPLE,yytok,yycur)
+#define POP_PAIR_11(LEVEL1,COLOR,SIMPLE) POP_PAIR_1(LEVEL1,LEVEL1,COLOR,SIMPLE)
 
-#define PUSH_PAIR_1(LEVEL,COLOR) PUSH_PAIR_0(LEVEL,COLOR,1)
-#define POP_PAIR_1(LEVEL1,COLOR) POP_PAIR_0(LEVEL1,LEVEL1,COLOR,1)
+#define PUSH_PAIR_2(LEVEL,COLOR) PUSH_PAIR_1(LEVEL,COLOR,1)
+#define POP_PAIR_2(LEVEL1,COLOR) POP_PAIR_1(LEVEL1,LEVEL1,COLOR,1)
 
-#define PUSH_PAIR_S(LEVEL) PUSH_PAIR_0(LEVEL,HC_STRING1,0)
-#define POP_PAIR_S(LEVEL1) POP_PAIR_0(LEVEL1,LEVEL1,HC_STRING1,0)
+#define PUSH_PAIR_S(LEVEL) PUSH_PAIR_1(LEVEL,HC_STRING1,0)
+#define POP_PAIR_S(LEVEL1) POP_PAIR_1(LEVEL1,LEVEL1,HC_STRING1,0)
 
-#define PUSH_PAIR(LEVEL) PUSH_PAIR_0(LEVEL,HC_KEYWORD1,1) goto colorize_clear;
-#define POP_PAIR(LEVEL1) POP_PAIR_0(LEVEL1,LEVEL1,HC_KEYWORD1,1) goto colorize_clear;
-#define POP_PAIR_EXT(LEVEL1,LEVEL2) POP_PAIR_0(LEVEL1,LEVEL2,HC_KEYWORD1,1) goto colorize_clear;
+#define PUSH_PAIR(LEVEL) PUSH_PAIR_1(LEVEL,HC_KEYWORD1,1) goto colorize_clear;
+#define POP_PAIR(LEVEL1) POP_PAIR_1(LEVEL1,LEVEL1,HC_KEYWORD1,1) goto colorize_clear;
+#define POP_PAIR_EXT(LEVEL1,LEVEL2) POP_PAIR_1(LEVEL1,LEVEL2,HC_KEYWORD1,1) goto colorize_clear;
 
 #endif
