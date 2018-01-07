@@ -8,13 +8,12 @@
 class scope_exit_t
 {
 public:
-	explicit scope_exit_t(const std::function<void()>& Callable):
-		m_Callable(Callable)
+	NONCOPYABLE(scope_exit_t);
+
+	explicit scope_exit_t(std::function<void()> Callable):
+		m_Callable(std::move(Callable))
 	{
 	}
-
-	scope_exit_t(const scope_exit_t&) = delete;
-	scope_exit_t& operator=(const scope_exit_t&) = delete;
 
 	~scope_exit_t()
 	{

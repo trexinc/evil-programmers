@@ -3,6 +3,8 @@
 class hide_cursor
 {
 public:
+	NONCOPYABLE(hide_cursor);
+
 	hide_cursor();
 	~hide_cursor();
 

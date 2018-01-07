@@ -23,7 +23,9 @@ enum class color
 class text_color
 {
 public:
-	text_color(color NewColor);
+	NONCOPYABLE(text_color);
+
+	explicit text_color(color NewColor);
 	~text_color();
 
 private:

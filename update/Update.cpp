@@ -13,7 +13,7 @@
 #include "ver.hpp"
 
 #include "system.hpp"
-#include "Console.hpp"
+#include "console.hpp"
 #include "cursor_pos.hpp"
 #include "hide_cursor.hpp"
 #include "text_color.hpp"
@@ -149,6 +149,8 @@ auto GetUpdaterEvent()
 class update_plugin
 {
 public:
+	NONCOPYABLE(update_plugin);
+
 	update_plugin()
 	{
 		*ProxyName = 0;

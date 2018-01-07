@@ -24,3 +24,7 @@
 using namespace std::string_literals;
 
 extern PluginStartupInfo PsInfo;
+
+#define NONCOPYABLE(Type) \
+Type(const Type&) = delete; \
+Type& operator=(const Type&) = delete

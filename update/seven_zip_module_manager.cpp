@@ -18,7 +18,9 @@ DEFINE_GUID(IID_IArchiveExtractCallback, 0x23170F69, 0x40C1, 0x278A, 0x00, 0x00,
 class seven_zip_module
 {
 public:
-	seven_zip_module(const wchar_t* ModuleName)
+	NONCOPYABLE(seven_zip_module);
+
+	explicit seven_zip_module(const wchar_t* ModuleName)
 	{
 		m_Module.reset(LoadLibraryEx(ModuleName, nullptr, LOAD_WITH_ALTERED_SEARCH_PATH));
 		if (!m_Module)
@@ -35,15 +37,16 @@ public:
 		{
 			if (m_GetHandlerProperty2 && m_GetNumberOfFormats)
 			{
-				if (m_GetNumberOfFormats(&m_NumberOfFormats) == S_OK)
+				unsigned int NumberOfFormats;
+				if (m_GetNumberOfFormats(&NumberOfFormats) == S_OK)
 				{
-					m_Uids.reserve(m_NumberOfFormats);
+					m_Uids.reserve(NumberOfFormats);
 
 					prop_variant value;
 
 					Result = true;
 
-					for (unsigned int i = 0; i < m_NumberOfFormats; i++)
+					for (unsigned int i = 0; i != NumberOfFormats; ++i)
 					{
 						if ((m_GetHandlerProperty2(i, NArchive::kClassID, &value) != S_OK) ||
 							(value.vt != VT_BSTR))
@@ -58,10 +61,6 @@ public:
 			}
 			else
 			{
-				m_NumberOfFormats = 1;
-
-				m_Uids.reserve(m_NumberOfFormats);
-
 				prop_variant value;
 
 				if (m_GetHandlerProperty(NArchive::kClassID, &value) == S_OK && value.vt == VT_BSTR)
@@ -81,8 +80,15 @@ public:
 		return m_Module != nullptr;
 	}
 
-	std::vector<GUID> m_Uids;
-	unsigned int m_NumberOfFormats;
+	auto begin() const
+	{
+		return m_Uids.cbegin();
+	}
+
+	auto end() const
+	{
+		return m_Uids.cend();
+	}
 
 	using CREATEOBJECT = unsigned int (WINAPI*)(const GUID*, const GUID*, void**);
 	using GETHANDLERPROPERTY = HRESULT(WINAPI*)(PROPID propID, PROPVARIANT *value);
@@ -95,32 +101,70 @@ public:
 	GETNUMBEROFFORMATS m_GetNumberOfFormats;
 
 private:
+	std::vector<UUID> m_Uids;
 	module_ptr m_Module;
 };
 
-namespace detail
+namespace com
 {
-	template<typename T>
-	struct releaser
+	namespace detail
 	{
-		void operator()(T* Object) const
+		template<typename T>
+		struct releaser
 		{
-			Object->Release();
-		}
-	};
+			void operator()(T* Object) const
+			{
+				Object->Release();
+			}
+		};
+	}
+	template<typename T>
+	using ptr = std::unique_ptr<T, detail::releaser<T>>;
+
+	template<typename T, typename... args>
+	auto make_ptr(args... Args)
+	{
+		return ptr<T>(new T(std::forward<args>(Args)...));
+	}
 }
+
 template<typename T>
-using com_ptr = std::unique_ptr<T, detail::releaser<T>>;
-
-template<typename T, typename... args>
-auto make_com_ptr(args... Args)
-{
-	return com_ptr<T>(new T(std::forward<args>(Args)...));
-}
-
-class in_file: public IInStream
+class reference_counted: public T
 {
 public:
+	reference_counted() = default;
+	NONCOPYABLE(reference_counted);
+
+	ULONG WINAPI AddRef() override
+	{
+		return ++m_RefCount;
+	}
+
+	ULONG WINAPI Release() override
+	{
+		if (--m_RefCount == 0)
+		{
+			delete this;
+			return 0;
+		}
+
+		return m_RefCount;
+	}
+
+protected:
+	virtual ~reference_counted() = default;
+
+private:
+	int m_RefCount = 1;
+};
+
+class in_file final: public reference_counted<IInStream>
+{
+public:
+	in_file() = default;
+
+	NONCOPYABLE(in_file);
+
 	bool open(const wchar_t* FileName)
 	{
 		const auto File = CreateFile(FileName, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
@@ -144,61 +188,46 @@ public:
 		return S_OK;
 	}
 
-	ULONG WINAPI AddRef() override
-	{
-		return ++m_RefCount;
-	}
-
-	ULONG WINAPI Release() override
-	{
-		if (--m_RefCount == 0)
-		{
-			delete this;
-			return 0;
-		}
-
-		return m_RefCount;
-	}
-
 	HRESULT WINAPI Read(void* Data, unsigned int Size, unsigned int* ProcessedSize) override
 	{
-		DWORD dwRead;
+		DWORD Read;
+		if (!ReadFile(m_File.get(), Data, Size, &Read, nullptr))
+			return E_FAIL;
 
-		if (ReadFile(m_File.get(), Data, Size, &dwRead, nullptr))
-		{
-			if (ProcessedSize)
-				*ProcessedSize = dwRead;
+		if (ProcessedSize)
+			*ProcessedSize = Read;
 			
-			return S_OK;
-		}
-
-		return E_FAIL;
+		return S_OK;
 	}
 
 	HRESULT WINAPI Seek(long long Offset, unsigned int SeekOrigin, unsigned long long* NewPosition) override
 	{
-		auto lo = static_cast<DWORD>(Offset);
-		lo = SetFilePointer(m_File.get(), lo, nullptr, SeekOrigin);
-
-		if (lo == INVALID_SET_FILE_POINTER && GetLastError() != NO_ERROR)
+		LARGE_INTEGER Distance, NewPointer;
+		Distance.QuadPart = Offset;
+		if (!SetFilePointerEx(m_File.get(), Distance, &NewPointer, SeekOrigin))
 			return E_FAIL;
 
 		if (NewPosition)
-			*NewPosition = lo;
+			*NewPosition = NewPointer.QuadPart;
+
 		return S_OK;
 	}
 
 private:
-	int m_RefCount{ 1 };
+	~in_file() = default;
 	handle m_File;
 };
 
-class out_file: public ISequentialOutStream
+class out_file final: public reference_counted<ISequentialOutStream>
 {
 public:
+	out_file() = default;
+
+	NONCOPYABLE(out_file);
+
 	bool open(const wchar_t* FileName)
 	{
-		DWORD Attr = GetFileAttributes(FileName);
+		auto Attr = GetFileAttributes(FileName);
 		if (Attr != INVALID_FILE_ATTRIBUTES)
 		{
 			if (Attr&FILE_ATTRIBUTE_READONLY)
@@ -212,11 +241,11 @@ public:
 			Attr = FILE_ATTRIBUTE_NORMAL;
 		}
 
-		auto hFile = CreateFile(FileName, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, CREATE_ALWAYS, Attr | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
-		if (hFile == INVALID_HANDLE_VALUE)
+		const auto File = CreateFile(FileName, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, CREATE_ALWAYS, Attr | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
+		if (File == INVALID_HANDLE_VALUE)
 			return false;
 
-		m_File.reset(hFile);
+		m_File.reset(File);
 		return true;
 	}
 
@@ -233,38 +262,20 @@ public:
 		return S_OK;
 	}
 
-	ULONG WINAPI AddRef() override
-	{
-		return ++m_RefCount;
-	}
-
-	ULONG WINAPI Release() override
-	{
-		if (--m_RefCount == 0)
-		{
-			delete this;
-			return 0;
-		}
-		return m_RefCount;
-	}
-
 	HRESULT WINAPI Write(const void* Data, unsigned int Size, unsigned int* ProcessedSize) override
 	{
-		DWORD dwWritten;
+		DWORD Written;
+		if (!WriteFile(m_File.get(), Data, Size, &Written, nullptr))
+			return E_FAIL;
 
-		if (WriteFile(m_File.get(), Data, Size, &dwWritten, nullptr))
-		{
-			if (ProcessedSize)
-				*ProcessedSize = dwWritten;
+		if (ProcessedSize)
+			*ProcessedSize = Written;
 
-			return S_OK;
-		}
-
-		return E_FAIL;
+		return S_OK;
 	}
 
 private:
-	int m_RefCount{ 1 };
+	~out_file() = default;
 	handle m_File;
 };
 
@@ -391,7 +402,7 @@ public:
 				CreateDirectories(FullName.data());
 				if (value.boolVal != VARIANT_TRUE)
 				{
-					const auto File = make_com_ptr<out_file>();
+					const auto File = com::make_ptr<out_file>();
 					bool Opened;
 					for (;;)
 					{
@@ -459,7 +470,7 @@ bool seven_zip_module_manager::extract(const wchar_t* FileName, const wchar_t* D
 
 	auto Result = false;
 
-	const auto File = make_com_ptr<in_file>();
+	const auto File = com::make_ptr<in_file>();
 	
 	bool Opened;
 	for(;;)
@@ -476,17 +487,17 @@ bool seven_zip_module_manager::extract(const wchar_t* FileName, const wchar_t* D
 	if (!Opened)
 		return false;
 
-	for (unsigned int i = 0; i != m_Module->m_NumberOfFormats; ++i)
+	for (const auto& i: *m_Module)
 	{
 		File->Seek(0, FILE_BEGIN, nullptr);
 
-		com_ptr<IInArchive> Archive;
+		com::ptr<IInArchive> Archive;
 
-		if (m_Module->m_CreateObject(&m_Module->m_Uids[i], &IID_IInArchive, reinterpret_cast<void**>(&ptr_setter(Archive))) == S_OK)
+		if (m_Module->m_CreateObject(&i, &IID_IInArchive, reinterpret_cast<void**>(&ptr_setter(Archive))) == S_OK)
 		{
 			if (Archive->Open(File.get(), nullptr, nullptr) == S_OK)
 			{
-				const auto Cb = make_com_ptr<archive_extract_callback>(Archive.get(), Callback);
+				const auto Cb = com::make_ptr<archive_extract_callback>(Archive.get(), Callback);
 				Cb->set_extract_folder(DestDir);
 
 				if (Archive->Extract(nullptr, std::numeric_limits<uint32_t>::max(), 0, Cb.get()) == S_OK)

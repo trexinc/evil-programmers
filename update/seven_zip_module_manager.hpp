@@ -14,6 +14,8 @@ using callback = std::function<bool(callback_mode, const wchar_t*)>;
 class seven_zip_module_manager
 {
 public:
+	NONCOPYABLE(seven_zip_module_manager);
+
 	seven_zip_module_manager(const wchar_t* PathTo7z);
 	~seven_zip_module_manager();
 
