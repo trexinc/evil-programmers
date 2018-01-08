@@ -1,19 +1,15 @@
 #include "headers.hpp"
 #pragma hdrstop
 
+#include <initguid.h>
+
 #include "prop_variant.hpp"
 #include "seven_zip_module_manager.hpp"
 
 #include "7z.headers/7zip/Archive/IArchive.h"
 #include "7z.headers/7zip/Common/FileStreams.h"
 
-#include <initguid.h>
 #include "system.hpp"
-
-DEFINE_GUID(IID_IInArchive, 0x23170F69, 0x40C1, 0x278A, 0x00, 0x00, 0x00, 0x06, 0x00, 0x60, 0x00, 0x00);
-DEFINE_GUID(IID_ISequentialOutStream, 0x23170F69, 0x40C1, 0x278A, 0x00, 0x00, 0x00, 0x03, 0x00, 0x02, 0x00, 0x00);
-DEFINE_GUID(IID_IInStream, 0x23170F69, 0x40C1, 0x278A, 0x00, 0x00, 0x00, 0x03, 0x00, 0x03, 0x00, 0x00);
-DEFINE_GUID(IID_IArchiveExtractCallback, 0x23170F69, 0x40C1, 0x278A, 0x00, 0x00, 0x00, 0x06, 0x00, 0x20, 0x00, 0x00);
 
 class seven_zip_module
 {
@@ -135,6 +131,19 @@ public:
 	reference_counted() = default;
 	NONCOPYABLE(reference_counted);
 
+	HRESULT WINAPI QueryInterfaceImpl(const IID& ThisId, const IID& Id, void** Object)
+	{
+		if (ThisId != Id)
+		{
+			*Object = nullptr;
+			return E_NOINTERFACE;
+		}
+
+		*Object = this;
+		AddRef();
+		return S_OK;
+	}
+
 	ULONG WINAPI AddRef() override
 	{
 		return ++m_RefCount;
@@ -177,15 +186,7 @@ public:
 
 	HRESULT WINAPI QueryInterface(const IID& Id, void** Object) override
 	{
-		if (Id != IID_IInStream)
-		{
-			*Object = nullptr;
-			return E_NOINTERFACE;
-		}
-
-		*Object = static_cast<void*>(static_cast<IInStream*>(this));
-		AddRef();
-		return S_OK;
+		return QueryInterfaceImpl(IID_IInStream, Id, Object);
 	}
 
 	HRESULT WINAPI Read(void* Data, unsigned int Size, unsigned int* ProcessedSize) override
@@ -251,15 +252,7 @@ public:
 
 	HRESULT WINAPI QueryInterface(const IID& Id, void** Object) override
 	{
-		if (Id != IID_ISequentialOutStream)
-		{
-			*Object = nullptr;
-			return E_NOINTERFACE;
-		}
-
-		*Object = this;
-		AddRef();
-		return S_OK;
+		return QueryInterfaceImpl(IID_ISequentialOutStream, Id, Object);
 	}
 
 	HRESULT WINAPI Write(const void* Data, unsigned int Size, unsigned int* ProcessedSize) override
@@ -300,19 +293,21 @@ static void CreateDirectory(const wchar_t *FullPath, DWORD dwFileAttributes = IN
 static void CreateDirectories(const wchar_t *FileName)
 {
 	std::wstring NameCopy = FileName;
-	auto LastSlashPos = NameCopy.find_last_of(L'\\');
+	const auto LastSlashPos = NameCopy.find_last_of(L'\\');
 	if (LastSlashPos != NameCopy.npos)
 		NameCopy.resize(LastSlashPos);
 
 	CreateDirectory(NameCopy.data());
 }
 
-class archive_extract_callback: public IArchiveExtractCallback
+class archive_extract_callback final: public reference_counted<IArchiveExtractCallback>
 {
 public:
-	archive_extract_callback(IInArchive* Archive, const callback& Callback):
+	NONCOPYABLE(archive_extract_callback);
+
+	archive_extract_callback(IInArchive* Archive, callback Callback):
 		m_Archive(Archive),
-		m_Callback(Callback)
+		m_Callback(std::move(Callback))
 	{
 	}
 
@@ -323,31 +318,7 @@ public:
 
 	HRESULT WINAPI QueryInterface(const IID& Id, void** Object) override
 	{
-		if (Id != IID_IArchiveExtractCallback)
-		{
-			*Object = nullptr;
-			return E_NOINTERFACE;
-		}
-		
-		*Object = this;
-		AddRef();
-		return S_OK;
-	}
-
-	ULONG WINAPI AddRef() override
-	{
-		return ++m_RefCount;
-	}
-
-	ULONG WINAPI Release() override
-	{
-		if (--m_RefCount == 0)
-		{
-			delete this;
-			return 0;
-		}
-
-		return m_RefCount;
+		return QueryInterfaceImpl(IID_IArchiveExtractCallback, Id, Object);
 	}
 
 	HRESULT WINAPI SetTotal(unsigned long long Total) override
@@ -443,7 +414,7 @@ public:
 	}
 
 private:
-	int m_RefCount{ 1 };
+	~archive_extract_callback() = default;
 	IInArchive *m_Archive;
 	std::wstring m_FolderToExtract;
 	callback m_Callback;
