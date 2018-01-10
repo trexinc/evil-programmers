@@ -128,12 +128,11 @@ template<typename T>
 class reference_counted: public T
 {
 public:
-	reference_counted() = default;
 	NONCOPYABLE(reference_counted);
 
-	HRESULT WINAPI QueryInterfaceImpl(const IID& ThisId, const IID& Id, void** Object)
+	HRESULT WINAPI QueryInterface(const IID& Id, void** Object) override
 	{
-		if (ThisId != Id)
+		if (Id != m_Id)
 		{
 			*Object = nullptr;
 			return E_NOINTERFACE;
@@ -161,18 +160,27 @@ public:
 	}
 
 protected:
+	explicit reference_counted(const IID& Id):
+		m_Id(Id)
+	{
+	}
+
 	virtual ~reference_counted() = default;
 
 private:
+	IID m_Id;
 	int m_RefCount = 1;
 };
 
 class in_file final: public reference_counted<IInStream>
 {
 public:
-	in_file() = default;
-
 	NONCOPYABLE(in_file);
+
+	in_file():
+		reference_counted<IInStream>(IID_IInStream)
+	{
+	}
 
 	bool open(const wchar_t* FileName)
 	{
@@ -182,11 +190,6 @@ public:
 		
 		m_File.reset(File);
 		return true;
-	}
-
-	HRESULT WINAPI QueryInterface(const IID& Id, void** Object) override
-	{
-		return QueryInterfaceImpl(IID_IInStream, Id, Object);
 	}
 
 	HRESULT WINAPI Read(void* Data, unsigned int Size, unsigned int* ProcessedSize) override
@@ -222,9 +225,12 @@ private:
 class out_file final: public reference_counted<ISequentialOutStream>
 {
 public:
-	out_file() = default;
-
 	NONCOPYABLE(out_file);
+
+	out_file():
+		reference_counted<ISequentialOutStream>(IID_ISequentialOutStream)
+	{
+	}
 
 	bool open(const wchar_t* FileName)
 	{
@@ -248,11 +254,6 @@ public:
 
 		m_File.reset(File);
 		return true;
-	}
-
-	HRESULT WINAPI QueryInterface(const IID& Id, void** Object) override
-	{
-		return QueryInterfaceImpl(IID_ISequentialOutStream, Id, Object);
 	}
 
 	HRESULT WINAPI Write(const void* Data, unsigned int Size, unsigned int* ProcessedSize) override
@@ -306,6 +307,7 @@ public:
 	NONCOPYABLE(archive_extract_callback);
 
 	archive_extract_callback(IInArchive* Archive, callback Callback):
+		reference_counted<IArchiveExtractCallback>(IID_IArchiveExtractCallback),
 		m_Archive(Archive),
 		m_Callback(std::move(Callback))
 	{
@@ -314,11 +316,6 @@ public:
 	void set_extract_folder(const wchar_t* Folder)
 	{
 		m_FolderToExtract = Folder;
-	}
-
-	HRESULT WINAPI QueryInterface(const IID& Id, void** Object) override
-	{
-		return QueryInterfaceImpl(IID_IArchiveExtractCallback, Id, Object);
 	}
 
 	HRESULT WINAPI SetTotal(unsigned long long Total) override

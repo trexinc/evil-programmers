@@ -293,13 +293,16 @@ static bool get_response(const wchar_t* Question)
 {
 	mprintf(color::yellow, (L"\n"s + Question + L" (Y/N) "s).data());
 
-	INPUT_RECORD ir { 0 };
-	while (!(ir.EventType == KEY_EVENT && !ir.Event.KeyEvent.bKeyDown && (ir.Event.KeyEvent.wVirtualKeyCode == L'Y' || ir.Event.KeyEvent.wVirtualKeyCode == L'N')))
+	INPUT_RECORD ir{};
+	const auto& KeyEvent = ir.Event.KeyEvent;
+
+	do
 	{
-		DWORD BytesRead;
-		ReadConsoleInput(GetStdHandle(STD_INPUT_HANDLE), &ir, 1, &BytesRead);
-		Sleep(1);
+		DWORD Read;
+		if (!ReadConsoleInput(GetStdHandle(STD_INPUT_HANDLE), &ir, 1, &Read) || Read != 1)
+			return false;
 	}
+	while (!(ir.EventType == KEY_EVENT && !KeyEvent.bKeyDown && (KeyEvent.wVirtualKeyCode == L'Y' || KeyEvent.wVirtualKeyCode == L'N')));
 
 	mprintf(L"\n");
 	return ir.Event.KeyEvent.wVirtualKeyCode == L'Y';
@@ -444,7 +447,9 @@ using internet_ptr = std::unique_ptr<std::remove_pointer_t<HINTERNET>, detail::i
 
 DWORD update_plugin::WinInetDownload(const wchar_t* ServerName, const wchar_t* Url, const wchar_t* FileName, bool UseProxy, download_callback Callback) const
 {
-	auto ProxyType = UseProxy? *ProxyName? INTERNET_OPEN_TYPE_PROXY : INTERNET_OPEN_TYPE_PRECONFIG : INTERNET_OPEN_TYPE_DIRECT;
+	const auto ProxyType = UseProxy?
+		*ProxyName? INTERNET_OPEN_TYPE_PROXY : INTERNET_OPEN_TYPE_PRECONFIG :
+		INTERNET_OPEN_TYPE_DIRECT;
 
 	internet_ptr Internet(InternetOpen(L"Mozilla/5.0 (compatible; FAR Update)", ProxyType, ProxyName, nullptr, 0));
 	if (!Internet)
