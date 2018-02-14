@@ -1,6 +1,7 @@
 ﻿F=far.Flags
 K=far.Colors
 ffi=require"ffi"
+ffi.cdef[[int lstrcmpW(const wchar_t* lpString1,const wchar_t* lpString2);]]
 ec=ffi.cast("struct PluginStartupInfo*",far.CPluginStartupInfo!).EditorControl
 egs=ffi.new "struct EditorGetString"
 egs.StructSize=ffi.sizeof egs
@@ -16,12 +17,14 @@ IsSpace=(char)->return char==32 or char==9
 KillSpaces1=(id,lineno,mms=false,spaces=true,eol)->
   egs.StringNumber=lineno-1
   if (ec id,"ECTL_GETSTRING",0,egs)~=0
+    raw=->ffi.cast "const wchar_t*",eol
     ess.StringNumber=egs.StringNumber
     ess.StringLength=egs.StringLength
     ess.StringText=egs.StringText
-    ess.StringEOL,neweol=if eol and egs.StringEOL[0]~=0
-      eol=win.Utf8ToUtf16 eol..'\0'
-      (ffi.cast "const wchar_t*",eol),true
+    ess.StringEOL,neweol=if eol and egs.StringEOL[0]~=0 and do
+        eol=win.Utf8ToUtf16 eol..'\0'
+        0~=ffi.C.lstrcmpW raw!,egs.StringEOL
+      raw!,true
     else
       egs.StringEOL,false
     if spaces and (not mms or not IsMms ess.StringText)
@@ -275,7 +278,6 @@ Highlite=(id,tt,top)->
               skip=true
             for keyword in *token
               if not (keyword.Start and posU>1)
-                win.OutputDebugString"+(#{name}) #{keyword[1]}|#{word}|#{line} #{stepU} #{stepB}"
                 if if word and not keyword.Skip then (word==match word,keyword[1],1) else match3 keyword[1]
                   add=(c,p)->addcolor ii,posU,posU+stepU-1,c,p
                   addcolor ii,regionstart,posU-1,region.ColorFull[2]
@@ -294,7 +296,6 @@ Highlite=(id,tt,top)->
                         addcolor pair.line,pair.pos1,pair.pos2,pair.type==keyword.Close and tt.o.Highlite.Pairs.ColorFull or tt.o.Highlite.Pairs.ColorErrorFull,100 if pair and curpair
                         add (pair and pair.cur and pair.type~=keyword.Close) and tt.o.Highlite.Pairs.ColorErrorFull or tt.o.Highlite.Pairs.ColorFull,100
                   break
-                win.OutputDebugString"-(#{name}) #{stepU} #{stepB}"
         posU+=stepU
         posB+=stepB
       if not region.Right or match2 region.Right then updateRegion 0,ii,len+1
