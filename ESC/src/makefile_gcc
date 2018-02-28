@@ -9,7 +9,7 @@ SRCS = esc.cpp CEditorOptions.cpp CIndicator.cpp CUserMacros.cpp e_options.cpp h
 
 USERCPP = -fno-threadsafe-statics
 
-include $(FARDEV)/unicode_far/makefile_gcc_common
+include $(FARDEV)/far/makefile_gcc_common
 
 include $(FARDEV)/plugins/makefile_gcc_def_inc
 
