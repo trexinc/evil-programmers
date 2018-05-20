@@ -132,7 +132,7 @@ namespace py
 
 	bool object::has_attribute(const std::string& Name) const
 	{
-		return has_attribute(Name.data());
+		return has_attribute(Name.c_str());
 	}
 
 	bool object::has_attribute(const std::wstring& Name) const
@@ -157,7 +157,7 @@ namespace py
 
 	object object::get_attribute(const std::string& Name) const
 	{
-		return get_attribute(Name.data());
+		return get_attribute(Name.c_str());
 	}
 
 	object object::get_attribute(const std::wstring& Name) const
@@ -182,7 +182,7 @@ namespace py
 
 	bool object::set_attribute(const std::string& Name, const object& Value)
 	{
-		return set_attribute(Name.data(), Value);
+		return set_attribute(Name.c_str(), Value);
 	}
 
 	bool object::set_attribute(const std::wstring& Name, const object& Value)

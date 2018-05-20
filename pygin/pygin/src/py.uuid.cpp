@@ -65,7 +65,7 @@ namespace
 	static UUID UuidFromString(const std::wstring& Str)
 	{
 		UUID Uuid;
-		const auto Result = UuidFromString(reinterpret_cast<RPC_WSTR>(const_cast<wchar_t*>(Str.data())), &Uuid);
+		const auto Result = UuidFromString(reinterpret_cast<RPC_WSTR>(const_cast<wchar_t*>(Str.c_str())), &Uuid);
 		if (Result != RPC_S_OK)
 			throw MAKE_PYGIN_EXCEPTION("UuidFromString returned " + std::to_string(Result));
 

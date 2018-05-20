@@ -152,15 +152,15 @@ intptr_t module::GetFindDataW(GetFindDataInfo* Info)
 
 void module::GetGlobalInfoW(GlobalInfo* Info)
 {
-	Info->Title = (m_Title = py::cast<std::wstring>(m_PluginModuleClass["Title"])).data();
-	Info->Author = (m_Author = py::cast<std::wstring>(m_PluginModuleClass["Author"])).data();
-	Info->Description = (m_Description = py::cast<std::wstring>(m_PluginModuleClass["Description"])).data();
+	Info->Title = (m_Title = py::cast<std::wstring>(m_PluginModuleClass["Title"])).c_str();
+	Info->Author = (m_Author = py::cast<std::wstring>(m_PluginModuleClass["Author"])).c_str();
+	Info->Description = (m_Description = py::cast<std::wstring>(m_PluginModuleClass["Description"])).c_str();
 	Info->Guid = py::cast<UUID>(m_PluginModuleClass["Guid"]);
 
 	const auto Version = m_PluginModuleClass.get_attribute("Version");
 
 	// This won't work as far_api is not initialised yet
-	// Consider 2-stage iitialisation
+	// Consider 2-stage initialisation
 	//Version.ensure_type(far_api::type("VersionInfo"s));
 
 	Info->Version.Major = py::cast<DWORD>(Version["Major"]);
@@ -203,7 +203,7 @@ void module::GetPluginInfoW(PluginInfo* Info)
 		{
 			const auto Tuple = py::cast<py::tuple>(ItemsList[i]);
 			MenuItems.StringsData.emplace_back(py::cast<std::wstring>(Tuple[0]));
-			MenuItems.Strings.emplace_back(MenuItems.StringsData.back().data());
+			MenuItems.Strings.emplace_back(MenuItems.StringsData.back().c_str());
 			MenuItems.Uuids.emplace_back(py::cast<UUID>(Tuple[1]));
 		}
 
@@ -217,7 +217,7 @@ void module::GetPluginInfoW(PluginInfo* Info)
 	ConvertPluginMenuItem("PluginConfigItems", m_PluginConfigItems, Info->PluginConfig);
 
 	m_CommandPrefix = py::cast<std::wstring>(PyInfo["CommandPrefix"]);
-	Info->CommandPrefix = m_CommandPrefix.data();
+	Info->CommandPrefix = m_CommandPrefix.c_str();
 }
 
 intptr_t module::MakeDirectoryW(MakeDirectoryInfo* Info)

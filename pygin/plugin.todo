@@ -688,22 +688,6 @@ struct PanelRedrawInfo
 	size_t TopPanelItem;
 };
 
-struct CmdLineSelect
-{
-	size_t StructSize;
-	intptr_t SelStart;
-	intptr_t SelEnd;
-};
-
-struct FarPanelDirectory
-{
-	size_t StructSize;
-	const wchar_t* Name;
-	const wchar_t* Param;
-	GUID PluginId;
-	const wchar_t* File;
-};
-
 #define PANEL_NONE    ((HANDLE)(-1))
 #define PANEL_STOP ((HANDLE)(-1))
 

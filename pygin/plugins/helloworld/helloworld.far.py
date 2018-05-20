@@ -109,6 +109,7 @@ class HelloWorldPlugin(pygin.Plugin):
 				far.MenuItem("Do Input Box (press '7')", 0, far.FarKey(ord('7'), 0)),
 				far.MenuItem("Do Message", far.MenuItemFlags.Checked),
 				far.MenuItem("Do Help"),
+				far.MenuItem("Goto C:\\windows"),
 			])
 
 		if ItemId == 0:
@@ -165,6 +166,11 @@ class HelloWorldPlugin(pygin.Plugin):
 
 		elif ItemId == 3:
 			self.ShowHelp("Contents", far.HelpFlags.Guid)
+
+		elif ItemId == 4:
+			Dir = far.PanelDirectory()
+			Dir.Name = "C:\\windows"
+			self.ActivePanel.PanelControl(far.FileControlCommands.SetPanelDirectory, 0, Dir)
 
 		else:
 			pass

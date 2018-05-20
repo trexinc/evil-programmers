@@ -173,11 +173,11 @@ namespace far_api_implementation
 
 			std::vector<const wchar_t*> AllItems;
 			AllItems.reserve(1 + Items.size() + Buttons.size());
-			AllItems.emplace_back(Title.data());
-			std::transform(Items.cbegin(), Items.cend(), std::back_inserter(AllItems), [](const auto& i) { return i.data(); });
-			std::transform(Buttons.cbegin(), Buttons.cend(), std::back_inserter(AllItems), [](const auto& i) { return i.data(); });
+			AllItems.emplace_back(Title.c_str());
+			std::transform(Items.cbegin(), Items.cend(), std::back_inserter(AllItems), [](const auto& i) { return i.c_str(); });
+			std::transform(Buttons.cbegin(), Buttons.cend(), std::back_inserter(AllItems), [](const auto& i) { return i.c_str(); });
 
-			const auto Result = psi().Message(&PluginId, &Id, Flags & ~FMSG_ALLINONE, HelpTopic.data(), AllItems.data(), AllItems.size(), Buttons.size());
+			const auto Result = psi().Message(&PluginId, &Id, Flags & ~FMSG_ALLINONE, HelpTopic.c_str(), AllItems.data(), AllItems.size(), Buttons.size());
 			if (Result != -1)
 				return py::integer(Result);
 
@@ -202,7 +202,7 @@ namespace far_api_implementation
 			const auto Flags = py::cast<INPUTBOXFLAGS>(PyFlags);
 			std::vector<wchar_t> Buffer(DestSize);
 
-			const auto Result = psi().InputBox(&PluginId, &Id, Title.data(), SubTitle.data(), HistoryName.data(), SrcText.data(), Buffer.data(), Buffer.size(), HelpTopic.data(), Flags);
+			const auto Result = psi().InputBox(&PluginId, &Id, Title.c_str(), SubTitle.c_str(), HistoryName.c_str(), SrcText.c_str(), Buffer.data(), Buffer.size(), HelpTopic.c_str(), Flags);
 			if (Result)
 				return py::string(Buffer.data());
 
@@ -247,7 +247,7 @@ namespace far_api_implementation
 				auto Item = Items[i];
 				FarMenuItem MenuItem{};
 				MenuStrings.emplace_back(py::cast<std::wstring>(Item["Text"]));
-				MenuItem.Text = MenuStrings.back().data();
+				MenuItem.Text = MenuStrings.back().c_str();
 				MenuItem.Flags = py::cast<MENUITEMFLAGS>(Item["Flags"]);
 				if (const py::object AccelKey = Item["AccelKey"])
 				{
@@ -258,7 +258,7 @@ namespace far_api_implementation
 			}
 
 			intptr_t BreakCode = 0;
-			const auto Result = psi().Menu(&PluginId, &Id, X, Y, MaxHeight, Flags, Title.data(), Bottom.data(), HelpTopic.data(), BreakKeys, &BreakCode, MenuItems.data(), MenuItems.size());
+			const auto Result = psi().Menu(&PluginId, &Id, X, Y, MaxHeight, Flags, Title.c_str(), Bottom.c_str(), HelpTopic.c_str(), BreakKeys, &BreakCode, MenuItems.data(), MenuItems.size());
 			if (PyBreakCode)
 			{
 				auto BreakCodeContainer = py::cast<py::list>(PyBreakCode);
@@ -297,7 +297,7 @@ namespace far_api_implementation
 				ModulePtr = &ModuleStr;
 			}
 
-			return py::boolean(psi().ShowHelp(static_cast<const wchar_t*>(ModulePtr), HelpTopic.data(), Flags) != FALSE);
+			return py::boolean(psi().ShowHelp(static_cast<const wchar_t*>(ModulePtr), HelpTopic.c_str(), Flags) != FALSE);
 		}
 	};
 
@@ -442,7 +442,7 @@ namespace far_api_implementation
 				std::wstring Str;
 				if (PyParam2)
 					Str = py::cast<std::wstring>(PyParam2);
-				return py::boolean(psi().PanelControl(Panel, Command, Param1, const_cast<wchar_t*>(Str.data())) != 0);
+				return py::boolean(psi().PanelControl(Panel, Command, Param1, const_cast<wchar_t*>(Str.c_str())) != 0);
 			};
 
 			switch (Command)
@@ -509,8 +509,18 @@ namespace far_api_implementation
 				return py::object::none();
 
 			case FCTL_SETPANELDIRECTORY:
-				// BUGBUG
-				return py::object::none();
+				{
+					PyParam2.ensure_type(far_api::type("PanelDirectory"));
+					FarPanelDirectory PanelDir{ sizeof(PanelDir) };
+					const auto Name = py::cast<std::wstring>(PyParam2["Name"]);
+					PanelDir.Name = Name.c_str();
+					const auto Param = py::cast<std::wstring>(PyParam2["Param"]);
+					PanelDir.Param = Param.c_str();
+					const auto File = py::cast<std::wstring>(PyParam2["File"]);
+					PanelDir.File = File.c_str();
+					PanelDir.PluginId = py::cast<UUID>(PyParam2["PluginId"]);
+					return py::boolean(psi().PanelControl(Panel, Command, 0, &PanelDir) != 0);
+				}
 
 			case FCTL_GETCMDLINEPOS:
 				{
@@ -522,12 +532,25 @@ namespace far_api_implementation
 				}
 
 			case FCTL_SETCMDLINESELECTION:
-				// BUGBUG
-				return py::object::none();
+				{
+					PyParam2.ensure_type(far_api::type("CmdLineSelect"));
+					CmdLineSelect Select{ sizeof(Select) };
+					Select.SelStart = py::cast<intptr_t>(PyParam2["SelStart"]);
+					Select.SelEnd = py::cast<intptr_t>(PyParam2["SelEnd"]);
+					return py::boolean(psi().PanelControl(Panel, Command, 0, &Select) != 0);
+				}
 
 			case FCTL_GETCMDLINESELECTION:
-				// BUGBUG
-				return py::object::none();
+				{
+					CmdLineSelect Select{ sizeof(Select) };
+					if (!psi().PanelControl(Panel, Command, 0, &Select))
+						return py::object::none();
+
+					auto CmdLineSelectInstance = far_api::type("CmdLineSelect")();
+					CmdLineSelectInstance["SelStart"] = Select.SelStart;
+					CmdLineSelectInstance["SelEnd"] = Select.SelEnd;
+					return CmdLineSelectInstance;
+				}
 
 			case FCTL_GETPANELITEM:
 			case FCTL_GETSELECTEDPANELITEM:

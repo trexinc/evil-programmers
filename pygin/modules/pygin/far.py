@@ -471,5 +471,17 @@ class PluginPanelItem:
 		self.CRC32 = 0
 		#self.Reserved
 
+class PanelDirectory:
+	def __init__(self):
+		self.Name = ""
+		self.Param = ""
+		self.PluginId = NullUuid
+		self.File = ""
+
+class CmdLineSelect:
+	def __init__(self):
+		self.SelStart = 0
+		self.SelEnd = 0
+
 def PanelControl(Panel: int, Command: FileControlCommands, Param1: int = 0, Param2 = None):
 	return __invoke_api()
