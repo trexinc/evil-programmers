@@ -70,7 +70,7 @@ TAutoCompletion::~TAutoCompletion()
 int TAutoCompletion::ProcessEditorInput(const INPUT_RECORD *Rec)
 {
   int IgnoreThisEvent=FALSE;
-  avl_window_data *Window=GetLocalData();
+  avl_window_data *Window=GetLocalData(-1);
   if(Window)
   {
     if(Rec->EventType==KEY_EVENT)
@@ -121,17 +121,13 @@ int TAutoCompletion::ProcessEditorEvent(int Event,void *Param,int EditorID)
   }
   else if(Event==EE_READ)
   {
-    EditorInfo ei={sizeof(ei)};
-    if(Info.EditorControl(-1,ECTL_GETINFO,0,&ei))
-    {
-      avl_window_data *Add=new avl_window_data(ei.EditorID);
-      Add=windows->insert(Add);
-      Add->clear();
-    }
+    avl_window_data *Add=new avl_window_data(EditorID);
+    Add=windows->insert(Add);
+    Add->clear();
   }
   else
   {
-    avl_window_data *Window=GetLocalData();
+    avl_window_data *Window=GetLocalData(EditorID);
     if(Window)
     {
       if(Event==EE_REDRAW)
@@ -145,9 +141,9 @@ int TAutoCompletion::ProcessEditorEvent(int Event,void *Param,int EditorID)
           else
           {
             Window->On=false;
-            Info.EditorControl(-1,ECTL_REDRAW,0,0);
+            Info.EditorControl(EditorID,ECTL_REDRAW,0,0);
             PutVariant(Window);
-            Info.EditorControl(-1,ECTL_REDRAW,0,0);
+            Info.EditorControl(EditorID,ECTL_REDRAW,0,0);
           }
         }
         else if(Window->Active) Colorize(HighliteColor,Window);
@@ -163,17 +159,17 @@ int TAutoCompletion::ProcessEditorEvent(int Event,void *Param,int EditorID)
 
 bool TAutoCompletion::CheckText(int Pos,int Row,avl_window_data *Window)
 {
-  SetCurPos(Pos,Row);
+  SetCurPos(Window->editorid(),Pos,Row);
   EditorGetString gs={sizeof(gs)};
   gs.StringNumber=-1; // current string
-  Info.EditorControl(-1,ECTL_GETSTRING,0,&gs);
+  Info.EditorControl(Window->editorid(),ECTL_GETSTRING,0,&gs);
   if(gs.StringLength>Pos)
   {
     string Line((const UTCHAR*)gs.StringText,gs.StringLength);
     if(!_tcsncmp((const TCHAR *)(const UTCHAR*)Line+Pos,(const TCHAR *)(const UTCHAR*)Window->Inserted,Window->Inserted.length()))
     {
       //set position to word start
-      SetCurPos(Pos-Window->OldLen,Row);
+      SetCurPos(Window->editorid(),Pos-Window->OldLen,Row);
       return true;
     }
   }
@@ -186,7 +182,7 @@ void TAutoCompletion::DeleteVariant(avl_window_data *Window)
   {
     bool process=false;
     EditorInfo ei={sizeof(ei)};
-    Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
+    Info.EditorControl(Window->editorid(),ECTL_GETINFO,0,&ei);
     DeColorize(Window);
     Window->Active=false;
     {
@@ -196,15 +192,15 @@ void TAutoCompletion::DeleteVariant(avl_window_data *Window)
     if(process)
     {
       if(!ei.Overtype)
-        for(size_t i=0;i<(Window->AddedLen+Window->OldLen);i++) Info.EditorControl(-1,ECTL_DELETECHAR,0,NULL);
-      Info.EditorControl(-1,ECTL_INSERTTEXT,0,Window->Rewrited.get());
+        for(size_t i=0;i<(Window->AddedLen+Window->OldLen);i++) Info.EditorControl(Window->editorid(),ECTL_DELETECHAR,0,NULL);
+      Info.EditorControl(Window->editorid(),ECTL_INSERTTEXT,0,Window->Rewrited.get());
     }
-    SetCurPos(ei.CurPos,ei.CurLine);
+    SetCurPos(Window->editorid(),ei.CurPos,ei.CurLine);
     Window->Rewrited.clear();
     Window->Inserted.clear();
     Window->AddedLen=0;
     Window->OldLen=0;
-    Info.EditorControl(-1,ECTL_REDRAW,0,0);
+    Info.EditorControl(Window->editorid(),ECTL_REDRAW,0,0);
   }
 }
 
@@ -216,64 +212,28 @@ bool TAutoCompletion::AcceptVariant(avl_window_data *Window)
     DeColorize(Window);
     Window->Active=false;
     Window->Rewrited.clear();
-    SetCurPos(Window->col+Window->AddedLen,Window->row);
+    SetCurPos(Window->editorid(),Window->col+Window->AddedLen,Window->row);
     if(PartialCompletion) Window->On=true;
-    Info.EditorControl(-1,ECTL_REDRAW,0,NULL);
+    Info.EditorControl(Window->editorid(),ECTL_REDRAW,0,NULL);
     Accepted=true;
   }
   return Accepted;
-}
-
-DWORD WINAPI SearchThread(LPVOID lpvThreadParm)
-{
-  TAutoCompletion *cmpl=static_cast<TAutoCompletion *>(lpvThreadParm);
-  return cmpl->DoSearch();
 }
 
 bool TAutoCompletion::PutVariant(avl_window_data *Window)
 {
   DWORD SearchOk=FALSE;
   DeleteVariant(Window);
-  if(GetPreWord())
+  if(GetPreWord(Window->editorid()))
   {
-    { // start thread
-      HANDLE handles[2];
-      DWORD ThreadID;
-      Stop=FALSE;
-      handles[0]=CreateThread(NULL,0,SearchThread,this,CREATE_SUSPENDED,&ThreadID);
-      handles[1]=CreateFile(_T("CONIN$"),GENERIC_READ|GENERIC_WRITE,FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
-      if(handles[0]&&handles[1])
-      {
-        ResumeThread(handles[0]);
-        {
-          bool poll=true;
-          while(poll)
-          {
-            DWORD wfmo=WaitForMultipleObjects(sizeof(handles)/sizeof(handles[0]),handles,FALSE,INFINITE);
-            switch(wfmo)
-            {
-              case WAIT_OBJECT_0:
-                poll=false;
-                break;
-              case WAIT_OBJECT_0+1:
-                InterlockedIncrement((LONG *)&Stop);
-                WaitForSingleObject(handles[0],INFINITE);
-                poll=false;
-                break;
-            }
-          }
-        }
-        if(!GetExitCodeThread(handles[0],&SearchOk)) SearchOk=FALSE;
-      }
-    }
-    if(SearchOk&&WordList.count()<=WordsToFindCnt)
+    if(DoSearch(Window->editorid())>0&&WordList.count()<=WordsToFindCnt)
     {
       string NewWord=WordList.get_top()->get_data()->get_data();
       if(PartialCompletion&&(WordList.get_partial().length()>Word.length()))
       {
         NewWord=WordList.get_partial();
       }
-      Window->Rewrited=PutWord(NewWord);
+      Window->Rewrited=PutWord(Window->editorid(),NewWord);
       Window->Inserted=string(NewWord.get()+Word.length());
       Window->Active=true;
       Window->AddedLen=NewWord.length()-Word.length()+(AddTrailingSpace?1:0);
@@ -294,7 +254,7 @@ void TAutoCompletion::Colorize(FarColor NewColor,avl_window_data *Window)
   ec.Color=NewColor;
   ec.Owner=MainGuid;
   ec.Priority=100;
-  Info.EditorControl(-1,ECTL_ADDCOLOR,0,&ec);
+  Info.EditorControl(Window->editorid(),ECTL_ADDCOLOR,0,&ec);
 }
 
 void TAutoCompletion::DeColorize(avl_window_data *Window)
@@ -304,13 +264,13 @@ void TAutoCompletion::DeColorize(avl_window_data *Window)
   edc.Owner=MainGuid;
   edc.StringNumber=Window->row;
   edc.StartPos=-1;
-  Info.EditorControl(-1,ECTL_DELCOLOR,0,&edc);
+  Info.EditorControl(Window->editorid(),ECTL_DELCOLOR,0,&edc);
 }
 
-bool TAutoCompletion::CompleteWord(void)
+bool TAutoCompletion::CompleteWord(intptr_t EditorID)
 {
   bool WasCompleted=false;
-  avl_window_data *Window=GetLocalData();
+  avl_window_data *Window=GetLocalData(EditorID);
   if(Window)
   {
     if(Window->Active)
@@ -530,4 +490,10 @@ void TAutoCompletion::StoreItems(CFarDialog& Dialog)
   FSF.FarNameToInputRecord(Dialog.Str(IAcceptKey),&AcceptKey);
   FSF.FarNameToInputRecord(Dialog.Str(IDeleteKey),&DeleteKey);
   _tcscpy(AcceptChars,Dialog.Str(IAcceptChars));
+}
+
+bool TAutoCompletion::CheckStop()
+{
+  DWORD events=0;
+  return GetNumberOfConsoleInputEvents(GetStdHandle(STD_INPUT_HANDLE),&events)&&events>0;
 }

@@ -25,7 +25,7 @@ void avl_window_data::clear(void)
   Inserted.clear();
 }
 
-avl_window_data::avl_window_data(int value)
+avl_window_data::avl_window_data(intptr_t value)
 {
   eid=value;
   clear();
@@ -46,7 +46,7 @@ long avl_window_tree::compare(avl_node<avl_window_data> *first,avl_window_data *
   return second->eid-first->data->eid;
 }
 
-avl_window_data *avl_window_tree::query(int value)
+avl_window_data *avl_window_tree::query(intptr_t value)
 {
   avl_window_data Get(value);
   return avl_tree<avl_window_data>::query(&Get);

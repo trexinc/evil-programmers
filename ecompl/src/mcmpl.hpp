@@ -47,7 +47,7 @@ class TMenuCompletion: public TCompletion
   public:
     TMenuCompletion();
     ~TMenuCompletion();
-    bool CompleteWord(void);
+    bool CompleteWord(intptr_t EditorID);
 };
 
 #define MCMPL_FIRST_TEXT (CMPL_DIALOG_ITEMS+3)

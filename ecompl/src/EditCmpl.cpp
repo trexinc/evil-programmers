@@ -50,7 +50,7 @@ FARSTANDARDFUNCTIONS FSF;
 static TMenuCompletion *MCmpl=NULL;
 static TAutoCompletion *ACmpl=NULL;
 static int ShowMenu(int Offset=0);
-static void Complete(void);
+static void Complete(intptr_t EditorID);
 
 avl_window_tree *windows=NULL;
 
@@ -105,7 +105,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo* Info)
       ShowMenu();
       break;
     case OPEN_FROMMACRO:
-      if(MACROAREA_EDITOR==::Info.MacroControl(&MainGuid,MCTL_GETAREA,0,0)) Complete();
+      if(MACROAREA_EDITOR==::Info.MacroControl(&MainGuid,MCTL_GETAREA,0,0)) Complete(-1);
       break;
     default:
       break;
@@ -136,10 +136,10 @@ void WINAPI ExitFARW(const struct ExitInfo *Info)
   delete windows;
 }
 
-void Complete(void)
+void Complete(intptr_t EditorID)
 {
-  if(!ACmpl->CompleteWord())
-    MCmpl->CompleteWord();
+  if(!ACmpl->CompleteWord(EditorID))
+    MCmpl->CompleteWord(EditorID);
 }
 
 int ShowMenu(int Offset)
@@ -168,7 +168,7 @@ int ShowMenu(int Offset)
     switch(MenuCode)
     {
       case 0: // "OK"
-        Complete();
+        Complete(-1);
         break;
       case 2: // Menu
         MCmpl->ShowDialog();

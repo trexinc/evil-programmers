@@ -25,7 +25,7 @@
 class avl_window_data
 {
   private:
-    int eid; //editor
+    intptr_t eid; //editor
   public:
     int row; //cursor pos
     int col;
@@ -36,8 +36,9 @@ class avl_window_data
     bool BlockDeleted; //non-persistent strem block - so skip 1st event.
     string Rewrited;
     string Inserted;
-    avl_window_data(int value);
+    avl_window_data(intptr_t value);
     void clear(void);
+    intptr_t editorid() const {return eid;}
   friend class avl_window_tree;
 };
 
@@ -47,7 +48,7 @@ class avl_window_tree: public avl_tree<avl_window_data>
     avl_window_tree();
     ~avl_window_tree();
     long compare(avl_node<avl_window_data> *first,avl_window_data *second);
-    avl_window_data *query(int value);
+    avl_window_data *query(intptr_t value);
 };
 
 #endif

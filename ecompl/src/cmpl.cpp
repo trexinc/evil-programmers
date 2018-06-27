@@ -29,8 +29,6 @@ DEFINE_GUID(CmplGuid, 0x9eae0bdb, 0x8fba, 0x4fe8, 0xa7, 0x10, 0xc0, 0xfd, 0xd5, 
 
 TCompletion::TCompletion()
 {
-  Stop=FALSE;
-
   WorkInsideWord=true;
   BrowseDownward=true;
   CaseSensitive=false;
@@ -62,12 +60,12 @@ void TCompletion::Cleanup(void)
   Word.clear();
 }
 
-int TCompletion::GetPreWord(void)
+int TCompletion::GetPreWord(intptr_t EditorID)
 {
   EditorInfo ei={sizeof(ei)};
   EditorGetString gs={sizeof(gs)};
 
-  Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
+  Info.EditorControl(EditorID,ECTL_GETINFO,0,&ei);
   if(ei.CurState&ECSTATE_LOCKED) return 0;
   avl_window_data *Window=windows->query(ei.EditorID);
   if(!Window) return 0;
@@ -78,7 +76,7 @@ int TCompletion::GetPreWord(void)
   Word.clear();
 
   gs.StringNumber=-1; // current string
-  Info.EditorControl(-1,ECTL_GETSTRING,0,&gs);
+  Info.EditorControl(EditorID,ECTL_GETSTRING,0,&gs);
   // в начале и в конце строки искать нечего!!!
   if(ei.CurPos>0&&ei.CurPos<=gs.StringLength)
   {
@@ -101,7 +99,7 @@ int TCompletion::GetPreWord(void)
   return Word.length();
 }
 
-int TCompletion::DoSearch(void)
+int TCompletion::DoSearch(intptr_t EditorID)
 {
   if(!Word.length()) return 0;
   EditorGetString gs={sizeof(gs)};
@@ -110,9 +108,9 @@ int TCompletion::DoSearch(void)
   int Line2Browse[2]; // Сколько строк будем просматривать вперед и назад
 
   WordList.clear();
-  Info.EditorControl(-1,ECTL_GETINFO,0,&ei); //SEELATER use stored data for currsor position and check eid
+  Info.EditorControl(EditorID,ECTL_GETINFO,0,&ei); //SEELATER use stored data for currsor position and check eid
   gs.StringNumber=-1; // current string
-  Info.EditorControl(-1,ECTL_GETSTRING,0,&gs);
+  Info.EditorControl(EditorID,ECTL_GETSTRING,0,&gs);
 
   string Line((const UTCHAR *)gs.StringText,gs.StringLength);
   if(Line.length()==(size_t)gs.StringLength)
@@ -131,12 +129,12 @@ int TCompletion::DoSearch(void)
     {
       if(Line2Browse[j]<i) continue;
       gs.StringNumber=ei.CurLine+(j?i:-i);
-      Info.EditorControl(-1,ECTL_GETSTRING,0,&gs);
+      Info.EditorControl(EditorID,ECTL_GETSTRING,0,&gs);
       Line((const UTCHAR *)gs.StringText,gs.StringLength);
       AddWords(Line,Line.length(),j);
       if(WordList.count()>=WordsToFindCnt) break;
     }
-    if(Stop) break;
+    if(CheckStop()) break;
   }
   return WordList.count();
 }
@@ -233,40 +231,44 @@ bool TCompletion::IsAlpha(unsigned int c)
   return ret;
 }
 
-avl_window_data *TCompletion::GetLocalData(void)
+avl_window_data *TCompletion::GetLocalData(intptr_t EditorID)
 {
-  EditorInfo ei={sizeof(ei)};
-  Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
-  return windows->query(ei.EditorID);
+  if(-1==EditorID)
+  {
+    EditorInfo ei={sizeof(ei)};
+    Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
+    EditorID=ei.EditorID;
+  }
+  return windows->query(EditorID);
 }
 
-string TCompletion::PutWord(string NewWord)
+string TCompletion::PutWord(intptr_t EditorID,string NewWord)
 {
   //SEELATER check editor before insert
   EditorInfo ei={sizeof(ei)}; EditorGetString gs={sizeof(gs)};
   int OldPos;
   string OverwritedText;
-  Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
+  Info.EditorControl(EditorID,ECTL_GETINFO,0,&ei);
   OldPos=ei.CurPos;
   if(AddTrailingSpace) NewWord+=' ';
-  SetCurPos(WordPos);
+  SetCurPos(EditorID,WordPos);
 
   gs.StringNumber=-1;
-  Info.EditorControl(-1,ECTL_GETSTRING,0,&gs);
+  Info.EditorControl(EditorID,ECTL_GETSTRING,0,&gs);
   if(!ei.Overtype)
   {
     if(gs.StringLength>WordPos) OverwritedText((const UTCHAR *)&gs.StringText[WordPos],MIN(ei.CurPos-WordPos,gs.StringLength-WordPos));
-    for(int i=WordPos;i<ei.CurPos;i++) Info.EditorControl(-1,ECTL_DELETECHAR,0,NULL);
+    for(int i=WordPos;i<ei.CurPos;i++) Info.EditorControl(EditorID,ECTL_DELETECHAR,0,NULL);
     //workaround
-    Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
+    Info.EditorControl(EditorID,ECTL_GETINFO,0,&ei);
     if(ei.BlockType==BTYPE_STREAM&&ei.BlockStartLine==ei.CurLine)
     {
       gs.StringNumber=-1;
-      Info.EditorControl(-1,ECTL_GETSTRING,0,&gs);
+      Info.EditorControl(EditorID,ECTL_GETSTRING,0,&gs);
       if(gs.SelStart==-1)
       {
         EditorSelect es={sizeof(EditorSelect),BTYPE_NONE,0,0,0,0};
-        Info.EditorControl(-1,ECTL_SELECT,0,&es);
+        Info.EditorControl(EditorID,ECTL_SELECT,0,&es);
       }
     }
   }
@@ -275,12 +277,12 @@ string TCompletion::PutWord(string NewWord)
     if(gs.StringLength>WordPos) OverwritedText((const UTCHAR *)&gs.StringText[WordPos],MIN(NewWord.length(),(size_t)(gs.StringLength-WordPos)));
   }
 
-  Info.EditorControl(-1,ECTL_INSERTTEXT,0,NewWord.get());
-  SetCurPos(OldPos);
+  Info.EditorControl(EditorID,ECTL_INSERTTEXT,0,NewWord.get());
+  SetCurPos(EditorID,OldPos);
   return OverwritedText;
 }
 
-void TCompletion::SetCurPos(int NewPos,int NewRow)
+void TCompletion::SetCurPos(intptr_t EditorID,int NewPos,int NewRow)
 {
   struct EditorSetPosition sp;
   sp.StructSize=sizeof(sp);
@@ -290,7 +292,7 @@ void TCompletion::SetCurPos(int NewPos,int NewRow)
   sp.TopScreenLine=-1;
   sp.LeftPos=-1;
   sp.Overtype=-1;
-  Info.EditorControl(-1,ECTL_SETPOSITION,0,&sp);
+  Info.EditorControl(EditorID,ECTL_SETPOSITION,0,&sp);
 }
 
 bool TCompletion::GetValue(HANDLE Handle,size_t Root,const TCHAR* Name,bool Default)
@@ -532,4 +534,9 @@ void TCompletion::ShowDialog()
     }
     HeapFree(GetProcessHeap(),0,DialogItems);
   }
+}
+
+bool TCompletion::CheckStop()
+{
+  return false;
 }

@@ -44,12 +44,12 @@ TMenuCompletion::~TMenuCompletion()
 {
 }
 
-bool TMenuCompletion::CompleteWord(void)
+bool TMenuCompletion::CompleteWord(intptr_t EditorID)
 {
   bool result=false;
-  if(GetPreWord()&&WordsToFindCnt)
+  if(GetPreWord(EditorID)&&WordsToFindCnt)
   {
-    if(DoSearch())
+    if(DoSearch(EditorID))
     {
       bool Insert=true;
       string NewWord=WordList.get_top()->get_data()->get_data();
@@ -63,8 +63,8 @@ bool TMenuCompletion::CompleteWord(void)
       }
       if(Insert)
       {
-        PutWord(NewWord);
-        SetCurPos(WordPos+NewWord.length());
+        PutWord(EditorID,NewWord);
+        SetCurPos(EditorID,WordPos+NewWord.length());
         result=true;
       }
     }

@@ -40,6 +40,8 @@ class TAutoCompletion: public TCompletion
     TCHAR DeleteKeyText[21];
     TCHAR DeleteKeyCfgText[21];
   protected:
+    bool CheckStop();
+  protected:
     void DeleteVariant(avl_window_data *Window);
     bool AcceptVariant(avl_window_data *Window);
     bool PutVariant(avl_window_data *Window);
@@ -60,8 +62,7 @@ class TAutoCompletion: public TCompletion
     ~TAutoCompletion();
     int ProcessEditorInput(const INPUT_RECORD *Rec);
     int ProcessEditorEvent(int Event,void *Param,int EditorID);
-    bool CompleteWord(void);
-  friend DWORD WINAPI SearchThread(LPVOID lpvThreadParm);
+    bool CompleteWord(intptr_t EditorID);
 };
 
 #define ACMPL_DIALOG_ITEMS (IDeleteKeyCfg+1)

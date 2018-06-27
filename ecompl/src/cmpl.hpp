@@ -57,25 +57,25 @@ class TCompletion
     TCHAR ConfigHelpTopic[30];
 
     __int64 AsteriskSymbol;
-  protected: //thread flag
-    volatile LONG Stop;
+  protected:
+    virtual bool CheckStop();
   protected: //completion state
     string Word;
     int WordPos;
     avl_word_tree WordList;
     void Cleanup(void);
   protected: //completion functions
-    int GetPreWord(void);
-    int DoSearch(void);
+    int GetPreWord(intptr_t EditorID);
+    int DoSearch(intptr_t EditorID);
     void AddWords(const UTCHAR *Line,int Len,int Direction);
     void AddWord(const string &NewWord);
     void InsertWordIntoList(const string &NewWord);
     UTCHAR *FindWordStart(const UTCHAR *Line,int Len);
-    string PutWord(string NewWord);
-    void SetCurPos(int NewPos,int NewRow=-1);
+    string PutWord(intptr_t EditorID,string NewWord);
+    void SetCurPos(intptr_t EditorID,int NewPos,int NewRow=-1);
   protected: //common functions
     bool IsAlpha(unsigned int c);
-    avl_window_data *GetLocalData(void);
+    avl_window_data *GetLocalData(intptr_t EditorID);
   protected: //options
     static bool GetValue(HANDLE Handle,size_t Root,const TCHAR* Name,bool Default);
     static __int64 GetValue(HANDLE Handle,size_t Root,const TCHAR* Name,__int64 Default);
