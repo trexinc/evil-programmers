@@ -61,8 +61,7 @@ namespace py
 
 	void list::set_at(size_t Index, const object& Value)
 	{
-		DONT_STEAL_REFERENCE(Value.get());
-		invoke(PyList_SetItem, get(), Index, Value.get());
+		invoke(PyList_SetItem, get(), Index, Value.get_no_steal());
 	}
 
 	object list::get_at(size_t Index) const

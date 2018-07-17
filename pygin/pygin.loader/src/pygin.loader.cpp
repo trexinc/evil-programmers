@@ -37,25 +37,35 @@ extern "C" IMAGE_DOS_HEADER __ImageBase;
 
 bool adapter::ModuleInit()
 {
+	m_Summary = L"Pygin Adapter Loader"s;
+	m_Description = L"Unknown error"s;
+
 	m_Activated = true;
 
 	wchar_t AdaptherPath[MAX_PATH];
 	if (!GetModuleFileName(reinterpret_cast<HINSTANCE>(&__ImageBase), AdaptherPath, static_cast<DWORD>(std::size(AdaptherPath))))
+	{
+		m_Description = GetLastErrorMessage(GetLastError());
 		return false;
+	}
 
 	std::wcscpy(wcsrchr(AdaptherPath, L'\\') + 1, L"pygin.dll");
 
 	// TODO: customisation point here
 
-	m_Adapter = LoadLibrary(AdaptherPath);
+	m_Adapter.reset(LoadLibrary(AdaptherPath));
 	if (!m_Adapter)
+	{
+		m_Description = GetLastErrorMessage(GetLastError()) + L"\n\1\nHint: Make sure you have Python directory (e.g. C:\\Program Files\\Python37) in PATH"s;
 		return false;
+	}
 
 #define INIT_IMPORT(name) \
-	m_##name = reinterpret_cast<decltype(m_##name)>(GetProcAddress(m_Adapter, "adapter_" #name)); \
+	m_##name = reinterpret_cast<decltype(m_##name)>(GetProcAddress(m_Adapter.get(), "adapter_" #name)); \
 	if (!m_##name) \
 	{ \
 		Cleanup(); \
+		m_Description = GetLastErrorMessage(GetLastError()); \
 		return false; \
 	}
 
@@ -107,8 +117,8 @@ BOOL adapter::GetError(ErrorInfo* Info) const noexcept
 		return m_GetError(Info);
 
 	Info->StructSize = sizeof(Info);
-	Info->Summary = L"Error loading pygin.dll";
-	Info->Description = L"Unknown error";
+	Info->Summary = m_Summary.c_str();
+	Info->Description = m_Description.c_str();
 	return true;
 }
 
@@ -131,7 +141,4 @@ void adapter::Cleanup()
 	m_GetError = nullptr;
 	m_DestroyInstance = nullptr;
 	m_Free = nullptr;
-
-	FreeLibrary(m_Adapter);
-	m_Adapter = nullptr;
 }

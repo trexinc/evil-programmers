@@ -9,7 +9,7 @@ Discussion: https://forum.farmanager.com/viewtopic.php?t=9998
 ##### Installation
 
 Put `adapters` and `plugins` directories to `%FARHOME%`.
-Make sure you have Python 3 (e.g. `C:\Program Files\Python36` or `C:\Program Files (x86)\Python36-32`) directory in the `%PATH%`.
+Make sure you have Python 3 (e.g. `C:\Program Files\Python37` or `C:\Program Files (x86)\Python37-32`) directory in the `%PATH%`.
 
 ##### Usage
 

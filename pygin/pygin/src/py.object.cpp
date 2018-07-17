@@ -41,8 +41,36 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "python.hpp"
 
+static void IncrementReference(PyObject* Object)
+{
+	Py_XINCREF(Object);
+}
+
+static void DecrementReference(PyObject* Object)
+{
+	Py_XDECREF(Object);
+}
+
+#ifdef _DEBUG
+std::atomic_size_t g_ObjectsCount;
+#endif
+
 namespace py
 {
+	object::counter::counter()
+	{
+#ifdef _DEBUG
+		++g_ObjectsCount;
+#endif
+	}
+
+	object::counter::~counter()
+	{
+#ifdef _DEBUG
+		--g_ObjectsCount;
+#endif
+	}
+
 	object::object():
 		m_Object()
 	{
@@ -56,7 +84,7 @@ namespace py
 	object::object(const object& Object):
 		m_Object(Object.m_Object)
 	{
-		Py_XINCREF(m_Object);
+		IncrementReference(m_Object);
 	}
 
 	object::object(object&& Object) noexcept:
@@ -71,7 +99,7 @@ namespace py
 
 	object::~object()
 	{
-		Py_XDECREF(m_Object);
+		DecrementReference(m_Object);
 	}
 
 	object object::none()
@@ -81,15 +109,15 @@ namespace py
 
 	object& object::operator=(PyObject* Rhs) &
 	{
-		Py_XDECREF(m_Object);
+		DecrementReference(m_Object);
 		m_Object = Rhs;
 		return *this;
 	}
 
 	object& object::operator=(const object& Rhs) &
 	{
-		Py_XINCREF(Rhs.m_Object);
-		Py_XDECREF(m_Object);
+		IncrementReference(Rhs.m_Object);
+		DecrementReference(m_Object);
 		m_Object = Rhs.m_Object;
 		return *this;
 	}
@@ -113,6 +141,12 @@ namespace py
 	PyObject* object::get() const
 	{
 		return m_Object;
+	}
+
+	PyObject* object::get_no_steal() const
+	{
+		IncrementReference(m_Object);
+		return get();
 	}
 
 	PyObject* object::release()
@@ -207,7 +241,7 @@ namespace py
 
 	object object::from_borrowed(PyObject* Object)
 	{
-		Py_XINCREF(Object);
+		IncrementReference(Object);
 		return object(Object);
 	}
 

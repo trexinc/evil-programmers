@@ -98,6 +98,12 @@ namespace py
 
 	class object: public proxies_owner<object, const char*, const wchar_t*, std::string, std::wstring>
 	{
+		struct counter
+		{
+			counter();
+			~counter();
+		};
+
 	public:
 		using proxy_owner<object, const char*>::operator[];
 		using proxy_owner<object, const wchar_t*>::operator[];
@@ -122,6 +128,7 @@ namespace py
 		bool operator!() const;
 
 		PyObject* get() const;
+		PyObject* get_no_steal() const;
 		PyObject* release();
 
 		bool has_attribute(const char* Name) const;

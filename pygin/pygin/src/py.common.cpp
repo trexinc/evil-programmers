@@ -40,6 +40,10 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "python.hpp"
 
+#ifdef _DEBUG
+extern std::atomic_size_t g_ObjectsCount;
+#endif
+
 namespace py
 {
 	void initialize()
@@ -49,6 +53,9 @@ namespace py
 
 	void finalize()
 	{
+#ifdef _DEBUG
+		assert(!g_ObjectsCount);
+#endif
 		Py_Finalize();
 	}
 

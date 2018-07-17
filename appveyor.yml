@@ -1,13 +1,31 @@
 version: 1.0.{build}
-configuration: Release
+
+image: Visual Studio 2017
+
+shallow_clone: true
+clone_depth: 1
+
+platform:
+  - Win32
+  - x64
+
+configuration:
+  - Debug
+  - Release
+
 environment:
   matrix:
-  - PYTHONPATH: C:\Python36
-  - PYTHONPATH: C:\Python36-x64
-    PLATFORM: x64
+  - platform: Win32
+    PYTHONPATH: C:\Python37
+
+  - platform: x64
+    PYTHONPATH: C:\Python37-x64
+
 build:
   project: pygin/pygin.sln
+  parallel: true
   verbosity: minimal
+
 after_build:
 - cmd: >-
     cd pygin

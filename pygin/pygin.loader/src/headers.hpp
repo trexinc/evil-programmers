@@ -38,6 +38,8 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <iterator>
 #include <string>
 
+using namespace std::string_literals;
+
 #include <windows.h>
 
 #include "../../Include/plugin.hpp"

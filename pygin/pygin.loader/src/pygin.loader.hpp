@@ -31,6 +31,8 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include "system.hpp"
+
 class adapter
 {
 public:
@@ -48,7 +50,7 @@ public:
 private:
 	void Cleanup();
 
-	HMODULE m_Adapter{};
+	module_ptr m_Adapter;
 
 	BOOL (WINAPI *m_Initialize)(GlobalInfo*){};
 	BOOL (WINAPI *m_IsPlugin)(const wchar_t*){};
@@ -58,5 +60,7 @@ private:
 	BOOL (WINAPI *m_DestroyInstance)(HANDLE){};
 	void (WINAPI *m_Free)(const ExitInfo*){};
 
+	std::wstring m_Summary;
+	std::wstring m_Description;
 	bool m_Activated{};
 };

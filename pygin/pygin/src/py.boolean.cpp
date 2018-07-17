@@ -48,7 +48,7 @@ namespace py
 	}
 
 	boolean::boolean(bool Value):
-		object(Value? Py_True : Py_False)
+		object(from_borrowed(Value? Py_True : Py_False))
 	{
 	}
 

@@ -70,8 +70,7 @@ namespace py
 
 	void tuple::set_at(size_t Position, const object& Object)
 	{
-		DONT_STEAL_REFERENCE(Object.get());
-		invoke(PyTuple_SetItem, get(), Position, Object.get());
+		invoke(PyTuple_SetItem, get(), Position, Object.get_no_steal());
 	}
 
 	object tuple::get_at(size_t Position) const

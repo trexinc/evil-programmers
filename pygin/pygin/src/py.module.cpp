@@ -62,8 +62,7 @@ namespace py
 
 	void module::add_object(const char* Name, const object& Object)
 	{
-		DONT_STEAL_REFERENCE(Object.get());
-		py::invoke(PyModule_AddObject, get(), Name, Object.get());
+		py::invoke(PyModule_AddObject, get(), Name, Object.get_no_steal());
 	}
 
 	void module::add_functions(PyMethodDef* Methods)

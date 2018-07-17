@@ -32,7 +32,6 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
 import sys
-import imp
 import importlib
 from importlib.util import spec_from_file_location, module_from_spec
 
