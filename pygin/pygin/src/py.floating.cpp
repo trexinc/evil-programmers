@@ -73,9 +73,4 @@ namespace py
 	{
 		return floating(Value);
 	}
-
-	object from(long double Value)
-	{
-		return floating(Value);
-	}
 }

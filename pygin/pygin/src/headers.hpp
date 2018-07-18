@@ -46,7 +46,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define NOMINMAX
 
 #include <windows.h>
-#include <Rpc.h>
+#include <rpc.h>
 
 #include "../../Include/plugin.hpp"
 

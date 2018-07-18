@@ -50,7 +50,7 @@ namespace py
 	{
 		inline auto operator ""_py(long double Value) noexcept
 		{
-			return floating(Value);
+			return floating(static_cast<double>(Value));
 		}
 	}
 

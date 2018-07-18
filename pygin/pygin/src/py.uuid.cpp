@@ -41,37 +41,9 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "types_cache.hpp"
 
-#include "error_handling.hpp"
-
 #include "python.hpp"
 
 using namespace py::literals;
-
-namespace
-{
-	static std::wstring UuidToString(const UUID& Uuid)
-	{
-		RPC_WSTR RpcStr;
-		const auto Result = UuidToString(&Uuid, &RpcStr);
-		if (Result != RPC_S_OK)
-			throw MAKE_PYGIN_EXCEPTION("UuidToString returned " + std::to_string(Result));
-
-		std::wstring Str = reinterpret_cast<const wchar_t*>(RpcStr);
-		RpcStringFree(&RpcStr);
-
-		return Str;
-	}
-
-	static UUID UuidFromString(const std::wstring& Str)
-	{
-		UUID Uuid;
-		const auto Result = UuidFromString(reinterpret_cast<RPC_WSTR>(const_cast<wchar_t*>(Str.c_str())), &Uuid);
-		if (Result != RPC_S_OK)
-			throw MAKE_PYGIN_EXCEPTION("UuidFromString returned " + std::to_string(Result));
-
-		return Uuid;
-	}
-}
 
 namespace py
 {
@@ -84,7 +56,7 @@ namespace py
 	}
 
 	uuid::uuid(const UUID& Uuid):
-		object(import::import("uuid"_py).get_attribute("UUID")(UuidToString(Uuid)))
+		object(import::import("uuid"_py).get_attribute("UUID")(none(), none(), object(invoke(PyBytes_FromStringAndSize, reinterpret_cast<const char*>(&Uuid), sizeof(Uuid)))))
 	{
 	}
 
