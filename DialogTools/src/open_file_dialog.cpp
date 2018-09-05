@@ -284,7 +284,7 @@ static intptr_t WINAPI OFDProc(HANDLE hDlg,intptr_t Msg,intptr_t Param1,void* Pa
                 if (enums.Count==1)
                 {
                   menu_id=0;
-                } 
+                }
                 else
                 {
                   FarMenuItem *menuElements=(FarMenuItem *)malloc(enums.Count*sizeof(FarMenuItem));
@@ -338,7 +338,7 @@ static intptr_t WINAPI OFDProc(HANDLE hDlg,intptr_t Msg,intptr_t Param1,void* Pa
       {
         FarDialogItemColors *fdic=(FarDialogItemColors *)Param2;
         FarColor *Colors = fdic->Colors;
-        
+
         int ColorIndex[]={COL_MENUTEXT,COL_MENUTEXT,COL_MENUTITLE,COL_MENUTEXT,COL_MENUHIGHLIGHT,COL_MENUTEXT,COL_MENUSELECTEDTEXT,COL_MENUSELECTEDHIGHLIGHT,COL_MENUSCROLLBAR,COL_MENUDISABLEDTEXT};
         size_t Count=sizeof(ColorIndex)/sizeof(ColorIndex[0]);
         if(Count>fdic->ColorsCount) Count=fdic->ColorsCount;
@@ -434,6 +434,6 @@ bool open_file_dialog(const TCHAR *curr_dir,TCHAR *filename)
   ZeroMemory(DialogItems,sizeof(DialogItems));
   DialogItems[0].Type=DI_LISTBOX; //DialogItems[0].Flags=DIF_LISTWRAPMODE;
   CFarDialog dialog;
-  dialog.Execute(MainGuid,FileDialogGuid,-1,-1,0,0,NULL,DialogItems,ArraySize(DialogItems),0,0,OFDProc,&params);
+  dialog.Execute(MainGuid,FileDialogGuid,-1,-1,1,1,NULL,DialogItems,ArraySize(DialogItems),0,0,OFDProc,&params);
   return params.result;
 }

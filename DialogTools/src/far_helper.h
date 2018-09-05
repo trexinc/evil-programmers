@@ -36,7 +36,7 @@ class CFarDialog
     inline int Execute(const GUID& PluginId,const GUID& Id,int X1,int Y1,int X2,int Y2,const TCHAR* HelpTopic,FarDialogItem* Item,int ItemsNumber,DWORD Reserved,FARDIALOGFLAGS Flags,FARWINDOWPROC DlgProc,void* Param)
     {
       iDlg=Info.DialogInit(&PluginId,&Id,X1,Y1,X2,Y2,HelpTopic,Item,ItemsNumber,Reserved,Flags,DlgProc,Param);
-      return Info.DialogRun(iDlg);
+      return (iDlg==INVALID_HANDLE_VALUE)?-1:Info.DialogRun(iDlg);
     };
     inline HANDLE Handle(void) {return iDlg;};
     inline int Check(int index) {return (int)Info.SendDlgMessage(iDlg,DM_GETCHECK,index,0);};
