@@ -4,6 +4,9 @@
 class YAML extends UnixSources
   Title: "YAML"
   Type: "*.yml,*.yaml,*.sls"
+  First:{
+    "^%-%-%-$",
+  }
   CodePage: 65001
   TabSize: 2
   ExpandTabs: true
