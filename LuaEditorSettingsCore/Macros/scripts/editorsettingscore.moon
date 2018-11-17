@@ -131,7 +131,7 @@ FixSchemes=(Sch)->
       .Pair=true if .Left and .Right and 'nil'==type .Pair
   for s in *Sch
     s.First={s.First} if 'string'==type s.First
-    if s.Highlite
+    if 'table'==type s.Highlite
       fix with s.Highlite
         if not .Pairs then .Pairs={}
         .Pairs.ColorFull or=decodeK .Pairs.Color
@@ -164,9 +164,10 @@ Highlite=(id,tt,top)->
     checkCursor=(line,pos,len)->(line==curline) and curpos>=pos and curpos<(pos+len)
     getRegion=->
       r=tt.o.Highlite
-      for s in *state
-        if 0==s then break
-        r=r.Regions[s]
+      if 'table'==type r
+        for s in *state
+          if 0==s then break
+          r=r.Regions[s]
       r
     region,regionstart=getRegion!,1
     updateRegion=(s,line=false,pos=1,len)->
@@ -219,7 +220,6 @@ Highlite=(id,tt,top)->
       regionstart=1
       tt.cache[tocache ii]=state:(clone state),data:(clone state_data),pairs:(clone pairs) if ii%50==1
       {StringText:line,StringLength:len}=editor.GetString id,ii,0
-      line=line\lower! if not tt.o.Highlite.Case
       margins[ii]=:left,:right
       if 0==bit64.band ei.Options,F.EOPT_EXPANDALLTABS
         with margins[ii]=left:0,right:len+1
@@ -244,62 +244,67 @@ Highlite=(id,tt,top)->
                 .right=symb-math.floor (pos-right)/tab
                 break
           if 0==.left then .right=0
-      posU,posB=1,1
-      match2=(patt)->match line,patt,posB
-      while posU<=len
-        stepU,stepB=1,string.len line\match '.',posB
-        updStep=(word)->stepU,stepB=word\len!,string.len word
-        match3=(patt)->
-          m=match2 patt
-          if m
-            updStep m
-            true
-        matchR=(patt,s)->
-          if match3 patt
-            updateRegion s,ii,posU,stepU
-            true
-        skip=false
-        if region.Regions
-          for kk=1,#region.Regions
-            if not (region.Regions[kk].Start and posU>1)
-              if matchR region.Regions[kk].Left,kk
+      switch type tt.o.Highlite
+        when 'table'
+          line=line\lower! if not tt.o.Highlite.Case
+          posU,posB=1,1
+          match2=(patt)->match line,patt,posB
+          while posU<=len
+            stepU,stepB=1,string.len line\match '.',posB
+            updStep=(word)->stepU,stepB=word\len!,string.len word
+            match3=(patt)->
+              m=match2 patt
+              if m
+                updStep m
+                true
+            matchR=(patt,s)->
+              if match3 patt
+                updateRegion s,ii,posU,stepU
+                true
+            skip=false
+            if region.Regions
+              for kk=1,#region.Regions
+                if not (region.Regions[kk].Start and posU>1)
+                  if matchR region.Regions[kk].Left,kk
+                    skip=true
+                    break
+            if not skip and region.Right
+              if matchR region.Right,0
                 skip=true
-                break
-        if not skip and region.Right
-          if matchR region.Right,0
-            skip=true
-        for name in *Tokens
-          break if skip
-          token=region[name]
-          if token
-            word=token.Word and match2 token.Word
-            if word
-              updStep word
-              skip=true
-            for keyword in *token
-              if not (keyword.Start and posU>1)
-                if if word and not keyword.Skip then (word==match word,keyword[1],1) else match3 keyword[1]
-                  add=(c,p)->addcolor ii,posU,posU+stepU-1,c,p
-                  addcolor ii,regionstart,posU-1,region.ColorFull[2]
-                  add keyword.ColorFull
-                  regionstart=posU+stepU
+            for name in *Tokens
+              break if skip
+              token=region[name]
+              if token
+                word=token.Word and match2 token.Word
+                if word
+                  updStep word
                   skip=true
-                  if keyword.Open or keyword.Close
-                    curpair=checkCursor ii,posU,stepU
-                    if keyword.Open
-                      insert pairs,{line:ii,pos1:posU,pos2:posU+stepU-1,cur:curpair,type:keyword.Open}
-                      if curpair
-                        add tt.o.Highlite.Pairs.ColorFull,100
-                    else
-                      pair=remove pairs
-                      if curpair or (pair and pair.cur)
-                        addcolor pair.line,pair.pos1,pair.pos2,pair.type==keyword.Close and tt.o.Highlite.Pairs.ColorFull or tt.o.Highlite.Pairs.ColorErrorFull,100 if pair and curpair
-                        add (pair and pair.cur and pair.type~=keyword.Close) and tt.o.Highlite.Pairs.ColorErrorFull or tt.o.Highlite.Pairs.ColorFull,100
-                  break
-        posU+=stepU
-        posB+=stepB
-      if not region.Right or match2 region.Right then updateRegion 0,ii,len+1
-      else addcolor ii,regionstart,len,region.ColorFull[2]
+                for keyword in *token
+                  if not (keyword.Start and posU>1)
+                    if if word and not keyword.Skip then (word==match word,keyword[1],1) else match3 keyword[1]
+                      add=(c,p)->addcolor ii,posU,posU+stepU-1,c,p
+                      addcolor ii,regionstart,posU-1,region.ColorFull[2]
+                      add keyword.ColorFull
+                      regionstart=posU+stepU
+                      skip=true
+                      if keyword.Open or keyword.Close
+                        curpair=checkCursor ii,posU,stepU
+                        if keyword.Open
+                          insert pairs,{line:ii,pos1:posU,pos2:posU+stepU-1,cur:curpair,type:keyword.Open}
+                          if curpair
+                            add tt.o.Highlite.Pairs.ColorFull,100
+                        else
+                          pair=remove pairs
+                          if curpair or (pair and pair.cur)
+                            addcolor pair.line,pair.pos1,pair.pos2,pair.type==keyword.Close and tt.o.Highlite.Pairs.ColorFull or tt.o.Highlite.Pairs.ColorErrorFull,100 if pair and curpair
+                            add (pair and pair.cur and pair.type~=keyword.Close) and tt.o.Highlite.Pairs.ColorErrorFull or tt.o.Highlite.Pairs.ColorFull,100
+                      break
+            posU+=stepU
+            posB+=stepB
+          if not region.Right or match2 region.Right then updateRegion 0,ii,len+1
+          else addcolor ii,regionstart,len,region.ColorFull[2]
+        when 'function'
+          tt.o.Highlite line,(s,e,color,p=0)->addcolor ii,s,e,color,p
     tt.startline=fromcache #tt.cache
 
 InitType=(obj)->{o:obj,cache:{{state:{0},data:{},pairs:{}}},startline:1}

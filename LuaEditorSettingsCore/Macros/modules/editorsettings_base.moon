@@ -175,6 +175,10 @@ class Html extends Xml
   Type: "*.htm,*.html,*.shtml,*.php,*.css"
   CodePage: 65001
   SetBOM: false
+class Csv
+  Title: "csv"
+  Type: "*.csv"
+  Highlite: require'highlite.csv'
 class Default
   Title: "default"
   Type: "*"
@@ -186,6 +190,6 @@ class Default
   :Diff, :Resources, :Postscript
   :Executables, :Archives, :Pictures, :Video, :Audio, :OtherBinaries
   :Messages, :FarHelp, :NtEvents, :PlainText, :History, :ChangeLogFar, :ChangeLog, :Roadmap
-  :Xml, :Html
+  :Xml, :Html, :Csv
   :Default
 }
