@@ -26,6 +26,10 @@ class PasSources extends Sources
   Title: "Pascal Sources"
   Type: "*.pas,*.dpr,*.pp,*.lpr"
   ExpandTabs: 1
+class RustSources extends UnixSources
+  Title: "Rust Sources"
+  Type: "*.rs"
+  ExpandTabs: 1
 class LuaSources extends Sources
   Title: "Lua & MoonScript Sources"
   Type: "*.lua,*.moon"
@@ -176,7 +180,7 @@ class Default
   Type: "*"
   Weight: 0
 {
-  :CFarSources, :CSources, :PasSources, :LuaSources, :Io, :Sql
+  :CFarSources, :CSources, :PasSources, :RustSources, :LuaSources, :Io, :Sql
   :Makefile, :MFourFar, :MFour, :Bash, :LexAndYacc, :Syntax
   :JavaScript, :VBScript, :FarMail, :BatFile, :RegFile
   :Diff, :Resources, :Postscript

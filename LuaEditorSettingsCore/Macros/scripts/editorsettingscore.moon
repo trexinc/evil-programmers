@@ -377,7 +377,7 @@ Event
   action:(id,Event)->
     if Event==F.EE_CLOSE
       editors[id]=nil
-    elseif Event==F.EE_SAVE or Event==F.EE_READ or Event==F.EE_REDRAW or Event==F.EE_GOTFOCUS
+    elseif Event==F.EE_SAVE or Event==F.EE_READ or Event==F.EE_REDRAW
       fn=editor.GetFileName id
       tt=GetType id,fn
       if tt
