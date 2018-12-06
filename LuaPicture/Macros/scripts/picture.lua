@@ -617,8 +617,11 @@ local function ShowImage(xpanel)
         elseif msg==F.DN_DRAWDIALOGDONE then
           if params.Redraw then
             params.Redraw=false
-            far.Text(0,0,0,nil)
-            UpdateImage(params)
+            far.Timer(0,function(timer)
+              timer:Close()
+              far.Text(0,0,0,nil)
+              UpdateImage(params)
+            end)
           end
         elseif msg==F.DN_INPUT then
           if param2.EventType==F.FOCUS_EVENT and param2.SetFocus then
