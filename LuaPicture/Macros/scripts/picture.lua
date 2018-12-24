@@ -576,9 +576,9 @@ local function ShowImage(xpanel)
         {"DI_USERCONTROL",1,1,width,height,buffer,0,0,0,""}
       }
       local function DlgProc(dlg,msg,param1,param2)
-        local function CloseTimer()
-          if params.timer then params.timer:Close() end
-        end
+        local function CloseCommonTimer(timer) if timer then timer:Close() end end
+        local function CloseTimer() CloseCommonTimer(params.timer) end
+        local function CloseDelayTimer() CloseCommonTimer(params.DelayTimer) end
         local function CloseDialog(check,key)
           if not params.Exit then
             key=key and key or far.InputRecordToName(param2)
@@ -617,7 +617,8 @@ local function ShowImage(xpanel)
         elseif msg==F.DN_DRAWDIALOGDONE then
           if params.Redraw then
             params.Redraw=false
-            far.Timer(0,function(timer)
+            CloseDelayTimer()
+            params.DelayTimer=far.Timer(0,function(timer)
               timer:Close()
               far.Text(0,0,0,nil)
               UpdateImage(params)
@@ -638,6 +639,7 @@ local function ShowImage(xpanel)
           return false
         elseif msg==F.DN_CLOSE then
           CloseTimer()
+          CloseDelayTimer()
         end
       end
       params.DrawRect={}
