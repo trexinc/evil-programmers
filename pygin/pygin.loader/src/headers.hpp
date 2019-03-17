@@ -34,7 +34,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <iterator>
 #include <string>
 
-using namespace std::string_literals;
+using namespace std::literals;
 
 #define WIN32_LEAN_AND_MEAN
 #define VC_EXTRALEAN

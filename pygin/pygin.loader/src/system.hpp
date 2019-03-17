@@ -72,38 +72,31 @@ template<class T>
 using movalbe_ptr = std::unique_ptr<T, detail::nop_deleter>;
 
 template<typename T>
-class ptr_setter_t
+class ptr_setter
 {
 public:
-	ptr_setter_t(const ptr_setter_t&) = delete;
-	ptr_setter_t& operator=(const ptr_setter_t&) = delete;
-	ptr_setter_t(ptr_setter_t&&) = default;
-	ptr_setter_t& operator=(ptr_setter_t&&) = default;
+	ptr_setter(const ptr_setter&) = delete;
+	ptr_setter& operator=(const ptr_setter&) = delete;
 
-	ptr_setter_t(T& Ptr): m_Ptr(&Ptr)
+	explicit ptr_setter(T& Ptr):
+		m_Ptr(&Ptr)
 	{
 	}
 
-	~ptr_setter_t()
+	~ptr_setter()
 	{
-		if (m_Ptr)
-			m_Ptr->reset(m_RawPtr);
+		m_Ptr->reset(m_RawPtr);
 	}
 
+	[[nodiscard]]
 	auto operator&()
 	{
 		return &m_RawPtr;
 	}
 
 private:
-	movalbe_ptr<T> m_Ptr;
+	T* m_Ptr;
 	typename T::pointer m_RawPtr{};
 };
-
-template<typename T>
-auto ptr_setter(T& Ptr)
-{
-	return ptr_setter_t<T>(Ptr);
-}
 
 std::wstring GetLastErrorMessage(DWORD LastError);

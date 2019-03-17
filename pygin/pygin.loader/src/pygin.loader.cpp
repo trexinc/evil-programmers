@@ -116,7 +116,7 @@ BOOL adapter::GetError(ErrorInfo* Info) const noexcept
 	if (m_GetError)
 		return m_GetError(Info);
 
-	Info->StructSize = sizeof(Info);
+	Info->StructSize = sizeof(*Info);
 	Info->Summary = m_Summary.c_str();
 	Info->Description = m_Description.c_str();
 	return true;

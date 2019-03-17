@@ -74,7 +74,7 @@ namespace py
 		template<typename type>
 		value_proxy& operator=(const type& Value)
 		{
-			m_Owner->set_at(m_Key, from(Value));
+			m_Owner->set_at(m_Key, py::from(Value));
 			return *this;
 		}
 
@@ -159,7 +159,7 @@ namespace py
 		template<typename... args>
 		object operator()(const args&... Args) const
 		{
-			return operator()({ from(Args)... });
+			return operator()({ py::from(Args)... });
 		}
 
 		static object from_borrowed(PyObject* Object);

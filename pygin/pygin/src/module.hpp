@@ -86,7 +86,6 @@ private:
 	std::wstring m_Title;
 	std::wstring m_Author;
 	std::wstring m_Description;
-	UUID m_Uuid;
 
 	struct menu_items
 	{
