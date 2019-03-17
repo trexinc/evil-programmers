@@ -16,7 +16,7 @@ class seven_zip_module_manager
 public:
 	NONCOPYABLE(seven_zip_module_manager);
 
-	seven_zip_module_manager(const wchar_t* PathTo7z);
+	explicit seven_zip_module_manager(const wchar_t* PathTo7z);
 	~seven_zip_module_manager();
 
 	bool extract(const wchar_t* FileName, const wchar_t* DestDir, const callback& Callback) const;

@@ -68,7 +68,7 @@ public:
 	prop_variant& operator=(uint16_t Value);
 
 private:
-	void ChangeType(VARENUM Type)
+	void ChangeType(VARTYPE Type)
 	{
 		if (vt != Type)
 		{

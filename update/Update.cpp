@@ -252,20 +252,6 @@ namespace detail
 	}
 }
 
-template<typename... args>
-int mprintf(color Color, const wchar_t* Format, args... Args)
-{
-	text_color TextColor(Color);
-	return mprintf(Format, std::forward<args>(Args)...);
-}
-
-template<typename... args>
-int mprintf(const wchar_t* Format, args... Args)
-{
-	detail::check_arg(Args...);
-	return mprintf_impl(Format, std::forward<args>(Args)...);
-}
-
 int mprintf_impl(const wchar_t* Format, ...)
 {
 	va_list argptr;
@@ -287,6 +273,20 @@ int mprintf_impl(const wchar_t* Format, ...)
 	DWORD n;
 	WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), Buffer.get(), Length, &n, nullptr);
 	return n;
+}
+
+template<typename... args>
+int mprintf(const wchar_t* Format, args... Args)
+{
+	detail::check_arg(Args...);
+	return mprintf_impl(Format, std::forward<args>(Args)...);
+}
+
+template<typename... args>
+int mprintf(color Color, const wchar_t* Format, args... Args)
+{
+	text_color TextColor(Color);
+	return mprintf(Format, std::forward<args>(Args)...);
 }
 
 static bool get_response(const wchar_t* Question)
@@ -1025,14 +1025,14 @@ extern "C" intptr_t WINAPI ProcessSynchroEventW(const ProcessSynchroEventInfo *p
 	return 0;
 }
 
-static void create_process_interactive(const std::wstring &Command, const wchar_t* Directory, bool Wait)
+static void create_process_interactive(const std::wstring &Command, const wchar_t* CurrentDirectory, bool Wait)
 {
 	STARTUPINFO si { sizeof si };
 	PROCESS_INFORMATION pi;
 
 	for (;;)
 	{
-		if (CreateProcess(nullptr, const_cast<wchar_t*>(Command.data()), nullptr, nullptr, TRUE, 0, nullptr, Directory, &si, &pi))
+		if (CreateProcess(nullptr, const_cast<wchar_t*>(Command.data()), nullptr, nullptr, TRUE, 0, nullptr, CurrentDirectory, &si, &pi))
 		{
 			mprintf(color::green, L"OK\n");
 			if (Wait)

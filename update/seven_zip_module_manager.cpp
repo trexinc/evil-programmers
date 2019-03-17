@@ -318,17 +318,17 @@ public:
 		m_FolderToExtract = Folder;
 	}
 
-	HRESULT WINAPI SetTotal(unsigned long long Total) override
+	HRESULT WINAPI SetTotal(unsigned long long /*Total*/) override
 	{
 		return S_OK;
 	}
 
-	HRESULT WINAPI SetCompleted(const unsigned long long* CompleteValue) override
+	HRESULT WINAPI SetCompleted(const unsigned long long* /*CompleteValue*/) override
 	{
 		return S_OK;
 	}
 
-	HRESULT WINAPI GetStream(unsigned int Index, ISequentialOutStream** OutStream, int AskExtractMode) override
+	HRESULT WINAPI GetStream(unsigned int Index, ISequentialOutStream** OutStream, int /*AskExtractMode*/) override
 	{
 		prop_variant value;
 
@@ -400,12 +400,12 @@ public:
 		return S_OK;
 	}
 
-	HRESULT WINAPI PrepareOperation(int AskExtractMode) override
+	HRESULT WINAPI PrepareOperation(int /*AskExtractMode*/) override
 	{
 		return S_OK;
 	}
 
-	HRESULT WINAPI SetOperationResult(int ResultEOperationResult) override
+	HRESULT WINAPI SetOperationResult(int /*ResultEOperationResult*/) override
 	{
 		return S_OK;
 	}

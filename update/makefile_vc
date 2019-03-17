@@ -2,9 +2,9 @@ NAME = update
 DLLNAME = $(NAME).dll
 
 !ifndef DEBUG
-_ODN_=final
+_ODN_=Release
 !else
-_ODN_=debug
+_ODN_=Debug
 !endif
 !ifdef AMD64
 _ODB_=64
@@ -16,13 +16,10 @@ OUTDIR=$(_ODN_).$(_ODB_).vc
 INTDIR = $(OUTDIR)\obj
 COMMON = ..\common
 INC=$(COMMON)\unicode
-RCFLAGS=/DUNICODE 
+RCFLAGS=/DUNICODE
 
 !ifdef AMD64
 RCFLAGS=$(RCFLAGS) /D_WIN64
-ULOUT=-Tpd+
-!else
-ULOUT=-Tpd -Re
 !endif
 
 DLLFULLNAME = $(OUTDIR)\$(DLLNAME)
@@ -31,9 +28,10 @@ MAP=$(OUTDIR)\$(NAME).map
 
 PCH=$(INTDIR)\headers.pch
 
-LIBS=chkstk.obj kernel32.lib user32.lib Version.lib shlwapi.lib Psapi.lib Shell32.lib wininet.lib oleaut32.lib
+LIBS=kernel32.lib user32.lib Version.lib shlwapi.lib Psapi.lib Shell32.lib wininet.lib oleaut32.lib
 
-CPP_PROJ=/nologo /c /O2 /J /W3 /GF /EHa /LD /Fo"$(INTDIR)\\" /DUNICODE /D_UNICODE /D_CRT_SECURE_NO_WARNINGS /I "$(INC)"
+CPP_PROJ=/nologo /c /O2 /J /W4 /GF /EHsc /LD /Fo"$(INTDIR)\\" /DUNICODE /D_UNICODE /D_CRT_SECURE_NO_WARNINGS /I "$(INC)" /std:c++latest /permissive-
+
 
 LNK=$(_LINK_PATH_)link.exe
 LINK_FLAGS=/nologo /dll /release /def:"$(DEF)" /map:"$(MAP)" /out:"$(DLLFULLNAME)" $(LIBS)
