@@ -45,7 +45,7 @@ namespace py
 	{
 		return types_cache::get_type(types::function, []
 		{
-			return type(import::import("importlib.util")["spec_from_file_location"]);
+			return type(import::import("importlib.util"sv)["spec_from_file_location"sv]);
 		});
 	}
 

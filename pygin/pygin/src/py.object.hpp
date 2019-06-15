@@ -45,9 +45,9 @@ namespace py
 	class proxy_owner
 	{
 	public:
-		auto operator[](key_type Key);
+		[[nodiscard]] auto operator[](key_type Key);
 
-		auto operator[](const key_type& Key) const
+		[[nodiscard]] auto operator[](const key_type& Key) const
 		{
 			return static_cast<const owner_type*>(this)->get_at(Key);
 		}
@@ -59,7 +59,7 @@ namespace py
 	};
 
 	template<typename owner_type, typename key_type>
-	class value_proxy: public proxies_owner<value_proxy<owner_type, key_type>, const char*, const wchar_t*, std::string, std::wstring>
+	class value_proxy: public proxies_owner<value_proxy<owner_type, key_type>, std::string_view, std::wstring_view>
 	{
 	public:
 		MOVABLE(value_proxy);
@@ -79,11 +79,11 @@ namespace py
 		}
 
 		template<typename type>
-		object get_at(const type& Name) const;
+		[[nodiscard]] object get_at(const type& Name) const;
 
-		bool set_at(const char* Name, const object& Value) const;
+		bool set_at(std::string_view Name, const object& Value) const;
 
-		operator object() const;
+		[[nodiscard]] operator object() const;
 
 	private:
 		owner_type* m_Owner;
@@ -91,12 +91,14 @@ namespace py
 	};
 
 	template<typename owner_type, typename key_type>
-	auto proxy_owner<owner_type, key_type>::operator[](key_type Key)
+	[[nodiscard]] auto proxy_owner<owner_type, key_type>::operator[](key_type Key)
 	{
 		return value_proxy<owner_type, key_type>{ static_cast<owner_type*>(this), std::move(Key) };
 	}
 
-	class object: public proxies_owner<object, const char*, const wchar_t*, std::string, std::wstring>
+	class iterator;
+
+	class object: public proxies_owner<object, std::string_view, std::wstring_view>
 	{
 		struct counter
 		{
@@ -105,10 +107,8 @@ namespace py
 		};
 
 	public:
-		using proxy_owner<object, const char*>::operator[];
-		using proxy_owner<object, const wchar_t*>::operator[];
-		using proxy_owner<object, std::string>::operator[];
-		using proxy_owner<object, std::wstring>::operator[];
+		using proxy_owner<object, std::string_view>::operator[];
+		using proxy_owner<object, std::wstring_view>::operator[];
 
 		object();
 		explicit object(PyObject* Object);
@@ -125,36 +125,34 @@ namespace py
 		object& operator=(object&& Object) & noexcept;
 
 		explicit operator bool() const;
-		bool operator!() const;
 
-		PyObject* get() const;
-		PyObject* get_no_steal() const;
-		PyObject* release();
+		[[nodiscard]] PyObject* get() const;
+		[[nodiscard]] PyObject* get_no_steal() const;
+		[[nodiscard]] PyObject* release();
 
-		bool has_attribute(const char* Name) const;
-		bool has_attribute(const wchar_t* Name) const;
-		bool has_attribute(const std::string& Name) const;
-		bool has_attribute(const std::wstring& Name) const;
-		bool has_attribute(const object& Name) const;
+		[[nodiscard]] bool has_attribute(std::string_view Name) const;
+		[[nodiscard]] bool has_attribute(std::wstring_view Name) const;
+		[[nodiscard]] bool has_attribute(const object& Name) const;
 
-		object get_attribute(const char* Name) const;
-		object get_attribute(const wchar_t* Name) const;
-		object get_attribute(const std::string& Name) const;
-		object get_attribute(const std::wstring& Name) const;
-		object get_attribute(const object& Name) const;
+		[[nodiscard]] object get_attribute(std::string_view Name) const;
+		[[nodiscard]] object get_attribute(std::wstring_view Name) const;
+		[[nodiscard]] object get_attribute(const object& Name) const;
 
 		template<typename type>
-		object get_at(const type& Type) const
+		[[nodiscard]] object get_at(const type& Type) const
 		{
 			return get_attribute(Type);
 		}
 
-		bool set_attribute(const char* Name, const object& Value);
-		bool set_attribute(const wchar_t* Name, const object& Value);
-		bool set_attribute(const std::string& Name, const object& Value);
-		bool set_attribute(const std::wstring& Name, const object& Value);
+		bool set_attribute(std::string_view Name, const object& Value);
+		bool set_attribute(std::wstring_view Name, const object& Value);
 		bool set_attribute(const object& Name, const object& Value);
-		bool set_at(const char* Name, const object& Value);
+		bool set_at(std::string_view Name, const object& Value);
+
+		[[nodiscard]] iterator begin() const;
+		[[nodiscard]] iterator end() const;
+		[[nodiscard]] iterator cbegin() const;
+		[[nodiscard]] iterator cend() const;
 
 		template<typename... args>
 		object operator()(const args&... Args) const
@@ -162,25 +160,25 @@ namespace py
 			return operator()({ py::from(Args)... });
 		}
 
-		static object from_borrowed(PyObject* Object);
-		bool check_type(const type& Type) const;
+		[[nodiscard]] static object from_borrowed(PyObject* Object);
+		[[nodiscard]] bool check_type(const type& Type) const;
 		void ensure_type(const type& Type) const;
 
 	private:
-		object operator()(const std::initializer_list<object>& Args) const;
+		[[nodiscard]] object operator()(const std::initializer_list<object>& Args) const;
 
 		PyObject* m_Object;
 	};
 
 	template<typename owner_type, typename key_type>
 	template<typename type>
-	object value_proxy<owner_type, key_type>::get_at(const type& Name) const
+	[[nodiscard]] object value_proxy<owner_type, key_type>::get_at(const type& Name) const
 	{
 		return operator object().get_at(Name);
 	}
 
 	template<typename owner_type, typename key_type>
-	bool value_proxy<owner_type, key_type>::set_at(const char* Name, const object& Value) const
+	[[nodiscard]] bool value_proxy<owner_type, key_type>::set_at(std::string_view const Name, const object& Value) const
 	{
 		return operator object().set_at(Name, Value);
 	}
@@ -197,6 +195,7 @@ namespace py
 	template<typename T>
 	struct cast_impl<T, true>
 	{
+		[[nodiscard]]
 		static T impl(const object& Object)
 		{
 			Object.ensure_type(T::get_type());
@@ -205,19 +204,47 @@ namespace py
 	};
 
 	template<typename T>
+	[[nodiscard]]
 	T cast(const object& Object)
 	{
 		return cast_impl<T, std::is_class<T>::value>::impl(Object);
 	}
 
 	template<typename T>
+	[[nodiscard]]
 	T try_cast(const object& Object)
 	{
 		return T(cast_guard{}, Object && Object.check_type(T::get_type())? Object : object(nullptr));
 	}
 
+	[[nodiscard]]
 	inline object from(const object& Value)
 	{
 		return Value;
 	}
+
+
+	class iterator: public object
+	{
+	public:
+		using iterator_category = std::input_iterator_tag;
+		using difference_type = std::ptrdiff_t;
+		using reference = object;
+		using value_type = object;
+		using pointer = value_type*;
+
+		explicit iterator(const object& Container, bool IsEnd);
+
+		[[nodiscard]] object operator*() const;
+		[[nodiscard]] const object* operator->() const;
+
+		iterator& operator++();
+		[[nodiscard]] bool operator==(const iterator& rhs) const;
+		[[nodiscard]] bool operator!=(const iterator& rhs) const;
+
+	private:
+		PyObject* m_Container;
+		object m_Iterable;
+		object m_Value;
+	};
 }

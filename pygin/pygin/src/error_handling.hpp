@@ -34,8 +34,8 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "py.common.hpp"
 
 void set_error_context(const wchar_t* Summary, const std::string& Description);
-bool get_error_context(ErrorInfo* Info);
-void reset_error_context();
+bool get_error_context(ErrorInfo* Info) noexcept;
+void reset_error_context() noexcept;
 
 namespace detail
 {
@@ -43,8 +43,8 @@ namespace detail
 	{
 	public:
 		exception_impl(const std::string& Message, const char* Function, const char* File, int Line);
-		const std::string& get_message() const noexcept;
-		const std::string& get_full_message() const noexcept;
+		[[nodiscard]] const std::string& get_message() const noexcept;
+		[[nodiscard]] const std::string& get_full_message() const noexcept;
 
 	private:
 		std::string m_Message;
@@ -66,7 +66,7 @@ class silent_exception
 
 
 template<typename callable, typename fallback>
-auto try_call(const callable& Callable, const fallback& Fallback) noexcept
+[[nodiscard]] auto try_call(const callable& Callable, const fallback& Fallback) noexcept
 {
 	try
 	{

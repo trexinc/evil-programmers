@@ -104,11 +104,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\error_handling.hpp" />
     <ClInclude Include="src\headers.hpp" />
     <ClInclude Include="src\pygin.loader.hpp" />
     <ClInclude Include="src\system.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\error_handling.cpp" />
     <ClCompile Include="src\headers.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>

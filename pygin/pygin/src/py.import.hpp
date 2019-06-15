@@ -32,13 +32,12 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "py.module.hpp"
-#include "py.string.hpp"
 
 namespace py
 {
 	namespace import
 	{
-		module import(const string& Name);
-		module reload(const module& Module);
+		[[nodiscard]] module import(std::string_view Name);
+		[[nodiscard]] module reload(const module& Module);
 	}
 }

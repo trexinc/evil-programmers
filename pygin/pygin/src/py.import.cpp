@@ -32,6 +32,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "headers.hpp"
 
 #include "py.import.hpp"
+#include "py.string.hpp"
 
 #include "py.common.hpp"
 
@@ -41,9 +42,9 @@ namespace py
 {
 	namespace import
 	{
-		module import(const string& Name)
+		module import(std::string_view const Name)
 		{
-			return cast<module>(object(invoke(PyImport_Import, Name.get())));
+			return cast<module>(object(invoke(PyImport_Import, string(Name).get())));
 		}
 
 		module reload(const module& Module)

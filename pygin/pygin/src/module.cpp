@@ -54,20 +54,20 @@ auto EmptyToNull(const wchar_t* Str)
 	return Str && *Str? Str : nullptr;
 }
 
-module::module(const py::object& Object):
-	m_PluginModule(Object),
-	m_PluginModuleClass(m_PluginModule["FarPluginClass"])
+module::module(py::object Object):
+	m_PluginModule(std::move(Object)),
+	m_PluginModuleClass(m_PluginModule["FarPluginClass"sv])
 {
 }
 
 bool module::check_function(const wchar_t* FunctionName) const
 {
 	// Mapped to class static fields
-	if (!wcscmp(FunctionName, L"GetGlobalInfoW"))
+	if (FunctionName == L"GetGlobalInfoW"sv)
 		return true;
 
 	// Mapped to class ctor
-	if (!wcscmp(FunctionName, L"SetStartupInfoW"))
+	if (FunctionName == L"SetStartupInfoW"sv)
 		return true;
 
 	// The rest is as is
@@ -112,9 +112,9 @@ intptr_t module::CompareW(const CompareInfo* Info)
 
 intptr_t module::ConfigureW(const ConfigureInfo* Info)
 {
-	auto ConfigureInstance = far_api::type("ConfigureInfo"s)();
+	auto ConfigureInstance = far_api::type("ConfigureInfo"sv)();
 
-	ConfigureInstance["Guid"] = *Info->Guid;
+	ConfigureInstance["Guid"sv] = *Info->Guid;
 
 	return py::cast<bool>(call(L"ConfigureW", ConfigureInstance));
 }
@@ -126,7 +126,7 @@ intptr_t module::DeleteFilesW(const DeleteFilesInfo* Info)
 
 void module::ExitFARW(const ExitInfo* Info)
 {
-	const auto ExitInfoInstance = far_api::type("ExitInfo"s)();
+	const auto ExitInfoInstance = far_api::type("ExitInfo"sv)();
 	call(L"ExitFARW", ExitInfoInstance);
 
 	// Point of no return
@@ -152,22 +152,22 @@ intptr_t module::GetFindDataW(GetFindDataInfo* Info)
 
 void module::GetGlobalInfoW(GlobalInfo* Info)
 {
-	Info->Title = (m_Title = py::cast<std::wstring>(m_PluginModuleClass["Title"])).c_str();
-	Info->Author = (m_Author = py::cast<std::wstring>(m_PluginModuleClass["Author"])).c_str();
-	Info->Description = (m_Description = py::cast<std::wstring>(m_PluginModuleClass["Description"])).c_str();
-	Info->Guid = py::cast<UUID>(m_PluginModuleClass["Guid"]);
+	Info->Title = (m_Title = py::cast<std::wstring>(m_PluginModuleClass["Title"sv])).c_str();
+	Info->Author = (m_Author = py::cast<std::wstring>(m_PluginModuleClass["Author"sv])).c_str();
+	Info->Description = (m_Description = py::cast<std::wstring>(m_PluginModuleClass["Description"sv])).c_str();
+	Info->Guid = py::cast<UUID>(m_PluginModuleClass["Guid"sv]);
 
-	const auto Version = m_PluginModuleClass.get_attribute("Version");
+	const auto Version = m_PluginModuleClass.get_attribute("Version"sv);
 
 	// This won't work as far_api is not initialised yet
 	// Consider 2-stage initialisation
-	//Version.ensure_type(far_api::type("VersionInfo"s));
+	//Version.ensure_type(far_api::type("VersionInfo"sv));
 
-	Info->Version.Major = py::cast<DWORD>(Version["Major"]);
-	Info->Version.Minor = py::cast<DWORD>(Version["Minor"]);
-	Info->Version.Revision = py::cast<DWORD>(Version["Revision"]);
-	Info->Version.Build = py::cast<DWORD>(Version["Build"]);
-	Info->Version.Stage = py::cast<VERSION_STAGE>(Version["Stage"]);
+	Info->Version.Major = py::cast<DWORD>(Version["Major"sv]);
+	Info->Version.Minor = py::cast<DWORD>(Version["Minor"sv]);
+	Info->Version.Revision = py::cast<DWORD>(Version["Revision"sv]);
+	Info->Version.Build = py::cast<DWORD>(Version["Build"sv]);
+	Info->Version.Stage = py::cast<VERSION_STAGE>(Version["Stage"sv]);
 }
 
 void module::GetOpenPanelInfoW(OpenPanelInfo* Info)
@@ -176,32 +176,31 @@ void module::GetOpenPanelInfoW(OpenPanelInfo* Info)
 
 void module::GetPluginInfoW(PluginInfo* Info)
 {
-	auto PluginInfoType = far_api::type("PluginInfo"s);
+	auto PluginInfoType = far_api::type("PluginInfo"sv);
 	const auto PyInfo = call(L"GetPluginInfoW");
 	PyInfo.ensure_type(PluginInfoType);
 
-	Info->Flags = py::cast<unsigned long long>(PyInfo["Flags"]);
+	Info->Flags = py::cast<unsigned long long>(PyInfo["Flags"sv]);
 
 	const auto& ConvertPluginMenuItem = [&](const char* Kind, menu_items& MenuItems, PluginMenuItem& Destination)
 	{
-		const auto ItemsList = py::cast<py::list>(PyInfo[Kind]);
+		const auto Items = py::cast<py::list>(PyInfo[Kind]);
 
-		const auto ListSize = ItemsList.size();
+		const auto ItemsSize = Items.size();
 
-		const auto prepare = [ListSize](auto& Container)
+		const auto prepare = [ItemsSize](auto& Container)
 		{
 			Container.clear();
-			Container.reserve(ListSize);
+			Container.reserve(ItemsSize);
 		};
 
 		prepare(MenuItems.StringsData);
 		prepare(MenuItems.Strings);
 		prepare(MenuItems.Uuids);
 
-		// TODO: enumerator
-		for (size_t i = 0; i != ListSize; ++i)
+		for (const auto& Item: Items)
 		{
-			const auto Tuple = py::cast<py::tuple>(ItemsList[i]);
+			const auto Tuple = py::cast<py::tuple>(Item);
 			MenuItems.StringsData.emplace_back(py::cast<std::wstring>(Tuple[0]));
 			MenuItems.Strings.emplace_back(MenuItems.StringsData.back().c_str());
 			MenuItems.Uuids.emplace_back(py::cast<UUID>(Tuple[1]));
@@ -209,14 +208,14 @@ void module::GetPluginInfoW(PluginInfo* Info)
 
 		Destination.Strings = MenuItems.Strings.data();
 		Destination.Guids = MenuItems.Uuids.data();
-		Destination.Count = ListSize;
+		Destination.Count = ItemsSize;
 	};
 
 	ConvertPluginMenuItem("PluginMenuItems", m_PluginMenuItems, Info->PluginMenu);
 	ConvertPluginMenuItem("DiskMenuItems", m_DiskMenuItems, Info->DiskMenu);
 	ConvertPluginMenuItem("PluginConfigItems", m_PluginConfigItems, Info->PluginConfig);
 
-	m_CommandPrefix = py::cast<std::wstring>(PyInfo["CommandPrefix"]);
+	m_CommandPrefix = py::cast<std::wstring>(PyInfo["CommandPrefix"sv]);
 	Info->CommandPrefix = m_CommandPrefix.c_str();
 }
 
@@ -227,7 +226,7 @@ intptr_t module::MakeDirectoryW(MakeDirectoryInfo* Info)
 
 static py::object ConvertValue(const FarMacroValue& Value)
 {
-	auto FarMacroValueInstance = far_api::type("FarMacroValue")();
+	auto FarMacroValueInstance = far_api::type("FarMacroValue"sv)();
 
 	const auto& Convert = [&]() -> py::object
 	{
@@ -268,66 +267,66 @@ static py::object ConvertValue(const FarMacroValue& Value)
 		}
 	};
 
-	FarMacroValueInstance["Type"] = far_api::type("FarMacroVarType")(Value.Type);
-	FarMacroValueInstance["Value"] = Convert();
+	FarMacroValueInstance["Type"sv] = far_api::type("FarMacroVarType"sv)(Value.Type);
+	FarMacroValueInstance["Value"sv] = Convert();
 	return FarMacroValueInstance;
 }
 
 HANDLE module::OpenW(const OpenInfo* Info)
 {
-	auto OpenInfoInstance = far_api::type("OpenInfo"s)();
+	auto OpenInfoInstance = far_api::type("OpenInfo"sv)();
 
-	OpenInfoInstance["OpenFrom"] = far_api::type("OpenFrom"s)(Info->OpenFrom);
-	OpenInfoInstance["Guid"] = *Info->Guid;
+	OpenInfoInstance["OpenFrom"sv] = far_api::type("OpenFrom"sv)(Info->OpenFrom);
+	OpenInfoInstance["Guid"sv] = *Info->Guid;
 
 	switch(Info->OpenFrom)
 	{
 	case OPEN_SHORTCUT:
 		{
 			const auto Data = reinterpret_cast<const OpenShortcutInfo*>(Info->Data);
-			auto OpenShortcutInfoInstance = far_api::type("OpenShortcutInfo")();
-			OpenShortcutInfoInstance["HostFile"] = Data->HostFile;
-			OpenShortcutInfoInstance["ShortcutData"] = Data->ShortcutData;
-			OpenShortcutInfoInstance["Flags"] = far_api::type("OpenShortcutFlags")(Data->Flags);
-			OpenInfoInstance["Data"] = OpenShortcutInfoInstance;
+			auto OpenShortcutInfoInstance = far_api::type("OpenShortcutInfo"sv)();
+			OpenShortcutInfoInstance["HostFile"sv] = Data->HostFile;
+			OpenShortcutInfoInstance["ShortcutData"sv] = Data->ShortcutData;
+			OpenShortcutInfoInstance["Flags"sv] = far_api::type("OpenShortcutFlags"sv)(Data->Flags);
+			OpenInfoInstance["Data"sv] = OpenShortcutInfoInstance;
 		}
 		break;
 
 	case OPEN_COMMANDLINE:
 		{
 			const auto Data = reinterpret_cast<const OpenCommandLineInfo*>(Info->Data);
-			auto OpenCommandLineInfoInstance = far_api::type("OpenCommandLineInfo")();
-			OpenCommandLineInfoInstance["CommandLine"] = Data->CommandLine;
-			OpenInfoInstance["Data"] = OpenCommandLineInfoInstance;
+			auto OpenCommandLineInfoInstance = far_api::type("OpenCommandLineInfo"sv)();
+			OpenCommandLineInfoInstance["CommandLine"sv] = Data->CommandLine;
+			OpenInfoInstance["Data"sv] = OpenCommandLineInfoInstance;
 		}
 		break;
 
 	case OPEN_DIALOG:
 		{
 			const auto Data = reinterpret_cast<const OpenDlgPluginData*>(Info->Data);
-			auto OpenDlgPluginDataInstance = far_api::type("OpenDlgPluginData")();
-			OpenDlgPluginDataInstance["Dialog"] = py::integer(Data->hDlg);
-			OpenInfoInstance["Data"] = OpenDlgPluginDataInstance;
+			auto OpenDlgPluginDataInstance = far_api::type("OpenDlgPluginData"sv)();
+			OpenDlgPluginDataInstance["Dialog"sv] = py::integer(Data->hDlg);
+			OpenInfoInstance["Data"sv] = OpenDlgPluginDataInstance;
 		}
 		break;
 
 	case OPEN_ANALYSE:
 		{
 			const auto Data = reinterpret_cast<const AnalyseInfo*>(Info->Data);
-			auto AnalyseInfoInstance = far_api::type("AnalyseInfo")();
-			AnalyseInfoInstance["FileName"] = Data->FileName;
-			AnalyseInfoInstance["Buffer"] = py::bytes(Data->Buffer, Data->BufferSize);
-			AnalyseInfoInstance["OpMode"] = far_api::type("OperationModes")(Data->OpMode);
-			OpenInfoInstance["Data"] = AnalyseInfoInstance;
+			auto AnalyseInfoInstance = far_api::type("AnalyseInfo"sv)();
+			AnalyseInfoInstance["FileName"sv] = Data->FileName;
+			AnalyseInfoInstance["Buffer"sv] = py::bytes(Data->Buffer, Data->BufferSize);
+			AnalyseInfoInstance["OpMode"sv] = far_api::type("OperationModes"sv)(Data->OpMode);
+			OpenInfoInstance["Data"sv] = AnalyseInfoInstance;
 		}
 		break;
 
 	case OPEN_FROMMACRO:
 		{
 			const auto Data = reinterpret_cast<const OpenMacroInfo*>(Info->Data);
-			auto OpenMacroInfoInstance = far_api::type("OpenMacroInfo")();
-			OpenMacroInfoInstance["Values"] = helpers::list::from_array(Data->Values, Data->Count, ConvertValue);
-			OpenInfoInstance["Data"] = OpenMacroInfoInstance;
+			auto OpenMacroInfoInstance = far_api::type("OpenMacroInfo"sv)();
+			OpenMacroInfoInstance["Values"sv] = helpers::list::from_array(Data->Values, Data->Count, ConvertValue);
+			OpenInfoInstance["Data"sv] = OpenMacroInfoInstance;
 		}
 		break;
 

@@ -38,12 +38,12 @@ class module
 public:
 	NONCOPYABLE(module);
 
-	explicit module(const py::object& Object);
+	explicit module(py::object Object);
 
-	bool check_function(const wchar_t* FunctionName) const;
+	[[nodiscard]] bool check_function(const wchar_t* FunctionName) const;
 
 	template<typename... args>
-	py::object call(const wchar_t* FunctionName, const args&... Args) const;
+	[[nodiscard]] py::object call(const wchar_t* FunctionName, const args&... Args) const;
 
 	HANDLE AnalyseW(const AnalyseInfo* Info);
 	void CloseAnalyseW(const CloseAnalyseInfo* Info);

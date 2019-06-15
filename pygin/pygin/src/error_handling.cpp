@@ -54,24 +54,25 @@ void set_error_context(const wchar_t* Summary, const std::string& Description)
 	}
 }
 
-bool get_error_context(ErrorInfo* Info)
+bool get_error_context(ErrorInfo* Info) noexcept
 {
 	if (!ErrorContext.Occurred)
 		return false;
 
+	Info->StructSize = sizeof(*Info);
 	Info->Summary = ErrorContext.Summary.c_str();
 	Info->Description = ErrorContext.Description.c_str();
 	return true;
 }
 
-void reset_error_context()
+void reset_error_context() noexcept
 {
 	ErrorContext.Occurred = false;
 }
 
 detail::exception_impl::exception_impl(const std::string& Message, const char* Function, const char* File, int Line):
 	m_Message(Message),
-	m_FullMessage(Message + "\n (at " + Function + ", " + File + ":" + std::to_string(Line) + ")")
+	m_FullMessage(Message + "\n (at "s + Function + ", "s + File + ":"s + std::to_string(Line) + ")"s)
 {
 }
 

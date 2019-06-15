@@ -83,9 +83,12 @@ class HelloWorldPlugin(pygin.Plugin):
 
 		elif info.OpenFrom == far.OpenFrom.CommandLine:
 			with pygin.Console():
-				Result = eval(info.Data.CommandLine)
-				if Result is not None:
-					print("Result: {0}".format(Result))
+				if not len(info.Data.CommandLine):
+					print("Usage: hi:<Python code>")
+				else:
+					Result = eval(info.Data.CommandLine)
+					if Result is not None:
+						print("Result: {0}".format(Result))
 			return None
 
 		BreakCode = [0]

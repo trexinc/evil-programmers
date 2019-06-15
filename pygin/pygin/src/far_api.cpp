@@ -61,16 +61,13 @@ namespace
 		const auto Size = List.size();
 		std::vector<T> Result;
 		Result.reserve(Size);
-		for (size_t i = 0; i != Size; ++i)
-		{
-			Result.emplace_back(Converter(List[i]));
-		}
+		std::transform(List.cbegin(), List.cend(), std::back_inserter(Result), Converter);
 		return Result;
 	}
 
 	FarKey PyFarKeyToFarKey(const py::object& PyFarKey)
 	{
-		return { py::cast<WORD>(PyFarKey["VirtualKeyCode"]), py::cast<DWORD>(PyFarKey["ControlKeyState"]) };
+		return { py::cast<WORD>(PyFarKey["VirtualKeyCode"sv]), py::cast<DWORD>(PyFarKey["ControlKeyState"sv]) };
 	}
 
 	auto get_args(const char* Name, PyObject* RawArgs, size_t Count)
@@ -242,18 +239,17 @@ namespace far_api_implementation
 			std::vector<std::wstring> MenuStrings;
 			MenuStrings.reserve(ItemsSize);
 
-			for(size_t i = 0; i != ItemsSize; ++i)
+			for (const auto& Item: Items)
 			{
-				auto Item = Items[i];
 				FarMenuItem MenuItem{};
-				MenuStrings.emplace_back(py::cast<std::wstring>(Item["Text"]));
+				MenuStrings.emplace_back(py::cast<std::wstring>(Item["Text"sv]));
 				MenuItem.Text = MenuStrings.back().c_str();
-				MenuItem.Flags = py::cast<MENUITEMFLAGS>(Item["Flags"]);
-				if (const py::object AccelKey = Item["AccelKey"])
+				MenuItem.Flags = py::cast<MENUITEMFLAGS>(Item["Flags"sv]);
+				if (const py::object AccelKey = Item["AccelKey"sv])
 				{
 					MenuItem.AccelKey = PyFarKeyToFarKey(AccelKey);
 				}
-				MenuItem.UserData = py::cast<intptr_t>(Item["UserData"]);
+				MenuItem.UserData = py::cast<intptr_t>(Item["UserData"sv]);
 				MenuItems.emplace_back(MenuItem);
 			}
 
@@ -335,12 +331,12 @@ namespace far_api_implementation
 					if (!psi().AdvControl(&PluginId, Command, Param1, &Info))
 						return py::object::none();
 
-					return far_api::type("VersionInfo")(
+					return far_api::type("VersionInfo"sv)(
 						Info.Major,
 						Info.Minor,
 						Info.Revision,
 						Info.Build,
-						far_api::type("VersionStage")(Info.Stage)
+						far_api::type("VersionStage"sv)(Info.Stage)
 						);
 				}
 
@@ -394,8 +390,8 @@ namespace far_api_implementation
 					if (!psi().AdvControl(&PluginId, Command, 0, &Type))
 						return py::object::none();
 
-					auto WindowTypeInstance = far_api::type("WindowType")();
-					WindowTypeInstance["Type"] = far_api::type("WindowInfoType")(Type.Type);
+					auto WindowTypeInstance = far_api::type("WindowType"sv)();
+					WindowTypeInstance["Type"sv] = far_api::type("WindowInfoType"sv)(Type.Type);
 					return WindowTypeInstance;
 				}
 
@@ -422,16 +418,16 @@ namespace far_api_implementation
 
 			const auto& ReceiveString = [&]() -> py::object
 			{
-				auto Size = psi().PanelControl(Panel, Command, 0, nullptr);
+				size_t Size = psi().PanelControl(Panel, Command, 0, nullptr);
 				if (!Size)
 					return py::object::none();
 
 				std::vector<wchar_t> Buffer(Size);
 				for (;;)
 				{
-					const auto FillSize = psi().PanelControl(Panel, Command, Size, Buffer.data());
+					const size_t FillSize = psi().PanelControl(Panel, Command, Size, Buffer.data());
 					if (FillSize == Size)
-						return py::string(Buffer.data(), FillSize);
+						return py::string({ Buffer.data(), FillSize });
 
 					Buffer.resize(Size = FillSize);
 				}
@@ -484,18 +480,18 @@ namespace far_api_implementation
 					if (!psi().PanelControl(Panel, Command, Param1, &Info))
 						return py::object::none();
 
-					auto PanelInfoInstance = far_api::type("PanelInfo")();
-					PanelInfoInstance["PluginHandle"] = py::integer(Info.PluginHandle);
-					PanelInfoInstance["OwnerGuid"] = Info.OwnerGuid;
-					PanelInfoInstance["Flags"] = far_api::type("PanelInfoFlags")(Info.Flags);
-					PanelInfoInstance["ItemsNumber"] = Info.ItemsNumber;
-					PanelInfoInstance["SelectedItemsNumber"] = Info.SelectedItemsNumber;
-					PanelInfoInstance["PanelRect"] = far_api::type("Rect")(Info.PanelRect.left, Info.PanelRect.top, Info.PanelRect.right, Info.PanelRect.bottom);
-					PanelInfoInstance["CurrentItem"] = Info.CurrentItem;
-					PanelInfoInstance["TopPanelItem"] = Info.TopPanelItem;
-					PanelInfoInstance["ViewMode"] = Info.ViewMode;
-					PanelInfoInstance["PanelType"] = far_api::type("PanelInfoType")(Info.PanelType);
-					PanelInfoInstance["SortMode"] = far_api::type("SortModes")(Info.SortMode);
+					auto PanelInfoInstance = far_api::type("PanelInfo"sv)();
+					PanelInfoInstance["PluginHandle"sv] = py::integer(Info.PluginHandle);
+					PanelInfoInstance["OwnerGuid"sv] = Info.OwnerGuid;
+					PanelInfoInstance["Flags"sv] = far_api::type("PanelInfoFlags"sv)(Info.Flags);
+					PanelInfoInstance["ItemsNumber"sv] = Info.ItemsNumber;
+					PanelInfoInstance["SelectedItemsNumber"sv] = Info.SelectedItemsNumber;
+					PanelInfoInstance["PanelRect"sv] = far_api::type("Rect"sv)(Info.PanelRect.left, Info.PanelRect.top, Info.PanelRect.right, Info.PanelRect.bottom);
+					PanelInfoInstance["CurrentItem"sv] = Info.CurrentItem;
+					PanelInfoInstance["TopPanelItem"sv] = Info.TopPanelItem;
+					PanelInfoInstance["ViewMode"sv] = Info.ViewMode;
+					PanelInfoInstance["PanelType"sv] = far_api::type("PanelInfoType"sv)(Info.PanelType);
+					PanelInfoInstance["SortMode"sv] = far_api::type("SortModes"sv)(Info.SortMode);
 
 					return PanelInfoInstance;
 				}
@@ -510,15 +506,15 @@ namespace far_api_implementation
 
 			case FCTL_SETPANELDIRECTORY:
 				{
-					PyParam2.ensure_type(far_api::type("PanelDirectory"));
+					PyParam2.ensure_type(far_api::type("PanelDirectory"sv));
 					FarPanelDirectory PanelDir{ sizeof(PanelDir) };
-					const auto Name = py::cast<std::wstring>(PyParam2["Name"]);
+					const auto Name = py::cast<std::wstring>(PyParam2["Name"sv]);
 					PanelDir.Name = Name.c_str();
-					const auto Param = py::cast<std::wstring>(PyParam2["Param"]);
+					const auto Param = py::cast<std::wstring>(PyParam2["Param"sv]);
 					PanelDir.Param = Param.c_str();
-					const auto File = py::cast<std::wstring>(PyParam2["File"]);
+					const auto File = py::cast<std::wstring>(PyParam2["File"sv]);
 					PanelDir.File = File.c_str();
-					PanelDir.PluginId = py::cast<UUID>(PyParam2["PluginId"]);
+					PanelDir.PluginId = py::cast<UUID>(PyParam2["PluginId"sv]);
 					return py::boolean(psi().PanelControl(Panel, Command, 0, &PanelDir) != 0);
 				}
 
@@ -533,10 +529,10 @@ namespace far_api_implementation
 
 			case FCTL_SETCMDLINESELECTION:
 				{
-					PyParam2.ensure_type(far_api::type("CmdLineSelect"));
+					PyParam2.ensure_type(far_api::type("CmdLineSelect"sv));
 					CmdLineSelect Select{ sizeof(Select) };
-					Select.SelStart = py::cast<intptr_t>(PyParam2["SelStart"]);
-					Select.SelEnd = py::cast<intptr_t>(PyParam2["SelEnd"]);
+					Select.SelStart = py::cast<intptr_t>(PyParam2["SelStart"sv]);
+					Select.SelEnd = py::cast<intptr_t>(PyParam2["SelEnd"sv]);
 					return py::boolean(psi().PanelControl(Panel, Command, 0, &Select) != 0);
 				}
 
@@ -546,9 +542,9 @@ namespace far_api_implementation
 					if (!psi().PanelControl(Panel, Command, 0, &Select))
 						return py::object::none();
 
-					auto CmdLineSelectInstance = far_api::type("CmdLineSelect")();
-					CmdLineSelectInstance["SelStart"] = Select.SelStart;
-					CmdLineSelectInstance["SelEnd"] = Select.SelEnd;
+					auto CmdLineSelectInstance = far_api::type("CmdLineSelect"sv)();
+					CmdLineSelectInstance["SelStart"sv] = Select.SelStart;
+					CmdLineSelectInstance["SelEnd"sv] = Select.SelEnd;
 					return CmdLineSelectInstance;
 				}
 
@@ -566,25 +562,25 @@ namespace far_api_implementation
 					if (!psi().PanelControl(Panel, Command, Param1, &FGPPI))
 						return py::object::none();
 
-					auto PluginPanelItemInstance = far_api::type("PluginPanelItem")();
-					const auto FileTimeType = far_api::type("FileTime");
-					PluginPanelItemInstance["CreationTime"] = FileTimeType(FileTimeToUI64(PPI->CreationTime));
-					PluginPanelItemInstance["LastAccessTime"] = FileTimeType(FileTimeToUI64(PPI->LastAccessTime));
-					PluginPanelItemInstance["LastWriteTime"] = FileTimeType(FileTimeToUI64(PPI->LastWriteTime));
-					PluginPanelItemInstance["ChangeTime"] = FileTimeType(FileTimeToUI64(PPI->ChangeTime));
-					PluginPanelItemInstance["FileSize"] = PPI->FileSize;
-					PluginPanelItemInstance["AllocationSize"] = PPI->AllocationSize;
-					PluginPanelItemInstance["FileName"] = PPI->FileName;
-					PluginPanelItemInstance["AlternateFileName"] = PPI->AlternateFileName;
-					PluginPanelItemInstance["Description"] = PPI->Description;
-					PluginPanelItemInstance["Owner"] = PPI->Owner;
-					PluginPanelItemInstance["CustomColumnData"] = helpers::list::from_array(PPI->CustomColumnData, PPI->CustomColumnNumber, [](auto i) { return py::from(i); });
-					PluginPanelItemInstance["Flags"] = far_api::type("PluginPanelItemFlags")(PPI->Flags);
-					//PluginPanelItemInstance["UserData"] = PPI->UserData;
-					PluginPanelItemInstance["FileAttributes"] = PPI->FileAttributes;
-					PluginPanelItemInstance["NumberOfLinks"] = PPI->NumberOfLinks;
-					PluginPanelItemInstance["CRC32"] = PPI->CRC32;
-					//PluginPanelItemInstance["Reserved"] = PPI->Reserved;
+					auto PluginPanelItemInstance = far_api::type("PluginPanelItem"sv)();
+					const auto FileTimeType = far_api::type("FileTime"sv);
+					PluginPanelItemInstance["CreationTime"sv] = FileTimeType(FileTimeToUI64(PPI->CreationTime));
+					PluginPanelItemInstance["LastAccessTime"sv] = FileTimeType(FileTimeToUI64(PPI->LastAccessTime));
+					PluginPanelItemInstance["LastWriteTime"sv] = FileTimeType(FileTimeToUI64(PPI->LastWriteTime));
+					PluginPanelItemInstance["ChangeTime"sv] = FileTimeType(FileTimeToUI64(PPI->ChangeTime));
+					PluginPanelItemInstance["FileSize"sv] = PPI->FileSize;
+					PluginPanelItemInstance["AllocationSize"sv] = PPI->AllocationSize;
+					PluginPanelItemInstance["FileName"sv] = PPI->FileName;
+					PluginPanelItemInstance["AlternateFileName"sv] = PPI->AlternateFileName;
+					PluginPanelItemInstance["Description"sv] = PPI->Description;
+					PluginPanelItemInstance["Owner"sv] = PPI->Owner;
+					PluginPanelItemInstance["CustomColumnData"sv] = helpers::list::from_array(PPI->CustomColumnData, PPI->CustomColumnNumber, [](auto i) { return py::from(i); });
+					PluginPanelItemInstance["Flags"sv] = far_api::type("PluginPanelItemFlags"sv)(PPI->Flags);
+					//PluginPanelItemInstance["UserData"sv] = PPI->UserData;
+					PluginPanelItemInstance["FileAttributes"sv] = PPI->FileAttributes;
+					PluginPanelItemInstance["NumberOfLinks"sv] = PPI->NumberOfLinks;
+					PluginPanelItemInstance["CRC32"sv] = PPI->CRC32;
+					//PluginPanelItemInstance["Reserved"sv] = PPI->Reserved;
 
 					return PluginPanelItemInstance;
 				}
@@ -616,7 +612,7 @@ namespace far_api_implementation
 
 far_api::far_api(const PluginStartupInfo* Psi):
 	m_PyMethods(far_api_implementation::Methods, std::size(far_api_implementation::Methods)),
-	m_Module(py::import::import("pygin.far"_py)),
+	m_Module(py::import::import("pygin.far"sv)),
 	m_Exception("pygin.far.error"),
 	m_Psi(*Psi),
 	m_Fsf(*Psi->FSF)
@@ -672,7 +668,7 @@ const py::object& far_api::module()
 	return s_FarApi->get_module();
 }
 
-py::type far_api::type(const std::string& TypeName)
+py::type far_api::type(std::string_view const TypeName)
 {
 	return py::type(s_FarApi->m_Module[TypeName]);
 }

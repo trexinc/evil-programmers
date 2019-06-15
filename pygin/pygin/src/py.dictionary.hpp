@@ -46,6 +46,7 @@ namespace py
 		dictionary(cast_guard, const object& Object);
 
 		void set_at(const object& Key, const object& Value);
+		[[nodiscard]]
 		object get_at(const object& Key) const;
 	};
 }

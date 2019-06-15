@@ -42,6 +42,7 @@ namespace py
 	class type: public object
 	{
 	public:
+		[[nodiscard]]
 		static const type& get_type();
 
 		type() = default;

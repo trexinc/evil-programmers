@@ -55,17 +55,17 @@ static auto create_pygin_module()
 	wcsrchr(AdaptherPath, L'\\')[1] = 0;
 
 	// This is essentially the same as pygin._loader._load_plugin, but since pygin isn't loaded yet we have to reinvent it:
-	const auto ImportlibUtil = py::import::import("importlib.util");
-	const auto Spec = ImportlibUtil["spec_from_file_location"]("pygin", AdaptherPath + L"pygin\\__init__.py"s);
-	const auto Module = py::cast<py::module>(ImportlibUtil["module_from_spec"](Spec));
-	py::cast<py::dictionary>(py::import::import("sys")["modules"])["pygin"_py] = Module;
-	Spec["loader"].get_attribute("exec_module")(Module);
+	const auto ImportlibUtil = py::import::import("importlib.util"sv);
+	const auto Spec = ImportlibUtil["spec_from_file_location"sv]("pygin"sv, AdaptherPath + L"pygin\\__init__.py"s);
+	const auto Module = py::cast<py::module>(ImportlibUtil["module_from_spec"sv](Spec));
+	py::cast<py::dictionary>(py::import::import("sys"sv)["modules"sv])["pygin"_py] = Module;
+	Spec["loader"sv].get_attribute("exec_module"sv)(Module);
 	return Module;
 }
 
 pygin::pygin(GlobalInfo* Info):
 	m_PyginModule(create_pygin_module()),
-	m_PyginLoadPlugin(py::cast<py::function>(m_PyginModule["_loader"]["_load_plugin"]))
+	m_PyginLoadPlugin(py::cast<py::function>(m_PyginModule["_loader"sv]["_load_plugin"sv]))
 {
 	Info->StructSize = sizeof(GlobalInfo);
 
@@ -102,7 +102,7 @@ std::unique_ptr<module> pygin::create_module(const wchar_t* FileName) const
 	const auto NamePtr = std::wcsrchr(FileName, L'\\') + 1;
 	const auto NameSize = wcslen(NamePtr) - wcslen(PluginFileNameSuffix);
 
-	const auto Module = m_PyginLoadPlugin(py::string(NamePtr, NameSize), FileName);
+	const auto Module = m_PyginLoadPlugin(py::string({ NamePtr, NameSize }), FileName);
 
 	if (!Module)
 		return nullptr;
@@ -155,7 +155,7 @@ FARPROC WINAPI pygin::get_function(HANDLE Instance, const wchar_t* FunctionName)
 	return Module->check_function(FunctionName) && FunctionsMap.count(FunctionName)? reinterpret_cast<FARPROC>(FunctionsMap.at(FunctionName)) : nullptr;
 }
 
-bool pygin::get_error(ErrorInfo* Info) const
+bool pygin::get_error(ErrorInfo* Info) const noexcept
 {
 	return get_error_context(Info);
 }

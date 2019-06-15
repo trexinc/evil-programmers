@@ -32,41 +32,100 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "headers.hpp"
 
 #include "pygin.loader.hpp"
+#include "error_handling.hpp"
 
 static adapter Adapter;
 
 BOOL WINAPI loader_Initialize(GlobalInfo* Info) noexcept
 {
-	return Adapter.ModuleInit() && Adapter.Initialize(Info);
+	return try_call(
+	[&]
+	{
+		return Adapter.ModuleInit() && Adapter.Initialize(Info);
+	},
+	[]
+	{
+		return false;
+	});
 }
 
 BOOL WINAPI loader_IsPlugin(const wchar_t* FileName) noexcept
 {
-	return Adapter.IsPlugin(FileName);
+	return try_call(
+	[&]
+	{
+		return Adapter.IsPlugin(FileName) != FALSE;
+	},
+	[]
+	{
+		return false;
+	});
 }
 
 HANDLE WINAPI loader_CreateInstance(const wchar_t* FileName) noexcept
 {
-	return Adapter.CreateInstance(FileName);
+	return try_call(
+	[&]
+	{
+		return Adapter.CreateInstance(FileName);
+	},
+	[]
+	{
+		return HANDLE{};
+	});
 }
 
 FARPROC WINAPI loader_GetFunctionAddress(HANDLE Instance, const wchar_t* FunctionName) noexcept
 {
-	return Adapter.GetFunctionAddress(Instance, FunctionName);
+	return try_call(
+	[&]
+	{
+		return Adapter.GetFunctionAddress(Instance, FunctionName);
+	},
+	[]
+	{
+		return FARPROC{};
+	});
 }
 
 BOOL WINAPI loader_GetError(ErrorInfo* Info) noexcept
 {
-	return Adapter.GetError(Info);
+	if (get_error_context(Info))
+		return true;
+
+	return try_call(
+	[&]
+	{
+		return Adapter.GetError(Info) != FALSE;
+	},
+	[&]
+	{
+		return get_error_context(Info);
+	});
 }
 
 BOOL WINAPI loader_DestroyInstance(HANDLE Instance) noexcept
 {
-	return Adapter.DestroyInstance(Instance);
+	return try_call(
+	[&]
+	{
+		return Adapter.DestroyInstance(Instance) != FALSE;
+	},
+	[]
+	{
+		return false;
+	});
 }
 
 void WINAPI loader_Free(const ExitInfo* Info) noexcept
 {
-	Adapter.Free(Info);
-	Adapter.ModuleFree();
+	return try_call(
+	[&]
+	{
+		Adapter.Free(Info);
+		Adapter.ModuleFree();
+	},
+	[]
+	{
+	});
 }

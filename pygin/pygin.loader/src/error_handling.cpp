@@ -1,11 +1,9 @@
-﻿#pragma once
-
-/*
-types_cache.hpp
+﻿/*
+error_handling.cpp
 
 */
 /*
-Copyright 2017 Alex Alabuzhev
+Copyright 2019 Alex Alabuzhev
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -31,38 +29,43 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "critical_section.hpp"
+#include "headers.hpp"
 
-namespace py
+#include "error_handling.hpp"
+
+static thread_local struct
 {
-	class object;
-	class type;
+	bool Occurred;
+	std::wstring Summary;
+	std::wstring Description;
+}
+ErrorContext;
+
+void set_error_context(const wchar_t* Summary, const std::string& Description)
+{
+	ErrorContext.Occurred = true;
+	ErrorContext.Summary = Summary;
+
+	const auto Size = MultiByteToWideChar(CP_UTF8, 0, Description.data(), static_cast<int>(Description.size()), nullptr, 0);
+	if (Size)
+	{
+		ErrorContext.Description.resize(Size);
+		MultiByteToWideChar(CP_UTF8, 0, Description.data(), static_cast<int>(Description.size()), &ErrorContext.Description[0], Size);
+	}
 }
 
-enum class types
+bool get_error_context(ErrorInfo* Info) noexcept
 {
-	boolean,
-	bytes,
-	dictionary,
-	floating,
-	function,
-	integer,
-	list,
-	module,
-	string,
-	tuple,
-	type,
-	uuid,
-};
+	if (!ErrorContext.Occurred)
+		return false;
 
-class types_cache
+	Info->StructSize = sizeof(*Info);
+	Info->Summary = ErrorContext.Summary.c_str();
+	Info->Description = ErrorContext.Description.c_str();
+	return true;
+}
+
+void reset_error_context() noexcept
 {
-public:
-	[[nodiscard]]
-	static const py::type& get_type(types TypeId, const std::function<py::type()>& Getter);
-	static void clear();
-
-private:
-	static std::unordered_map<types, py::type> m_TypesCache;
-	static critical_section m_Cs;
-};
+	ErrorContext.Occurred = false;
+}

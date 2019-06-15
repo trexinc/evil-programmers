@@ -93,7 +93,6 @@ FARPROC WINAPI adapter_GetFunctionAddress(HANDLE Instance, const wchar_t* Functi
 
 BOOL WINAPI adapter_GetError(ErrorInfo* Info) noexcept
 {
-	// This one is unprotected, as otherwise it would reset error state
 	return PyginInstance->get_error(Info);
 }
 

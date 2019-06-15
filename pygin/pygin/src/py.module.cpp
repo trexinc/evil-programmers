@@ -70,8 +70,8 @@ namespace py
 		// Not available with Py_LIMITED_API
 		// py::invoke(PyModule_AddFunctions, get(), Methods);
 
-		const auto Name = get_attribute("__name__");
-		for(auto Method = Methods; Method->ml_name; ++Method)
+		const auto Name = get_attribute("__name__"sv);
+		for (auto Method = Methods; Method->ml_name; ++Method)
 		{
 			object Function(py::invoke(PyCFunction_NewEx, Method, get(), Name.get()));
 			set_attribute(Method->ml_name, Function);

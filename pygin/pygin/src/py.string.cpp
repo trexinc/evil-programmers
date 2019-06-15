@@ -45,37 +45,27 @@ namespace py
 	{
 		return types_cache::get_type(types::string, []
 		{
-			return type(string(static_cast<const char*>(nullptr), 0));
+			return type(string(""sv));
 		});
 	}
 
-	string::string(const char* Str, size_t Size):
-		object(invoke(PyUnicode_FromStringAndSize, Str, Size))
+	string::string(std::string_view const Str):
+		object(invoke(PyUnicode_FromStringAndSize, Str.data(), Str.size()))
 	{
 	}
 
-	string::string(const wchar_t* Str, size_t Size):
-		object(invoke(PyUnicode_FromWideChar, Str, Size))
+	string::string(std::wstring_view const Str):
+		object(invoke(PyUnicode_FromWideChar, Str.data(), Str.size()))
 	{
 	}
 
 	string::string(const char* Str):
-		string(Str, Str? strlen(Str) : 0)
+		string({Str, Str? strlen(Str) : 0})
 	{
 	}
 
 	string::string(const wchar_t* Str):
-		string(Str, Str? wcslen(Str) : 0)
-	{
-	}
-
-	string::string(const std::string& Str):
-		string(Str.data(), Str.size())
-	{
-	}
-
-	string::string(const std::wstring& Str):
-		string(Str.data(), Str.size())
+		string({ Str, Str? wcslen(Str) : 0 })
 	{
 	}
 
@@ -121,12 +111,12 @@ namespace py
 		return string(Value);
 	}
 
-	object from(const std::string& Value)
+	object from(std::string_view const Value)
 	{
 		return string(Value);
 	}
 
-	object from(const std::wstring& Value)
+	object from(std::wstring_view const Value)
 	{
 		return string(Value);
 	}

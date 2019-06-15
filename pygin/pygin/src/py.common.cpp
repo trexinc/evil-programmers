@@ -73,32 +73,29 @@ namespace py
 		PyErr_Fetch(&TypePtr, &ValuePtr, &TracebackPtr);
 		PyErr_NormalizeException(&TypePtr, &ValuePtr, &TracebackPtr);
 
-		object Type(TypePtr), Value(ValuePtr), Traceback(TracebackPtr);
+		const object Type(TypePtr), Value(ValuePtr), Traceback(TracebackPtr);
 
-		const auto TracebackModule = import::import("traceback"_py);
+		const auto TracebackModule = import::import("traceback"sv);
 
 		std::string Message;
 
 		{
-			const auto List = cast<list>(TracebackModule["format_exception_only"](Type, Value));
-			for (size_t i = 0, size = List.size(); i != size; ++i)
+			for (const auto& Item: cast<list>(TracebackModule["format_exception_only"sv](Type, Value)))
 			{
-				Message += cast<string>(List[i]);
+				Message += cast<string>(Item);
 			}
 		}
 
 		if (Traceback)
 		{
-			Message += "\1\nTraceback (most recent call last):\n"s;
+			Message += "\1\nTraceback (most recent call last):\n"sv;
 
-			const auto List = cast<list>(TracebackModule["format_tb"](Traceback));
-			for (size_t i = 0, size = List.size(); i != size; ++i)
+			for (const auto& Item: cast<list>(TracebackModule["format_tb"sv](Traceback)))
 			{
-				Message += cast<string>(List[i]);
+				Message += cast<string>(Item);
 			}
 		}
 
 		throw exception(Message);
 	}
 }
-

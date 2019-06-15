@@ -50,10 +50,10 @@ public:
 
 	explicit pygin(GlobalInfo* Info);
 	~pygin();
-	bool is_module(const wchar_t* FileName) const;
-	std::unique_ptr<module> create_module(const wchar_t* FileName) const;
-	FARPROC WINAPI get_function(HANDLE Instance, const wchar_t* FunctionName) const;
-	bool get_error(ErrorInfo* Info) const;
+	[[nodiscard]] bool is_module(const wchar_t* FileName) const;
+	[[nodiscard]] std::unique_ptr<module> create_module(const wchar_t* FileName) const;
+	[[nodiscard]] FARPROC WINAPI get_function(HANDLE Instance, const wchar_t* FunctionName) const;
+	[[nodiscard]] bool get_error(ErrorInfo* Info) const noexcept;
 
 private:
 	class python

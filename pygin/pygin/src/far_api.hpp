@@ -47,16 +47,16 @@ public:
 
 	explicit far_api(const PluginStartupInfo* Psi);
 
-	const PluginStartupInfo& psi() const;
-	const FarStandardFunctions& fsf() const;
-	const py::object& exception() const;
+	[[nodiscard]] const PluginStartupInfo& psi() const;
+	[[nodiscard]] const FarStandardFunctions& fsf() const;
+	[[nodiscard]] const py::object& exception() const;
 
-	const py::object& get_module() const;
+	[[nodiscard]] const py::object& get_module() const;
 
 	static void initialise(const PluginStartupInfo* Psi);
-	static const far_api& get();
-	static const py::object& module();
-	static py::type type(const std::string& TypeName);
+	[[nodiscard]] static const far_api& get();
+	[[nodiscard]] static const py::object& module();
+	[[nodiscard]] static py::type type(std::string_view TypeName);
 	static void uninitialise();
 
 private:

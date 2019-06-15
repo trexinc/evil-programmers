@@ -1,11 +1,11 @@
 ﻿#pragma once
 
 /*
-types_cache.hpp
+error_handling.hpp
 
 */
 /*
-Copyright 2017 Alex Alabuzhev
+Copyright 2019 Alex Alabuzhev
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -31,38 +31,25 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "critical_section.hpp"
+void set_error_context(const wchar_t* Summary, const std::string& Description);
+bool get_error_context(ErrorInfo* Info) noexcept;
+void reset_error_context() noexcept;
 
-namespace py
+template<typename callable, typename fallback>
+[[nodiscard]] auto try_call(const callable& Callable, const fallback& Fallback) noexcept
 {
-	class object;
-	class type;
+	try
+	{
+		reset_error_context();
+		return Callable();
+	}
+	catch (const std::exception& e)
+	{
+		set_error_context(L"Pygin.loader: std::exception", e.what());
+	}
+	catch (...)
+	{
+		set_error_context(L"Pygin.loader: unknown exception", "Unknown exception");
+	}
+	return Fallback();
 }
-
-enum class types
-{
-	boolean,
-	bytes,
-	dictionary,
-	floating,
-	function,
-	integer,
-	list,
-	module,
-	string,
-	tuple,
-	type,
-	uuid,
-};
-
-class types_cache
-{
-public:
-	[[nodiscard]]
-	static const py::type& get_type(types TypeId, const std::function<py::type()>& Getter);
-	static void clear();
-
-private:
-	static std::unordered_map<types, py::type> m_TypesCache;
-	static critical_section m_Cs;
-};

@@ -37,6 +37,7 @@ namespace py
 {
 	namespace sys
 	{
+		[[nodiscard]]
 		object get_object(const char* Name);
 	}
 }

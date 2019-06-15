@@ -56,7 +56,7 @@ namespace py
 	}
 
 	uuid::uuid(const UUID& Uuid):
-		object(import::import("uuid"_py).get_attribute("UUID")(none(), none(), object(invoke(PyBytes_FromStringAndSize, reinterpret_cast<const char*>(&Uuid), sizeof(Uuid)))))
+		object(import::import("uuid"sv).get_attribute("UUID"sv)(none(), none(), object(invoke(PyBytes_FromStringAndSize, reinterpret_cast<const char*>(&Uuid), sizeof(Uuid)))))
 	{
 	}
 
@@ -67,7 +67,7 @@ namespace py
 
 	uuid::operator UUID() const
 	{
-		const auto Bytes = (*this)["bytes_le"];
+		const auto Bytes = (*this)["bytes_le"sv];
 		UUID Result;
 		std::memcpy(&Result, invoke(PyBytes_AsString, Bytes.get()), sizeof(Result));
 		return Result;

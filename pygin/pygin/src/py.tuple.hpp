@@ -47,8 +47,10 @@ namespace py
 		tuple(cast_guard, const object& Object);
 
 		void set_at(size_t Position, const object& Object);
+		[[nodiscard]]
 		object get_at(size_t Position) const;
 
+		[[nodiscard]]
 		size_t size() const;
 	};
 }

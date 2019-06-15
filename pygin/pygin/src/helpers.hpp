@@ -38,13 +38,10 @@ namespace helpers
 	namespace list
 	{
 		template<typename type, typename converter>
-		static auto from_array(const type* Data, size_t Size, const converter& Converter)
+		[[nodiscard]] static auto from_array(const type* Data, size_t Size, const converter& Converter)
 		{
 			py::list Result;
-			for (auto Iterator = Data; Iterator != Data + Size; ++Iterator)
-			{
-				Result.push_back(Converter(*Iterator));
-			}
+			std::transform(Data, Data + Size, std::back_inserter(Result), Converter);
 			return Result;
 		}
 	}

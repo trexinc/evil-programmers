@@ -49,20 +49,21 @@ namespace py
 		explicit integer(void* Value);
 		integer(cast_guard, const object& Object);
 
-		operator short() const;
-		operator unsigned short() const;
-		operator int() const;
-		operator unsigned int() const;
-		operator long() const;
-		operator unsigned long() const;
-		operator long long() const;
-		operator unsigned long long() const;
+		[[nodiscard]] operator short() const;
+		[[nodiscard]] operator unsigned short() const;
+		[[nodiscard]] operator int() const;
+		[[nodiscard]] operator unsigned int() const;
+		[[nodiscard]] operator long() const;
+		[[nodiscard]] operator unsigned long() const;
+		[[nodiscard]] operator long long() const;
+		[[nodiscard]] operator unsigned long long() const;
 
-		explicit operator void*() const;
+		[[nodiscard]] explicit operator void*() const;
 	};
 
 	inline namespace literals
 	{
+		[[nodiscard]]
 		inline auto operator ""_py(unsigned long long Value) noexcept
 		{
 			return integer(Value);
@@ -70,54 +71,63 @@ namespace py
 	}
 
 	template<>
+	[[nodiscard]]
 	inline short cast(const object& Object)
 	{
 		return cast<integer>(Object);
 	}
 
 	template<>
+	[[nodiscard]]
 	inline unsigned short cast(const object& Object)
 	{
 		return cast<integer>(Object);
 	}
 
 	template<>
+	[[nodiscard]]
 	inline int cast(const object& Object)
 	{
 		return cast<integer>(Object);
 	}
 
 	template<>
+	[[nodiscard]]
 	inline unsigned int cast(const object& Object)
 	{
 		return cast<integer>(Object);
 	}
 
 	template<>
+	[[nodiscard]]
 	inline long cast(const object& Object)
 	{
 		return cast<integer>(Object);
 	}
 
 	template<>
+	[[nodiscard]]
 	inline unsigned long cast(const object& Object)
 	{
 		return cast<integer>(Object);
 	}
 
 	template<>
+	[[nodiscard]]
 	inline long long cast(const object& Object)
 	{
 		return cast<integer>(Object);
 	}
 
 	template<>
+	[[nodiscard]]
 	inline unsigned long long cast(const object& Object)
 	{
 		return cast<integer>(Object);
 	}
 
 	template<>
+	[[nodiscard]]
 	inline void* cast(const object& Object)
 	{
 		return static_cast<void*>(cast<integer>(Object));
@@ -133,16 +143,16 @@ namespace py
 		}
 	};
 
-	object from(unsigned short Value);
-	object from(int Value);
-	object from(unsigned int Value);
-	object from(long Value);
-	object from(unsigned long Value);
-	object from(long long Value);
-	object from(unsigned long long Value);
+	[[nodiscard]] object from(unsigned short Value);
+	[[nodiscard]] object from(int Value);
+	[[nodiscard]] object from(unsigned int Value);
+	[[nodiscard]] object from(long Value);
+	[[nodiscard]] object from(unsigned long Value);
+	[[nodiscard]] object from(long long Value);
+	[[nodiscard]] object from(unsigned long long Value);
 
 	template<typename type>
-	std::enable_if_t<std::is_enum<type>::value, object> from(type Value)
+	[[nodiscard]] std::enable_if_t<std::is_enum<type>::value, object> from(type Value)
 	{
 		return from(static_cast<std::underlying_type_t<type>>(Value));
 	}

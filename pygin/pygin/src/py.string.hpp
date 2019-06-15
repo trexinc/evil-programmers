@@ -40,47 +40,47 @@ namespace py
 	public:
 		static const type& get_type();
 
-		string(const char* Str, size_t Size);
-		string(const wchar_t* Str, size_t Size);
+		string(std::string_view Str);
+		string(std::wstring_view Str);
 		string(const char* Str);
 		string(const wchar_t* Str);
-		string(const std::string& Str);
-		string(const std::wstring& Str);
 		string(cast_guard, const object& Object);
 
-		bool operator==(const string& Other) const;
+		[[nodiscard]] bool operator==(const string& Other) const;
 
-		operator std::string() const;
-		operator std::wstring() const;
+		[[nodiscard]] operator std::string() const;
+		[[nodiscard]] operator std::wstring() const;
 	};
 
 	inline namespace literals
 	{
+		[[nodiscard]]
 		inline auto operator ""_py(const char* Data, size_t Size) noexcept
 		{
-			return string(Data, Size);
+			return string({ Data, Size });
 		}
 
+		[[nodiscard]]
 		inline auto operator ""_py(const wchar_t* Data, size_t Size) noexcept
 		{
-			return string(Data, Size);
+			return string({ Data, Size });
 		}
 	}
 
 	template<>
-	inline std::wstring cast(const object& Object) 
+	[[nodiscard]] inline std::wstring cast(const object& Object)
 	{
 		return cast<string>(Object);
 	}
 
 	template<>
-	inline std::string cast(const object& Object)
+	[[nodiscard]] inline std::string cast(const object& Object)
 	{
 		return cast<string>(Object);
 	}
 
-	object from(const char* Value);
-	object from(const wchar_t* Value);
-	object from(const std::string& Value);
-	object from(const std::wstring& Value);
+	[[nodiscard]] object from(std::string_view Value);
+	[[nodiscard]] object from(std::wstring_view Value);
+	[[nodiscard]] object from(const char* Value);
+	[[nodiscard]] object from(const wchar_t* Value);
 }

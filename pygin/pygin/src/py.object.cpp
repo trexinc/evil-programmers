@@ -130,12 +130,7 @@ namespace py
 
 	object::operator bool() const
 	{
-		return !!*this;
-	}
-
-	bool object::operator!() const
-	{
-		return !m_Object || m_Object == Py_None;
+		return m_Object && m_Object != Py_None;
 	}
 
 	PyObject* object::get() const
@@ -154,22 +149,13 @@ namespace py
 		return std::exchange(m_Object, nullptr);
 	}
 
-	bool object::has_attribute(const char* Name) const
-	{
-		return invoke(PyObject_HasAttrString, get(), Name) != 0;
-	}
-
-	bool object::has_attribute(const wchar_t* Name) const
+	bool object::has_attribute(std::string_view const Name) const
 	{
 		return has_attribute(string(Name));
 	}
 
-	bool object::has_attribute(const std::string& Name) const
-	{
-		return has_attribute(Name.c_str());
-	}
 
-	bool object::has_attribute(const std::wstring& Name) const
+	bool object::has_attribute(std::wstring_view const Name) const
 	{
 		return has_attribute(string(Name));
 	}
@@ -179,22 +165,12 @@ namespace py
 		return invoke(PyObject_HasAttr, get(), Name.get()) != 0;
 	}
 
-	object object::get_attribute(const char* Name) const
-	{
-		return object(invoke(PyObject_GetAttrString, get(), Name));
-	}
-
-	object object::get_attribute(const wchar_t* Name) const
+	object object::get_attribute(std::string_view const Name) const
 	{
 		return get_attribute(string(Name));
 	}
 
-	object object::get_attribute(const std::string& Name) const
-	{
-		return get_attribute(Name.c_str());
-	}
-
-	object object::get_attribute(const std::wstring& Name) const
+	object object::get_attribute(std::wstring_view const Name) const
 	{
 		return get_attribute(string(Name));
 	}
@@ -204,22 +180,12 @@ namespace py
 		return object(invoke(PyObject_GetAttr, get(), Name.get()));
 	}
 
-	bool object::set_attribute(const char* Name, const object& Value)
-	{
-		return invoke(PyObject_SetAttrString, get(), Name, Value.get()) == 0;
-	}
-
-	bool object::set_attribute(const wchar_t* Name, const object& Value)
+	bool object::set_attribute(std::string_view const Name, const object& Value)
 	{
 		return set_attribute(string(Name), Value);
 	}
 
-	bool object::set_attribute(const std::string& Name, const object& Value)
-	{
-		return set_attribute(Name.c_str(), Value);
-	}
-
-	bool object::set_attribute(const std::wstring& Name, const object& Value)
+	bool object::set_attribute(std::wstring_view const Name, const object& Value)
 	{
 		return set_attribute(string(Name), Value);
 	}
@@ -229,9 +195,29 @@ namespace py
 		return invoke(PyObject_SetAttr, get(), Name.get(), Value.get()) == 0;
 	}
 
-	bool object::set_at(const char* Name, const object& Value)
+	bool object::set_at(std::string_view const Name, const object& Value)
 	{
 		return set_attribute(Name, Value);
+	}
+
+	iterator object::begin() const
+	{
+		return iterator(*this, false);
+	}
+
+	iterator object::end() const
+	{
+		return iterator(*this, true);
+	}
+
+	iterator object::cbegin() const
+	{
+		return begin();
+	}
+
+	iterator object::cend() const
+	{
+		return end();
 	}
 
 	object object::operator()(const std::initializer_list<object>& Args) const
@@ -254,8 +240,48 @@ namespace py
 	{
 		if (!check_type(Type))
 		{
-			const auto ThisTypeName = *this? cast<std::string>(type(*this)["__name__"]) : "None"s;
-			throw MAKE_PYGIN_EXCEPTION(ThisTypeName + " is not "s + cast<std::string>(Type["__name__"]));
+			const auto ThisTypeName = *this? cast<std::string>(type(*this)["__name__"sv]) : "None"s;
+			throw MAKE_PYGIN_EXCEPTION(ThisTypeName + " is not "s + cast<std::string>(Type["__name__"sv]));
 		}
+	}
+
+	iterator::iterator(const object& Container, bool const IsEnd):
+		m_Container(Container.get()),
+		m_Iterable(IsEnd? nullptr : py::invoke(PyObject_GetIter, m_Container)),
+		m_Value(IsEnd? nullptr : py::invoke(PyIter_Next, m_Iterable.get()))
+	{
+	}
+
+	object iterator::operator*() const
+	{
+		return m_Value;
+	}
+
+	const object* iterator::operator->() const
+	{
+		return &m_Value;
+	}
+
+	iterator& iterator::operator++()
+	{
+		m_Value = py::invoke(PyIter_Next, m_Iterable.get());
+		if (!m_Value)
+		{
+			m_Iterable = nullptr;
+		}
+		return *this;
+	}
+
+	bool iterator::operator==(const iterator& rhs) const
+	{
+		return
+			m_Container == rhs.m_Container &&
+			m_Iterable.get() == rhs.m_Iterable.get() &&
+			m_Value.get() == rhs.m_Value.get();
+	}
+
+	bool iterator::operator!=(const iterator& rhs) const
+	{
+		return !(*this == rhs);
 	}
 }

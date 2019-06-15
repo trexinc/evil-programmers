@@ -60,7 +60,7 @@ namespace py
 		return cast<floating>(Object);
 	}
 
-	object from(float Value);
-	object from(double Value);
-	object from(long double Value);
+	[[nodiscard]] object from(float Value);
+	[[nodiscard]] object from(double Value);
+	[[nodiscard]] object from(long double Value);
 }

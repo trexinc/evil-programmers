@@ -43,14 +43,17 @@ namespace py
 		uuid(const UUID& Uuid);
 		uuid(cast_guard, const object& Object);
 
+		[[nodiscard]]
 		operator UUID() const;
 	};
 
 	template<>
+	[[nodiscard]]
 	inline UUID cast(const object& Object)
 	{
 		return cast<uuid>(Object);
 	}
 
+	[[nodiscard]]
 	object from(const UUID& Value);
 }
