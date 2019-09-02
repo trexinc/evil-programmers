@@ -495,6 +495,7 @@ static intptr_t WINAPI ManageGroupUserDialogProc(HANDLE hDlg,intptr_t Msg,intptr
         }
         free(old_params);
       }
+      [[fallthrough]];
     case DN_EDITCHANGE:
       UpdateItem(Param1,DlgParams);
       break;

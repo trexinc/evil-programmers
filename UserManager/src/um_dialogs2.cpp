@@ -32,6 +32,7 @@ static intptr_t WINAPI EditShareDialogProc(HANDLE hDlg,intptr_t Msg,intptr_t Par
   {
     case DN_INITDIALOG:
       Info.SendDlgMessage(hDlg,DM_SETMAXTEXTLENGTH,4,(void*)(MAX_COMMENT-1));
+      [[fallthrough]];
     case DN_BTNCLICK:
       Info.SendDlgMessage(hDlg,DM_GETDLGITEMSHORT,6,&DialogItem);
       if(DialogItem.Selected)

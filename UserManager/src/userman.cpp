@@ -643,10 +643,10 @@ intptr_t WINAPI GetFindDataW(struct GetFindDataInfo *anInfo)
       {
         wchar_t *group_name;
         wchar_t *group_comment;
-        anInfo->PanelItem=(PluginPanelItem *)malloc(sizeof(PluginPanelItem)*(entriesread1+entriesread2+sizeof(AddSID)/sizeof(AddSID[0])+1));
+        anInfo->PanelItem=(PluginPanelItem *)malloc(sizeof(PluginPanelItem)*(entriesread1+entriesread2+sizeof(AddSID)/sizeof(AddSID[0])));
         if(anInfo->PanelItem)
         {
-          anInfo->ItemsNumber=entriesread1+entriesread2+sizeof(AddSID)/sizeof(AddSID[0])+1;
+          anInfo->ItemsNumber=entriesread1+entriesread2+sizeof(AddSID)/sizeof(AddSID[0]);
           for(unsigned long i=0;i<entriesread1;i++)
           {
             if(panel->global)
@@ -719,11 +719,6 @@ intptr_t WINAPI GetFindDataW(struct GetFindDataInfo *anInfo)
               NormalizeCustomColumns((anInfo->PanelItem)+i);
             }
           }
-          TCHAR* item_filename=(TCHAR*)malloc(6);
-          (anInfo->PanelItem)[entriesread1+entriesread2+sizeof(AddSID)/sizeof(AddSID[0])].FileName=item_filename;
-          if(item_filename)
-            _tcscpy(item_filename,_T(".."));
-          (anInfo->PanelItem)[entriesread1+entriesread2+sizeof(AddSID)/sizeof(AddSID[0])].FileAttributes=0;
         }
       }
       if(groups) NetApiBufferFree(groups);
@@ -748,10 +743,10 @@ intptr_t WINAPI GetFindDataW(struct GetFindDataInfo *anInfo)
       }
       if(err==NERR_Success)
       {
-        anInfo->PanelItem=(PluginPanelItem *)malloc(sizeof(PluginPanelItem)*(entriesread+1));
+        anInfo->PanelItem=(PluginPanelItem *)malloc(sizeof(PluginPanelItem)*(entriesread));
         if(anInfo->PanelItem)
         {
-          anInfo->ItemsNumber=entriesread+1;
+          anInfo->ItemsNumber=entriesread;
           for(unsigned long i=0;i<entriesread;i++)
           {
             if(panel->global)
@@ -771,11 +766,6 @@ intptr_t WINAPI GetFindDataW(struct GetFindDataInfo *anInfo)
               }
             }
           }
-          TCHAR* item_filename=(TCHAR*)malloc(6);
-          (anInfo->PanelItem)[entriesread].FileName=item_filename;
-          if(item_filename)
-            _tcscpy(item_filename,_T(".."));
-          (anInfo->PanelItem)[entriesread].FileAttributes=0;
         }
         NetApiBufferFree(members);
       }
