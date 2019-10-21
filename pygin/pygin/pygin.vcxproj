@@ -40,8 +40,8 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros">
-    <PythonPath Condition="'$(PythonPath)'=='' AND '$(Platform)'=='x64'">C:\Program Files\Python37</PythonPath>
-    <PythonPath Condition="'$(PythonPath)'=='' AND '$(Platform)'=='win32'">C:\Program Files (x86)\Python37-32</PythonPath>
+    <PythonPath Condition="'$(PythonPath)'=='' AND '$(Platform)'=='x64'">C:\Program Files\Python38</PythonPath>
+    <PythonPath Condition="'$(PythonPath)'=='' AND '$(Platform)'=='win32'">C:\Program Files (x86)\Python38-32</PythonPath>
   </PropertyGroup>
   <PropertyGroup>
     <IntDir>$(SolutionDir)artefacts\intermediate\adapters\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
