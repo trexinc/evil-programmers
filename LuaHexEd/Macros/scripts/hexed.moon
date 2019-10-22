@@ -1,19 +1,56 @@
 ﻿F=far.Flags
 K=far.Colors
+ffi=require'ffi'
+C=ffi.C
 dialogs={}
 id=win.Uuid"02FFA2B9-98F8-4A73-B311-B3431340E272"
+ffi.cdef[[
+HANDLE CreateFileW (LPCWSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, void* lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile);
+WINBOOL GetFileSizeEx (HANDLE hFile, int64_t* lpFileSize);
+WINBOOL SetFilePointerEx (HANDLE hFile, int64_t liDistanceToMove, void* lpNewFilePointer, DWORD dwMoveMethod);
+WINBOOL ReadFile (HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBytesToRead, LPDWORD lpNumberOfBytesRead, void* lpOverlapped);
+WINBOOL WriteFile (HANDLE hFile, LPCVOID lpBuffer, DWORD nNumberOfBytesToWrite, LPDWORD lpNumberOfBytesWritten, void* lpOverlapped);
+WINBOOL CloseHandle (HANDLE hObject);
+]]
+INVALID_HANDLE_VALUE=ffi.cast 'void*',-1
+GENERIC_READ=0x80000000
+GENERIC_WRITE=0x40000000
+FILE_SHARE_READ=1
+FILE_SHARE_WRITE=2
+FILE_SHARE_DELETE=4
+OPEN_EXISTING=3
+FILE_BEGIN=0
+
+ToWChar=(str)->
+  str=win.Utf8ToUtf16 str
+  result=ffi.new 'wchar_t[?]',#str/2+1
+  ffi.copy result,str
+  result
+
+LongPath=(path)->
+  type=path\match([[^\\(.?.?)]])
+  type and (([[?\]]==type or [[.\]]==type) and path or [[\\?\UNC]]..path\sub(2)) or [[\\?\]]..path
 
 ConsoleSize=->
   rr=far.AdvControl"ACTL_GETFARRECT"
   rr.Right-rr.Left+1,rr.Bottom-rr.Top+1
 
 Read=(data)->
-  data.file\seek "set",data.offset
-  data.data=data.file\read 16*data.height
+  with data
+    C.SetFilePointerEx .file,.offset,ffi.NULL,FILE_BEGIN
+    readed=ffi.new'DWORD[1]'
+    data=ffi.new 'uint8_t[?]',16*.height
+    C.ReadFile .file,data,16*.height,readed,ffi.NULL
+    .data=ffi.string data,readed[0]
 
 Write=(data)->
-  data.file\seek "set",data.offset
-  data.file\write data.data
+  with data
+    fileW=C.CreateFileW .filenameW,GENERIC_WRITE,FILE_SHARE_READ,ffi.NULL,OPEN_EXISTING,0,ffi.NULL
+    if fileW~=INVALID_HANDLE_VALUE
+      C.SetFilePointerEx fileW,.offset,ffi.NULL,FILE_BEGIN
+      written=ffi.new'DWORD[1]'
+      C.WriteFile fileW,.data,(string.len .data),written,ffi.NULL
+      C.CloseHandle fileW
 
 _title,_view,_edit=1,2,3
 
@@ -31,7 +68,7 @@ HexDraw=(hDlg,data)->
   len=string.len data.data
   for ii=0,data.height-1
     if ii*16<len
-      DrawStr ii*data.width+1,string.format "%010X:",data.offset+ii*16
+      DrawStr ii*data.width+1,string.format "%010X:",tonumber data.offset+ii*16
       data.textel.Char=0x2502
       data.buffer[ii*data.width+24+1+12]=data.textel
     for jj=1,16
@@ -58,7 +95,7 @@ HexDlg=(hDlg,Msg,Param1,Param2)->
   data=dialogs[hDlg\rawhandle!]
   if data
     if Msg==F.DN_CLOSE
-      data.file\close!
+      C.CloseHandle data.file
       dialogs[hDlg\rawhandle!]=nil
     elseif Msg==F.DN_CTLCOLORDLGITEM and Param1==_edit
       color=far.AdvControl F.ACTL_GETCOLOR,data.editchanged and K.COL_VIEWERARROWS or K.COL_VIEWERTEXT
@@ -171,13 +208,13 @@ HexDlg=(hDlg,Msg,Param1,Param2)->
               if .offset+.height*16<.filesize then Update 16*.height
               else
                 rest=.filesize-.offset
-                .cursor=rest-((15-(.cursor-1)%16)+rest%16)%16
+                .cursor=tonumber rest-((15-(.cursor-1)%16)+rest%16)%16
             when 'CtrlHome','RCtrlHome'
               Update -.filesize
               .cursor=1
             when 'CtrlEnd','RCtrlEnd'
               Update .filesize-.offset-1-(.height-1)*16
-              if not .edit then .cursor=.filesize-.offset
+              if not .edit then .cursor=tonumber .filesize-.offset
             when 'BS'
               if .edit
                 index=.cursor-(0==.editpos and 1 or 0)
@@ -192,10 +229,11 @@ HexDlg=(hDlg,Msg,Param1,Param2)->
 
 DoHex=->
   filename=viewer.GetFileName!
-  file=io.open(filename,"r+b")
-  if file
-    filesize=file\seek"end"
-    if filesize>0
+  filenameW=ToWChar LongPath filename
+  file=C.CreateFileW filenameW,GENERIC_READ,FILE_SHARE_READ+FILE_SHARE_WRITE+FILE_SHARE_DELETE,ffi.NULL,OPEN_EXISTING,0,ffi.NULL
+  if file~=INVALID_HANDLE_VALUE
+    filesize=ffi.new('int64_t[1]')
+    if 0~=C.GetFileSizeEx file,filesize
       ww,hh=ConsoleSize!
       buffer=far.CreateUserControl ww,hh-1
       textel=Char:0x20,Attributes:far.AdvControl F.ACTL_GETCOLOR,K.COL_VIEWERTEXT
@@ -208,10 +246,10 @@ DoHex=->
       }
       hDlg=far.DialogInit id,-1,-1,ww,hh,nil,items,F.FDLG_NONMODAL+F.FDLG_NODRAWSHADOW,HexDlg
       if hDlg
-        dialogs[hDlg\rawhandle!]=:buffer,width:ww,height:hh-1,:file,offset:0,cursor:1,:filesize,:textel,:textel_sel,:textel_changed,edit:false,editpos:0,editchanged:false,editascii:false
+        dialogs[hDlg\rawhandle!]=:buffer,width:ww,height:hh-1,:file,:filenameW,offset:ffi.new('int64_t'),cursor:1,filesize:filesize[0],:textel,:textel_sel,:textel_changed,edit:false,editpos:0,editchanged:false,editascii:false
         UpdateDlg hDlg,dialogs[hDlg\rawhandle!]
     else
-      file\close!
+      C.CloseHandle file
 
 Macro
   area:"Viewer"
