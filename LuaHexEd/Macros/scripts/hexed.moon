@@ -1,9 +1,11 @@
-﻿F=far.Flags
+﻿--BACKUP YOUR FILES BEFORE USE
+F=far.Flags
 K=far.Colors
 ffi=require'ffi'
 C=ffi.C
 dialogs={}
-id=win.Uuid"02FFA2B9-98F8-4A73-B311-B3431340E272"
+id=win.Uuid'02FFA2B9-98F8-4A73-B311-B3431340E272'
+idPos=win.Uuid'4FEA7612-507B-453F-A83D-53837CAD86ED'
 ffi.cdef[[
 HANDLE CreateFileW (LPCWSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, void* lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile);
 WINBOOL GetFileSizeEx (HANDLE hFile, int64_t* lpFileSize);
@@ -32,7 +34,7 @@ LongPath=(path)->
   type and (([[?\]]==type or [[.\]]==type) and path or [[\\?\UNC]]..path\sub(2)) or [[\\?\]]..path
 
 ConsoleSize=->
-  rr=far.AdvControl"ACTL_GETFARRECT"
+  rr=far.AdvControl F.ACTL_GETFARRECT
   rr.Right-rr.Left+1,rr.Bottom-rr.Top+1
 
 Read=(data)->
@@ -52,6 +54,19 @@ Write=(data)->
       C.WriteFile fileW,.data,(string.len .data),written,ffi.NULL
       C.CloseHandle fileW
 
+GetOffset=->
+  _pos=2
+  items={
+    {'DI_DOUBLEBOX',3,1,56,3,0,0             ,0,0                                 ,'Go to'},
+    {'DI_EDIT',     5,2,54,0,0,'HexEdGotoPos',0,F.DIF_HISTORY+F.DIF_USELASTHISTORY,''},
+  }
+  result=false
+  hDlg=far.DialogInit idPos,-1,-1,60,5,nil,items
+  if _pos==far.DialogRun hDlg
+    result=tonumber far.SendDlgMessage hDlg,F.DM_GETTEXT,_pos
+  far.DialogFree hDlg
+  result
+
 _title,_view,_edit=1,2,3
 
 HexDraw=(hDlg,data)->
@@ -60,15 +75,15 @@ HexDraw=(hDlg,data)->
       textel.Char=string.byte str,ii
       data.buffer[pos+ii-1]=textel
   GetChar=(pos)->
-    char=string.format "%02X",string.byte data.data,pos
-    char,data.edit and (string.format "%02X",string.byte data.olddata,pos) or char
+    char=string.format '%02X',string.byte data.data,pos
+    char,data.edit and (string.format '%02X',string.byte data.olddata,pos) or char
   data.textel.Char=0x20
   for ii=1,#data.buffer do
     data.buffer[ii]=data.textel
   len=string.len data.data
   for ii=0,data.height-1
     if ii*16<len
-      DrawStr ii*data.width+1,string.format "%010X:",tonumber data.offset+ii*16
+      DrawStr ii*data.width+1,string.format '%010X:',tonumber data.offset+ii*16
       data.textel.Char=0x2502
       data.buffer[ii*data.width+24+1+12]=data.textel
     for jj=1,16
@@ -97,9 +112,17 @@ HexDlg=(hDlg,Msg,Param1,Param2)->
     if Msg==F.DN_CLOSE
       C.CloseHandle data.file
       dialogs[hDlg\rawhandle!]=nil
-    elseif Msg==F.DN_CTLCOLORDLGITEM and Param1==_edit
-      color=far.AdvControl F.ACTL_GETCOLOR,data.editchanged and K.COL_VIEWERARROWS or K.COL_VIEWERTEXT
-      return {color,color,color,color}
+    elseif Msg==F.DN_CTLCOLORDIALOG
+      return far.AdvControl F.ACTL_GETCOLOR,K.COL_VIEWERSTATUS
+    elseif Msg==F.DN_CTLCOLORDLGITEM
+      DoColor=(index)->
+        color=far.AdvControl F.ACTL_GETCOLOR,index
+        {color,color,color,color}
+      return switch Param1
+        when _title
+          DoColor K.COL_VIEWERSTATUS
+        when _edit
+          DoColor data.editchanged and K.COL_VIEWERARROWS or K.COL_VIEWERTEXT
     elseif Msg==F.DN_KILLFOCUS
       if Param1==_edit and data.edit then return _edit
     elseif Msg==F.DN_RESIZECONSOLE
@@ -221,6 +244,10 @@ HexDlg=(hDlg,Msg,Param1,Param2)->
                 .data=(string.sub .data,1,index-1)..(string.sub .olddata,index,index)..(string.sub .data,index+1)
                 DoLeft!
             when 'Tab' then .editascii=.edit and not .editascii
+            when 'AltF8'
+              if not .edit
+                offset=GetOffset!
+                if offset then .offset=offset-offset%16
             else processed=false
       if processed
         UpdateDlg hDlg,data
@@ -241,8 +268,8 @@ DoHex=->
       textel_changed=Char:0x20,Attributes:far.AdvControl F.ACTL_GETCOLOR,K.COL_VIEWERARROWS
       items={
         {F.DI_TEXT,0,0,0,0,0,0,0,0,filename}
-        {F.DI_USERCONTROL,0,1,ww-1,hh-1,buffer,0,0,0,""}
-        {F.DI_FIXEDIT,0,0,0,0,0,0,0,F.DIF_HIDDEN+F.DIF_READONLY,"9"}
+        {F.DI_USERCONTROL,0,1,ww-1,hh-1,buffer,0,0,0,''}
+        {F.DI_FIXEDIT,0,0,0,0,0,0,0,F.DIF_HIDDEN+F.DIF_READONLY,''}
       }
       hDlg=far.DialogInit id,-1,-1,ww,hh,nil,items,F.FDLG_NONMODAL+F.FDLG_NODRAWSHADOW,HexDlg
       if hDlg
@@ -252,6 +279,6 @@ DoHex=->
       C.CloseHandle file
 
 Macro
-  area:"Viewer"
-  key:"CtrlF4"
+  area:'Viewer'
+  key:'CtrlF4'
   action:DoHex
