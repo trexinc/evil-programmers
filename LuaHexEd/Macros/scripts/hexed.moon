@@ -151,21 +151,25 @@ HexDlg=(hDlg,Msg,Param1,Param2)->
       processed=true
       with data
         DoRight=->
-          if not .edit or .editpos==1 or .editascii
+          if not .edit
             if .cursor+.offset<.filesize then .cursor+=1
             if .cursor>.height*16
               .cursor-=16
               Update 16
+          elseif .cursor<.height*16 and .cursor+.offset<.filesize and (.editpos==1 or .editascii)
+            .cursor+=1
             .editpos=0
           else .editpos=1
         DoLeft=->
-          if not .edit or .editpos==0 or .editascii
+          if not .edit
             .cursor-=1
             if .cursor<1
               if .offset>0
                 .cursor=16
                 Update -16
               else .cursor=1
+          elseif .cursor>1 and (.editpos==0 or .editascii)
+            .cursor-=1
             .editpos=1
           else .editpos=0
         DoEditMode=->
@@ -182,24 +186,26 @@ HexDlg=(hDlg,Msg,Param1,Param2)->
           key=far.InputRecordToName Param2
           switch key
             when '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F','a','b','c','d','e','f'
-              old=string.byte .data,.cursor
-              new=.editpos==0 and ((tonumber key,16)*16+old%16) or (16*(math.floor old/16)+tonumber key,16)
-              .data=(string.sub .data,1,.cursor-1)..(string.char new)..(string.sub .data,.cursor+1)
-              DoRight!
+              if .edit
+                old=string.byte .data,.cursor
+                new=.editpos==0 and ((tonumber key,16)*16+old%16) or (16*(math.floor old/16)+tonumber key,16)
+                .data=(string.sub .data,1,.cursor-1)..(string.char new)..(string.sub .data,.cursor+1)
+                DoRight!
             when 'F3' then DoEditMode!
             when 'F9'
               if .edit
                 Write data
                 DoEditMode!
             when 'Left' then DoLeft!
-            when 'Right'
-              DoRight!
+            when 'Right' then DoRight!
             when 'Home'
               .cursor-=(.cursor-1)%16
               .editpos=0
             when 'End'
               .cursor+=16
               .cursor=.cursor-(.cursor-1)%16-1
+              if .cursor+.offset>.filesize
+                .cursor=tonumber .filesize-.offset
               .editpos=1
             when 'Up'
               .cursor-=16
@@ -238,13 +244,15 @@ HexDlg=(hDlg,Msg,Param1,Param2)->
             when 'CtrlEnd','RCtrlEnd'
               Update .filesize-.offset-1-(.height-1)*16
               if not .edit then .cursor=tonumber .filesize-.offset
+            when .edit and 'Esc' then DoEditMode!
+            when .edit and 'Ins' then nil
             when 'BS'
               if .edit
                 index=.cursor-(0==.editpos and 1 or 0)
                 .data=(string.sub .data,1,index-1)..(string.sub .olddata,index,index)..(string.sub .data,index+1)
                 DoLeft!
             when 'Tab' then .editascii=.edit and not .editascii
-            when 'AltF8'
+            when 'AltF8','RAltF8'
               if not .edit
                 offset=GetOffset!
                 if offset then .offset=offset-offset%16
