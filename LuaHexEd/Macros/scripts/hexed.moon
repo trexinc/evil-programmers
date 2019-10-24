@@ -37,6 +37,13 @@ ConsoleSize=->
   rr=far.AdvControl F.ACTL_GETFARRECT
   rr.Right-rr.Left+1,rr.Bottom-rr.Top+1
 
+GenerateDisplayData=(data,codepage)->
+  wide=win.MultiByteToWideChar data,codepage
+  out=''
+  for ii=1,#wide/2
+    out..=(win.WideCharToMultiByte (string.sub wide,ii*2-1,ii*2),65001)..string.rep '.',(string.len (win.WideCharToMultiByte (string.sub wide,ii*2-1,ii*2),codepage))-1
+  out
+
 Read=(data)->
   with data
     C.SetFilePointerEx .file,.offset,ffi.NULL,FILE_BEGIN
@@ -44,6 +51,7 @@ Read=(data)->
     data=ffi.new 'uint8_t[?]',16*.height
     C.ReadFile .file,data,16*.height,readed,ffi.NULL
     .data=ffi.string data,readed[0]
+    .displaydata=GenerateDisplayData .data,.codepage
 
 Write=(data)->
   with data
@@ -71,8 +79,8 @@ _title,_view,_edit=1,2,3
 
 HexDraw=(hDlg,data)->
   DrawStr=(pos,str,textel=data.textel)->
-    for ii=1,string.len str
-      textel.Char=string.byte str,ii
+    for ii=1,str\len!
+      textel.Char=str\byte ii
       data.buffer[pos+ii-1]=textel
   GetChar=(pos)->
     char=string.format '%02X',string.byte data.data,pos
@@ -92,14 +100,14 @@ HexDraw=(hDlg,data)->
         char,oldchar=GetChar pos
         txtl=pos==data.cursor and not data.edit and data.textel_sel or (char==oldchar and data.textel or data.textel_changed)
         DrawStr ii*data.width+(jj-1)*3+1+12+(jj>8 and 2 or 0),char,txtl
-        DrawStr ii*data.width+16*3+2+1+12+jj,(string.sub data.data,pos,pos),txtl
+        DrawStr ii*data.width+16*3+2+1+12+jj,(data.displaydata\sub pos,pos),txtl
   if data.edit
     xx,yy=data.editascii and 63+(data.cursor-1)%16 or (data.cursor-1)%16,1+math.floor (data.cursor-1)/16
     xx=12+xx*3+(xx>7 and 2 or 0)+data.editpos if not data.editascii
     hDlg\send F.DM_SETITEMPOSITION,_edit,{Left:xx,Top:yy,Right:xx,Bottom:yy}
     char,oldchar=GetChar data.cursor
     data.editchanged=char~=oldchar
-    hDlg\send F.DM_SETTEXT,_edit,data.editascii and (win.Utf16ToUtf8 string.char (string.byte data.data,data.cursor,data.cursor),0) or string.sub char,data.editpos+1,data.editpos+1
+    hDlg\send F.DM_SETTEXT,_edit,data.editascii and (data.displaydata\sub data.cursor,data.cursor) or string.sub char,data.editpos+1,data.editpos+1
 
 UpdateDlg=(hDlg,data)->
   if not data.edit then Read data
@@ -178,9 +186,12 @@ HexDlg=(hDlg,Msg,Param1,Param2)->
           .olddata=.edit and .data or nil
           hDlg\send F.DM_SHOWITEM,_edit,data.edit and 1 or 0
           hDlg\send F.DM_SETFOCUS,data.edit and _edit or _view
-        uchar=(win.Utf8ToOem Param2.UnicodeChar\sub 1,1)\byte 1
-        if data.edit and data.editascii and uchar~=0 and uchar~=9 and uchar~=27
-          .data=(string.sub .data,1,.cursor-1)..(string.char uchar)..(string.sub .data,.cursor+1)
+        uchar=(Param2.UnicodeChar\sub 1,1)\byte 1
+        if .edit and .editascii and uchar~=0 and uchar~=9 and uchar~=27
+          new=win.WideCharToMultiByte (win.Utf8ToUtf16 utf8.char uchar),.codepage
+          .data=(string.sub .data,1,.cursor-1)..new..(string.sub .data,.cursor+string.len new)
+          .olddata..=string.rep (string.char 0),(string.len .data)-string.len .olddata
+          .displaydata=GenerateDisplayData .data,.codepage
           DoRight!
         else
           key=far.InputRecordToName Param2
@@ -190,6 +201,7 @@ HexDlg=(hDlg,Msg,Param1,Param2)->
                 old=string.byte .data,.cursor
                 new=.editpos==0 and ((tonumber key,16)*16+old%16) or (16*(math.floor old/16)+tonumber key,16)
                 .data=(string.sub .data,1,.cursor-1)..(string.char new)..(string.sub .data,.cursor+1)
+                .displaydata=GenerateDisplayData .data,.codepage
                 DoRight!
             when 'F3' then DoEditMode!
             when 'F9'
@@ -250,6 +262,7 @@ HexDlg=(hDlg,Msg,Param1,Param2)->
               if .edit
                 index=.cursor-(0==.editpos and 1 or 0)
                 .data=(string.sub .data,1,index-1)..(string.sub .olddata,index,index)..(string.sub .data,index+1)
+                .displaydata=GenerateDisplayData .data,.codepage
                 DoLeft!
             when 'Tab' then .editascii=.edit and not .editascii
             when 'AltF8','RAltF8'
@@ -274,6 +287,7 @@ DoHex=->
       textel=Char:0x20,Attributes:far.AdvControl F.ACTL_GETCOLOR,K.COL_VIEWERTEXT
       textel_sel=Char:0x20,Attributes:far.AdvControl F.ACTL_GETCOLOR,K.COL_VIEWERSELECTEDTEXT
       textel_changed=Char:0x20,Attributes:far.AdvControl F.ACTL_GETCOLOR,K.COL_VIEWERARROWS
+      codepage=viewer.GetInfo!.CurMode.CodePage
       items={
         {F.DI_TEXT,0,0,0,0,0,0,0,0,filename}
         {F.DI_USERCONTROL,0,1,ww-1,hh-1,buffer,0,0,0,''}
@@ -281,7 +295,7 @@ DoHex=->
       }
       hDlg=far.DialogInit id,-1,-1,ww,hh,nil,items,F.FDLG_NONMODAL+F.FDLG_NODRAWSHADOW,HexDlg
       if hDlg
-        dialogs[hDlg\rawhandle!]=:buffer,width:ww,height:hh-1,:file,:filenameW,offset:ffi.new('int64_t'),cursor:1,filesize:filesize[0],:textel,:textel_sel,:textel_changed,edit:false,editpos:0,editchanged:false,editascii:false
+        dialogs[hDlg\rawhandle!]=:buffer,width:ww,height:hh-1,:file,:filenameW,:codepage,offset:ffi.new('int64_t'),cursor:1,filesize:filesize[0],:textel,:textel_sel,:textel_changed,edit:false,editpos:0,editchanged:false,editascii:false
         UpdateDlg hDlg,dialogs[hDlg\rawhandle!]
     else
       C.CloseHandle file
