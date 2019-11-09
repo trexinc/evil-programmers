@@ -269,6 +269,9 @@ HexDlg=(hDlg,Msg,Param1,Param2)->
               if not .edit
                 offset=GetOffset!
                 if offset then .offset=offset-offset%16
+            when 'CtrlF10','RCtrlF10'
+              if not .edit
+                viewer.SetPosition .ViewerID,tonumber .offset
             else processed=false
       if processed
         UpdateDlg hDlg,data
@@ -287,7 +290,9 @@ DoHex=->
       textel=Char:0x20,Attributes:far.AdvControl F.ACTL_GETCOLOR,K.COL_VIEWERTEXT
       textel_sel=Char:0x20,Attributes:far.AdvControl F.ACTL_GETCOLOR,K.COL_VIEWERSELECTEDTEXT
       textel_changed=Char:0x20,Attributes:far.AdvControl F.ACTL_GETCOLOR,K.COL_VIEWERARROWS
-      codepage=viewer.GetInfo!.CurMode.CodePage
+      info=viewer.GetInfo!
+      offset=ffi.new 'int64_t',info.FilePos
+      offset-=offset%16
       items={
         {F.DI_TEXT,0,0,0,0,0,0,0,0,filename}
         {F.DI_USERCONTROL,0,1,ww-1,hh-1,buffer,0,0,0,''}
@@ -295,7 +300,7 @@ DoHex=->
       }
       hDlg=far.DialogInit id,-1,-1,ww,hh,nil,items,F.FDLG_NONMODAL+F.FDLG_NODRAWSHADOW,HexDlg
       if hDlg
-        dialogs[hDlg\rawhandle!]=:buffer,width:ww,height:hh-1,:file,:filenameW,:codepage,offset:ffi.new('int64_t'),cursor:1,filesize:filesize[0],:textel,:textel_sel,:textel_changed,edit:false,editpos:0,editchanged:false,editascii:false
+        dialogs[hDlg\rawhandle!]=:buffer,width:ww,height:hh-1,:file,:filenameW,codepage:info.CurMode.CodePage,ViewerID:info.ViewerID,:offset,cursor:1,filesize:filesize[0],:textel,:textel_sel,:textel_changed,edit:false,editpos:0,editchanged:false,editascii:false
         UpdateDlg hDlg,dialogs[hDlg\rawhandle!]
     else
       C.CloseHandle file
