@@ -146,8 +146,9 @@ HexDlg=(hDlg,Msg,Param1,Param2)->
         hDlg\send F.DM_RESIZEDIALOG,0,{X:data.width,Y:data.height+1}
         UpdateDlg hDlg,data
     elseif Msg==F.DN_CONTROLINPUT and Param2.EventType==F.KEY_EVENT
-      Update=(inc)->
-        with data
+      processed=true
+      with data
+        Update=(inc)->
           if not .edit
             old_offset=.offset
             .offset+=inc
@@ -156,8 +157,6 @@ HexDlg=(hDlg,Msg,Param1,Param2)->
               else .offset=.filesize-1
             if .offset<0 then .offset=0
             .offset=.offset-.offset%16
-      processed=true
-      with data
         DoRight=->
           if not .edit
             if .cursor+.offset<.filesize then .cursor+=1
@@ -180,6 +179,21 @@ HexDlg=(hDlg,Msg,Param1,Param2)->
             .cursor-=1
             .editpos=1
           else .editpos=0
+        DoUp=->
+          .cursor-=16
+          if .cursor<1
+            .cursor+=16
+            if .offset>0 then Update -16
+        DoDown=->
+          .cursor+=16
+          if .cursor+.offset>.filesize
+            .cursor-=16
+            if .offset+.height*16<.filesize
+              .cursor-=16
+              Update 16
+          if .cursor>.height*16
+            .cursor-=16
+            Update 16
         DoEditMode=->
           .edit=not .edit
           .editpos=0
@@ -219,34 +233,29 @@ HexDlg=(hDlg,Msg,Param1,Param2)->
               if .cursor+.offset>.filesize
                 .cursor=tonumber .filesize-.offset
               .editpos=1
-            when 'Up'
-              .cursor-=16
-              if .cursor<1
-                .cursor+=16
-                if .offset>0 then Update -16
-            when 'Down'
-              .cursor+=16
-              if .cursor+.offset>.filesize
-                .cursor-=16
+            when 'Up' then DoUp!
+            when 'Down' then DoDown!
+            when 'CtrlPgUp','RCtrlPgUp','CtrlUp','RCtrlUp'
+              if .edit then DoUp!
+              else
+                if .offset==0 and .cursor>16 then .cursor-=16
+                else Update -16
+            when 'CtrlPgDn','RCtrlPgDn','CtrlDown','RCtrlDown'
+              if .edit then DoDown!
+              else
                 if .offset+.height*16<.filesize
-                  .cursor-=16
                   Update 16
-              if .cursor>.height*16
-                .cursor-=16
-                Update 16
-            when 'CtrlPgUp','RCtrlPgUp'
-              if .offset==0 and .cursor>16 then .cursor-=16
-              else Update -16
-            when 'CtrlPgDn','RCtrlPgDn'
-              if .offset+.height*16<.filesize
-                Update 16
-              elseif .offset+.cursor+16<=.filesize
-                .cursor+=16
+                elseif .offset+.cursor+16<=.filesize
+                  .cursor+=16
             when 'PgUp'
-              if .offset==0 then .cursor=(.cursor-1)%16+1
+              if .offset==0 or .edit then .cursor=(.cursor-1)%16+1
               else Update -16*.height
             when 'PgDn'
-              if .offset+.height*16<.filesize then Update 16*.height
+              if .offset+.height*16<.filesize
+                if .edit
+                  .cursor=(.height-1)*16+(.cursor-1)%16+1
+                else
+                  Update 16*.height
               else
                 rest=.filesize-.offset
                 .cursor=tonumber rest-((15-(.cursor-1)%16)+rest%16)%16
