@@ -208,12 +208,12 @@ Highlite=(id,tt,top)->
     match=(str,patt,init)->
       switch type patt
         when 'string'
-          string.match str,'^'..patt,init
+          str\match '^'..patt,init.U
         when 'userdata'
-          res=patt\match str,init
-          if res then string.sub str,init,res-1 else false
+          res=patt\match str,init.B
+          if res then string.sub str,init.B,res-1 else false
         when 'function'
-          res,next=patt state_data,str,init
+          res,next=patt state_data,str,init.B
           if next then match str,res,init else res
     start=fromcache start
     for ii=start,finish
@@ -248,7 +248,7 @@ Highlite=(id,tt,top)->
         when 'table'
           line=line\lower! if not tt.o.Highlite.Case
           posU,posB=1,1
-          match2=(patt)->match line,patt,posB
+          match2=(patt)->match line,patt,{B:posB,U:posU}
           while posU<=len
             stepU,stepB=1,string.len line\match '.',posU
             updStep=(word)->stepU,stepB=word\len!,string.len word
@@ -281,7 +281,7 @@ Highlite=(id,tt,top)->
                   skip=true
                 for keyword in *token
                   if not (keyword.Start and posU>1)
-                    if if word and not keyword.Skip then (word==match word,keyword[1],1) else match3 keyword[1]
+                    if if word and not keyword.Skip then (word==match word,keyword[1],{B:1,U:1}) else match3 keyword[1]
                       add=(c,p)->addcolor ii,posU,posU+stepU-1,c,p
                       addcolor ii,regionstart,posU-1,region.ColorFull[2]
                       add keyword.ColorFull
