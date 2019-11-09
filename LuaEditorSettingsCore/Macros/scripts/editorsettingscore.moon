@@ -250,7 +250,7 @@ Highlite=(id,tt,top)->
           posU,posB=1,1
           match2=(patt)->match line,patt,posB
           while posU<=len
-            stepU,stepB=1,string.len string.match line,'.',posB
+            stepU,stepB=1,string.len line\match '.',posU
             updStep=(word)->stepU,stepB=word\len!,string.len word
             match3=(patt)->
               m=match2 patt
