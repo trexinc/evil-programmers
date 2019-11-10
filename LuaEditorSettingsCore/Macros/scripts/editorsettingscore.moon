@@ -213,7 +213,7 @@ Highlite=(id,tt,top)->
           res=patt\match str,init.B
           if res then string.sub str,init.B,res-1 else false
         when 'function'
-          res,next=patt state_data,str,init.B
+          res,next=patt state_data,str,init
           if next then match str,res,init else res
     start=fromcache start
     for ii=start,finish

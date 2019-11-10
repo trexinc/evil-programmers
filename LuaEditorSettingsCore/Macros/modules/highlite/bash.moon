@@ -31,10 +31,10 @@ escape={P"\\"*(P 1),Color:6}
     {Left:'`',Right:'`',Color:14,Keywords:{escape}}
     {
       Left:(s,str,init)->
-        r,s.prefix,s.heredoc=(C P'<<'*(C S'"\'\\-'^-1)*space^0*(C (alpha+'_')*(alnum+'_')^0))\match str,init
+        r,s.prefix,s.heredoc=(C P'<<'*(C S'"\'\\-'^-1)*space^0*(C (alpha+'_')*(alnum+'_')^0))\match str,init.B
         r
       Right:(s,str,init)->
-        r=1==init and ((C ('-'==s.prefix and P'\t'^0 or '')*P s.heredoc)*P -1)\match str,init
+        r=1==init.B and ((C ('-'==s.prefix and P'\t'^0 or '')*P s.heredoc)*P -1)\match str,init.B
         if r then s.heredoc=nil
         r
       Color:6

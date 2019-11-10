@@ -18,7 +18,7 @@ word=(R'az'+R'AZ'+R'09'+S'_')^1
         nil
         Param=(name)->(V'Space'^0*P'`'*(Cg V'Value'^0,name)*P"'"*V'Space'^0)^-1
         cq=C Ct P{P'changequote'*V'Space'^0*P'('*V'Param1'*P','*V'Param2'*P')',Space:S' \t',Value:1-P"'",Param1:Param'param1',Param2:Param'param2'}
-        res,quotes=cq\match str,init
+        res,quotes=cq\match str,init.B
         if res
           f=(v)->v~='' and v
           s.start=f quotes.param1
@@ -33,15 +33,15 @@ word=(R'az'+R'AZ'+R'09'+S'_')^1
   Regions:{
     {
       Left:(s,str,init)->
-        m=str\match '^'..(s.start or '`'),init
+        m=str\match '^'..(s.start or '`'),init.U
         if m then s.count=0
         m
       Right:(s,str,init)->
         local m
-        if str\match '^'..(s.start or '`'),init
+        if str\match '^'..(s.start or '`'),init.U
           s.count+=1
         else
-          m=str\match '^'..(s.end or "'"),init
+          m=str\match '^'..(s.end or "'"),init.U
           if m
             if s.count>0
               s.count-=1
