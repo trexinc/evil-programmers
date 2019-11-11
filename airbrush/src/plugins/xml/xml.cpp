@@ -56,7 +56,7 @@ int WINAPI GetParams(intptr_t index,intptr_t command,const char **param)
   switch(command)
   {
     case PAR_GET_NAME:
-      *param=(const char*)&name;
+      *param=reinterpret_cast<const char*>(&name);
       return true;
     case PAR_GET_PARAMS:
       return PAR_MASK_STORE|PAR_MASK_CACHE|PAR_COLORS_STORE|PAR_SHOW_IN_LIST|PAR_FILESTART_STORE|PAR_FILESTART_CACHE|PAR_BRACKETS;
@@ -67,13 +67,13 @@ int WINAPI GetParams(intptr_t index,intptr_t command,const char **param)
       *param=(const char*)_T("<?xml version");
       return true;
     case PAR_GET_COLOR_COUNT:
-      *(int *)param=sizeof(colornames)/sizeof(colornames[0]);
+      *reinterpret_cast<int*>(param)=sizeof(colornames)/sizeof(colornames[0]);
       return true;
     case PAR_GET_COLOR:
-      *(const ABColor**)param=colors;
+      *reinterpret_cast<const ABColor**>(param)=colors;
       return true;
     case PAR_GET_COLOR_NAME:
-      *param=(const char *)colornames;
+      *param=reinterpret_cast<const char*>(colornames);
       return true;
   }
   return false;

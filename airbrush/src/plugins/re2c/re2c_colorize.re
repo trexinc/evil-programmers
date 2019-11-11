@@ -48,18 +48,18 @@ static int WINAPI c_callback(int from,int row,int col,void *param)
 {
   const TCHAR* line;
   intptr_t linelen;
-  line=Info.pGetLine(((CallbackParam *)param)->params->eid,row,&linelen);
-  switch(((CallbackParam *)param)->cache->diff)
+  line=Info.pGetLine((reinterpret_cast<CallbackParam*>(param))->params->eid,row,&linelen);
+  switch((reinterpret_cast<CallbackParam*>(param))->cache->diff)
   {
     case 1:
       if(from==1)
       {
         if(!_tcsncmp(line+col,_T("\057\052!re2c"),7))
         {
-          Info.pAddColor(((CallbackParam *)param)->params,row,col,7,colors+HC_RE2C,EPriorityNormal);
-          ((CallbackParam *)param)->ok=1;
-          ((CallbackParam *)param)->row=row;
-          ((CallbackParam *)param)->col=col+7;
+          Info.pAddColor((reinterpret_cast<CallbackParam*>(param))->params,row,col,7,colors+HC_RE2C,EPriorityNormal);
+          (reinterpret_cast<CallbackParam*>(param))->ok=1;
+          (reinterpret_cast<CallbackParam*>(param))->row=row;
+          (reinterpret_cast<CallbackParam*>(param))->col=col+7;
           return true;
         }
       }
@@ -68,15 +68,15 @@ static int WINAPI c_callback(int from,int row,int col,void *param)
       if(from==0)
       {
         if(!_tcsncmp(line+col,_T("{"),1))
-          (((CallbackParam *)param)->cache->recurse)++;
+          ((reinterpret_cast<CallbackParam*>(param))->cache->recurse)++;
         if(!_tcsncmp(line+col,_T("}"),1))
         {
-          (((CallbackParam *)param)->cache->recurse)--;
-          if(!(((CallbackParam *)param)->cache->recurse))
+          ((reinterpret_cast<CallbackParam*>(param))->cache->recurse)--;
+          if(!((reinterpret_cast<CallbackParam*>(param))->cache->recurse))
           {
-            ((CallbackParam *)param)->ok=1;
-            ((CallbackParam *)param)->row=row;
-            ((CallbackParam *)param)->col=col+1;
+            (reinterpret_cast<CallbackParam*>(param))->ok=1;
+            (reinterpret_cast<CallbackParam*>(param))->row=row;
+            (reinterpret_cast<CallbackParam*>(param))->col=col+1;
             return true;
           }
         }
@@ -145,12 +145,12 @@ void WINAPI Colorize(intptr_t index,struct ColorizeParams *params)
 
   if(params->data_size>=sizeof(state_data))
   {
-    state=(CacheParam *)(params->data);
+    state=reinterpret_cast<CacheParam *>(params->data);
     state_size=params->data_size;
   }
   else
   {
-    params->data=(unsigned char *)state;
+    params->data=reinterpret_cast<unsigned char*>(state);
     params->data_size=state_size;
   }
   callback_data.cache=state;
@@ -167,8 +167,8 @@ colorize_start:
   {
     startcol=(lno==params->startline)?params->startcolumn:0;
     if(((lno%Info.cachestr)==0)&&(!startcol))
-      if(!Info.pAddState(params->eid,lno/Info.cachestr,state_size,(unsigned char *)state)) goto colorize_exit;
-    line=(const UTCHAR*)Info.pGetLine(params->eid,lno,&linelen);
+      if(!Info.pAddState(params->eid,lno/Info.cachestr,state_size,reinterpret_cast<unsigned char*>(state))) goto colorize_exit;
+    line=reinterpret_cast<const UTCHAR*>(Info.pGetLine(params->eid,lno,&linelen));
     commentstart=line+startcol;
     yycur=line+startcol;
     yyend=line+linelen;

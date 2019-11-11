@@ -69,7 +69,7 @@ void WINAPI Colorize(intptr_t index,struct ColorizeParams *params)
   unsigned pair_hash=0;
   if(params->data_size>=sizeof(state_data))
   {
-    state=(int *)(params->data);
+    state=reinterpret_cast<int*>(params->data);
     state_size=params->data_size;
   }
   Info.pGetCursor(params->eid,&hl_row,&hl_col);
@@ -78,8 +78,8 @@ void WINAPI Colorize(intptr_t index,struct ColorizeParams *params)
   {
     startcol=(lno==params->startline)?params->startcolumn:0;
     if(((lno%Info.cachestr)==0)&&(!startcol))
-      if(!Info.pAddState(params->eid,lno/Info.cachestr,state_size,(unsigned char *)state)) goto colorize_exit;
-    line=(const UTCHAR*)Info.pGetLine(params->eid,lno,&linelen);
+      if(!Info.pAddState(params->eid,lno/Info.cachestr,state_size,reinterpret_cast<unsigned char*>(state))) goto colorize_exit;
+    line=reinterpret_cast<const UTCHAR*>(Info.pGetLine(params->eid,lno,&linelen));
     commentstart=line+startcol;
     yycur=line+startcol;
     yyend=line+linelen;
@@ -129,7 +129,7 @@ colorize_clear:
   "<" Name
   {
     pair_hash=hash(yytok+1,yycur-yytok-1);
-    PUSH_PAIR_1((int)pair_hash,0,0);
+    PUSH_PAIR_1(static_cast<int>(pair_hash),0,0);
     state[0]=PARSER_OPENTAG;
     Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_OPENTAG,EPriorityNormal);
     goto colorize_opentag;
@@ -138,7 +138,7 @@ colorize_clear:
   "</" Name
   {
 
-    POP_PAIR_11((int)hash(yytok+2,yycur-yytok-2),0,0);
+    POP_PAIR_11(static_cast<int>(hash(yytok+2,yycur-yytok-2)),0,0);
     state[0]=PARSER_CLOSETAG;
     Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_CLOSETAG,EPriorityNormal);
     goto colorize_closetag;
@@ -239,7 +239,7 @@ colorize_opentag:
   {
     Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_CLOSETAG,EPriorityNormal);
     state[0]=PARSER_CLEAR;
-    POP_PAIR_11((int)pair_hash,0,0);
+    POP_PAIR_11(static_cast<int>(pair_hash),0,0);
     goto colorize_clear;
   }
   ">"

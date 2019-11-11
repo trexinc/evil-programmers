@@ -62,8 +62,8 @@ static int WINAPI c_callback(int from,int row,int col,void *param)
 {
   const TCHAR *line;
   intptr_t linelen;
-  line=Info.pGetLine(((CallbackParam *)param)->params->eid,row,&linelen);
-  switch(((CallbackParam *)param)->cache->diff)
+  line=Info.pGetLine((reinterpret_cast<CallbackParam*>(param))->params->eid,row,&linelen);
+  switch((reinterpret_cast<CallbackParam*>(param))->cache->diff)
   {
     case 1:
     case 2:
@@ -71,10 +71,10 @@ static int WINAPI c_callback(int from,int row,int col,void *param)
       {
         if((!_tcsncmp(line+col,_T("%}"),2))&&(!col))
         {
-          Info.pAddColor(((CallbackParam *)param)->params,row,col,2,colors+HC_KEYWORD,EPriorityNormal);
-          ((CallbackParam *)param)->ok=1;
-          ((CallbackParam *)param)->row=row;
-          ((CallbackParam *)param)->col=col+2;
+          Info.pAddColor((reinterpret_cast<CallbackParam*>(param))->params,row,col,2,colors+HC_KEYWORD,EPriorityNormal);
+          (reinterpret_cast<CallbackParam*>(param))->ok=1;
+          (reinterpret_cast<CallbackParam*>(param))->row=row;
+          (reinterpret_cast<CallbackParam*>(param))->col=col+2;
           return true;
         }
       }
@@ -83,15 +83,15 @@ static int WINAPI c_callback(int from,int row,int col,void *param)
       if(from==0)
       {
         if(!_tcsncmp(line+col,_T("{"),1))
-          (((CallbackParam *)param)->cache->recurse)++;
+          ((reinterpret_cast<CallbackParam*>(param))->cache->recurse)++;
         if(!_tcsncmp(line+col,_T("}"),1))
         {
-          (((CallbackParam *)param)->cache->recurse)--;
-          if(!(((CallbackParam *)param)->cache->recurse))
+          ((reinterpret_cast<CallbackParam*>(param))->cache->recurse)--;
+          if(!((reinterpret_cast<CallbackParam*>(param))->cache->recurse))
           {
-            ((CallbackParam *)param)->ok=1;
-            ((CallbackParam *)param)->row=row;
-            ((CallbackParam *)param)->col=col+1;
+            (reinterpret_cast<CallbackParam*>(param))->ok=1;
+            (reinterpret_cast<CallbackParam*>(param))->row=row;
+            (reinterpret_cast<CallbackParam*>(param))->col=col+1;
             return true;
           }
         }
@@ -149,12 +149,12 @@ void WINAPI Colorize(intptr_t index,struct ColorizeParams *params)
   int state_size=sizeof(state_data);
   if(params->data_size>=sizeof(state_data))
   {
-    state=(CacheParam *)(params->data);
+    state=reinterpret_cast<CacheParam *>(params->data);
     state_size=params->data_size;
   }
   else
   {
-    params->data=(unsigned char *)state;
+    params->data=reinterpret_cast<unsigned char*>(state);
     params->data_size=state_size;
   }
   callback_data.cache=state;
@@ -171,7 +171,7 @@ colorize_start:
   {
     startcol=(lno==params->startline)?params->startcolumn:0;
     if(((lno%Info.cachestr)==0)&&(!startcol))
-      if(!Info.pAddState(params->eid,lno/Info.cachestr,state_size,(unsigned char *)state)) goto colorize_exit;
+      if(!Info.pAddState(params->eid,lno/Info.cachestr,state_size,reinterpret_cast<unsigned char*>(state))) goto colorize_exit;
     commentstart=0;
     line=Info.pGetLine(params->eid,lno,&linelen);
     for(int i=startcol;i<linelen;i++)
@@ -316,7 +316,7 @@ int WINAPI GetParams(intptr_t index,intptr_t command,const char **param)
   switch(command)
   {
     case PAR_GET_NAME:
-      *param=(const char*)&name;
+      *param=reinterpret_cast<const char*>(&name);
       return true;
     case PAR_GET_PARAMS:
       return PAR_MASK_STORE|PAR_MASK_CACHE|PAR_COLORS_STORE|PAR_SHOW_IN_LIST;
@@ -324,13 +324,13 @@ int WINAPI GetParams(intptr_t index,intptr_t command,const char **param)
       *param=(const char*)_T("*.l,*.y");
       return true;
     case PAR_GET_COLOR_COUNT:
-      *(int *)param=sizeof(colornames)/sizeof(colornames[0]);
+      *reinterpret_cast<int*>(param)=sizeof(colornames)/sizeof(colornames[0]);
       return true;
     case PAR_GET_COLOR:
-      *(const ABColor**)param=colors;
+      *reinterpret_cast<const ABColor**>(param)=colors;
       return true;
     case PAR_GET_COLOR_NAME:
-      *param=(const char *)colornames;
+      *param=reinterpret_cast<const char*>(colornames);
       return true;
   }
   return false;

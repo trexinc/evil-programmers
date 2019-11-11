@@ -50,7 +50,7 @@ class CColors
     }
     template<typename T> void P(const wchar_t* Name,T& Value)
     {
-      Value=settings.Get(Name,(__int64)Value);
+      Value=settings.Get(Name,static_cast<__int64>(Value));
     }
     template<typename T> void P(const wchar_t* Name,const T& Value)
     {

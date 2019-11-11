@@ -32,7 +32,7 @@ PEditFile editfiles;
 PEditFile ef_create(bool m)
 {
   PEditFile result;
-  result=(PEditFile)malloc(sizeof(CEditFile));
+  result=reinterpret_cast<PEditFile>(malloc(sizeof(CEditFile)));
   result->id=-1;
   result->main=m;
   result->next=result->prev = result;
@@ -134,7 +134,7 @@ int OnEditorEvent(int event,void *param,int editorid)
 
   if(event==EE_CHANGE)
   {
-    EditorChange* change=(EditorChange*)param;
+    EditorChange* change=reinterpret_cast<EditorChange*>(param);
     if(curfile&&curfile->topline>change->StringNumber)
     {
       curfile->topline=change->StringNumber;
@@ -167,7 +167,7 @@ int OnEditorEvent(int event,void *param,int editorid)
   Info.EditorControl(editorid,ECTL_GETINFO,0,&ei);
 
   size_t editorfilenamesize=Info.EditorControl(editorid,ECTL_GETFILENAME,0,NULL);
-  editorfilename = (TCHAR *)malloc(editorfilenamesize*sizeof(TCHAR));
+  editorfilename=reinterpret_cast<TCHAR*>(malloc(editorfilenamesize*sizeof(TCHAR)));
   Info.EditorControl(editorid,ECTL_GETFILENAME,editorfilenamesize,editorfilename);
 
   filename=FSF.PointToName(editorfilename); // deletes path...
@@ -183,7 +183,7 @@ int OnEditorEvent(int event,void *param,int editorid)
 
   if((!curfile)&&Opt.Active&&(ei.TotalLines<=Opt.MaxLines))
   {
-    for(int i=0;i<PluginsCount;i++)
+    for(size_t i=0;i<PluginsCount;i++)
     {
       if(PluginsData[i].Params&PAR_MASK_CACHE)
       {
@@ -192,7 +192,7 @@ int OnEditorEvent(int event,void *param,int editorid)
         {
           TCHAR FileMask[MAX_PATH];
           while((mask=GetCommaWord(mask,FileMask))!=NULL)
-            if(FSF.ProcessName(FileMask,(wchar_t*)filename,0,PN_CMPNAME|PN_SKIPPATH))
+            if(FSF.ProcessName(FileMask,const_cast<wchar_t*>(filename),0,PN_CMPNAME|PN_SKIPPATH))
             {
               curfile=loadfile(ei.EditorID,i);
               break;
@@ -203,7 +203,7 @@ int OnEditorEvent(int event,void *param,int editorid)
       else
       {
         if(PluginsData[i].pGetParams)
-          if(PluginsData[i].pGetParams(PluginsData[i].Index,PAR_CHECK_MASK,(const char**)&filename))
+          if(PluginsData[i].pGetParams(PluginsData[i].Index,PAR_CHECK_MASK,reinterpret_cast<const char**>(&filename)))
           {
             curfile=loadfile(ei.EditorID,i);
             break;
@@ -214,7 +214,7 @@ int OnEditorEvent(int event,void *param,int editorid)
         if(egs.StringLength&&PluginsData[i].Start)
         {
           int len=lstrlen(PluginsData[i].Start);
-          if(len&&(FSF.ProcessName(PluginsData[i].Start,(wchar_t*)egs.StringText,0,PN_CMPNAME)))
+          if(len&&(FSF.ProcessName(PluginsData[i].Start,const_cast<wchar_t*>(egs.StringText),0,PN_CMPNAME)))
           {
             curfile=loadfile(ei.EditorID,i);
             break;
@@ -224,7 +224,7 @@ int OnEditorEvent(int event,void *param,int editorid)
       else
       {
         if(PluginsData[i].pGetParams)
-          if(PluginsData[i].pGetParams(PluginsData[i].Index,PAR_CHECK_FILESTART,(const char**)&egs.StringText))
+          if(PluginsData[i].pGetParams(PluginsData[i].Index,PAR_CHECK_FILESTART,reinterpret_cast<const char**>(&egs.StringText)))
           {
             curfile=loadfile(ei.EditorID,i);
             break;
@@ -273,7 +273,7 @@ int OnEditorEvent(int event,void *param,int editorid)
 
   if(!(curfile->cachesize))
   {
-    curfile->cache=(StateCache *)malloc(sizeof(StateCache));
+    curfile->cache=reinterpret_cast<StateCache*>(malloc(sizeof(StateCache)));
     if(curfile->cache) (curfile->cachesize)++;
   }
   if(!(curfile->cachesize)) return 0;
@@ -303,7 +303,7 @@ int OnEditorEvent(int event,void *param,int editorid)
   if(PluginsData[curfile->type].pColorize)
   {
     intptr_t visiblelines=params.bottommargin-params.topmargin;
-    params.margins=(struct ColorizeMargin*)malloc(sizeof(*params.margins)*(visiblelines));
+    params.margins=reinterpret_cast<struct ColorizeMargin*>(malloc(sizeof(*params.margins)*(visiblelines)));
     if(params.margins)
     {
       intptr_t lefttab=ei.LeftPos,righttab=ei.LeftPos+ei.WindowSizeX;

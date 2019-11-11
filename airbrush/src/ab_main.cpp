@@ -54,8 +54,8 @@ FARSTANDARDFUNCTIONS FSF;
 
 struct Options Opt={true,50000};
 
-#define GetCheck(i) (int)Info.SendDlgMessage(hDlg,DM_GETCHECK,i,0)
-#define GetDataPtr(i) ((const TCHAR *)Info.SendDlgMessage(hDlg,DM_GETCONSTTEXTPTR,i,0))
+#define GetCheck(i) static_cast<int>(Info.SendDlgMessage(hDlg,DM_GETCHECK,i,0))
+#define GetDataPtr(i) reinterpret_cast<const TCHAR*>(Info.SendDlgMessage(hDlg,DM_GETCONSTTEXTPTR,i,0))
 
 static TCHAR hotkeys[]=_T("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
 
@@ -125,7 +125,7 @@ void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
 void WINAPI SetStartupInfoW(const struct PluginStartupInfo *Info)
 {
   memset(&::Info,0,sizeof(::Info));
-  memmove(&::Info,Info,(Info->StructSize>(int)sizeof(::Info))?sizeof(::Info):Info->StructSize);
+  memmove(&::Info,Info,(Info->StructSize>sizeof(::Info))?sizeof(::Info):Info->StructSize);
 
   ::FSF=*Info->FSF;
   ::Info.FSF=&::FSF;
@@ -174,7 +174,7 @@ static intptr_t GetValue(FarMacroValue* value,intptr_t def=0)
   if(FMVT_INTEGER==value->Type)
     result=value->Integer;
   else if(FMVT_DOUBLE==value->Type)
-    result=(intptr_t)value->Double;
+    result=static_cast<intptr_t>(value->Double);
   return result;
 }
 
@@ -183,19 +183,19 @@ HANDLE WINAPI OpenW(const struct OpenInfo *Info)
   if((Info->OpenFrom==OPEN_EDITOR)&&(PluginsCount))
   {
     int Count=0;
-    for(int i=0;i<PluginsCount;i++)
+    for(size_t i=0;i<PluginsCount;i++)
       if(PluginsData[i].Params&PAR_SHOW_IN_LIST)
         Count++;
 
-    int *ids=(int *)malloc((Count+1)*sizeof(int));
+    int *ids=static_cast<int *>(malloc((Count+1)*sizeof(int)));
     if(ids)
     {
       FarMenuItem *SyntaxTypes=NULL;
       size_t size=sizeof(FarMenuItem)*(Count+1)+(Count+1)*128*sizeof(TCHAR);
-      SyntaxTypes=(FarMenuItem *)malloc(size);
+      SyntaxTypes=static_cast<FarMenuItem *>(malloc(size));
       if(SyntaxTypes)
       {
-        TCHAR* data=(TCHAR*)(((char*)SyntaxTypes)+sizeof(FarMenuItem)*(Count+1));
+        TCHAR* data=reinterpret_cast<TCHAR*>((reinterpret_cast<char*>(SyntaxTypes))+sizeof(FarMenuItem)*(Count+1));
         TCHAR* text=data;
         SyntaxTypes[0].Text=text;
         EditorInfo ei;
@@ -209,17 +209,17 @@ HANDLE WINAPI OpenW(const struct OpenInfo *Info)
         if(!index) SyntaxTypes[0].Flags|='*'|MIF_CHECKED;
         ids[0]=-1;
         index--;
-        for(int i=0,j=1;i<PluginsCount;i++)
+        for(size_t i=0,j=1;i<PluginsCount;i++)
         {
           if(PluginsData[i].Params&PAR_SHOW_IN_LIST)
           {
             text=data+j*128;
             SyntaxTypes[j].Text=text;
-            if(j<(int)(lstrlen(hotkeys)-1))
+            if(j<static_cast<size_t>(lstrlen(hotkeys)-1))
               wsprintf(text,_T("%c. %s"),hotkeys[j],PluginsData[i].Name);
             else
               wsprintf(text,_T("%c. %s"),_T(' '),PluginsData[i].Name);
-            if(index==i) SyntaxTypes[j].Flags|='*'|MIF_CHECKED;
+            if(static_cast<size_t>(index)==i) SyntaxTypes[j].Flags|='*'|MIF_CHECKED;
             ids[j]=i;
             j++;
           }
@@ -254,7 +254,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *Info)
   else if(Info->OpenFrom==OPEN_FROMMACRO)
   {
     const long long max53=0x1FFFFFFFFFFFFFLL;
-    OpenMacroInfo* mi=(OpenMacroInfo*)Info->Data;
+    OpenMacroInfo* mi=reinterpret_cast<OpenMacroInfo*>(Info->Data);
     if(mi->Count)
     {
       intptr_t op=GetValue(mi->Values);
@@ -274,17 +274,17 @@ HANDLE WINAPI OpenW(const struct OpenInfo *Info)
           GUID syntax;
           bool res=true;
           if(FMVT_STRING==mi->Values[2].Type)
-            res=RPC_S_OK==UuidFromString((unsigned short*)mi->Values[2].String,&syntax);
+            res=RPC_S_OK==UuidFromString(reinterpret_cast<short unsigned*>(const_cast<wchar_t*>(mi->Values[2].String)),&syntax);
           else
             memcpy(&syntax,mi->Values[2].Binary.Data,sizeof(syntax));
           if(res)
           {
-            for(int ii=0;ii<PluginsCount;++ii)
+            for(size_t ii=0;ii<PluginsCount;++ii)
               if(syntax==PluginsData[ii].Id)
               {
                 ef_deletefile(eid);
                 loadfile(eid,ii);
-                return (HANDLE)1;
+                return reinterpret_cast<HANDLE>(1);
               }
           }
         }
@@ -304,12 +304,12 @@ HANDLE WINAPI OpenW(const struct OpenInfo *Info)
                 if(fl->bracket[0].active||fl->bracket[1].active)
                 {
                   const size_t count=(1+4*ArraySize(fl->bracket));
-                  FarMacroCall* fmc=(FarMacroCall*)malloc(sizeof(FarMacroCall)+count*sizeof(FarMacroValue));
+                  FarMacroCall* fmc=reinterpret_cast<FarMacroCall*>(malloc(sizeof(FarMacroCall)+count*sizeof(FarMacroValue)));
                   if(fmc)
                   {
                     fmc->StructSize=sizeof(*fmc);
                     fmc->Count=count;
-                    fmc->Values=(FarMacroValue*)(fmc+1);
+                    fmc->Values=reinterpret_cast<FarMacroValue*>(fmc+1);
                     fmc->Callback=MacroCallback;
                     fmc->CallbackData=fmc;
                     fmc->Values[0]=true;
@@ -328,12 +328,12 @@ HANDLE WINAPI OpenW(const struct OpenInfo *Info)
               break;
             case 2:
               {
-                FarMacroCall* fmc=(FarMacroCall*)malloc(sizeof(FarMacroCall)+3*sizeof(FarMacroValue));
+                FarMacroCall* fmc=reinterpret_cast<FarMacroCall*>(malloc(sizeof(FarMacroCall)+3*sizeof(FarMacroValue)));
                 if(fmc)
                 {
                   fmc->StructSize=sizeof(*fmc);
                   fmc->Count=3;
-                  fmc->Values=(FarMacroValue*)(fmc+1);
+                  fmc->Values=reinterpret_cast<FarMacroValue*>(fmc+1);
                   fmc->Callback=MacroCallback;
                   fmc->CallbackData=fmc;
                   fmc->Values[0]=true;
@@ -433,28 +433,28 @@ intptr_t WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
     }
     else if(MenuCode==1)
     {
-      int ConfCount=0;
-      for(int i=0;i<PluginsCount;i++)
+      size_t ConfCount=0;
+      for(size_t i=0;i<PluginsCount;i++)
         if(PluginsData[i].Params&PAR_MASK_STORE)
           ConfCount++;
       if(ConfCount)
       {
-        int *ids=(int *)malloc(ConfCount*sizeof(int));
+        int *ids=reinterpret_cast<int*>(malloc(ConfCount*sizeof(int)));
         if(ids)
         {
           FarMenuItem *SyntaxTypes=NULL;
           size_t size=sizeof(FarMenuItem)*ConfCount+ConfCount*128*sizeof(TCHAR);
-          SyntaxTypes=(FarMenuItem *)malloc(size);
+          SyntaxTypes=reinterpret_cast<FarMenuItem *>(malloc(size));
           if(SyntaxTypes)
           {
-            TCHAR* data=(TCHAR*)(((char*)SyntaxTypes)+sizeof(FarMenuItem)*ConfCount);
-            for(int i=0,j=0;(i<PluginsCount)&&(j<ConfCount);i++)
+            TCHAR* data=reinterpret_cast<TCHAR*>((reinterpret_cast<char*>(SyntaxTypes))+sizeof(FarMenuItem)*ConfCount);
+            for(size_t i=0,j=0;(i<PluginsCount)&&(j<ConfCount);i++)
             {
               if(PluginsData[i].Params&PAR_MASK_STORE)
               {
                 TCHAR* text=data+j*128;
                 SyntaxTypes[j].Text=text;
-                if(j<(int)lstrlen(hotkeys))
+                if(j<static_cast<size_t>(lstrlen(hotkeys)))
                   wsprintf(text,_T("%c. %s"),hotkeys[j],PluginsData[i].Name);
                 else
                   wsprintf(text,_T("%c. %s"),' ',PluginsData[i].Name);
@@ -465,7 +465,7 @@ intptr_t WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
             int MenuCode=0;
             while(true)
             {
-              for(int i=0;i<ConfCount;i++)
+              for(size_t i=0;i<ConfCount;i++)
                 SyntaxTypes[i].Flags&=~MIF_SELECTED;
               SyntaxTypes[MenuCode].Flags|=MIF_SELECTED;
 
@@ -497,7 +497,7 @@ intptr_t WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
                   settings.Set(PluginsData[ids[MenuCode]].IdStr,GetDataPtr(1));
                 }
                 free(PluginsData[ids[MenuCode]].Mask);
-                PluginsData[ids[MenuCode]].Mask=(TCHAR*)malloc((lstrlen(GetDataPtr(1))+1)*sizeof(TCHAR));
+                PluginsData[ids[MenuCode]].Mask=reinterpret_cast<TCHAR*>(malloc((lstrlen(GetDataPtr(1))+1)*sizeof(TCHAR)));
                 if(PluginsData[ids[MenuCode]].Mask)
                   lstrcpy(PluginsData[ids[MenuCode]].Mask,GetDataPtr(1));
               }
@@ -511,28 +511,28 @@ intptr_t WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
     }
     else if(MenuCode==2)
     {
-      int ConfCount=0;
-      for(int i=0;i<PluginsCount;i++)
+      size_t ConfCount=0;
+      for(size_t i=0;i<PluginsCount;i++)
         if(PluginsData[i].Params&PAR_FILESTART_STORE)
           ConfCount++;
       if(ConfCount)
       {
-        int *ids=(int *)malloc(ConfCount*sizeof(int));
+        int *ids=reinterpret_cast<int*>(malloc(ConfCount*sizeof(int)));
         if(ids)
         {
           FarMenuItem *SyntaxTypes=NULL;
           size_t size=sizeof(FarMenuItem)*ConfCount+ConfCount*128*sizeof(TCHAR);
-          SyntaxTypes=(FarMenuItem *)malloc(size);
+          SyntaxTypes=reinterpret_cast<FarMenuItem*>(malloc(size));
           if(SyntaxTypes)
           {
-            TCHAR* data=(TCHAR*)(((char*)SyntaxTypes)+sizeof(FarMenuItem)*ConfCount);
-            for(int i=0,j=0;(i<PluginsCount)&&(j<ConfCount);i++)
+            TCHAR* data=reinterpret_cast<TCHAR*>((reinterpret_cast<char*>(SyntaxTypes))+sizeof(FarMenuItem)*ConfCount);
+            for(size_t i=0,j=0;(i<PluginsCount)&&(j<ConfCount);i++)
             {
               if(PluginsData[i].Params&PAR_FILESTART_STORE)
               {
                 TCHAR* text=data+j*128;
                 SyntaxTypes[j].Text=text;
-                if(j<(int)lstrlen(hotkeys))
+                if(j<static_cast<size_t>(lstrlen(hotkeys)))
                   wsprintf(text,_T("%c. %s"),hotkeys[j],PluginsData[i].Name);
                 else
                   wsprintf(text,_T("%c. %s"),' ',PluginsData[i].Name);
@@ -543,7 +543,7 @@ intptr_t WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
             int MenuCode=0;
             while(true)
             {
-              for(int i=0;i<ConfCount;i++)
+              for(size_t i=0;i<ConfCount;i++)
                 SyntaxTypes[i].Flags&=~MIF_SELECTED;
               SyntaxTypes[MenuCode].Flags|=MIF_SELECTED;
 
@@ -575,7 +575,7 @@ intptr_t WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
                   settings.Set(PluginsData[ids[MenuCode]].IdStr,GetDataPtr(1));
                 }
                 free(PluginsData[ids[MenuCode]].Start);
-                PluginsData[ids[MenuCode]].Start=(TCHAR*)malloc((lstrlen(GetDataPtr(1))+1)*sizeof(TCHAR));
+                PluginsData[ids[MenuCode]].Start=reinterpret_cast<TCHAR*>(malloc((lstrlen(GetDataPtr(1))+1)*sizeof(TCHAR)));
                 if(PluginsData[ids[MenuCode]].Start)
                   lstrcpy(PluginsData[ids[MenuCode]].Start,GetDataPtr(1));
               }
@@ -589,28 +589,28 @@ intptr_t WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
     }
     else if(MenuCode==3)
     {
-      int ConfCount=0;
-      for(int i=0;i<PluginsCount;i++)
+      size_t ConfCount=0;
+      for(size_t i=0;i<PluginsCount;i++)
         if(PluginsData[i].Params&PAR_COLORS_STORE)
           ConfCount++;
       if(ConfCount)
       {
-        int *ids=(int *)malloc(ConfCount*sizeof(int));
+        int *ids=reinterpret_cast<int*>(malloc(ConfCount*sizeof(int)));
         if(ids)
         {
           FarMenuItem *SyntaxTypes=NULL;
           size_t size=sizeof(FarMenuItem)*ConfCount+ConfCount*128*sizeof(TCHAR);
-          SyntaxTypes=(FarMenuItem *)malloc(size);
+          SyntaxTypes=reinterpret_cast<FarMenuItem*>(malloc(size));
           if(SyntaxTypes)
           {
-            TCHAR* data=(TCHAR*)(((char*)SyntaxTypes)+sizeof(FarMenuItem)*ConfCount);
-            for(int i=0,j=0;(i<PluginsCount)&&(j<ConfCount);i++)
+            TCHAR* data=reinterpret_cast<TCHAR*>((reinterpret_cast<char*>(SyntaxTypes))+sizeof(FarMenuItem)*ConfCount);
+            for(size_t i=0,j=0;(i<PluginsCount)&&(j<ConfCount);i++)
             {
               if(PluginsData[i].Params&PAR_COLORS_STORE)
               {
                 TCHAR* text=data+j*128;
                 SyntaxTypes[j].Text=text;
-                if(j<(int)lstrlen(hotkeys))
+                if(j<static_cast<size_t>(lstrlen(hotkeys)))
                   wsprintf(text,_T("%c. %s"),hotkeys[j],PluginsData[i].Name);
                 else
                   wsprintf(text,_T("%c. %s"),' ',PluginsData[i].Name);
@@ -621,26 +621,26 @@ intptr_t WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
             int MenuCode=0;
             while(true)
             {
-              for(int i=0;i<ConfCount;i++)
+              for(size_t i=0;i<ConfCount;i++)
                 SyntaxTypes[i].Flags&=~MIF_SELECTED;
               SyntaxTypes[MenuCode].Flags|=MIF_SELECTED;
 
               MenuCode=Info.Menu(&MainGuid,&Config6MenuGuid,-1,-1,0,FMENU_AUTOHIGHLIGHT|FMENU_WRAPMODE,_T(""),NULL,_T("Config6"),NULL,NULL,SyntaxTypes,ConfCount);
               if(MenuCode==-1) break;
-              int ColorCount; char **ColorNames; ABColor* Colors;
-              if(PluginsData[ids[MenuCode]].pGetParams&&PluginsData[ids[MenuCode]].pGetParams(PluginsData[ids[MenuCode]].Index,PAR_GET_COLOR_COUNT,(const char **)&ColorCount)&&PluginsData[ids[MenuCode]].pGetParams(PluginsData[ids[MenuCode]].Index,PAR_GET_COLOR_NAME,(const char **)&ColorNames)&&PluginsData[ids[MenuCode]].pGetParams(PluginsData[ids[MenuCode]].Index,PAR_GET_COLOR,(const char **)&Colors))
+              size_t ColorCount; char **ColorNames; ABColor* Colors;
+              if(PluginsData[ids[MenuCode]].pGetParams&&PluginsData[ids[MenuCode]].pGetParams(PluginsData[ids[MenuCode]].Index,PAR_GET_COLOR_COUNT,reinterpret_cast<const char**>(&ColorCount))&&PluginsData[ids[MenuCode]].pGetParams(PluginsData[ids[MenuCode]].Index,PAR_GET_COLOR_NAME,const_cast<const char**>(reinterpret_cast<char**>(&ColorNames)))&&PluginsData[ids[MenuCode]].pGetParams(PluginsData[ids[MenuCode]].Index,PAR_GET_COLOR,const_cast<const char**>(reinterpret_cast<char**>(&Colors))))
               {
                 FarMenuItem *ColorTypes=NULL;
                 size_t size=sizeof(FarMenuItem)*ColorCount+ColorCount*128*sizeof(TCHAR);
-                ColorTypes=(FarMenuItem *)malloc(size);
+                ColorTypes=reinterpret_cast<FarMenuItem*>(malloc(size));
                 if(ColorTypes)
                 {
-                  TCHAR* data=(TCHAR*)(((char*)ColorTypes)+sizeof(FarMenuItem)*ColorCount);
-                  for(int i=0;i<ColorCount;i++)
+                  TCHAR* data=reinterpret_cast<TCHAR*>((reinterpret_cast<char*>(ColorTypes))+sizeof(FarMenuItem)*ColorCount);
+                  for(size_t i=0;i<ColorCount;i++)
                   {
                     TCHAR* text=data+i*128;
                     ColorTypes[i].Text=text;
-                    if(i<(int)lstrlen(hotkeys))
+                    if(i<static_cast<size_t>(lstrlen(hotkeys)))
                       wsprintf(text,_T("%c. %s"),hotkeys[i],ColorNames[i]);
                     else
                       wsprintf(text,_T("%c. %s"),' ',ColorNames[i]);
@@ -648,7 +648,7 @@ intptr_t WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
                   int ColorCode=0;
                   while(true)
                   {
-                    for(int i=0;i<ColorCount;i++)
+                    for(size_t i=0;i<ColorCount;i++)
                       ColorTypes[i].Flags&=~MIF_SELECTED;
                     ColorTypes[ColorCode].Flags|=MIF_SELECTED;
                     ColorCode=Info.Menu(&MainGuid,&Config7MenuGuid,-1,-1,0,FMENU_AUTOHIGHLIGHT|FMENU_WRAPMODE,PluginsData[ids[MenuCode]].Name,NULL,_T("Config7"),NULL,NULL,ColorTypes,ColorCount);

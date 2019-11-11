@@ -33,7 +33,7 @@ struct PairStack
 
 inline void PairStackPush(HANDLE Heap,struct PairStack **ptr,int index,int row,int col,int len,int flag)
 {
-  struct PairStack *a=(struct PairStack *)HeapAlloc(Heap,HEAP_ZERO_MEMORY,sizeof(struct PairStack));
+  struct PairStack *a=reinterpret_cast<struct PairStack *>(HeapAlloc(Heap,HEAP_ZERO_MEMORY,sizeof(struct PairStack)));
   a->index=index;
   a->row=row;
   a->col=col;

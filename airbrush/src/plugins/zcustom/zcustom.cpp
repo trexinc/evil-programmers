@@ -39,12 +39,12 @@ static int read_line(HANDLE file,char **line,int *size)
   {
     len*=2;
     free(buffer);
-    buffer=(char *)malloc(len);
+    buffer=reinterpret_cast<char*>(malloc(len));
     memset(buffer,0,len);
     ReadFile(file,buffer,len,&transferred,NULL);
     SetFilePointer(file,CurrPos,NULL,FILE_BEGIN);
-    pos_ptr=(char *)memchr(buffer,'\n',len);
-    pos2_ptr=(char *)memchr(buffer,'\r',len);
+    pos_ptr=reinterpret_cast<char*>(memchr(buffer,'\n',len));
+    pos2_ptr=reinterpret_cast<char*>(memchr(buffer,'\r',len));
     if(!pos_ptr) pos_ptr=pos2_ptr;
     if(pos_ptr||pos2_ptr)
     {
@@ -114,10 +114,10 @@ static int add_char_class(char *start,char *end)
   CharacterClass cc;
   CharacterClassParam ccp;
   ccp.char_class=&cc;
-  ccp.start=(unsigned char *)start;
-  ccp.end=(unsigned char *)end;
+  ccp.start=reinterpret_cast<unsigned char*>(start);
+  ccp.end=reinterpret_cast<unsigned char*>(end);
   yyparse(&ccp);
-  CharacterClass *cc_new=(CharacterClass *)malloc(sizeof(CharacterClass)*(classes_count+1));
+  CharacterClass *cc_new=reinterpret_cast<CharacterClass *>(malloc(sizeof(CharacterClass)*(classes_count+1)));
   if(cc_new)
   {
     memcpy(cc_new,classes,sizeof(CharacterClass)*classes_count);
@@ -169,10 +169,11 @@ static void syntax_strncpy(char *dst,char *src,int len)
         if((char_class_end)&&((char_class_end-src+1)>4))
         {
           int index=add_char_class(src+1,char_class_end);
-          *dst='\003'; dst++; *((int *)dst)=code_index(index); dst++; dst++; dst++;
+          *dst='\003'; dst++; *(reinterpret_cast<int*>(dst))=code_index(index); dst++; dst++; dst++;
           while(src<char_class_end) { src++; len--; }
           break;
         }
+        [[fallthrough]];
       default:
         *dst=*src;
         break;
@@ -257,7 +258,7 @@ static int syntax_strcmp(const char *line,int len,int pos,char *text,char *whole
         break;
       case '\003':
         p++;
-        index=*((int *)p); index=decode_index(index); p++; p++; p++;
+        index=*(reinterpret_cast<int*>(p)); index=decode_index(index); p++; p++; p++;
         for(unsigned int  i=0;i<classes[index].min;i++,pos++)
         {
           c=syntax_get_byte(line,len,pos);
@@ -298,9 +299,9 @@ static int get_arg(char *line,char ***argv)
     for(ptr+=len;(*ptr==' ')||(*ptr=='\t');ptr++);
     if(!(*ptr)) break;
     for(len=1;(*(ptr+len))&&(*(ptr+len)!=' ')&&(*(ptr+len)!='\t');len++);
-    arr=(char **)realloc(arr,(size+1)*sizeof(char *));
+    arr=reinterpret_cast<char**>(realloc(arr,(size+1)*sizeof(char*)));
     if(!arr) {size=0; break;}
-    arr[size]=(char *)malloc((len+1)*sizeof(char));
+    arr[size]=reinterpret_cast<char*>(malloc((len+1)*sizeof(char)));
     if(!arr[size]) break;
     arr[size][len]=0;
     syntax_strncpy(arr[size],ptr,len);
@@ -367,18 +368,18 @@ static void load_syntax_from_file(char *dirname,char *filename,char *whole_chars
           }
           if((!_stricmp(argv[0],"file"))&&(argc>2))
           {
-            Rules *new_rules=(Rules *)realloc(rules,(rules_count+1)*sizeof(Rules));
+            Rules *new_rules=reinterpret_cast<Rules*>(realloc(rules,(rules_count+1)*sizeof(Rules)));
             if(!new_rules) goto line_end;
             rules=new_rules;
-            rules[rules_count].name.Name=(TCHAR*)malloc((strlen(argv[1])+1)*sizeof(TCHAR));
+            rules[rules_count].name.Name=reinterpret_cast<TCHAR*>(malloc((strlen(argv[1])+1)*sizeof(TCHAR)));
             if(!rules[rules_count].name.Name) goto line_end;
-            MultiByteToWideChar(CP_OEMCP,0,argv[1],-1,(wchar_t*)rules[rules_count].name.Name,strlen(argv[1])+1);
-            rules[rules_count].mask=(TCHAR*)malloc((strlen(argv[2])+1)*sizeof(TCHAR));
+            MultiByteToWideChar(CP_OEMCP,0,argv[1],-1,const_cast<wchar_t*>(rules[rules_count].name.Name),strlen(argv[1])+1);
+            rules[rules_count].mask=reinterpret_cast<TCHAR*>(malloc((strlen(argv[2])+1)*sizeof(TCHAR)));
             if(!rules[rules_count].mask) goto line_end;
             MultiByteToWideChar(CP_OEMCP,0,argv[2],-1,rules[rules_count].mask,strlen(argv[2])+1);
             if(argc>3)
             {
-              rules[rules_count].start=(TCHAR*)malloc((strlen(argv[3])+1)*sizeof(TCHAR));
+              rules[rules_count].start=reinterpret_cast<TCHAR*>(malloc((strlen(argv[3])+1)*sizeof(TCHAR)));
               if(!rules[rules_count].start) goto line_end;
               MultiByteToWideChar(CP_OEMCP,0,argv[3],-1,rules[rules_count].start,strlen(argv[3])+1);
             }
@@ -403,7 +404,7 @@ static void load_syntax_from_file(char *dirname,char *filename,char *whole_chars
               {
                 if(argc==1) goto line_end;
                 if(_stricmp(argv[1],"default")) goto line_end;
-                rules[rules_count-1].contexts=(Context *)malloc(sizeof(Context));
+                rules[rules_count-1].contexts=reinterpret_cast<Context*>(malloc(sizeof(Context)));
                 rules[rules_count-1].contexts->left=NULL;
                 rules[rules_count-1].contexts->right=NULL;
                 rules[rules_count-1].contexts->color.Flags=ABCF_4BIT;
@@ -474,15 +475,15 @@ static void load_syntax_from_file(char *dirname,char *filename,char *whole_chars
                 }
                 if(argc<(key_count+1)) goto line_end;
                 right=argv[key_count++];
-                Context *NewContexts=(Context *)realloc(rules[rules_count-1].contexts,(rules[rules_count-1].contexts_count+1)*sizeof(Context));
+                Context *NewContexts=reinterpret_cast<Context*>(realloc(rules[rules_count-1].contexts,(rules[rules_count-1].contexts_count+1)*sizeof(Context)));
                 if(NewContexts)
                 {
                   rules[rules_count-1].contexts=NewContexts;
                   NewContexts=rules[rules_count-1].contexts+rules[rules_count-1].contexts_count;
-                  NewContexts->left=(char *)malloc(strlen(left)+1);
+                  NewContexts->left=reinterpret_cast<char*>(malloc(strlen(left)+1));
                   if(NewContexts->left)
                     strcpy(NewContexts->left,left);
-                  NewContexts->right=(char *)malloc(strlen(right)+1);
+                  NewContexts->right=reinterpret_cast<char*>(malloc(strlen(right)+1));
                   if(NewContexts->right)
                     strcpy(NewContexts->right,right);
                   NewContexts->color=rules[rules_count-1].contexts[0].color;
@@ -494,14 +495,14 @@ static void load_syntax_from_file(char *dirname,char *filename,char *whole_chars
                   NewContexts->whole_chars_left=NULL;
                   if(whole_left)
                   {
-                    NewContexts->whole_chars_left=(char *)malloc(WHOLE_SIZE);
+                    NewContexts->whole_chars_left=reinterpret_cast<char*>(malloc(WHOLE_SIZE));
                     if(NewContexts->whole_chars_left)
                       memcpy(NewContexts->whole_chars_left,whole_chars_left,WHOLE_SIZE);
                   }
                   NewContexts->whole_chars_right=NULL;
                   if(whole_left)
                   {
-                    NewContexts->whole_chars_right=(char *)malloc(WHOLE_SIZE);
+                    NewContexts->whole_chars_right=reinterpret_cast<char*>(malloc(WHOLE_SIZE));
                     if(NewContexts->whole_chars_right)
                       memcpy(NewContexts->whole_chars_right,whole_chars_right,WHOLE_SIZE);
                   }
@@ -557,12 +558,12 @@ static void load_syntax_from_file(char *dirname,char *filename,char *whole_chars
                 }
                 if(argc<(key_count+1)) goto line_end;
                 keyword=argv[key_count++];
-                Keyword *NewKeyword=(Keyword *)realloc(rules[rules_count-1].contexts[rules[rules_count-1].contexts_count-1].keywords,(rules[rules_count-1].contexts[rules[rules_count-1].contexts_count-1].keywords_count+1)*sizeof(Keyword));
+                Keyword *NewKeyword=reinterpret_cast<Keyword*>(realloc(rules[rules_count-1].contexts[rules[rules_count-1].contexts_count-1].keywords,(rules[rules_count-1].contexts[rules[rules_count-1].contexts_count-1].keywords_count+1)*sizeof(Keyword)));
                 if(NewKeyword)
                 {
                   rules[rules_count-1].contexts[rules[rules_count-1].contexts_count-1].keywords=NewKeyword;
                   NewKeyword=rules[rules_count-1].contexts[rules[rules_count-1].contexts_count-1].keywords+rules[rules_count-1].contexts[rules[rules_count-1].contexts_count-1].keywords_count;
-                  NewKeyword->keyword=(char *)malloc(strlen(keyword)+1);
+                  NewKeyword->keyword=reinterpret_cast<char*>(malloc(strlen(keyword)+1));
                   if(NewKeyword->keyword)
                     strcpy(NewKeyword->keyword,keyword);
                   NewKeyword->line_start=line_start;
@@ -572,14 +573,14 @@ static void load_syntax_from_file(char *dirname,char *filename,char *whole_chars
                   NewKeyword->whole_chars_left=NULL;
                   if(whole_left)
                   {
-                    NewKeyword->whole_chars_left=(char *)malloc(WHOLE_SIZE);
+                    NewKeyword->whole_chars_left=reinterpret_cast<char*>(malloc(WHOLE_SIZE));
                     if(NewKeyword->whole_chars_left)
                       memcpy(NewKeyword->whole_chars_left,whole_chars_left,WHOLE_SIZE);
                   }
                   NewKeyword->whole_chars_right=NULL;
                   if(whole_right)
                   {
-                    NewKeyword->whole_chars_right=(char *)malloc(WHOLE_SIZE);
+                    NewKeyword->whole_chars_right=reinterpret_cast<char*>(malloc(WHOLE_SIZE));
                     if(NewKeyword->whole_chars_right)
                       memcpy(NewKeyword->whole_chars_right,whole_chars_right,WHOLE_SIZE);
                   }
@@ -616,7 +617,7 @@ line_end:
 static void load_syntax(void)
 {
   { //init char classes
-    classes=(CharacterClass *)malloc(sizeof(CharacterClass));
+    classes=reinterpret_cast<CharacterClass*>(malloc(sizeof(CharacterClass)));
     if(classes)
     {
       classes->min=1;
@@ -670,7 +671,7 @@ static void free_syntax(void)
       free(rules[i].contexts[j].whole_chars_right);
       free(rules[i].contexts[j].keywords);
     }
-    free((void*)rules[i].name.Name);
+    free(const_cast<wchar_t*>(rules[i].name.Name));
     free(rules[i].mask);
     free(rules[i].start);
     free(rules[i].contexts);
@@ -699,19 +700,19 @@ void WINAPI Colorize(intptr_t index,struct ColorizeParams *params)
   int state_size=sizeof(state_data);
   if(params->data_size>=sizeof(state_data))
   {
-    state=(int *)(params->data);
+    state=reinterpret_cast<int*>(params->data);
     state_size=params->data_size;
   }
   for(int lno=params->startline;lno<params->endline;lno++)
   {
     startcol=(lno==params->startline)?params->startcolumn:0;
     if(((lno%Info.cachestr)==0)&&(!startcol))
-      if(!Info.pAddState(params->eid,lno/Info.cachestr,state_size,(unsigned char *)state)) return;
+      if(!Info.pAddState(params->eid,lno/Info.cachestr,state_size,reinterpret_cast<unsigned char*>(state))) return;
     context_start=0;
     const wchar_t* lineW=Info.pGetLine(params->eid,lno,&linelen);
-    line=(char*)malloc(linelen);
+    line=reinterpret_cast<char*>(malloc(linelen));
     if(!line) return;
-    WideCharToMultiByte(CP_OEMCP,0,lineW,linelen,(char*)line,linelen,NULL,NULL);
+    WideCharToMultiByte(CP_OEMCP,0,lineW,linelen,const_cast<char*>(line),linelen,NULL,NULL);
     int pos=startcol,pos_next;
     while(pos<=linelen)
     {
@@ -787,13 +788,13 @@ void WINAPI Colorize(intptr_t index,struct ColorizeParams *params)
       if(params->callback)
         if(params->callback(0,lno,pos,params->param))
         {
-          free((void*)line);
+          free(const_cast<char*>(line));
           return;
         }
       pos++;
     }
     Info.pAddColor(params,lno,context_start,linelen-context_start,&rules[index].contexts[state[0]].color,EPriorityNormal);
-    free((void*)line); line=NULL;
+    free(const_cast<char*>(line)); line=NULL;
   }
 }
 
@@ -813,24 +814,24 @@ int WINAPI GetParams(intptr_t index,intptr_t command,const char **param)
   {
     case PAR_GET_NAME:
       if((index>=rules_count)||(index<0)) *param=(const char*)_T("");
-      else *param=(const char*)&rules[index].name;
+      else *param=reinterpret_cast<const char*>(&rules[index].name);
       return true;
     case PAR_GET_PARAMS:
       return PAR_MASK_CACHE|PAR_SHOW_IN_LIST;
     case PAR_GET_MASK:
       if((index>=rules_count)||(index<0)) *param=(const char*)_T("");
-      else *param=(const char*)rules[index].mask;
+      else *param=reinterpret_cast<const char*>(rules[index].mask);
       return true;
     case PAR_CHECK_FILESTART:
       if((index<rules_count)&&(index>=0)&&rules[index].start)
       {
         char* filestart=NULL;
         int res=0;
-        size_t filestart_len=wcslen((const wchar_t*)*param),start_len=wcslen(rules[index].start);
-        filestart=(char*)malloc(filestart_len+start_len+2);
+        size_t filestart_len=wcslen(reinterpret_cast<const wchar_t*> (*param)),start_len=wcslen(rules[index].start);
+        filestart=reinterpret_cast<char*>(malloc(filestart_len+start_len+2));
         if(filestart)
         {
-          WideCharToMultiByte(CP_OEMCP,0,(const wchar_t*)*param,filestart_len+1,filestart,filestart_len+1,NULL,NULL);
+          WideCharToMultiByte(CP_OEMCP,0,reinterpret_cast<const wchar_t*>(*param),filestart_len+1,filestart,filestart_len+1,NULL,NULL);
           WideCharToMultiByte(CP_OEMCP,0,rules[index].start,start_len+1,(filestart+filestart_len+1),start_len+1,NULL,NULL);
           res=syntax_strcmp(filestart,filestart_len,0,(filestart+filestart_len+1),NULL,NULL,true,false);
           free(filestart);

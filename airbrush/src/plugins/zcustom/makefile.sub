@@ -3,6 +3,7 @@ TARGET=../../../$(BINDIR)/Formats/$(SYNNAME).fmt
 DEF=$(SYNNAME).def
 OBJS=../../../$(OBJDIR)/$(SYNNAME).o ../../../$(OBJDIR)/zc_parser.o ../../../$(OBJDIR)/$(SYNNAME).res.o
 LIBS=
+CFLAGS1=$(CFLAGS) -Wno-old-style-cast
 
 all: $(TARGET) SYNTAX
 
@@ -33,4 +34,4 @@ SYNTAX:
 	bison $< -o $@
 
 ../../../$(OBJDIR)/zc_parser.o: ../../$(BOOTSTRAPDIR)/zc_parser.cpp ../../$(BOOTSTRAPDIR)/zc_lexer.cpp ab$(SYNNAME).h
-	$(CC) $(CFLAGS) $< -o $@
+	$(CC) $(CFLAGS1) $< -o $@

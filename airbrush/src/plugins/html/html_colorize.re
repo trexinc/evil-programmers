@@ -39,15 +39,15 @@ static int WINAPI code_callback(int from,int row,int col,void *param)
 {
   const TCHAR* line;
   intptr_t linelen;
-  line=Info.pGetLine(((CallbackParam *)param)->params->eid,row,&linelen);
+  line=Info.pGetLine((reinterpret_cast<CallbackParam*>(param))->params->eid,row,&linelen);
   if(from==1)
   {
     if(!_tcsncmp(line+col,_T("?>"),2))
     {
-      Info.pAddColor(((CallbackParam *)param)->params,row,col,2,colors+HC_PI,EPriorityNormal);
-      ((CallbackParam *)param)->ok=1;
-      ((CallbackParam *)param)->row=row;
-      ((CallbackParam *)param)->col=col+2;
+      Info.pAddColor((reinterpret_cast<CallbackParam*>(param))->params,row,col,2,colors+HC_PI,EPriorityNormal);
+      (reinterpret_cast<CallbackParam*>(param))->ok=1;
+      (reinterpret_cast<CallbackParam*>(param))->row=row;
+      (reinterpret_cast<CallbackParam*>(param))->col=col+2;
       return true;
     }
   }
@@ -75,7 +75,7 @@ static void CallParser(ColorizeParams *params,CallbackParam *data)
   Info.pCallParser(&PhpGUID,&code_params);
   if(data->ok)
   {
-    params->data[0]=(unsigned char)(params->data[0]&PARSER_HTML);
+    params->data[0]=static_cast<unsigned char>(params->data[0]&PARSER_HTML);
     params->startline=data->row;
     params->startcolumn=data->col;
   }
@@ -164,12 +164,12 @@ void WINAPI Colorize(intptr_t index,struct ColorizeParams *params)
   intptr_t hl_row; intptr_t hl_col;
   if(params->data_size>=sizeof(state_data))
   {
-    state=(int *)(params->data);
+    state=reinterpret_cast<int*>(params->data);
     state_size=params->data_size;
   }
   else
   {
-    params->data=(unsigned char *)state;
+    params->data=reinterpret_cast<unsigned char*>(state);
     params->data_size=state_size;
   }
   Info.pGetCursor(params->eid,&hl_row,&hl_col);
@@ -186,8 +186,8 @@ colorize_start:
   {
     startcol=(lno==params->startline)?params->startcolumn:0;
     if(((lno%Info.cachestr)==0)&&(!startcol))
-      if(!Info.pAddState(params->eid,lno/Info.cachestr,state_size,(unsigned char *)state)) goto colorize_exit;
-    line=(const UTCHAR*)Info.pGetLine(params->eid,lno,&linelen);
+      if(!Info.pAddState(params->eid,lno/Info.cachestr,state_size,reinterpret_cast<unsigned char*>(state))) goto colorize_exit;
+    line=reinterpret_cast<const UTCHAR*>(Info.pGetLine(params->eid,lno,&linelen));
     commentstart=line+startcol;
     yycur=line+startcol;
     yyend=line+linelen;

@@ -25,8 +25,8 @@
 #define YYPARSE_PARAM cc_param
 //#define YYPURE TRUE
 #define YYLEX_PARAM YYPARSE_PARAM
-#define PARAM_MIN (((struct CharacterClassParam *)cc_param)->char_class->min)
-#define PARAM_MAX (((struct CharacterClassParam *)cc_param)->char_class->max)
+#define PARAM_MIN (reinterpret_cast<struct CharacterClassParam*>(cc_param)->char_class->min)
+#define PARAM_MAX (reinterpret_cast<struct CharacterClassParam*>(cc_param)->char_class->max)
 int yyerror(const char *msg);
 
 %}

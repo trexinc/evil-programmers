@@ -74,7 +74,7 @@ struct PluginItem
 };
 
 extern struct PluginItem *PluginsData;
-extern int PluginsCount;
+extern size_t PluginsCount;
 
 struct StateCache
 {

@@ -88,7 +88,7 @@ void WINAPI Colorize(intptr_t index,struct ColorizeParams *params)
   intptr_t hl_row; intptr_t hl_col;
   if(params->data_size>=sizeof(state_data))
   {
-    state=(RustState*)(params->data);
+    state=reinterpret_cast<RustState*>(params->data);
     state_size=params->data_size;
   }
   Info.pGetCursor(params->eid,&hl_row,&hl_col);
@@ -97,8 +97,8 @@ void WINAPI Colorize(intptr_t index,struct ColorizeParams *params)
   {
     startcol=(lno==params->startline)?params->startcolumn:0;
     if(((lno%Info.cachestr)==0)&&(!startcol))
-      if(!Info.pAddState(params->eid,lno/Info.cachestr,state_size,(unsigned char *)state)) goto colorize_exit;
-    line=(const wchar_t*)Info.pGetLine(params->eid,lno,&linelen);
+      if(!Info.pAddState(params->eid,lno/Info.cachestr,state_size,reinterpret_cast<unsigned char*>(state))) goto colorize_exit;
+    line=const_cast<const wchar_t*>(Info.pGetLine(params->eid,lno,&linelen));
     commentstart=line+startcol;
     yycur=line+startcol;
     yyend=line+linelen;

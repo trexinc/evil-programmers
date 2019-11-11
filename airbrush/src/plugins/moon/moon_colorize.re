@@ -280,7 +280,7 @@ colorize_string2:
   "#{" /*}*/
   {
     const UTCHAR* newcur=ParseInterpolation(yycur,yyend);
-    if(newcur&&Info.pInterpolation((const wchar_t*)yytok,newcur-yytok))
+    if(newcur&&Info.pInterpolation(reinterpret_cast<const wchar_t*>(yytok),newcur-yytok))
     {
       Info.pAddColor(params,lno,commentstart-line,yytok-commentstart,colors+HC_STRING1,EPriorityNormal);
       PUSH_PAIR_2(3,HC_INTERPOL)
@@ -359,7 +359,7 @@ void WINAPI Colorize(intptr_t index,struct ColorizeParams *params)
   intptr_t hl_row; intptr_t hl_col;
   if(params->data_size>=sizeof(state_data))
   {
-    state=(MoonState*)(params->data);
+    state=reinterpret_cast<MoonState*>(params->data);
     state_size=params->data_size;
   }
   Info.pGetCursor(params->eid,&hl_row,&hl_col);
@@ -368,8 +368,8 @@ void WINAPI Colorize(intptr_t index,struct ColorizeParams *params)
   {
     startcol=(lno==params->startline)?params->startcolumn:0;
     if(((lno%Info.cachestr)==0)&&(!startcol))
-      if(!Info.pAddState(params->eid,lno/Info.cachestr,state_size,(unsigned char *)state)) break;
-    line=(const UTCHAR*)Info.pGetLine(params->eid,lno,&linelen);
+      if(!Info.pAddState(params->eid,lno/Info.cachestr,state_size,reinterpret_cast<unsigned char*>(state))) break;
+    line=reinterpret_cast<const UTCHAR*>(Info.pGetLine(params->eid,lno,&linelen));
     if(ColorizeInternal(lno,line,startcol,linelen,hl_row,hl_col,hl_state,state,params,false)) break;
   }
   PairStackClear(params->LocalHeap,&hl_state);

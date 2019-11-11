@@ -33,7 +33,7 @@ DEFINE_GUID(MessageLoadingGuid, 0x40b98695, 0x3971, 0x4c4c, 0x88, 0xa9, 0xf3, 0x
 
 
 struct PluginItem *PluginsData=NULL;
-int PluginsCount=0;
+size_t PluginsCount=0;
 
 static TCHAR UnknownPluginName[20];
 
@@ -89,10 +89,10 @@ static bool WINAPI addstate(intptr_t eid,intptr_t pos,size_t size,unsigned char 
       StateCache **prev_cache=&(fl->cache);
       while(*prev_cache)
         prev_cache=&((*prev_cache)->next);
-      *prev_cache=(StateCache *)malloc(sizeof(StateCache));
+      *prev_cache=reinterpret_cast<StateCache*>(malloc(sizeof(StateCache)));
       if(*prev_cache)
       {
-        if(size) (*prev_cache)->data=(unsigned char *)malloc(size);
+        if(size) (*prev_cache)->data=reinterpret_cast<unsigned char*>(malloc(size));
         if((*prev_cache)->data)
         {
           (*prev_cache)->data_size=size;
@@ -126,7 +126,7 @@ static void WINAPI getcursor(intptr_t eid,intptr_t *row,intptr_t *col)
 static void WINAPI callparser(const GUID *parser,struct ColorizeParams *params)
 {
   if(FakeGuid!=*parser)
-    for(int i=0;i<PluginsCount;i++)
+    for(size_t i=0;i<PluginsCount;i++)
       if(*parser==PluginsData[i].Id)
         if(PluginsData[i].pColorize)
           PluginsData[i].pColorize(PluginsData[i].Index,params);
@@ -166,7 +166,7 @@ static uint64_t hash(const wchar_t* str,size_t len)
 
 int compare(const void* a,const void* b)
 {
-  InterpolationItem* a1=(InterpolationItem*)a,*b1=(InterpolationItem*)b;
+  const InterpolationItem* a1=reinterpret_cast<const InterpolationItem*>(a),*b1=reinterpret_cast<const InterpolationItem*>(b);
   if(a1->key<b1->key) return -1;
   if(a1->key>b1->key) return 1;
   return 0;
@@ -180,14 +180,14 @@ static bool WINAPI interpolation(const wchar_t* str,intptr_t len)
   {
     recurse=true;
     InterpolationItem key={hash(str,len),false};
-    InterpolationItem* item=(InterpolationItem*)bsearch(&key,InterpolationCache,InterpolationCacheSize,sizeof(InterpolationItem),compare);
+    InterpolationItem* item=reinterpret_cast<InterpolationItem*>(bsearch(&key,InterpolationCache,InterpolationCacheSize,sizeof(InterpolationItem),compare));
     if(item)
     {
       res=item->value;
     }
     else
     {
-      wchar_t* text=(wchar_t*)malloc((len+1)*sizeof(*str));
+      wchar_t* text=reinterpret_cast<wchar_t*>(malloc((len+1)*sizeof(*str)));
       if(text)
       {
         memcpy(text,str,len*sizeof(*str));
@@ -222,7 +222,7 @@ void LoadPlugs(const TCHAR* ModuleName)
   TCHAR PluginsFolder[MAX_PATH],PluginsMask[MAX_PATH],*NamePtr;
   lstrcpy(UnknownPluginName,GetMsg(mUnknown));
   lstrcpy(PluginsFolder,ModuleName);
-  NamePtr=(TCHAR*)FSF.PointToName(PluginsFolder);
+  NamePtr=const_cast<TCHAR*>(FSF.PointToName(PluginsFolder));
   lstrcpy(NamePtr,_T("\\Formats\\"));
   wsprintf(PluginsMask,_T("%s*.fmt"),PluginsFolder);
 
@@ -240,13 +240,13 @@ void LoadPlugs(const TCHAR* ModuleName)
       struct PluginItem CurPlugin;
       CurPlugin.hModule=hModule;
       CurPlugin.Type=0;
-      CurPlugin.pLoadSyntaxModule=(PLUGINLOADSYNTAXMODULE)GetProcAddress(hModule,"LoadSyntaxModule");
-      CurPlugin.pSetColorizeInfo=(PLUGINSETCOLORIZEINFO)GetProcAddress(hModule,"SetColorizeInfo");
-      CurPlugin.pGetParams=(PLUGINGETPARAMS)GetProcAddress(hModule,"GetParams");
-      CurPlugin.pColorize=(PLUGINCOLORIZE)GetProcAddress(hModule,"Colorize");
-      CurPlugin.pInput=(PLUGININPUT)GetProcAddress(hModule,"Input");
-      CurPlugin.pGetSyntaxCount=(PLUGINGETSYNTAXCOUNT)GetProcAddress(hModule,"GetSyntaxCount");
-      CurPlugin.pExit=(PLUGINEXIT)GetProcAddress(hModule,"Exit");
+      CurPlugin.pLoadSyntaxModule=reinterpret_cast<PLUGINLOADSYNTAXMODULE>(reinterpret_cast<void(*)()>(GetProcAddress(hModule,"LoadSyntaxModule")));
+      CurPlugin.pSetColorizeInfo=reinterpret_cast<PLUGINSETCOLORIZEINFO>(reinterpret_cast<void(*)()>(GetProcAddress(hModule,"SetColorizeInfo")));
+      CurPlugin.pGetParams=reinterpret_cast<PLUGINGETPARAMS>(reinterpret_cast<void(*)()>(GetProcAddress(hModule,"GetParams")));
+      CurPlugin.pColorize=reinterpret_cast<PLUGINCOLORIZE>(reinterpret_cast<void(*)()>(GetProcAddress(hModule,"Colorize")));
+      CurPlugin.pInput=reinterpret_cast<PLUGININPUT>(reinterpret_cast<void(*)()>(GetProcAddress(hModule,"Input")));
+      CurPlugin.pGetSyntaxCount=reinterpret_cast<PLUGINGETSYNTAXCOUNT>(reinterpret_cast<void(*)()>(GetProcAddress(hModule,"GetSyntaxCount")));
+      CurPlugin.pExit=reinterpret_cast<PLUGINEXIT>(reinterpret_cast<void(*)()>(GetProcAddress(hModule,"Exit")));
 
       if(CurPlugin.pLoadSyntaxModule)
         CurPlugin.Type=CurPlugin.pLoadSyntaxModule(PluginName,&Info);
@@ -277,7 +277,7 @@ void LoadPlugs(const TCHAR* ModuleName)
 
         if(subcount)
         {
-          struct PluginItem *NewPluginsData=(struct PluginItem *)realloc(PluginsData,sizeof(*PluginsData)*(PluginsCount+subcount));
+          struct PluginItem *NewPluginsData=reinterpret_cast<struct PluginItem*>(realloc(PluginsData,sizeof(*PluginsData)*(PluginsCount+subcount)));
           if (NewPluginsData==NULL)
             break;
           PluginsData=NewPluginsData;
@@ -294,12 +294,12 @@ void LoadPlugs(const TCHAR* ModuleName)
             if(CurPlugin.pGetParams)
             {
               CurPlugin.Params=CurPlugin.pGetParams(CurPlugin.Index,PAR_GET_PARAMS,NULL);
-              CurPlugin.pGetParams(CurPlugin.Index,PAR_GET_NAME,(const char**)&data);
+              CurPlugin.pGetParams(CurPlugin.Index,PAR_GET_NAME,reinterpret_cast<const char**>(&data));
               //load mask
-              if(data) if(RPC_S_OK!=UuidToString((UUID*)&data->Id,(unsigned short**)&name)) name=NULL;
+              if(data) if(RPC_S_OK!=UuidToString(const_cast<UUID*>(&data->Id),reinterpret_cast<unsigned short**>(const_cast<TCHAR**>(&name)))) name=NULL;
               if(name&&(CurPlugin.Params&PAR_MASK_CACHE))
               {
-                if(!CurPlugin.pGetParams(CurPlugin.Index,PAR_GET_MASK,(const char**)&mask))
+                if(!CurPlugin.pGetParams(CurPlugin.Index,PAR_GET_MASK,reinterpret_cast<const char**>(&mask)))
                   mask=_T("");
                 lstrcpy(buff_mask,mask);
                 if(CurPlugin.Params&PAR_MASK_STORE)
@@ -312,7 +312,7 @@ void LoadPlugs(const TCHAR* ModuleName)
               //load starts
               if(name&&(CurPlugin.Params&PAR_FILESTART_CACHE))
               {
-                if(!CurPlugin.pGetParams(CurPlugin.Index,PAR_GET_FILESTART,(const char**)&start))
+                if(!CurPlugin.pGetParams(CurPlugin.Index,PAR_GET_FILESTART,reinterpret_cast<const char**>(&start)))
                   start=_T("");
                 lstrcpy(buff_start,start);
                 if(CurPlugin.Params&PAR_FILESTART_STORE)
@@ -330,19 +330,19 @@ void LoadPlugs(const TCHAR* ModuleName)
             }
             else CurPlugin.Name=UnknownPluginName;
             lstrcpy(CurPlugin.IdStr,name?name:UnknownPluginName);
-            RpcStringFree((unsigned short**)&name);
+            RpcStringFree(reinterpret_cast<unsigned short**>(const_cast<TCHAR**>(&name)));
             if(lstrlen(buff_mask))
-              CurPlugin.Mask=(TCHAR*)malloc((lstrlen(buff_mask)+1)*sizeof(TCHAR));
+              CurPlugin.Mask=reinterpret_cast<TCHAR*>(malloc((lstrlen(buff_mask)+1)*sizeof(TCHAR)));
             if(CurPlugin.Mask)
               lstrcpy(CurPlugin.Mask,buff_mask);
             if(lstrlen(buff_start))
-              CurPlugin.Start=(TCHAR*)malloc((lstrlen(buff_start)+1)*sizeof(TCHAR));
+              CurPlugin.Start=reinterpret_cast<TCHAR*>(malloc((lstrlen(buff_start)+1)*sizeof(TCHAR)));
             if(CurPlugin.Start)
               lstrcpy(CurPlugin.Start,buff_start);
             if(CurPlugin.pGetParams)
             { //load colors
               int ColorCount; ABColor* Colors;
-              if((CurPlugin.Params&PAR_COLORS_STORE)&&CurPlugin.pGetParams(CurPlugin.Index,PAR_GET_COLOR_COUNT,(const char **)&ColorCount)&&CurPlugin.pGetParams(CurPlugin.Index,PAR_GET_COLOR,(const char **)&Colors))
+              if((CurPlugin.Params&PAR_COLORS_STORE)&&CurPlugin.pGetParams(CurPlugin.Index,PAR_GET_COLOR_COUNT,reinterpret_cast<const char**>(&ColorCount))&&CurPlugin.pGetParams(CurPlugin.Index,PAR_GET_COLOR,const_cast<const char**>(reinterpret_cast<char**>(&Colors))))
               {
                 LoadColors(settings,CurPlugin.IdStr,Colors,ColorCount);
               }
@@ -364,7 +364,7 @@ void LoadPlugs(const TCHAR* ModuleName)
 
 void UnloadPlugs(void)
 {
-  for(int i=0;i<PluginsCount;i++)
+  for(size_t i=0;i<PluginsCount;i++)
   {
     if(!PluginsData[i].Index)
     {

@@ -22,7 +22,7 @@
 #define YYLIMIT yyend
 #define YYMARKER yytmp
 #define YYFILL(n)
-#define PARAM_CHAR_CLASS (((struct CharacterClassParam *)cc_param)->char_class->Class)
+#define PARAM_CHAR_CLASS (reinterpret_cast<struct CharacterClassParam*>(cc_param)->char_class->Class)
 #define GET_CHAR(res) \
 { \
   res=*cc_cur; \
@@ -49,7 +49,7 @@
         if(isdigit(*cc_cur)) \
         { \
           unsigned char *cc_new; \
-          int val=strtol((char *)cc_cur,(char **)&cc_new,8); \
+          int val=strtol(reinterpret_cast<char*>(cc_cur),reinterpret_cast<char**>(&cc_new),8); \
           if((val<256)&&(val>-1)) \
           { \
             cc_cur=cc_new-1; \
@@ -73,8 +73,8 @@ digit = [0-9];
 */
 int yylex(YYSTYPE *yylval,void *cc_param)
 {
-  unsigned char *yyend=((struct CharacterClassParam *)cc_param)->end;
-  unsigned char **yycur=&(((struct CharacterClassParam *)cc_param)->start);
+  unsigned char *yyend=reinterpret_cast<struct CharacterClassParam*>(cc_param)->end;
+  unsigned char **yycur=&(reinterpret_cast<struct CharacterClassParam*>(cc_param)->start);
   unsigned char *yytmp,*yytok=NULL;
 lexer_clear:
   yytok=*yycur;
@@ -107,7 +107,7 @@ lexer_clear:
   }
   digit+
   {
-    yylval->digit=atoi((char *)yytok);
+    yylval->digit=atoi(reinterpret_cast<char*>(yytok));
     return DIGIT;
   }
   [*+?{},] { return *yytok; }
