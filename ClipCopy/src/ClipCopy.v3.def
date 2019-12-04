@@ -1,0 +1,7 @@
+LIBRARY        ClipCopyW
+EXPORTS
+	SetStartupInfoW
+	OpenW
+	GetPluginInfoW
+	ProcessSynchroEventW
+	GetGlobalInfoW
