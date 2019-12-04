@@ -1,4 +1,3 @@
-LIBRARY        ClipCopyW
 EXPORTS
 	SetStartupInfoW
 	OpenW

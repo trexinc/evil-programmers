@@ -346,8 +346,12 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(INT OpenFrom, INT_PTR Item)
   LPMALLOC pMalloc = NULL;
   LPITEMIDLIST *ppidl;
   LPVOID p;
+#ifdef FAR3
+  PanelInfo PInfo = {sizeof(PanelInfo)};
+#else
   struct PanelInfo PInfo;
-  DWORD effect;
+#endif
+DWORD effect;
 
   INT ExitCode = DoNothing;
   LPTSTR *SelectedFiles;
@@ -643,7 +647,10 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(INT OpenFrom, INT_PTR Item)
             size = GetCurrDir(MY_MAX_PATH, (LPTSTR)&ci[1]) + sizeof(DWORD) + 2;
           }
           else
+          {
               size = GetCurrDir(MY_MAX_PATH, (LPTSTR)&tgtPath);
+              tgtPath[size++] = '\\';
+          }
 
           for (i = 0; i < count; i++)
           {
@@ -769,7 +776,7 @@ INT WINAPI EXP_NAME(GetMinFarVersion)(VOID)
 VOID WINAPI EXP_NAME(GetGlobalInfo)(struct GlobalInfo *Info) {
   Info->StructSize = sizeof(struct GlobalInfo);
   Info->MinFarVersion = FARMANAGERVERSION;
-  Info->Version = MAKEFARVERSION(3,0,0,2,VS_RELEASE);
+  Info->Version = MAKEFARVERSION(3,0,1,0,VS_RELEASE);
   Info->Guid = ClipCopyGuid;
   Info->Title = L"Clipboard";
   Info->Description = L"Explorer like copy using clipboard";
