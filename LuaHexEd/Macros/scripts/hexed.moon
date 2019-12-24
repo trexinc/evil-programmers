@@ -37,11 +37,27 @@ ConsoleSize=->
   rr=far.AdvControl F.ACTL_GETFARRECT
   rr.Right-rr.Left+1,rr.Bottom-rr.Top+1
 
+UnicodeThunk=(fn,data,codepage)->
+  switch codepage
+    when 1200
+      data
+    when 1201
+      result=''
+      sub=(s,p)->string.sub s,p,p
+      for ii=1,#data/2
+        result..=(sub data,ii*2)..(sub data,ii*2-1)
+      result
+    else
+      fn data,codepage
+
+MB2WC=(data,codepage)->UnicodeThunk win.MultiByteToWideChar,data,codepage
+WC2MB=(data,codepage)->UnicodeThunk win.WideCharToMultiByte,data,codepage
+
 GenerateDisplayData=(data,codepage)->
-  wide=win.MultiByteToWideChar data,codepage
+  wide=MB2WC data,codepage
   out=''
   for ii=1,#wide/2
-    out..=(win.WideCharToMultiByte (string.sub wide,ii*2-1,ii*2),65001)..string.rep '.',(string.len (win.WideCharToMultiByte (string.sub wide,ii*2-1,ii*2),codepage))-1
+    out..=(win.WideCharToMultiByte (string.sub wide,ii*2-1,ii*2),65001)..string.rep '.',(string.len (WC2MB (string.sub wide,ii*2-1,ii*2),codepage))-1
   out
 
 Read=(data)->
