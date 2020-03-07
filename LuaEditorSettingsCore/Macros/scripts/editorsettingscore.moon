@@ -137,29 +137,38 @@ FixSchemes=(Sch)->
         .Pairs.ColorFull or=decodeK .Pairs.Color
         .Pairs.ColorErrorFull or=invert .Pairs.ColorFull
         .Case=true if 'nil'==type .Case
+        .Simple=true
+      with s.Highlite
+        if .Regions
+          for r in *.Regions
+            if r.Right or r.Regions or r.Pair
+              .Simple=false
+              break
 
 FixSchemes Schemes
 
 Highlite=(id,tt,top)->
   if tt.o.Highlite
+    simple=('table'~=type tt.o.Highlite) or tt.o.Highlite.Simple
     tocache=(v)->1+math.floor (v-1)/50
     fromcache=(v)->(v-1)*50+1
     clone=(t)->{k,('table'==type v) and (clone v) or v for k,v in pairs t}
     insert,remove=table.insert,table.remove
     ei=editor.GetInfo id
-    start,finish=(math.min ei.TopScreenLine,tt.startline,top),math.min ei.TopScreenLine+ei.WindowSizeY,ei.TotalLines
-    start=tocache start
-    if start>#tt.cache
-      start=#tt.cache
-    else if start<#tt.cache
-      for ii=start+1,#tt.cache
-        tt.cache[ii]=nil
+    start,finish=(if simple then ei.TopScreenLine else math.min ei.TopScreenLine,tt.startline,top),math.min ei.TopScreenLine+ei.WindowSizeY,ei.TotalLines
+    if not simple
+      start=tocache start
+      if start>#tt.cache
+        start=#tt.cache
+      else if start<#tt.cache
+        for ii=start+1,#tt.cache
+          tt.cache[ii]=nil
     left,right=ei.LeftPos,ei.LeftPos+ei.WindowSizeX
     margins=top:ei.TopScreenLine,bottom:math.min ei.TopScreenLine+ei.WindowSizeY,ei.TotalLines+1
     addcolor=(line,s,e,c,p=0)->
       if c and line>=margins.top and line<margins.bottom and not (s>=margins[line].right or e<margins[line].left)
         editor.AddColor id,line,s,e,F.ECF_AUTODELETE,c,p,colorguid
-    state,state_data,pairs=(clone tt.cache[start].state),(clone tt.cache[start].data),(clone tt.cache[start].pairs)
+    state,state_data,pairs=if simple then {0},{},{} else (clone tt.cache[start].state),(clone tt.cache[start].data),(clone tt.cache[start].pairs)
     {CurPos:curpos,CurLine:curline}=editor.GetInfo id
     checkCursor=(line,pos,len)->(line==curline) and curpos>=pos and curpos<(pos+len)
     getRegion=->
@@ -215,10 +224,10 @@ Highlite=(id,tt,top)->
         when 'function'
           res,next=patt state_data,str,init
           if next then match str,res,init else res
-    start=fromcache start
+    start=fromcache start if not simple
     for ii=start,finish
       regionstart=1
-      tt.cache[tocache ii]=state:(clone state),data:(clone state_data),pairs:(clone pairs) if ii%50==1
+      tt.cache[tocache ii]=state:(clone state),data:(clone state_data),pairs:(clone pairs) if not simple and ii%50==1
       {StringText:line,StringLength:len}=editor.GetString id,ii,0
       margins[ii]=:left,:right
       if 0==bit64.band ei.Options,F.EOPT_EXPANDALLTABS
