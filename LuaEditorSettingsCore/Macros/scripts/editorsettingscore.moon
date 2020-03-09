@@ -10,6 +10,7 @@ ess.StructSize=ffi.sizeof ess
 editors={}
 colorguid=win.Uuid "F018DA49-6EB9-49C3-84D8-0F5E7BA20EFB"
 abguid="9860393A-918D-450F-A3EA-84186F21B0A2"
+configguid='A0C8F0AA-7180-4E4E-A496-339E7A6D27C7'
 farguid=string.rep('\0',16)
 modeline=require"modeline"
 IsMms=(str)->return str[0]==45 and str[1]==45 and str[2]==32 and str[3]==0
@@ -385,6 +386,20 @@ ApplyModeline=(id,ml)->
   if syntax and syntaxes[syntax]
     Plugin.SyncCall(abguid,0,id,syntaxes[syntax])
 
+ReadSettings=->
+  with far.CreateSettings!
+    sk=\CreateSubkey F.FSSF_ROOT,configguid,'Editor Settings'
+    hl,ml=((\Get sk,'highlite',F.FST_QWORD) or 0),((\Get sk,'maxlines',F.FST_QWORD) or 0)
+    \Free!
+    return hl,ml
+WriteSettings=(hl,ml)->
+  with far.CreateSettings!
+    sk=\CreateSubkey F.FSSF_ROOT,configguid,'Editor Settings'
+    \Set sk,'highlite',F.FST_QWORD,hl
+    \Set sk,'maxlines',F.FST_QWORD,ml
+    \Free!
+highlite,maxlines=ReadSettings!
+
 redraw=0
 Event
   group:"EditorEvent"
@@ -405,7 +420,8 @@ Event
           redraw+=1
           ab,guid,top=Plugin.SyncCall(abguid,2,id)
           guid,top={farguid},math.huge if not ab
-          Highlite id,tt,top if guid[1]==farguid
+          if 1==highlite or (2==highlite and (editor.GetInfo id).TotalLines<=maxlines)
+            Highlite id,tt,top if guid[1]==farguid
           if tt.o.WhiteSpaceColor
             ei=editor.GetInfo id
             if 0~=bit64.band ei.Options,F.EOPT_SHOWWHITESPACE
@@ -463,20 +479,51 @@ Event
           if tt and tt.o[key.Option] then return key.Action tt.o.Lines or 10,tt.o.MinusMinusSpace
     false
 
+Editor=->
+  id=editor.GetInfo!.EditorID
+  tt=editors[id]
+  if tt
+    check=(c)->c.__name==tt.o.__name
+    hotkeys="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    gethotkey=->(if hotkeys\len!>0 then "&"..(hotkeys\sub 1,1)..". " else "   "),do hotkeys=hotkeys\sub 2
+    result=far.Menu{Id:win.Uuid"34BB1EE6-E7E1-44F4-A8DC-D51CF1B85E4C"},[{text:gethotkey!..scheme.Title,checked:check(scheme),selected:check(scheme),value:InitType scheme} for scheme in *Schemes]
+    if result
+      editors[id]=result.value
+      ApplyType id,result.value
+      editor.Redraw id
+
+Config=->
+  KCheck,KLabel,KEdit=2,3,4
+  highlite,maxlines=ReadSettings!
+  items={
+    {'DI_DOUBLEBOX', 3,1,36,4,0,       0,0,0,           'Editor Settings'}
+    {'DI_CHECKBOX',  5,2, 0,0,highlite,0,0,F.DIF_3STATE,'&highlite'}
+    {'DI_TEXT',      5,3, 0,0,0,       0,0,0,           '&max lines:'}
+    {'DI_EDIT',     16,3,34,0,0,       0,0,0,           tostring maxlines}
+  }
+  DlgProc=(dlg,msg,param1,param2)->
+    update=(state)->for item in *{KLabel,KEdit} do dlg\send F.DM_ENABLE,item,(state==2 and 1 or 0)
+    switch msg
+      when F.DN_INITDIALOG
+        update dlg\send F.DM_GETCHECK,KCheck
+      when F.DN_BTNCLICK
+        if param1==KCheck
+          update param2
+          true
+    nil
+  dialog=far.DialogInit (win.Uuid'2E2C46E6-9248-4AB2-BFA7-7A8B0FECDD64'),-1,-1,40,6,nil,items,0,DlgProc
+  if 0<far.DialogRun dialog then WriteSettings (dialog\send F.DM_GETCHECK,KCheck),(tonumber dialog\send F.DM_GETTEXT,KEdit)
+  far.DialogFree dialog
+  highlite,maxlines=ReadSettings!
+
 MenuItem
-  menu: "Plugins"
-  area: "Editor"
-  guid: "4DDEE94D-F1B4-440E-982F-26AAA826CEE9"
-  text: "Editor Settings"
-  action: ->
-    id=editor.GetInfo!.EditorID
-    tt=editors[id]
-    if tt
-      check=(c)->c.__name==tt.o.__name
-      hotkeys="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-      gethotkey=->(if hotkeys\len!>0 then "&"..(hotkeys\sub 1,1)..". " else "   "),do hotkeys=hotkeys\sub 2
-      result=far.Menu{Id:win.Uuid"34BB1EE6-E7E1-44F4-A8DC-D51CF1B85E4C"},[{text:gethotkey!..scheme.Title,checked:check(scheme),selected:check(scheme),value:InitType scheme} for scheme in *Schemes]
-      if result
-        editors[id]=result.value
-        ApplyType id,result.value
-        editor.Redraw id
+  menu:'Plugins Config'
+  area:'Editor'
+  guid:'4DDEE94D-F1B4-440E-982F-26AAA826CEE9'
+  text:'Editor Settings'
+  action:(OpenFrom)->
+    switch OpenFrom
+      when F.OPEN_EDITOR
+        Editor!
+      when nil
+        Config!
