@@ -664,7 +664,8 @@ Event
   action=function(id,event,param)
     if event==F.VE_READ then
       local xpanel=0
-      if far.AdvControl(F.ACTL_GETWINDOWTYPE).Type==F.WTYPE_PANELS then
+      local winType=far.AdvControl(F.ACTL_GETWINDOWTYPE)
+      if winType and winType.Type==F.WTYPE_PANELS then
         if panel.GetPanelInfo(nil,0).PanelType==F.PTYPE_INFOPANEL then return end
         local type=panel.GetPanelInfo(nil,1).PanelType
         if type==F.PTYPE_INFOPANEL then return end
