@@ -1,4 +1,4 @@
-﻿-- See http://forum.farmanager.com/viewtopic.php?p=112243#p112243
+-- See http://forum.farmanager.com/viewtopic.php?p=112243#p112243
 local function Set(list)
   local set={}
   for _,l in ipairs(list) do set[l]=true end
@@ -78,6 +78,26 @@ typedef struct PropertyItem {
   void* value;
 } PropertyItem;
 ]])
+safe_cdef([[
+typedef enum RotateFlipType {
+  RotateNoneFlipNone,
+  Rotate90FlipNone,
+  Rotate180FlipNone,
+  Rotate270FlipNone,
+  RotateNoneFlipX,
+  Rotate90FlipX,
+  Rotate180FlipX,
+  Rotate270FlipX,
+  RotateNoneFlipY,
+  Rotate90FlipY,
+  Rotate180FlipY,
+  Rotate270FlipY,
+  RotateNoneFlipXY,
+  Rotate90FlipXY,
+  Rotate180FlipXY,
+  Rotate270FlipXY
+} RotateFlipType;
+]])
 ffi.cdef[[
 GpStatus GdiplusStartup(void**,const GdiplusStartupInput*,GdiplusStartupOutput*);
 void GdiplusShutdown(void*);
@@ -99,6 +119,7 @@ GpStatus GdipCreateBitmapFromScan0(int,int,int,int,unsigned char*,void** GpBitma
 GpStatus GdipGetImageGraphicsContext(void* GpImage,void** GpGraphics);
 GpStatus GdipGetPropertyItemSize(void* GpImage,unsigned long,unsigned int*);
 GpStatus GdipGetPropertyItem(void* GpImage,unsigned long,unsigned int,PropertyItem*);
+GpStatus GdipImageRotateFlip(void* GpImage,RotateFlipType);
 ]]
 safe_cdef([[
 typedef struct _COORD {
@@ -443,6 +464,20 @@ local function InitBGColor()
   BGColor=function() return bgcolor end
 end
 
+local RotFlipByOrient={                            -- From exiftool documentation
+  [1]={tr=false,op='RotateNoneFlipNone',mn='R0F0'},-- Horizontal (normal)
+  [2]={tr=false,op='RotateNoneFlipX'   ,mn='R0FX'},-- Mirror horizontal
+  [3]={tr=false,op='Rotate180FlipNone' ,mn='R2F0'},-- Rotate 180
+  [4]={tr=false,op='Rotate180FlipX'    ,mn='R2FX'},-- Mirror vertical
+  [5]={tr=true ,op='Rotate90FlipX'     ,mn='R1FX'},-- Mirror horizontal and rotate 270 CW
+  [6]={tr=true ,op='Rotate90FlipNone'  ,mn='R1F0'},-- Rotate 90 CW
+  [7]={tr=true ,op='Rotate270FlipX'    ,mn='R3FX'},-- Mirror horizontal and rotate 90 CW
+  [8]={tr=true ,op='Rotate270FlipNone' ,mn='R3F0'} -- Rotate 270 CW
+}
+local function CanReorient(image)
+  return image.frames==1 --TODO support reorienting animations (e.g. multipage TIFFs)
+end
+
 local function InitImage(filename)
   local delete=far.ProcessName(F.PN_CMPNAMELIST,"*.dng,*.pef,*.nef,*.cr2,*.sr2,*.arw,*.orf,*.rw2,*.srw",filename,F.PN_SKIPPATH) and getDNG(filename)
   local wnd=far.AdvControl(F.ACTL_GETFARHWND)
@@ -462,9 +497,9 @@ local function InitImage(filename)
     gdiplus.GdipImageGetFrameDimensionsList(image[0],dimensionIDs,count[0])
     local frames=ffi.new("unsigned int[1]")
     gdiplus.GdipImageGetFrameCount(image[0],dimensionIDs,frames)
+    local delay
     local delaysize=ffi.new("unsigned int[1]")
     gdiplus.GdipGetPropertyItemSize(image[0],0x5100,delaysize)
-    local delay
     if delaysize[0]>0 then
       delay={}
       local delayraw_buffer=ffi.new("char[?]",delaysize[0])
@@ -475,13 +510,25 @@ local function InitImage(filename)
         table.insert(delay,value>0 and value or 1)
       end
     end
+    local exifOrient=0
+    local exifOrientSize=ffi.new("unsigned int[1]")
+    gdiplus.GdipGetPropertyItemSize(image[0],0x112,exifOrientSize)
+    if exifOrientSize[0]>0 then
+      local exifOrientRaw_buffer=ffi.new("char[?]",exifOrientSize[0])
+      local exifOrientRaw=ffi.cast("PropertyItem*",exifOrientRaw_buffer)
+      gdiplus.GdipGetPropertyItem(image[0],0x112,exifOrientSize[0],exifOrientRaw)
+      exifOrient=ffi.cast("unsigned short*",exifOrientRaw.value)[0]
+    end
     local brush=ffi.new("void*[1]")
     gdiplus.GdipCreateSolidFill(BGColor(),brush)
     local memimage=ffi.new("void*[1]")
-    gdiplus.GdipCreateBitmapFromScan0(width[0],height[0],0,0x26200a,ffi.NULL,memimage)
+    local tr=RotFlipByOrient[exifOrient] and RotFlipByOrient[exifOrient].tr and CanReorient{frames=frames[0]}
+    local wh,hw=tr and height[0] or width[0],tr and width[0] or height[0]
+    gdiplus.GdipCreateBitmapFromScan0(wh,hw,0,0x26200a,ffi.NULL,memimage)
     local memgraphics=ffi.new("void*[1]")
     gdiplus.GdipGetImageGraphicsContext(memimage[0],memgraphics)
-    return {wnd=wnd,dc=dc,image=image,graphics=graphics,brush=brush,width=width[0],height=height[0],frames=frames[0],delay=delay,guid=dimensionIDs,delete=delete,memory={image=memimage,graphics=memgraphics}}
+    return {wnd=wnd,dc=dc,image=image,graphics=graphics,brush=brush,width=wh,height=hw,orient=exifOrient,
+            frames=frames[0],delay=delay,guid=dimensionIDs,delete=delete,memory={image=memimage,graphics=memgraphics}}
   end
   return false
 end
@@ -533,11 +580,9 @@ local function RangingPic(params)
 end
 
 local function UpdateImage(params)
-  local width=params.RangedRect.right-params.RangedRect.left
-  local height=params.RangedRect.bottom-params.RangedRect.top
   gdiplus.GdipFillRectangleI(params.image.memory.graphics[0],params.image.brush[0],0,0,params.image.width,params.image.height)
   --GdipDrawImageI fails on some images
-  --FIXME: какая-то ересь. на некоторых картинках первый вызов GdipDrawImageRectI завершается с ошибкой.
+  --FIXME: какая-то ересь, на некоторых картинках первый вызов GdipDrawImageRectI завершается с ошибкой.
   for _=0,1 do
     if C.Win32Error~=gdiplus.GdipDrawImageRectI(params.image.memory.graphics[0],params.image.image[0],0,0,params.image.width,params.image.height) then break end
   end
@@ -564,15 +609,23 @@ local function ShowImage(xpanel)
       local buffer=far.CreateUserControl(width,height)
       local function FillBuffer()
         local color=far.AdvControl(F.ACTL_GETCOLOR,K.COL_PANELTEXT)
-        local textel={Char=bit64.bor(bit64.band(Symbol,0xf),0x30),Attributes={Flags=(bit64.band(color.Flags,F.FCF_BG_4BIT)==0) and 0 or bit64.bor(F.FCF_FG_4BIT,F.FCF_BG_4BIT),ForegroundColor=color.BackgroundColor,BackgroundColor=color.BackgroundColor}}
+        local textel={Char=bit64.bor(bit64.band(Symbol,0xf),0x30),Attributes={Flags=(bit64.band(color.Flags,F.FCF_BG_4BIT)==0) and 0
+                     or bit64.bor(F.FCF_FG_4BIT,F.FCF_BG_4BIT),ForegroundColor=color.BackgroundColor,BackgroundColor=color.BackgroundColor}}
         Symbol=Symbol+1
         for ii=1,#buffer do
           buffer[ii]=textel
         end
       end
       FillBuffer()
+      local rotFlip=RotFlipByOrient[params.image.orient]
+      if rotFlip and rotFlip.mn~='R0F0' and CanReorient(params.image) then
+        gdiplus.GdipImageRotateFlip(params.image.image[0],rotFlip.op)
+      end
+      local orientMarker=rotFlip and ' '..rotFlip.mn or ''
+      if not CanReorient(params.image) then orientMarker=orientMarker:lower() end
       local items={
-        {"DI_DOUBLEBOX",0,0,width+1,height+1,0,0,0,0,params.image.width.." x "..params.image.height.." * "..params.image.frames},
+        {'DI_DOUBLEBOX',0,0,width+1,height+1,0,0,0,0,
+          params.image.width..' x '..params.image.height..' * '..params.image.frames..orientMarker},
         {"DI_USERCONTROL",1,1,width,height,buffer,0,0,0,""}
       }
       local function DlgProc(dlg,msg,param1,param2)
@@ -592,7 +645,7 @@ local function ShowImage(xpanel)
           end
         end
         if msg==F.DN_INITDIALOG then
-          far.SendDlgMessage (dlg,F.DM_SETMOUSEEVENTNOTIFY,1)
+          far.SendDlgMessage(dlg,F.DM_SETMOUSEEVENTNOTIFY,1)
           if params.image.frames>1 then
             local function ShowAnimation()
               if params.timer and not params.timer.Closed then params.timer.Enabled=false end
@@ -664,7 +717,8 @@ Event
   action=function(id,event,param)
     if event==F.VE_READ then
       local xpanel=0
-      if far.AdvControl(F.ACTL_GETWINDOWTYPE).Type==F.WTYPE_PANELS then
+      local winType=far.AdvControl(F.ACTL_GETWINDOWTYPE)
+      if winType and winType.Type==F.WTYPE_PANELS then
         if panel.GetPanelInfo(nil,0).PanelType==F.PTYPE_INFOPANEL then return end
         local type=panel.GetPanelInfo(nil,1).PanelType
         if type==F.PTYPE_INFOPANEL then return end
