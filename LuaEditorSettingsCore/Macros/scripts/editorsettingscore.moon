@@ -359,7 +359,7 @@ ApplyModeline=(id,ml)->
     {F.ESPT_TABSIZE       ,'tabstop','ts',tonumber}
     {F.ESPT_EXPANDTABS    ,'expandtab','et',(v)->v}
     {F.ESPT_AUTOINDENT    ,'autoindent','ai',(v)->v}
-    {F.ESPT_SHOWWHITESPACE,'list','list',(v)->v and 2 or 1}
+    {F.ESPT_SHOWWHITESPACE,'list','list',(v)->v and 2 or 0}
   }
   syntaxes={
     asm:'405026D5-E610-4C87-94E7-AD1EC5F7FBFA'
