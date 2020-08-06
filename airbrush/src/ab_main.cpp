@@ -279,8 +279,8 @@ HANDLE WINAPI OpenW(const struct OpenInfo *Info)
             memcpy(&syntax,mi->Values[2].Binary.Data,sizeof(syntax));
           if(res)
           {
-            for(size_t ii=0;ii<PluginsCount;++ii)
-              if(syntax==PluginsData[ii].Id)
+            for(ssize_t ii=-1;ii<static_cast<ssize_t>(PluginsCount);++ii)
+              if(syntax==(-1==ii?FarGuid:PluginsData[ii].Id))
               {
                 ef_deletefile(eid);
                 loadfile(eid,ii);
@@ -337,7 +337,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *Info)
                   fmc->Callback=MacroCallback;
                   fmc->CallbackData=fmc;
                   fmc->Values[0]=true;
-                  fmc->Values[1]=(fl->type>=0)?PluginsData[fl->type].Id:FakeGuid;
+                  fmc->Values[1]=(fl->type>=0)?PluginsData[fl->type].Id:FarGuid;
                   fmc->Values[2]=(fl->apitopline<max53)?fl->apitopline+1:max53;
                   return fmc;
                 }

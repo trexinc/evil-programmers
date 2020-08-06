@@ -125,7 +125,7 @@ static void WINAPI getcursor(intptr_t eid,intptr_t *row,intptr_t *col)
 
 static void WINAPI callparser(const GUID *parser,struct ColorizeParams *params)
 {
-  if(FakeGuid!=*parser)
+  if(FarGuid!=*parser)
     for(size_t i=0;i<PluginsCount;i++)
       if(*parser==PluginsData[i].Id)
         if(PluginsData[i].pColorize)
