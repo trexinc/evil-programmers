@@ -14,7 +14,7 @@ local config=
     dictionary=[[%FARPROFILE%\Dictionaries\ru_RU_yo.dic]],
     affix=[[%FARPROFILE%\Dictionaries\ru_RU_yo.aff]],
     regexstr=[[/[а-яёА-ЯЁ]+/]],
-    color={Flags=bit64.bor(F.FCF_FG_4BIT,F.FCF_BG_4BIT),ForegroundColor=0xf,BackgroundColor=0x4},
+    color={Flags=bit64.bor(F.FCF_FG_4BIT,F.FCF_BG_4BIT),ForegroundColor=0xff00000f,BackgroundColor=0xff000004},
     active=true
   },
   --en
@@ -22,7 +22,7 @@ local config=
     dictionary=[[%FARPROFILE%\Dictionaries\en_US.dic]],
     affix=[[%FARPROFILE%\Dictionaries\en_US.aff]],
     regexstr=[[/[a-zA-Z]+/]],
-    color={Flags=bit64.bor(F.FCF_FG_4BIT,F.FCF_BG_4BIT),ForegroundColor=0xf,BackgroundColor=0x2},
+    color={Flags=bit64.bor(F.FCF_FG_4BIT,F.FCF_BG_4BIT),ForegroundColor=0xff00000f,BackgroundColor=0xff000002},
     active=true
   }
 }
