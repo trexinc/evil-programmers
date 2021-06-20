@@ -252,6 +252,8 @@ void TAutoCompletion::Colorize(FarColor NewColor,avl_window_data *Window)
   ec.StartPos=Window->col;
   ec.EndPos=Window->col+Window->AddedLen-1;
   ec.Color=NewColor;
+  MAKE_OPAQUE(ec.Color.BackgroundColor);
+  MAKE_OPAQUE(ec.Color.ForegroundColor);
   ec.Owner=MainGuid;
   ec.Priority=100;
   Info.EditorControl(Window->editorid(),ECTL_ADDCOLOR,0,&ec);

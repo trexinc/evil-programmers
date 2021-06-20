@@ -201,6 +201,8 @@ static void ConvertColor(FarColor *Color, int Bg)
   Color->Flags = FCF_FG_4BIT|FCF_BG_4BIT;
   Color->ForegroundColor = 0;
   Color->BackgroundColor = Bg;
+  MAKE_OPAQUE(Color->ForegroundColor);
+  MAKE_OPAQUE(Color->BackgroundColor);
   Color->Reserved = 0;
 }
 

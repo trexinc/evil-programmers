@@ -98,6 +98,8 @@ void ConvertColor(const ABColor& Color,FarColor& NewColor)
   NewColor.Flags=Color.Flags;
   NewColor.ForegroundColor=Color.ForegroundColor;
   NewColor.BackgroundColor=Color.BackgroundColor;
+  MAKE_OPAQUE(NewColor.ForegroundColor);
+  MAKE_OPAQUE(NewColor.BackgroundColor);
   NewColor.Reserved=Color.Reserved;
   if(Color.ForegroundDefault)
   {
