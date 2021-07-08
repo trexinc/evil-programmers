@@ -1,10 +1,14 @@
 History:
 --------
-V1.4
+v1.5
+----
+- Correct operation in Far 3.0 build 5821 and above.
+
+v1.4
 ----
 - LeftPos could change on long lines.
 
-V1.3
+v1.3
 ----
 - Bookmarks highlighting works.
 

@@ -203,7 +203,7 @@ static void ConvertColor(FarColor *Color, int Bg)
   Color->BackgroundColor = Bg;
   MAKE_OPAQUE(Color->ForegroundColor);
   MAKE_OPAQUE(Color->BackgroundColor);
-  Color->Reserved = 0;
+  memset(Color->Reserved, 0, sizeof(Color->Reserved));
 }
 
 static void ReadSettings()

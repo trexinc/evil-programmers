@@ -2,7 +2,7 @@ Visualizer
 -------------------------------------------------------------------------------
 
 Author: Alex Yaroslavsky
-Home page: http://code.google.com/p/evil-programmers/
+Home page: https://github.com/trexinc/evil-programmers
 
 -------------------------------------------------------------------------------
 
@@ -15,7 +15,7 @@ etc.
 To decide where the right border is this plugin uses another plugin called ESC.
 ESC is an excellent creation by Ivan Sintyurin <spinoza@mail.ru>.
 To get hold of your own copy of ESC visit:
-http://code.google.com/p/evil-programmers/
+https://github.com/trexinc/evil-programmers
 
 License
 -------
