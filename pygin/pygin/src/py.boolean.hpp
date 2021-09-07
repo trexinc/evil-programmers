@@ -52,6 +52,12 @@ namespace py
 		return cast<boolean>(Object);
 	}
 
-	object from(bool Value);
-	object from(const void* Value) = delete;
+	template <>
+	struct translate<bool>
+	{
+		static inline object from(bool Value)
+		{
+			return boolean(Value);
+		};
+	};
 }

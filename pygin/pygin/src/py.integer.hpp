@@ -143,17 +143,21 @@ namespace py
 		}
 	};
 
-	[[nodiscard]] object from(unsigned short Value);
-	[[nodiscard]] object from(int Value);
-	[[nodiscard]] object from(unsigned int Value);
-	[[nodiscard]] object from(long Value);
-	[[nodiscard]] object from(unsigned long Value);
-	[[nodiscard]] object from(long long Value);
-	[[nodiscard]] object from(unsigned long long Value);
-
-	template<typename type>
-	[[nodiscard]] std::enable_if_t<std::is_enum<type>::value, object> from(type Value)
+	template <typename type>
+	struct translate<type,typename std::enable_if<std::is_integral<type>::value && !std::is_same<type,bool>::value>::type>
 	{
-		return from(static_cast<std::underlying_type_t<type>>(Value));
-	}
+		static [[nodiscard]] object from(type Value)
+		{
+			return integer(Value);
+		}
+	};
+		
+	template <typename type>
+	struct translate<type, typename std::enable_if<std::is_enum<type>::value>::type>
+	{
+		static [[nodiscard]] object from(type Value)
+		{
+			return translate<std::underlying_type_t<type>>::from(Value);
+		}
+	};
 }

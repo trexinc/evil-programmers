@@ -60,7 +60,12 @@ namespace py
 		return cast<floating>(Object);
 	}
 
-	[[nodiscard]] object from(float Value);
-	[[nodiscard]] object from(double Value);
-	[[nodiscard]] object from(long double Value);
+	template <typename type>
+	struct translate<type, typename std::enable_if<std::is_floating_point<type>::value>::type>
+	{
+		static [[nodiscard]] object from(type Value)
+		{
+			return floating(Value);
+		}
+	};
 }

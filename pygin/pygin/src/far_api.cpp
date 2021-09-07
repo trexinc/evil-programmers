@@ -574,7 +574,7 @@ namespace far_api_implementation
 					PluginPanelItemInstance["AlternateFileName"sv] = PPI->AlternateFileName;
 					PluginPanelItemInstance["Description"sv] = PPI->Description;
 					PluginPanelItemInstance["Owner"sv] = PPI->Owner;
-					PluginPanelItemInstance["CustomColumnData"sv] = helpers::list::from_array(PPI->CustomColumnData, PPI->CustomColumnNumber, [](auto i) { return py::from(i); });
+					PluginPanelItemInstance["CustomColumnData"sv] = helpers::list::from_array(PPI->CustomColumnData, PPI->CustomColumnNumber, [](auto i) { return py::translate<decltype(i)>::from(i); });
 					PluginPanelItemInstance["Flags"sv] = far_api::type("PluginPanelItemFlags"sv)(PPI->Flags);
 					//PluginPanelItemInstance["UserData"sv] = PPI->UserData;
 					PluginPanelItemInstance["FileAttributes"sv] = PPI->FileAttributes;

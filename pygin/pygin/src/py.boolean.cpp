@@ -61,9 +61,4 @@ namespace py
 	{
 		return get() == Py_True;
 	}
-
-	object from(bool Value)
-	{
-		return boolean(Value);
-	}
 }

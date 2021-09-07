@@ -54,6 +54,12 @@ namespace py
 		return cast<uuid>(Object);
 	}
 
-	[[nodiscard]]
-	object from(const UUID& Value);
+	template <>
+	struct translate<UUID>
+	{
+		static [[nodiscard]] object from(UUID const& Value)
+		{
+			return uuid(Value);
+		}
+	};
 }

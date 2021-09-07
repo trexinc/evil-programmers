@@ -100,24 +100,4 @@ namespace py
 
 		return Result;
 	}
-
-	object from(const char* Value)
-	{
-		return string(Value);
-	}
-
-	object from(const wchar_t* Value)
-	{
-		return string(Value);
-	}
-
-	object from(std::string_view const Value)
-	{
-		return string(Value);
-	}
-
-	object from(std::wstring_view const Value)
-	{
-		return string(Value);
-	}
 }
