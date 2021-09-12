@@ -35,7 +35,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define Py_LIMITED_API
 #endif
 
-#ifdef _DEBUG
+#if defined(_DEBUG) && !defined(USE_RELEASE_PYTHON_DLL)
 #define Py_DEBUG
 #endif
 
