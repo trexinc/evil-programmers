@@ -37,7 +37,7 @@ namespace py
 {
 	namespace import
 	{
-		[[nodiscard]] module import(std::string_view Name);
-		[[nodiscard]] module reload(const module& Module);
+		[[nodiscard]] module_t import(std::string_view Name);
+		[[nodiscard]] module_t reload(const module_t& Module);
 	}
 }

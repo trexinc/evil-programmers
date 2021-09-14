@@ -61,7 +61,7 @@ namespace py
 	}
 
 	template <typename type>
-	struct translate<type, typename std::enable_if<std::is_floating_point<type>::value>::type>
+	struct translate<type, typename std::enable_if_t<std::is_floating_point_v<type>>>
 	{
 		static [[nodiscard]] object from(type Value)
 		{

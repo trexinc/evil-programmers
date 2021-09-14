@@ -45,7 +45,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace py
 {
-	const type& module::get_type()
+	const type& module_t::get_type()
 	{
 		return types_cache::get_type(types::module, []
 		{
@@ -55,17 +55,17 @@ namespace py
 		});
 	}
 
-	module::module(cast_guard, const object& Object):
+	module_t::module_t(cast_guard, const object& Object):
 		object(Object)
 	{
 	}
 
-	void module::add_object(const char* Name, const object& Object)
+	void module_t::add_object(const char* Name, const object& Object)
 	{
 		py::invoke(PyModule_AddObject, get(), Name, Object.get_no_steal());
 	}
 
-	void module::add_functions(PyMethodDef* Methods)
+	void module_t::add_functions(PyMethodDef* Methods)
 	{
 		// Not available with Py_LIMITED_API
 		// py::invoke(PyModule_AddFunctions, get(), Methods);

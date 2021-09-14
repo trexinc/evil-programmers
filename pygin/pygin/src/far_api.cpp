@@ -185,7 +185,7 @@ namespace far_api_implementation
 	struct InputBox
 	{
 		METHOD(InputBox, "Input box")
-		
+
 		static py::object Do(const py::object& PyPluginId, const py::object& PyId, const py::object& PyTitle, const py::object& PySubTitle, const py::object& PyHistoryName, const py::object& PySrcText, const py::object& PyDestSize, const py::object& PyHelpTopic, const py::object& PyFlags)
 		{
 			const auto PluginId = py::cast<UUID>(PyPluginId);
@@ -574,7 +574,7 @@ namespace far_api_implementation
 					PluginPanelItemInstance["AlternateFileName"sv] = PPI->AlternateFileName;
 					PluginPanelItemInstance["Description"sv] = PPI->Description;
 					PluginPanelItemInstance["Owner"sv] = PPI->Owner;
-					PluginPanelItemInstance["CustomColumnData"sv] = helpers::list::from_array(PPI->CustomColumnData, PPI->CustomColumnNumber, [](auto i) { return py::translate<decltype(i)>::from(i); });
+					PluginPanelItemInstance["CustomColumnData"sv] = helpers::list::from_array(PPI->CustomColumnData, PPI->CustomColumnNumber, [](auto i) { return py::from(i); });
 					PluginPanelItemInstance["Flags"sv] = far_api::type("PluginPanelItemFlags"sv)(PPI->Flags);
 					//PluginPanelItemInstance["UserData"sv] = PPI->UserData;
 					PluginPanelItemInstance["FileAttributes"sv] = PPI->FileAttributes;
@@ -663,7 +663,7 @@ const far_api& far_api::get()
 	return *s_FarApi;
 }
 
-const py::object& far_api::module()
+const py::object& far_api::plugin_module()
 {
 	return s_FarApi->get_module();
 }

@@ -32,7 +32,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "headers.hpp"
 
 #include "pygin.hpp"
-#include "module.hpp"
+#include "plugin_module.hpp"
 
 #include "error_handling.hpp"
 
@@ -70,11 +70,11 @@ HANDLE WINAPI adapter_CreateInstance(const wchar_t* FileName) noexcept
 	return try_call(
 	[&]
 	{
-		return PyginInstance->create_module(FileName).release();
+		return PyginInstance->create_plugin_module(FileName).release();
 	},
 	[]
 	{
-		return static_cast<module*>(nullptr);
+		return static_cast<plugin_module*>(nullptr);
 	});
 }
 
@@ -101,7 +101,7 @@ BOOL WINAPI adapter_DestroyInstance(HANDLE Instance) noexcept
 	return try_call(
 	[&]
 	{
-		std::unique_ptr<module>(static_cast<module*>(Instance));
+		std::unique_ptr<plugin_module>(static_cast<plugin_module*>(Instance));
 		return TRUE;
 	},
 	[]

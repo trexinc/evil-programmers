@@ -41,7 +41,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "error_handling.hpp"
 #include "far_api.hpp"
-#include "module.hpp"
+#include "plugin_module.hpp"
 #include "types_cache.hpp"
 
 using namespace py::literals;
@@ -57,7 +57,7 @@ static auto create_pygin_module()
 	// This is essentially the same as pygin._loader._load_plugin, but since pygin isn't loaded yet we have to reinvent it:
 	const auto ImportlibUtil = py::import::import("importlib.util"sv);
 	const auto Spec = ImportlibUtil["spec_from_file_location"sv]("pygin"sv, AdaptherPath + L"pygin\\__init__.py"s);
-	const auto Module = py::cast<py::module>(ImportlibUtil["module_from_spec"sv](Spec));
+	const auto Module = py::cast<py::module_t>(ImportlibUtil["module_from_spec"sv](Spec));
 	py::cast<py::dictionary>(py::import::import("sys"sv)["modules"sv])["pygin"_py] = Module;
 	Spec["loader"sv].get_attribute("exec_module"sv)(Module);
 	return Module;
@@ -97,7 +97,7 @@ bool pygin::is_module(const wchar_t* FileName) const
 	return FileNameLength >= SuffixSize && !_wcsnicmp(FileName + FileNameLength - SuffixSize, PluginFileNameSuffix, SuffixSize);
 }
 
-std::unique_ptr<module> pygin::create_module(const wchar_t* FileName) const
+std::unique_ptr<plugin_module> pygin::create_plugin_module(const wchar_t* FileName) const
 {
 	const auto NamePtr = std::wcsrchr(FileName, L'\\') + 1;
 	const auto NameSize = wcslen(NamePtr) - wcslen(PluginFileNameSuffix);
@@ -107,7 +107,7 @@ std::unique_ptr<module> pygin::create_module(const wchar_t* FileName) const
 	if (!Module)
 		return nullptr;
 
-	return std::make_unique<module>(Module);
+	return std::make_unique<plugin_module>(Module);
 }
 
 FARPROC WINAPI pygin::get_function(HANDLE Instance, const wchar_t* FunctionName) const
@@ -151,7 +151,7 @@ FARPROC WINAPI pygin::get_function(HANDLE Instance, const wchar_t* FunctionName)
 #undef KEY_VALUE
 	};
 
-	const auto Module = static_cast<module*>(Instance);
+	const auto Module = static_cast<plugin_module*>(Instance);
 	return Module->check_function(FunctionName) && FunctionsMap.count(FunctionName)? reinterpret_cast<FARPROC>(FunctionsMap.at(FunctionName)) : nullptr;
 }
 

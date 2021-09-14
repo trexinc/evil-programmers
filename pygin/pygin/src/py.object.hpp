@@ -41,8 +41,14 @@ namespace py
 
 	class cast_guard {};
 
-	template <typename T, typename Enable=void>
+	template <typename type, typename enable = void>
 	struct translate;
+
+	template<typename type>
+	auto from(type Type)
+	{
+		return translate<type>::from(Type);
+	}
 
 	template<typename owner_type, typename key_type>
 	class proxy_owner
@@ -77,7 +83,7 @@ namespace py
 		template<typename type>
 		value_proxy& operator=(const type& Value)
 		{
-			m_Owner->set_at(m_Key, translate<type>::from(Value));
+			m_Owner->set_at(m_Key, from(Value));
 			return *this;
 		}
 
@@ -160,7 +166,7 @@ namespace py
 		template<typename... args>
 		object operator()(const args&... Args) const
 		{
-			return operator()({ translate<args>::from(Args)... });
+			return operator()({ from(Args)... });
 		}
 
 		[[nodiscard]] static object from_borrowed(PyObject* Object);
@@ -221,7 +227,7 @@ namespace py
 	}
 
 	template <typename type>
-	struct translate<type, typename std::enable_if<std::is_base_of<object,type>::value>::type>
+	struct translate<type, typename std::enable_if_t<std::is_base_of_v<object, type>>>
 	{
 		[[nodiscard]]
 		static inline object from(const type& Value)

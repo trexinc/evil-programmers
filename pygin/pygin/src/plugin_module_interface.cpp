@@ -31,7 +31,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "headers.hpp"
 
-#include "module.hpp"
+#include "plugin_module.hpp"
 
 #include "error_handling.hpp"
 
@@ -40,7 +40,7 @@ HANDLE WINAPI AnalyseW(const AnalyseInfo* Info)
 	return try_call(
 	[&]
 	{
-		return static_cast<module*>(Info->Instance)->AnalyseW(Info);
+		return static_cast<plugin_module*>(Info->Instance)->AnalyseW(Info);
 	},
 	[]
 	{
@@ -53,7 +53,7 @@ void WINAPI CloseAnalyseW(const CloseAnalyseInfo* Info)
 	return try_call(
 	[&]
 	{
-		return static_cast<module*>(Info->Instance)->CloseAnalyseW(Info);
+		return static_cast<plugin_module*>(Info->Instance)->CloseAnalyseW(Info);
 	},
 	[]
 	{
@@ -65,7 +65,7 @@ void WINAPI ClosePanelW(const ClosePanelInfo* Info)
 	return try_call(
 	[&]
 	{
-		return static_cast<module*>(Info->Instance)->ClosePanelW(Info);
+		return static_cast<plugin_module*>(Info->Instance)->ClosePanelW(Info);
 	},
 	[]
 	{
@@ -77,7 +77,7 @@ intptr_t WINAPI CompareW(const CompareInfo* Info)
 	return try_call(
 	[&]
 	{
-		return static_cast<module*>(Info->Instance)->CompareW(Info);
+		return static_cast<plugin_module*>(Info->Instance)->CompareW(Info);
 	},
 	[]
 	{
@@ -90,7 +90,7 @@ intptr_t WINAPI ConfigureW(const ConfigureInfo* Info)
 	return try_call(
 	[&]
 	{
-		return static_cast<module*>(Info->Instance)->ConfigureW(Info);
+		return static_cast<plugin_module*>(Info->Instance)->ConfigureW(Info);
 	},
 	[]
 	{
@@ -103,7 +103,7 @@ intptr_t WINAPI DeleteFilesW(const DeleteFilesInfo* Info)
 	return try_call(
 	[&]
 	{
-		return static_cast<module*>(Info->Instance)->DeleteFilesW(Info);
+		return static_cast<plugin_module*>(Info->Instance)->DeleteFilesW(Info);
 	},
 	[]
 	{
@@ -116,7 +116,7 @@ void WINAPI ExitFARW(const ExitInfo* Info)
 	return try_call(
 	[&]
 	{
-		return static_cast<module*>(Info->Instance)->ExitFARW(Info);
+		return static_cast<plugin_module*>(Info->Instance)->ExitFARW(Info);
 	},
 	[]
 	{
@@ -128,7 +128,7 @@ void WINAPI FreeFindDataW(const FreeFindDataInfo* Info)
 	return try_call(
 	[&]
 	{
-		return static_cast<module*>(Info->Instance)->FreeFindDataW(Info);
+		return static_cast<plugin_module*>(Info->Instance)->FreeFindDataW(Info);
 	},
 	[]
 	{
@@ -140,7 +140,7 @@ intptr_t WINAPI GetFilesW(GetFilesInfo* Info)
 	return try_call(
 	[&]
 	{
-		return static_cast<module*>(Info->Instance)->GetFilesW(Info);
+		return static_cast<plugin_module*>(Info->Instance)->GetFilesW(Info);
 	},
 	[]
 	{
@@ -153,7 +153,7 @@ intptr_t WINAPI GetFindDataW(GetFindDataInfo* Info)
 	return try_call(
 	[&]
 	{
-		return static_cast<module*>(Info->Instance)->GetFindDataW(Info);
+		return static_cast<plugin_module*>(Info->Instance)->GetFindDataW(Info);
 	},
 	[]
 	{
@@ -166,7 +166,7 @@ void WINAPI GetGlobalInfoW(GlobalInfo* Info)
 	return try_call(
 	[&]
 	{
-		return static_cast<module*>(Info->Instance)->GetGlobalInfoW(Info);
+		return static_cast<plugin_module*>(Info->Instance)->GetGlobalInfoW(Info);
 	},
 	[]
 	{
@@ -178,7 +178,7 @@ void WINAPI GetOpenPanelInfoW(OpenPanelInfo* Info)
 	return try_call(
 	[&]
 	{
-		return static_cast<module*>(Info->Instance)->GetOpenPanelInfoW(Info);
+		return static_cast<plugin_module*>(Info->Instance)->GetOpenPanelInfoW(Info);
 	},
 	[]
 	{
@@ -190,7 +190,7 @@ void WINAPI GetPluginInfoW(PluginInfo* Info)
 	return try_call(
 	[&]
 	{
-		return static_cast<module*>(Info->Instance)->GetPluginInfoW(Info);
+		return static_cast<plugin_module*>(Info->Instance)->GetPluginInfoW(Info);
 	},
 	[]
 	{
@@ -202,7 +202,7 @@ intptr_t WINAPI MakeDirectoryW(MakeDirectoryInfo* Info)
 	return try_call(
 	[&]
 	{
-		return static_cast<module*>(Info->Instance)->MakeDirectoryW(Info);
+		return static_cast<plugin_module*>(Info->Instance)->MakeDirectoryW(Info);
 	},
 	[]
 	{
@@ -215,7 +215,7 @@ HANDLE WINAPI OpenW(const OpenInfo* Info)
 	return try_call(
 	[&]
 	{
-		return static_cast<module*>(Info->Instance)->OpenW(Info);
+		return static_cast<plugin_module*>(Info->Instance)->OpenW(Info);
 	},
 	[]
 	{
@@ -228,7 +228,7 @@ intptr_t WINAPI ProcessDialogEventW(const ProcessDialogEventInfo* Info)
 	return try_call(
 	[&]
 	{
-		return static_cast<module*>(Info->Instance)->ProcessDialogEventW(Info);
+		return static_cast<plugin_module*>(Info->Instance)->ProcessDialogEventW(Info);
 	},
 	[]
 	{
@@ -241,7 +241,7 @@ intptr_t WINAPI ProcessEditorEventW(const ProcessEditorEventInfo* Info)
 	return try_call(
 	[&]
 	{
-		return static_cast<module*>(Info->Instance)->ProcessEditorEventW(Info);
+		return static_cast<plugin_module*>(Info->Instance)->ProcessEditorEventW(Info);
 	},
 	[]
 	{
@@ -254,7 +254,7 @@ intptr_t WINAPI ProcessEditorInputW(const ProcessEditorInputInfo* Info)
 	return try_call(
 	[&]
 	{
-		return static_cast<module*>(Info->Instance)->ProcessEditorInputW(Info);
+		return static_cast<plugin_module*>(Info->Instance)->ProcessEditorInputW(Info);
 	},
 	[]
 	{
@@ -267,7 +267,7 @@ intptr_t WINAPI ProcessPanelEventW(const ProcessPanelEventInfo* Info)
 	return try_call(
 	[&]
 	{
-		return static_cast<module*>(Info->Instance)->ProcessPanelEventW(Info);
+		return static_cast<plugin_module*>(Info->Instance)->ProcessPanelEventW(Info);
 	},
 	[]
 	{
@@ -280,7 +280,7 @@ intptr_t WINAPI ProcessHostFileW(const ProcessHostFileInfo* Info)
 	return try_call(
 	[&]
 	{
-		return static_cast<module*>(Info->Instance)->ProcessHostFileW(Info);
+		return static_cast<plugin_module*>(Info->Instance)->ProcessHostFileW(Info);
 	},
 	[]
 	{
@@ -293,7 +293,7 @@ intptr_t WINAPI ProcessPanelInputW(const ProcessPanelInputInfo* Info)
 	return try_call(
 	[&]
 	{
-		return static_cast<module*>(Info->Instance)->ProcessPanelInputW(Info);
+		return static_cast<plugin_module*>(Info->Instance)->ProcessPanelInputW(Info);
 	},
 	[]
 	{
@@ -306,7 +306,7 @@ intptr_t WINAPI ProcessConsoleInputW(ProcessConsoleInputInfo* Info)
 	return try_call(
 	[&]
 	{
-		return static_cast<module*>(Info->Instance)->ProcessConsoleInputW(Info);
+		return static_cast<plugin_module*>(Info->Instance)->ProcessConsoleInputW(Info);
 	},
 	[]
 	{
@@ -319,7 +319,7 @@ intptr_t WINAPI ProcessSynchroEventW(const ProcessSynchroEventInfo* Info)
 	return try_call(
 	[&]
 	{
-		return static_cast<module*>(Info->Instance)->ProcessSynchroEventW(Info);
+		return static_cast<plugin_module*>(Info->Instance)->ProcessSynchroEventW(Info);
 	},
 	[]
 	{
@@ -332,7 +332,7 @@ intptr_t WINAPI ProcessViewerEventW(const ProcessViewerEventInfo* Info)
 	return try_call(
 	[&]
 	{
-		return static_cast<module*>(Info->Instance)->ProcessViewerEventW(Info);
+		return static_cast<plugin_module*>(Info->Instance)->ProcessViewerEventW(Info);
 	},
 	[]
 	{
@@ -345,7 +345,7 @@ intptr_t WINAPI PutFilesW(const PutFilesInfo* Info)
 	return try_call(
 	[&]
 	{
-		return static_cast<module*>(Info->Instance)->PutFilesW(Info);
+		return static_cast<plugin_module*>(Info->Instance)->PutFilesW(Info);
 	},
 	[]
 	{
@@ -358,7 +358,7 @@ intptr_t WINAPI SetDirectoryW(const SetDirectoryInfo* Info)
 	return try_call(
 	[&]
 	{
-		return static_cast<module*>(Info->Instance)->SetDirectoryW(Info);
+		return static_cast<plugin_module*>(Info->Instance)->SetDirectoryW(Info);
 	},
 	[]
 	{
@@ -371,7 +371,7 @@ intptr_t WINAPI SetFindListW(const SetFindListInfo* Info)
 	return try_call(
 	[&]
 	{
-		return static_cast<module*>(Info->Instance)->SetFindListW(Info);
+		return static_cast<plugin_module*>(Info->Instance)->SetFindListW(Info);
 	},
 	[]
 	{
@@ -384,7 +384,7 @@ void WINAPI SetStartupInfoW(const PluginStartupInfo* Info)
 	return try_call(
 	[&]
 	{
-		return static_cast<module*>(Info->Instance)->SetStartupInfoW(Info);
+		return static_cast<plugin_module*>(Info->Instance)->SetStartupInfoW(Info);
 	},
 	[]
 	{
@@ -396,7 +396,7 @@ intptr_t WINAPI GetContentFieldsW(const GetContentFieldsInfo* Info)
 	return try_call(
 	[&]
 	{
-		return static_cast<module*>(Info->Instance)->GetContentFieldsW(Info);
+		return static_cast<plugin_module*>(Info->Instance)->GetContentFieldsW(Info);
 	},
 	[]
 	{
@@ -409,7 +409,7 @@ intptr_t WINAPI GetContentDataW(GetContentDataInfo* Info)
 	return try_call(
 	[&]
 	{
-		return static_cast<module*>(Info->Instance)->GetContentDataW(Info);
+		return static_cast<plugin_module*>(Info->Instance)->GetContentDataW(Info);
 	},
 	[]
 	{
@@ -422,7 +422,7 @@ void WINAPI FreeContentDataW(const GetContentDataInfo* Info)
 	return try_call(
 	[&]
 	{
-		return static_cast<module*>(Info->Instance)->FreeContentDataW(Info);
+		return static_cast<plugin_module*>(Info->Instance)->FreeContentDataW(Info);
 	},
 	[]
 	{

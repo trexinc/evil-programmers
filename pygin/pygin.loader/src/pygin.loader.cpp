@@ -56,7 +56,7 @@ bool adapter::ModuleInit()
 	m_Adapter.reset(LoadLibrary(AdaptherPath));
 	if (!m_Adapter)
 	{
-		m_Description = GetLastErrorMessage(GetLastError()) + L"\n\1\nHint: Make sure you have Python directory (e.g. C:\\Program Files\\Python38) in PATH"s;
+		m_Description = GetLastErrorMessage(GetLastError()) + L"\n\1\nHint: Make sure you have Python directory (e.g. C:\\Program Files\\Python39) in PATH"s;
 		return false;
 	}
 

@@ -1,5 +1,5 @@
 ﻿/*
-module.cpp
+plugin_module.cpp
 
 */
 /*
@@ -31,7 +31,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "headers.hpp"
 
-#include "module.hpp"
+#include "plugin_module.hpp"
 
 #include "py.boolean.hpp"
 #include "py.bytes.hpp"
@@ -54,13 +54,13 @@ auto EmptyToNull(const wchar_t* Str)
 	return Str && *Str? Str : nullptr;
 }
 
-module::module(py::object Object):
+plugin_module::plugin_module(py::object Object):
 	m_PluginModule(std::move(Object)),
 	m_PluginModuleClass(m_PluginModule["FarPluginClass"sv])
 {
 }
 
-bool module::check_function(const wchar_t* FunctionName) const
+bool plugin_module::check_function(const wchar_t* FunctionName) const
 {
 	// Mapped to class static fields
 	if (FunctionName == L"GetGlobalInfoW"sv)
@@ -84,7 +84,7 @@ bool module::check_function(const wchar_t* FunctionName) const
 }
 
 template<typename ... args>
-py::object module::call(const wchar_t* FunctionName, const args&... Args) const
+py::object plugin_module::call(const wchar_t* FunctionName, const args&... Args) const
 {
 	if (!m_PluginModuleInstance)
 		throw silent_exception{};
@@ -92,25 +92,25 @@ py::object module::call(const wchar_t* FunctionName, const args&... Args) const
 	return m_PluginModuleClassFunctions.at(FunctionName)(m_PluginModuleInstance, Args...);
 }
 
-HANDLE module::AnalyseW(const AnalyseInfo* Info)
+HANDLE plugin_module::AnalyseW(const AnalyseInfo* Info)
 {
 	return nullptr;
 }
 
-void module::CloseAnalyseW(const CloseAnalyseInfo* Info)
+void plugin_module::CloseAnalyseW(const CloseAnalyseInfo* Info)
 {
 }
 
-void module::ClosePanelW(const ClosePanelInfo* Info)
+void plugin_module::ClosePanelW(const ClosePanelInfo* Info)
 {
 }
 
-intptr_t module::CompareW(const CompareInfo* Info)
+intptr_t plugin_module::CompareW(const CompareInfo* Info)
 {
 	return 0;
 }
 
-intptr_t module::ConfigureW(const ConfigureInfo* Info)
+intptr_t plugin_module::ConfigureW(const ConfigureInfo* Info)
 {
 	auto ConfigureInstance = far_api::type("ConfigureInfo"sv)();
 
@@ -119,15 +119,15 @@ intptr_t module::ConfigureW(const ConfigureInfo* Info)
 	return py::cast<bool>(call(L"ConfigureW", ConfigureInstance));
 }
 
-intptr_t module::DeleteFilesW(const DeleteFilesInfo* Info)
+intptr_t plugin_module::DeleteFilesW(const DeleteFilesInfo* Info)
 {
 	return 0;
 }
 
-void module::ExitFARW(const ExitInfo* Info)
+void plugin_module::ExitFARW(const ExitInfo* Info)
 {
 	const auto ExitInfoInstance = far_api::type("ExitInfo"sv)();
-	call(L"ExitFARW", ExitInfoInstance);
+	(void)call(L"ExitFARW", ExitInfoInstance);
 
 	// Point of no return
 	m_PluginModuleInstance = {};
@@ -136,21 +136,21 @@ void module::ExitFARW(const ExitInfo* Info)
 	m_PluginModule = {};
 }
 
-void module::FreeFindDataW(const FreeFindDataInfo* Info)
+void plugin_module::FreeFindDataW(const FreeFindDataInfo* Info)
 {
 }
 
-intptr_t module::GetFilesW(GetFilesInfo* Info)
-{
-	return 0;
-}
-
-intptr_t module::GetFindDataW(GetFindDataInfo* Info)
+intptr_t plugin_module::GetFilesW(GetFilesInfo* Info)
 {
 	return 0;
 }
 
-void module::GetGlobalInfoW(GlobalInfo* Info)
+intptr_t plugin_module::GetFindDataW(GetFindDataInfo* Info)
+{
+	return 0;
+}
+
+void plugin_module::GetGlobalInfoW(GlobalInfo* Info)
 {
 	Info->Title = (m_Title = py::cast<std::wstring>(m_PluginModuleClass["Title"sv])).c_str();
 	Info->Author = (m_Author = py::cast<std::wstring>(m_PluginModuleClass["Author"sv])).c_str();
@@ -170,11 +170,11 @@ void module::GetGlobalInfoW(GlobalInfo* Info)
 	Info->Version.Stage = py::cast<VERSION_STAGE>(Version["Stage"sv]);
 }
 
-void module::GetOpenPanelInfoW(OpenPanelInfo* Info)
+void plugin_module::GetOpenPanelInfoW(OpenPanelInfo* Info)
 {
 }
 
-void module::GetPluginInfoW(PluginInfo* Info)
+void plugin_module::GetPluginInfoW(PluginInfo* Info)
 {
 	auto PluginInfoType = far_api::type("PluginInfo"sv);
 	const auto PyInfo = call(L"GetPluginInfoW");
@@ -219,7 +219,7 @@ void module::GetPluginInfoW(PluginInfo* Info)
 	Info->CommandPrefix = m_CommandPrefix.c_str();
 }
 
-intptr_t module::MakeDirectoryW(MakeDirectoryInfo* Info)
+intptr_t plugin_module::MakeDirectoryW(MakeDirectoryInfo* Info)
 {
 	return 0;
 }
@@ -272,7 +272,7 @@ static py::object ConvertValue(const FarMacroValue& Value)
 	return FarMacroValueInstance;
 }
 
-HANDLE module::OpenW(const OpenInfo* Info)
+HANDLE plugin_module::OpenW(const OpenInfo* Info)
 {
 	auto OpenInfoInstance = far_api::type("OpenInfo"sv)();
 
@@ -338,82 +338,82 @@ HANDLE module::OpenW(const OpenInfo* Info)
 	return Result? py::cast<HANDLE>(Result) : nullptr;
 }
 
-intptr_t module::ProcessDialogEventW(const ProcessDialogEventInfo* Info)
+intptr_t plugin_module::ProcessDialogEventW(const ProcessDialogEventInfo* Info)
 {
 	return 0;
 }
 
-intptr_t module::ProcessEditorEventW(const ProcessEditorEventInfo* Info)
+intptr_t plugin_module::ProcessEditorEventW(const ProcessEditorEventInfo* Info)
 {
 	return 0;
 }
 
-intptr_t module::ProcessEditorInputW(const ProcessEditorInputInfo* Info)
+intptr_t plugin_module::ProcessEditorInputW(const ProcessEditorInputInfo* Info)
 {
 	return 0;
 }
 
-intptr_t module::ProcessPanelEventW(const ProcessPanelEventInfo* Info)
+intptr_t plugin_module::ProcessPanelEventW(const ProcessPanelEventInfo* Info)
 {
 	return 0;
 }
 
-intptr_t module::ProcessHostFileW(const ProcessHostFileInfo* Info)
+intptr_t plugin_module::ProcessHostFileW(const ProcessHostFileInfo* Info)
 {
 	return 0;
 }
 
-intptr_t module::ProcessPanelInputW(const ProcessPanelInputInfo* Info)
+intptr_t plugin_module::ProcessPanelInputW(const ProcessPanelInputInfo* Info)
 {
 	return 0;
 }
 
-intptr_t module::ProcessConsoleInputW(ProcessConsoleInputInfo* Info)
+intptr_t plugin_module::ProcessConsoleInputW(ProcessConsoleInputInfo* Info)
 {
 	return 0;
 }
 
-intptr_t module::ProcessSynchroEventW(const ProcessSynchroEventInfo* Info)
+intptr_t plugin_module::ProcessSynchroEventW(const ProcessSynchroEventInfo* Info)
 {
 	return 0;
 }
 
-intptr_t module::ProcessViewerEventW(const ProcessViewerEventInfo* Info)
+intptr_t plugin_module::ProcessViewerEventW(const ProcessViewerEventInfo* Info)
 {
 	return 0;
 }
 
-intptr_t module::PutFilesW(const PutFilesInfo* Info)
+intptr_t plugin_module::PutFilesW(const PutFilesInfo* Info)
 {
 	return 0;
 }
 
-intptr_t module::SetDirectoryW(const SetDirectoryInfo* Info)
+intptr_t plugin_module::SetDirectoryW(const SetDirectoryInfo* Info)
 {
 	return 0;
 }
 
-intptr_t module::SetFindListW(const SetFindListInfo* Info)
+intptr_t plugin_module::SetFindListW(const SetFindListInfo* Info)
 {
 	return 0;
 }
 
-void module::SetStartupInfoW(const PluginStartupInfo* Info)
+void plugin_module::SetStartupInfoW(const PluginStartupInfo* Info)
 {
 	far_api::initialise(Info);
 	m_PluginModuleInstance = m_PluginModuleClass();
 }
 
-intptr_t module::GetContentFieldsW(const GetContentFieldsInfo* Info)
+intptr_t plugin_module::GetContentFieldsW(const GetContentFieldsInfo* Info)
 {
 	return 0;
 }
 
-intptr_t module::GetContentDataW(GetContentDataInfo* Info)
+intptr_t plugin_module::GetContentDataW(GetContentDataInfo* Info)
 {
 	return 0;
 }
 
-void module::FreeContentDataW(const GetContentDataInfo* Info)
+void plugin_module::FreeContentDataW(const GetContentDataInfo* Info)
 {
 }

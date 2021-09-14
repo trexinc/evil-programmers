@@ -34,7 +34,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "py.function.hpp"
 #include "py.module.hpp"
 
-class module;
+class plugin_module;
 struct GlobalInfo;
 class far_api;
 
@@ -51,7 +51,7 @@ public:
 	explicit pygin(GlobalInfo* Info);
 	~pygin();
 	[[nodiscard]] bool is_module(const wchar_t* FileName) const;
-	[[nodiscard]] std::unique_ptr<module> create_module(const wchar_t* FileName) const;
+	[[nodiscard]] std::unique_ptr<plugin_module> create_plugin_module(const wchar_t* FileName) const;
 	[[nodiscard]] FARPROC WINAPI get_function(HANDLE Instance, const wchar_t* FunctionName) const;
 	[[nodiscard]] bool get_error(ErrorInfo* Info) const noexcept;
 
@@ -65,6 +65,6 @@ private:
 	};
 
 	python m_Python;
-	py::module m_PyginModule;
+	py::module_t m_PyginModule;
 	py::function m_PyginLoadPlugin;
 };

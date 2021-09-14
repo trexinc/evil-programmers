@@ -80,8 +80,13 @@ namespace py
 	}
 
 	template <typename type>
-	struct translate<type, typename std::enable_if<std::is_convertible<type, std::string_view>::value
-											    || std::is_convertible<type, std::wstring_view>::value>::type>
+	struct translate<
+		type,
+		typename std::enable_if_t<
+			std::is_convertible_v<type, std::string_view> ||
+			std::is_convertible_v<type, std::wstring_view>
+		>
+	>
 	{
 		static [[nodiscard]] object from(type Value)
 		{

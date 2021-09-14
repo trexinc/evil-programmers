@@ -23,14 +23,15 @@
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>pygin</RootNamespace>
     <WindowsTargetPlatformVersion Condition="'$(VisualStudioVersion)' == '15.0'">10.0.16299.0</WindowsTargetPlatformVersion>
-    <WindowsTargetPlatformVersion Condition="'$(VisualStudioVersion)' == '16.0'">10.0.17763.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion Condition="'$(VisualStudioVersion)' &gt;= '16.0'">10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset Condition="'$(VisualStudioVersion)' == '15.0'">v141</PlatformToolset>
-    <PlatformToolset Condition="'$(VisualStudioVersion)' == '16.0'">v141</PlatformToolset>
+    <PlatformToolset Condition="'$(VisualStudioVersion)' == '16.0'">v142</PlatformToolset>
+    <PlatformToolset Condition="'$(VisualStudioVersion)' &gt;= '17.0'">v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -40,8 +41,8 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros">
-    <PythonPath Condition="'$(PythonPath)'=='' AND '$(Platform)'=='x64'">C:\Program Files\Python38</PythonPath>
-    <PythonPath Condition="'$(PythonPath)'=='' AND '$(Platform)'=='win32'">C:\Program Files (x86)\Python38-32</PythonPath>
+    <PythonPath Condition="'$(PythonPath)'=='' AND '$(Platform)'=='x64'">C:\Program Files\Python39</PythonPath>
+    <PythonPath Condition="'$(PythonPath)'=='' AND '$(Platform)'=='Win32'">C:\Program Files (x86)\Python39-32</PythonPath>
   </PropertyGroup>
   <PropertyGroup>
     <IntDir>$(SolutionDir)artefacts\intermediate\adapters\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
@@ -109,7 +110,7 @@
     <ClInclude Include="src\error_handling.hpp" />
     <ClInclude Include="src\far_api.hpp" />
     <ClInclude Include="src\helpers.hpp" />
-    <ClInclude Include="src\module.hpp" />
+    <ClInclude Include="src\plugin_module.hpp" />
     <ClInclude Include="src\pygin.hpp" />
     <ClInclude Include="src\python.hpp" />
     <ClInclude Include="src\py.boolean.hpp" />
@@ -139,8 +140,8 @@
     <ClCompile Include="src\dllmain.cpp" />
     <ClCompile Include="src\error_handling.cpp" />
     <ClCompile Include="src\far_api.cpp" />
-    <ClCompile Include="src\module.cpp" />
-    <ClCompile Include="src\module_interface.cpp" />
+    <ClCompile Include="src\plugin_module.cpp" />
+    <ClCompile Include="src\plugin_module_interface.cpp" />
     <ClCompile Include="src\pygin.cpp" />
     <ClCompile Include="src\pygin.interface.cpp" />
     <ClCompile Include="src\py.boolean.cpp" />

@@ -1,16 +1,16 @@
 version: 1.0.{build}
 
-image: Visual Studio 2017
+image: Visual Studio 2019
 
 configuration: Release
 
 environment:
   matrix:
   - platform: Win32
-    PYTHONPATH: C:\Python37
+    PYTHONPATH: C:\Python39
 
   - platform: x64
-    PYTHONPATH: C:\Python37-x64
+    PYTHONPATH: C:\Python39-x64
 
 build:
   project: pygin/pygin.sln

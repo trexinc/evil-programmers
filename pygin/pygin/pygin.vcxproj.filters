@@ -21,7 +21,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\module.hpp">
+    <ClInclude Include="src\plugin_module.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\headers.hpp">
@@ -110,13 +110,13 @@
     <ClCompile Include="src\dllmain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\module.cpp">
+    <ClCompile Include="src\plugin_module.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\headers.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\module_interface.cpp">
+    <ClCompile Include="src\plugin_module_interface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\far_api.cpp">

@@ -144,16 +144,16 @@ namespace py
 	};
 
 	template <typename type>
-	struct translate<type,typename std::enable_if<std::is_integral<type>::value && !std::is_same<type,bool>::value>::type>
+	struct translate<type,typename std::enable_if_t<std::is_integral_v<type> && !std::is_same_v<type, bool>>>
 	{
 		static [[nodiscard]] object from(type Value)
 		{
 			return integer(Value);
 		}
 	};
-		
+
 	template <typename type>
-	struct translate<type, typename std::enable_if<std::is_enum<type>::value>::type>
+	struct translate<type, typename std::enable_if_t<std::is_enum_v<type>>>
 	{
 		static [[nodiscard]] object from(type Value)
 		{

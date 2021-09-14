@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 /*
-module.hpp
+plugin_module.hpp
 
 */
 /*
@@ -33,12 +33,12 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "py.object.hpp"
 
-class module
+class plugin_module
 {
 public:
-	NONCOPYABLE(module);
+	NONCOPYABLE(plugin_module);
 
-	explicit module(py::object Object);
+	explicit plugin_module(py::object Object);
 
 	[[nodiscard]] bool check_function(const wchar_t* FunctionName) const;
 

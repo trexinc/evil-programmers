@@ -42,14 +42,14 @@ namespace py
 {
 	namespace import
 	{
-		module import(std::string_view const Name)
+		module_t import(std::string_view const Name)
 		{
-			return cast<module>(object(invoke(PyImport_Import, string(Name).get())));
+			return cast<module_t>(object(invoke(PyImport_Import, string(Name).get())));
 		}
 
-		module reload(const module& Module)
+		module_t reload(const module_t& Module)
 		{
-			return cast<module>(object(invoke(PyImport_ReloadModule, Module.get())));
+			return cast<module_t>(object(invoke(PyImport_ReloadModule, Module.get())));
 		}
 	}
 }

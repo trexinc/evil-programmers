@@ -55,13 +55,13 @@ public:
 
 	static void initialise(const PluginStartupInfo* Psi);
 	[[nodiscard]] static const far_api& get();
-	[[nodiscard]] static const py::object& module();
+	[[nodiscard]] static const py::object& plugin_module();
 	[[nodiscard]] static py::type type(std::string_view TypeName);
 	static void uninitialise();
 
 private:
 	py::method_definitions m_PyMethods;
-	py::module m_Module;
+	py::module_t m_Module;
 	py::err::exception m_Exception;
 	PluginStartupInfo m_Psi;
 	FarStandardFunctions m_Fsf;
