@@ -72,9 +72,4 @@ namespace py
 		std::memcpy(&Result, invoke(PyBytes_AsString, Bytes.get()), sizeof(Result));
 		return Result;
 	}
-
-	object from(const UUID& Value)
-	{
-		return uuid(Value);
-	}
 }

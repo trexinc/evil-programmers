@@ -250,6 +250,8 @@ namespace py
 		m_Iterable(IsEnd? nullptr : py::invoke(PyObject_GetIter, m_Container)),
 		m_Value(IsEnd? nullptr : py::invoke(PyIter_Next, m_Iterable.get()))
 	{
+		if (m_Iterable && !m_Value) // empty list
+			m_Iterable = nullptr;
 	}
 
 	object iterator::operator*() const

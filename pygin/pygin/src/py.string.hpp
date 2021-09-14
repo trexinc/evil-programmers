@@ -79,8 +79,13 @@ namespace py
 		return cast<string>(Object);
 	}
 
-	[[nodiscard]] object from(std::string_view Value);
-	[[nodiscard]] object from(std::wstring_view Value);
-	[[nodiscard]] object from(const char* Value);
-	[[nodiscard]] object from(const wchar_t* Value);
+	template <typename type>
+	struct translate<type, typename std::enable_if<std::is_convertible<type, std::string_view>::value
+											    || std::is_convertible<type, std::wstring_view>::value>::type>
+	{
+		static [[nodiscard]] object from(type Value)
+		{
+			return string(Value);
+		}
+	};
 }
