@@ -55,6 +55,16 @@ namespace
 		return ULARGE_INTEGER{ ft.dwLowDateTime, ft.dwHighDateTime }.QuadPart;
 	}
 
+	auto UI64ToFileTime(uint64_t ft)
+	{
+		ULARGE_INTEGER i;
+		i.QuadPart = ft;
+		FILETIME result;
+		result.dwLowDateTime = i.LowPart;
+		result.dwHighDateTime = i.HighPart;
+		return result;
+	}
+
 	template<typename T, typename converter = decltype(py::cast<T>)>
 	auto list_to_vector(const py::list& List, const converter& Converter = py::cast<T>)
 	{
@@ -613,6 +623,7 @@ namespace far_api_implementation
 far_api::far_api(const PluginStartupInfo* Psi):
 	m_PyMethods(far_api_implementation::Methods, std::size(far_api_implementation::Methods)),
 	m_Module(py::import::import("pygin.far"sv)),
+	m_FileTimeValue(py::type(m_Module["FileTime"sv]), "value"),
 	m_Exception("pygin.far.error"),
 	m_Psi(*Psi),
 	m_Fsf(*Psi->FSF)
@@ -671,6 +682,11 @@ const py::object& far_api::plugin_module()
 py::type far_api::type(std::string_view const TypeName)
 {
 	return py::type(s_FarApi->m_Module[TypeName]);
+}
+
+[[nodiscard]] FILETIME far_api::file_time(py::object const& FileTimeInstance)
+{
+	return UI64ToFileTime(py::cast<uint64_t>(s_FarApi->m_FileTimeValue(FileTimeInstance)));
 }
 
 void far_api::uninitialise()

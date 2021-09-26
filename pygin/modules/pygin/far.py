@@ -445,6 +445,9 @@ class FileTime(datetime.datetime):
 	def __new__(self, Value = 0):
 		return datetime.datetime.utcfromtimestamp((max(Value, _EPOCH_AS_FILETIME) - _EPOCH_AS_FILETIME) / _HUNDREDS_OF_NANOSECONDS)
 
+	def value(self):
+		return int(self.replace(tzinfo=datetime.timezone.utc).timestamp() * _HUNDREDS_OF_NANOSECONDS + _EPOCH_AS_FILETIME)
+
 @unique
 class PluginPanelItemFlags(IntFlag):
 	Default                                         = 0
