@@ -31,6 +31,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
+import os
 import sys
 import importlib
 from importlib.util import spec_from_file_location, module_from_spec
@@ -58,5 +59,12 @@ def _load_plugin(name: str, path: str):
 
 	module = module_from_spec(spec)
 	sys.modules[name] = module
-	spec.loader.exec_module(module)
+	
+	# Add plugin's directory to `sys.path` to make possible to import sibling modules
+	plugin_folder = os.path.dirname(path)
+	sys.path.insert(0, plugin_folder)
+	try:
+		spec.loader.exec_module(module)
+	finally:
+		del sys.path[0]
 	return module
