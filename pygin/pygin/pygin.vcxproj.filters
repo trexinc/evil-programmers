@@ -102,6 +102,9 @@
     <ClInclude Include="src\helpers.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\panel.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\pygin.cpp">
@@ -183,6 +186,12 @@
       <Filter>Source Files\cpp api</Filter>
     </ClCompile>
     <ClCompile Include="src\pygin.interface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\helpers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\panel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -102,6 +102,34 @@ class PluginInfo:
 		self.PluginConfigItems = []
 		self.CommandPrefix = ""
 
+class PanelFlags(IntFlag):
+	DisableFilter           = bit(0)
+	DisableSortGroups       = bit(1)
+	DisableHighlighting     = bit(2)
+	AddDots                 = bit(3)
+	RawSelection            = bit(4)
+	RealNames               = bit(5)
+	ShowNamesOnly           = bit(6)
+	ShowRightAlignNames     = bit(7)
+	ShowPreserveCase        = bit(8)
+	CompareFatTime          = bit(10)
+	ExternalGet             = bit(11)
+	ExternaPput             = bit(12)
+	ExternalDelete          = bit(13)
+	ExternalMkdir           = bit(14)
+	UseAttrHighlighting     = bit(15)
+	UseCrc32                = bit(16)
+	UseFreeSize             = bit(17)
+	Shortcut                = bit(18)
+
+class OpenPanelInfo:
+	def __init__(self):
+		self.Flags = PanelFlags(0)
+		self.HostFile = None
+		self.CurDir = None
+		self.Format = None
+		self.PanelTitle = None
+
 @unique
 class OpenFrom(IntEnum):
 	Unknown                                         = -1
@@ -455,21 +483,24 @@ class PluginPanelItemFlags(IntFlag):
 	ProcessDescription                              = bit(31)
 
 class PluginPanelItem:
-	def __init__(self):
+	def __init__(self, 
+				 FileName="",
+				 FileAttributes=0 # See `stat.*` and Windows API
+				 ):
 		self.CreationTime = FileTime()
 		self.LastAccessTime = FileTime()
 		self.LastWriteTime = FileTime()
 		self.ChangeTime = FileTime()
 		self.FileSize = 0
 		self.AllocationSize = 0
-		self.FileName = ""
+		self.FileName = FileName
 		self.AlternateFileName = ""
 		self.Description = ""
 		self.Owner = ""
 		self.CustomColumnData = []
 		self.Flags = PluginPanelItemFlags.Default
 		#self.UserData = UserDataItem()
-		self.FileAttributes = 0
+		self.FileAttributes = FileAttributes
 		self.NumberOfLinks = 0
 		self.CRC32 = 0
 		#self.Reserved
@@ -481,6 +512,11 @@ class PanelDirectory:
 		self.PluginId = NullUuid
 		self.File = ""
 
+class SetDirectoryInfo:
+	def __init__(self):
+		self.Panel = None
+		self.Dir = ""
+
 class CmdLineSelect:
 	def __init__(self):
 		self.SelStart = 0
@@ -488,3 +524,8 @@ class CmdLineSelect:
 
 def PanelControl(Panel: int, Command: FileControlCommands, Param1: int = 0, Param2 = None):
 	return __invoke_api()
+
+class GetFindDataInfo:
+	def __init__(self):
+		self.PanelItems: List[PluginPanelItem] = []
+		self.OpMode = OperationModes.Default

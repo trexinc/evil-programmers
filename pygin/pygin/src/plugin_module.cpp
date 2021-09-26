@@ -46,6 +46,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "far_api.hpp"
 #include "error_handling.hpp"
 #include "helpers.hpp"
+#include "panel.hpp"
 
 using namespace py::literals;
 
@@ -53,6 +54,21 @@ auto EmptyToNull(const wchar_t* Str)
 {
 	return Str && *Str? Str : nullptr;
 }
+
+class context
+{
+public:
+	context(py::object&& context)
+		: m_Context(std::move(context))
+	{
+	}
+public:
+	py::object const& as_py() const { return this->m_Context; }
+
+	open_panel_info_storage open_panel_info_storage;
+private:
+	py::object m_Context;
+};
 
 plugin_module::plugin_module(py::object Object):
 	m_PluginModule(std::move(Object)),
@@ -68,6 +84,10 @@ bool plugin_module::check_function(const wchar_t* FunctionName) const
 
 	// Mapped to class ctor
 	if (FunctionName == L"SetStartupInfoW"sv)
+		return true;
+
+	// always handle resources deallocation
+	if (FunctionName == L"FreeFindDataW"sv)
 		return true;
 
 	// The rest is as is
@@ -103,6 +123,8 @@ void plugin_module::CloseAnalyseW(const CloseAnalyseInfo* Info)
 
 void plugin_module::ClosePanelW(const ClosePanelInfo* Info)
 {
+	if (Info->StructSize >= sizeof(*Info))
+		delete reinterpret_cast<context*>(Info->hPanel);
 }
 
 intptr_t plugin_module::CompareW(const CompareInfo* Info)
@@ -138,6 +160,8 @@ void plugin_module::ExitFARW(const ExitInfo* Info)
 
 void plugin_module::FreeFindDataW(const FreeFindDataInfo* Info)
 {
+	if (Info->StructSize >= sizeof(*Info))
+		get_find_data::free(Info->PanelItem);
 }
 
 intptr_t plugin_module::GetFilesW(GetFilesInfo* Info)
@@ -147,7 +171,15 @@ intptr_t plugin_module::GetFilesW(GetFilesInfo* Info)
 
 intptr_t plugin_module::GetFindDataW(GetFindDataInfo* Info)
 {
-	return 0;
+	if (Info->StructSize < sizeof(*Info))
+		return 0;
+
+	auto& Context = *reinterpret_cast<context*>(Info->hPanel);
+	Info->PanelItem = get_find_data::get_items(
+		call(L"GetFindDataW", Context.as_py()),
+		Info->ItemsNumber,
+		Info->OpMode);
+	return 1;
 }
 
 void plugin_module::GetGlobalInfoW(GlobalInfo* Info)
@@ -172,6 +204,19 @@ void plugin_module::GetGlobalInfoW(GlobalInfo* Info)
 
 void plugin_module::GetOpenPanelInfoW(OpenPanelInfo* Info)
 {
+	auto& Context = *reinterpret_cast<context*>(Info->hPanel);
+
+	auto OpenPanelInfoType = far_api::type("OpenPanelInfo"sv);
+	const auto PyInfo = call(L"GetOpenPanelInfoW", Context.as_py());
+	PyInfo.ensure_type(OpenPanelInfoType);
+
+	Info->StructSize = sizeof(*Info);
+	Info->Flags = py::cast<OPENPANELINFO_FLAGS>(PyInfo["Flags"sv]);
+	auto& strings = Context.open_panel_info_storage.strings;
+	Info->HostFile = push_back_if_not_none(PyInfo["HostFile"sv], strings);
+	Info->CurDir = push_back_if_not_none(PyInfo["CurDir"sv], strings);
+	Info->Format = push_back_if_not_none(PyInfo["Format"sv], strings);
+	Info->PanelTitle = push_back_if_not_none(PyInfo["PanelTitle"sv], strings);
 }
 
 void plugin_module::GetPluginInfoW(PluginInfo* Info)
@@ -194,15 +239,13 @@ void plugin_module::GetPluginInfoW(PluginInfo* Info)
 			Container.reserve(ItemsSize);
 		};
 
-		prepare(MenuItems.StringsData);
 		prepare(MenuItems.Strings);
 		prepare(MenuItems.Uuids);
 
 		for (const auto& Item: Items)
 		{
 			const auto Tuple = py::cast<py::tuple>(Item);
-			MenuItems.StringsData.emplace_back(py::cast<std::wstring>(Tuple[0]));
-			MenuItems.Strings.emplace_back(MenuItems.StringsData.back().c_str());
+			MenuItems.Strings.push_back_allow_none(py::cast<py::string>(Tuple[0]));
 			MenuItems.Uuids.emplace_back(py::cast<UUID>(Tuple[1]));
 		}
 
@@ -334,8 +377,8 @@ HANDLE plugin_module::OpenW(const OpenInfo* Info)
 		break;
 	}
 
-	const auto Result = call(L"OpenW", OpenInfoInstance);
-	return Result? py::cast<HANDLE>(Result) : nullptr;
+	auto Result = call(L"OpenW", OpenInfoInstance);
+	return Result ? new context(std::move(Result)) : nullptr;
 }
 
 intptr_t plugin_module::ProcessDialogEventW(const ProcessDialogEventInfo* Info)
@@ -390,7 +433,16 @@ intptr_t plugin_module::PutFilesW(const PutFilesInfo* Info)
 
 intptr_t plugin_module::SetDirectoryW(const SetDirectoryInfo* Info)
 {
-	return 0;
+	if (Info->StructSize < sizeof(*Info))
+		return 0;
+
+	auto& Context = *reinterpret_cast<context*>(Info->hPanel);
+
+	auto py_info = far_api::type("SetDirectoryInfo"sv)();
+	py_info["Panel"sv] = Context.as_py();
+	py_info["Dir"sv] = Info->Dir;
+
+	return py::cast<bool>(call(L"SetDirectoryW", py_info));
 }
 
 intptr_t plugin_module::SetFindListW(const SetFindListInfo* Info)

@@ -110,6 +110,7 @@
     <ClInclude Include="src\error_handling.hpp" />
     <ClInclude Include="src\far_api.hpp" />
     <ClInclude Include="src\helpers.hpp" />
+    <ClInclude Include="src\panel.hpp" />
     <ClInclude Include="src\plugin_module.hpp" />
     <ClInclude Include="src\pygin.hpp" />
     <ClInclude Include="src\python.hpp" />
@@ -140,6 +141,8 @@
     <ClCompile Include="src\dllmain.cpp" />
     <ClCompile Include="src\error_handling.cpp" />
     <ClCompile Include="src\far_api.cpp" />
+    <ClCompile Include="src\helpers.cpp" />
+    <ClCompile Include="src\panel.cpp" />
     <ClCompile Include="src\plugin_module.cpp" />
     <ClCompile Include="src\plugin_module_interface.cpp" />
     <ClCompile Include="src\pygin.cpp" />
