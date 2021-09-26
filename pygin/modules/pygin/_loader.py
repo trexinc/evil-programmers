@@ -32,6 +32,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
 import sys
+import os.path
 import importlib
 from importlib.util import spec_from_file_location, module_from_spec
 
@@ -51,6 +52,10 @@ def _reload_plugin(name: str, spec):
 
 
 def _load_plugin(name: str, path: str):
+	package_init = os.path.join(os.path.dirname(path), "__init__.py")
+	if os.path.exists(package_init):
+		path = package_init
+
 	spec = spec_from_file_location(name, path)
 
 	if name in sys.modules.keys():
