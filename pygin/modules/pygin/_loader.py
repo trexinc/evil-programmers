@@ -50,12 +50,7 @@ def _reload_plugin(name: str, spec):
 	finally:
 		sys.meta_path.remove(FarPluginSpecImporter)
 
-
-def _load_plugin(name: str, path: str):
-	package_init = os.path.join(os.path.dirname(path), "__init__.py")
-	if os.path.exists(package_init):
-		path = package_init
-
+def _load_plugin_impl(name: str, path: str):
 	spec = spec_from_file_location(name, path)
 
 	if name in sys.modules.keys():
@@ -65,3 +60,13 @@ def _load_plugin(name: str, path: str):
 	sys.modules[name] = module
 	spec.loader.exec_module(module)
 	return module
+
+def _load_plugin(name: str, path: str):
+	package_path = os.path.dirname(path)
+	package_init = os.path.join(package_path, "__init__.py")
+	if os.path.exists(package_init):
+		package_name = os.path.basename(package_path)
+		_load_plugin_impl(package_name, package_init)
+		name = package_name + "." + name
+
+	return _load_plugin_impl(name, path)
