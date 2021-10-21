@@ -33,7 +33,9 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import uuid
 import enum
+import os
 from pprint import pprint
+import stat
 
 import pygin
 from pygin import far
@@ -45,6 +47,20 @@ class lng(enum.IntEnum):
 	PluginConfigItem   = 2
 	TheMessage         = 3
 
+class Panel:
+	def __init__(self):
+		self.__cwd = "/"
+
+	def cwd(self):
+		return self.__cwd
+
+	def chdir(self, d):
+		if d == "..":
+			self.__cwd = os.path.dirname(self.__cwd)
+		else:
+			if self.__cwd[-1] != "/":
+				self.__cwd += "/"
+			self.__cwd += d
 
 class HelloWorldPlugin(pygin.Plugin):
 	Title = "Hello Python world"
@@ -113,6 +129,7 @@ class HelloWorldPlugin(pygin.Plugin):
 				far.MenuItem("Do Message", far.MenuItemFlags.Checked),
 				far.MenuItem("Do Help"),
 				far.MenuItem("Goto C:\\windows"),
+				far.MenuItem("Open custom panel"),
 			])
 
 		if ItemId == 0:
@@ -175,11 +192,11 @@ class HelloWorldPlugin(pygin.Plugin):
 			Dir.Name = "C:\\windows"
 			self.ActivePanel.PanelControl(far.FileControlCommands.SetPanelDirectory, 0, Dir)
 
+		elif ItemId == 5:
+			return Panel()
+
 		else:
 			pass
-
-		# for panel:
-		# return id(Instance)
 
 		# for nothing
 		return None
@@ -190,6 +207,32 @@ class HelloWorldPlugin(pygin.Plugin):
 			print("Very configure. Wow.")
 			print("Config Menu id: " + str(info.Guid))
 			print("------------")
+		return True
+
+	def GetOpenPanelInfoW(self, panel: Panel):
+		info = far.OpenPanelInfo()
+		cwd = panel.cwd()
+		info.CurDir = cwd if cwd != "/" else "";
+		info.PanelTitle = "Test Panel"
+		return info
+
+	def GetFindDataW(self, panel: Panel):
+		info = far.GetFindDataInfo()
+		cwd = panel.cwd()
+		level = 1 if cwd == "/" else len(cwd.split("/"))
+		info.PanelItems = [
+			far.PluginPanelItem(FileName=".."),
+			far.PluginPanelItem(
+				FileName=f"dir{level}",
+				FileAttributes=stat.FILE_ATTRIBUTE_DIRECTORY),
+			far.PluginPanelItem(
+				FileName=f"file{level}",
+				FileAttributes=stat.FILE_ATTRIBUTE_ARCHIVE),
+		]
+		return info
+
+	def SetDirectoryW(self, info: far.SetDirectoryInfo):
+		info.Panel.chdir(info.Dir)
 		return True
 
 	def DoConsoleStuff(self, info, BreakCode):

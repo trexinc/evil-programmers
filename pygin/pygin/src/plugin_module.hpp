@@ -32,6 +32,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "py.object.hpp"
+#include "helpers.hpp"
 
 class plugin_module
 {
@@ -89,8 +90,7 @@ private:
 
 	struct menu_items
 	{
-		std::vector<std::wstring> StringsData;
-		std::vector<const wchar_t*> Strings;
+		helpers::py_string_storage Strings;
 		std::vector<UUID> Uuids;
 	};
 

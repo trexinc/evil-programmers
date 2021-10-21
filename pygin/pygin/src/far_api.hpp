@@ -32,6 +32,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "py.err.hpp"
+#include "py.function.hpp"
 #include "py.method_definitions.hpp"
 #include "py.module.hpp"
 
@@ -57,11 +58,13 @@ public:
 	[[nodiscard]] static const far_api& get();
 	[[nodiscard]] static const py::object& plugin_module();
 	[[nodiscard]] static py::type type(std::string_view TypeName);
+	[[nodiscard]] static FILETIME file_time(py::object const& FileTimeInstance);
 	static void uninitialise();
 
 private:
 	py::method_definitions m_PyMethods;
 	py::module_t m_Module;
+	py::function m_FileTimeValue;
 	py::err::exception m_Exception;
 	PluginStartupInfo m_Psi;
 	FarStandardFunctions m_Fsf;

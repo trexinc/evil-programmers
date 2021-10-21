@@ -32,6 +32,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "py.list.hpp"
+#include "py.string.hpp"
 
 namespace helpers
 {
@@ -45,4 +46,28 @@ namespace helpers
 			return Result;
 		}
 	}
+
+	class py_string_storage
+	{
+	public:
+		py_string_storage() = default;
+		NONCOPYABLE(py_string_storage)
+
+		~py_string_storage(){ this->clear(); }
+
+		void reserve(size_t size) { m_Strings.reserve(size); }
+
+		void clear();
+
+		size_t size() const { return m_Strings.size(); }
+		wchar_t const* const* data() const { return m_Strings.data(); }
+
+		wchar_t const* push_back(py::string const&);
+		wchar_t const* push_back_allow_none(py::object const&);
+	private:
+		std::vector<wchar_t*> m_Strings;
+	};
+
+	wchar_t const* push_back_if_not_none(py::object const&, py_string_storage&);
+
 }
