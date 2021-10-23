@@ -32,6 +32,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
 import datetime
+from dataclasses import dataclass, field
 import enum
 import inspect
 import sys
@@ -482,28 +483,25 @@ class PluginPanelItemFlags(IntFlag):
 	Selected                                        = bit(30)
 	ProcessDescription                              = bit(31)
 
+@dataclass
 class PluginPanelItem:
-	def __init__(self, 
-				 FileName="",
-				 FileAttributes=0 # See `stat.*` and Windows API
-				 ):
-		self.CreationTime = FileTime()
-		self.LastAccessTime = FileTime()
-		self.LastWriteTime = FileTime()
-		self.ChangeTime = FileTime()
-		self.FileSize = 0
-		self.AllocationSize = 0
-		self.FileName = FileName
-		self.AlternateFileName = ""
-		self.Description = ""
-		self.Owner = ""
-		self.CustomColumnData = []
-		self.Flags = PluginPanelItemFlags.Default
-		#self.UserData = UserDataItem()
-		self.FileAttributes = FileAttributes
-		self.NumberOfLinks = 0
-		self.CRC32 = 0
-		#self.Reserved
+	CreationTime: FileTime = FileTime()
+	LastAccessTime: FileTime = FileTime()
+	LastWriteTime: FileTime = FileTime()
+	ChangeTime: FileTime = FileTime()
+	FileSize: int = 0
+	AllocationSize = 0
+	FileName: str = ""
+	AlternateFileName: str = ""
+	Description: str = ""
+	Owner: str = ""
+	CustomColumnData: List[Any] = field(default_factory=list)
+	Flags: PluginPanelItemFlags = PluginPanelItemFlags.Default
+	#UserData = UserDataItem()
+	FileAttributes: int = 0 # See `stat.*` and Windows API
+	NumberOfLinks: int = 0
+	CRC32: int = 0
+	#Reserved
 
 class PanelDirectory:
 	def __init__(self):
