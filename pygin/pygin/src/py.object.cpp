@@ -177,7 +177,7 @@ namespace py
 
 	object object::get_attribute(const object& Name) const
 	{
-		return object(invoke(PyObject_GetAttr, get(), Name.get()));
+		return from_borrowed(invoke(PyObject_GetAttr, get(), Name.get()));
 	}
 
 	bool object::set_attribute(std::string_view const Name, const object& Value)
