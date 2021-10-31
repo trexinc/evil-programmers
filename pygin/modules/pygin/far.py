@@ -527,3 +527,11 @@ class GetFindDataInfo:
 	def __init__(self):
 		self.PanelItems: List[PluginPanelItem] = []
 		self.OpMode = OperationModes.Default
+
+@dataclass
+class GetFilesInfo:
+	Panel: Any = None
+	PanelItems: List[PluginPanelItem] = field(default_factory=list)
+	Move: bool = False
+	DestPath: str = ""
+	OpMode: OperationModes = OperationModes.Default

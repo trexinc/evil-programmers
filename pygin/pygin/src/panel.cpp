@@ -34,8 +34,9 @@ get_find_data::get_find_data(py::list const& py_items, PluginPanelItem* items)
 		{&PluginPanelItem::Description, "Description"},
 		{&PluginPanelItem::Owner, "Owner"},
 	};
-
-	this->strings.reserve(std::size(string_fields) * py_items.size());
+	auto items_size = m_PyItems.size();
+	m_PyItems.reserve(items_size);
+	m_Strings.reserve(std::size(string_fields) * items_size);
 	for (auto&& py_item : py_items)
 	{
 		items->CreationTime = far_api::file_time(py_item["CreationTime"sv]);
@@ -54,7 +55,11 @@ get_find_data::get_find_data(py::list const& py_items, PluginPanelItem* items)
 		items->CRC32 = py::cast<uintptr_t>(py_item["CRC32"sv]);
 		memset(&items->Reserved, 0, sizeof(items->Reserved));
 		for (auto&& kv : string_fields)
-			items->*kv.first = push_back_if_not_none(py_item[kv.second], this->strings);
+			items->*kv.first = push_back_if_not_none(py_item[kv.second], m_Strings);
+		
+		m_PyItems.push_back(py_item);
+		items->UserData = { py_item.get_no_steal() }; // TOFIX: just 'get()` should be enough
+		
 		++items;
 	}
 }

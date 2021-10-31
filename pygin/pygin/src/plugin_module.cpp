@@ -166,7 +166,27 @@ void plugin_module::FreeFindDataW(const FreeFindDataInfo* Info)
 
 intptr_t plugin_module::GetFilesW(GetFilesInfo* Info)
 {
-	return 0;
+	if (Info->StructSize < sizeof(*Info))
+		return 0;
+
+	auto& Context = *reinterpret_cast<context*>(Info->hPanel);
+	auto PanelItems = py::list(Info->ItemsNumber);
+	for (int i = 0; i < Info->ItemsNumber; ++i)
+	{
+		auto const& Item = Info->PanelItem + i;
+		auto* PyItem = static_cast<PyObject*>(Item->UserData.Data);
+		PanelItems.set_at(i, py::object::from_borrowed(PyItem));
+	}
+	auto GetFileInfoCtor = far_api::type("GetFilesInfo"sv);
+	auto PyOpMode = far_api::type("OperationModes"sv)(Info->OpMode);
+	auto py_info = GetFileInfoCtor(
+		Context.as_py(),
+		PanelItems,
+		Info->Move,
+		Info->DestPath,
+		PyOpMode
+		);
+	return py::cast<intptr_t>(call(L"GetFilesW", py_info));
 }
 
 intptr_t plugin_module::GetFindDataW(GetFindDataInfo* Info)
