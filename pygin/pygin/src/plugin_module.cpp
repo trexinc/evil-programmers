@@ -173,8 +173,8 @@ intptr_t plugin_module::GetFilesW(GetFilesInfo* Info)
 	auto PanelItems = py::list(Info->ItemsNumber);
 	for (int i = 0; i < Info->ItemsNumber; ++i)
 	{
-		auto const& Item = Info->PanelItem + i;
-		auto* PyItem = static_cast<PyObject*>(Item->UserData.Data);
+		auto const& Item = Info->PanelItem[i];
+		auto* PyItem = static_cast<PyObject*>(Item.UserData.Data);
 		PanelItems.set_at(i, py::object::from_borrowed(PyItem));
 	}
 	auto GetFileInfoCtor = far_api::type("GetFilesInfo"sv);
