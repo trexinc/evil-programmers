@@ -4,6 +4,25 @@
 #include "far_api.hpp"
 #include "py.integer.hpp"
 
+namespace {
+
+void WINAPI free_py(void* UserData, const struct FarPanelItemFreeInfo* Info)
+{
+	py::object dec_ref(static_cast<PyObject*>(UserData));
+}
+	
+void let_far_manage_py_items_life_time(std::span<PluginPanelItem> const& items) noexcept
+{
+	for (auto& item : items)
+	{
+		auto* inc_ref = static_cast<PyObject*>(item.UserData.Data);
+		(void)py::object::from_borrowed(inc_ref).release();
+		item.UserData.FreeData = &free_py;
+	}
+}
+
+} // anonymous
+
 PluginPanelItem*
 get_find_data::get_items(py::object const& find_data, size_t& item_count, OPERATION_MODES& mode)
 {
@@ -15,6 +34,7 @@ get_find_data::get_items(py::object const& find_data, size_t& item_count, OPERAT
 	new (mem.get()) get_find_data(py_items, result);
 	item_count = size;
 	mode = py::cast<OPERATION_MODES>(find_data["OpMode"sv]);
+	let_far_manage_py_items_life_time(std::span(result, size));
 	mem.release();
 	return result;
 }
@@ -34,8 +54,7 @@ get_find_data::get_find_data(py::list const& py_items, PluginPanelItem* items)
 		{&PluginPanelItem::Description, "Description"},
 		{&PluginPanelItem::Owner, "Owner"},
 	};
-
-	this->strings.reserve(std::size(string_fields) * py_items.size());
+	m_Strings.reserve(std::size(string_fields) * py_items.size());
 	for (auto&& py_item : py_items)
 	{
 		items->CreationTime = far_api::file_time(py_item["CreationTime"sv]);
@@ -54,7 +73,8 @@ get_find_data::get_find_data(py::list const& py_items, PluginPanelItem* items)
 		items->CRC32 = py::cast<uintptr_t>(py_item["CRC32"sv]);
 		memset(&items->Reserved, 0, sizeof(items->Reserved));
 		for (auto&& kv : string_fields)
-			items->*kv.first = push_back_if_not_none(py_item[kv.second], this->strings);
+			items->*kv.first = push_back_if_not_none(py_item[kv.second], m_Strings);
+		items->UserData = { py_item.get() };		
 		++items;
 	}
 }

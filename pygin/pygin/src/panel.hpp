@@ -16,6 +16,6 @@ public:
 private:
 	get_find_data(py::list const& py_items, PluginPanelItem*);
 private:
-	helpers::py_string_storage strings;
+	helpers::py_string_storage m_Strings;
 };
 

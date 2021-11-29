@@ -223,16 +223,27 @@ class HelloWorldPlugin(pygin.Plugin):
 		info.PanelItems = [
 			far.PluginPanelItem(FileName=".."),
 			far.PluginPanelItem(
-				FileName=f"dir{level}",
-				FileAttributes=stat.FILE_ATTRIBUTE_DIRECTORY),
-			far.PluginPanelItem(
 				FileName=f"file{level}",
-				FileAttributes=stat.FILE_ATTRIBUTE_ARCHIVE),
+				FileAttributes=stat.FILE_ATTRIBUTE_ARCHIVE)
 		]
+		if level <= 3:
+			info.PanelItems.append(far.PluginPanelItem(
+				FileName=f"dir{level}",
+				FileAttributes=stat.FILE_ATTRIBUTE_DIRECTORY))
 		return info
 
 	def SetDirectoryW(self, info: far.SetDirectoryInfo):
 		info.Panel.chdir(info.Dir)
+		return True
+
+	def GetFilesW(self, info: far.GetFilesInfo):
+		cwd = info.Panel.cwd()
+		if not cwd.endswith("/"):
+			cwd += "/"
+		for item in info.PanelItems:
+			virt_path = cwd + item.FileName
+			with open(os.path.join(info.DestPath, item.FileName), "w") as f:
+ 				f.write(f"'{virt_path}' content")
 		return True
 
 	def DoConsoleStuff(self, info, BreakCode):
