@@ -130,6 +130,7 @@ class HelloWorldPlugin(pygin.Plugin):
 				far.MenuItem("Do Help"),
 				far.MenuItem("Goto C:\\windows"),
 				far.MenuItem("Open custom panel"),
+				far.MenuItem("Open custom dialog"),
 			])
 
 		if ItemId == 0:
@@ -194,6 +195,44 @@ class HelloWorldPlugin(pygin.Plugin):
 
 		elif ItemId == 5:
 			return Panel()
+
+		elif ItemId == 6:
+			self.DialogRun(
+				uuid.UUID("{63FB716A-1568-4B6B-8FDC-0E5B5B73E090}"),
+				-1, -1, 60, 22,
+				"",
+				[far.DialogDoubleBox(2, 1, 57, 20, "Test Dialog"),
+				 far.DialogText(3, 2, 30, "test text"),
+				 far.DialogVerticalText(56, 2, 19, "test vertical text"),
+				 far.DialogCheckbox(3, 3, "unchecked", False),
+				 far.DialogCheckbox(30, 3, "checked", True),
+				 far.DialogSingleBox(3, 4, 30, 7, "Group 1"),
+				 far.DialogRadiobutton(4, 5, "unchecked", False, flags=far.DialogItemFlags.GROUP),
+				 far.DialogRadiobutton(4, 6, "checked", True),
+				 far.DialogSingleBox(31, 4, 55, 7, "Group 2"),
+				 far.DialogRadiobutton(32, 5, "checked", True, flags=far.DialogItemFlags.GROUP),
+				 far.DialogRadiobutton(32, 6, "unchecked", False),
+				 far.DialogComboBox(3, 8, 28, 
+				 		[far.ListItem(x) for x in ["item 1", "item 2", "item 3"]],
+						"test combo box"),
+				 far.DialogComboBox(31, 8, 54, [
+						far.ListItem("item 1"),
+						far.ListItem("item 2 (pre-selected)", far.ListItemFlags.SELECTED),
+						far.ListItem("item 3")]),
+				 far.DialogEdit(3, 10, 29, "edit text"),
+				 far.DialogFixEdit(31, 10, 54, "fixed edit text"),
+				 far.DialogListBox(3, 11, 28, 14, [
+						far.ListItem("item 1"),
+						far.ListItem("item 2 (pre-selected)", far.ListItemFlags.SELECTED),
+						far.ListItem("item 3")],
+						"test list box"),
+				 far.DialogPasswordEdit(31, 12, 54, "password"),
+				 far.DialogButton(3, 15, "default button",
+				 				  far.DialogItemFlags.DEFAULTBUTTON),
+				 far.DialogButton(30, 15, "test button")
+				],
+				0
+			)
 
 		else:
 			pass

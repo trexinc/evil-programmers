@@ -44,6 +44,7 @@ class Plugin:
 		self.GetMsg = partial(far.GetMsg, self.Guid)
 		self.Message = partial(far.Message, self.Guid)
 		self.InputBox = partial(far.InputBox, self.Guid)
+		self.DialogRun= partial(far.DialogRun, self.Guid)
 		self.Menu = partial(far.Menu, self.Guid)
 		self.ShowHelp = partial(far.ShowHelp, self.Guid)
 		self.AdvControl = partial(far.AdvControl, self.Guid)

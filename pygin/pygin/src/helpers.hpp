@@ -70,4 +70,17 @@ namespace helpers
 
 	wchar_t const* push_back_if_not_none(py::object const&, py_string_storage&);
 
+	class far_list_storage
+	{
+	public:
+		FarList* alloc_items(size_t size);
+	private:
+		struct items
+		{
+			std::vector<FarListItem> m_items;
+			FarList m_descriptor;
+		};
+		std::list<items> m_storage;
+	};
+
 }

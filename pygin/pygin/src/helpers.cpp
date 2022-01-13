@@ -49,4 +49,18 @@ wchar_t const* push_back_if_not_none(py::object const& o, py_string_storage& sto
 	return storage.push_back(cast<py::string>(o));
 }
 
+FarList* far_list_storage::alloc_items(size_t size)
+{
+	m_storage.push_back(items());
+	auto& items = m_storage.back();
+	items.m_items.resize(size, {});
+	
+	auto& result = items.m_descriptor;
+	result.StructSize = sizeof(FarList);
+	result.ItemsNumber = size;
+	result.Items = m_storage.empty() ? nullptr : &items.m_items[0];
+	return &result;
+}
+
+
 } // helpers

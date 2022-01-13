@@ -218,6 +218,63 @@ namespace far_api_implementation
 		}
 	};
 
+	struct DialogRun
+	{
+		METHOD(DialogRun, "Run dialog")
+
+		static py::object Do(const UUID& PluginId, const UUID& Id,
+							 int X1, int Y1, int X2, int Y2,
+							 const std::wstring& HelpTopic,
+							 const py::list& Items,
+							 FARDIALOGFLAGS Flags)
+		{
+			std::vector<FarDialogItem> FarItems;
+			FarItems.reserve(Items.size());
+			helpers::py_string_storage StringStorage;
+			helpers::far_list_storage FarListItemsStorage;
+			for (auto&& Item : Items)
+			{
+				FarDialogItem FarItem = {
+					py::cast<FARDIALOGITEMTYPES>(Item["Type"sv]),
+					py::cast<intptr_t>(Item["X1"sv]),
+					py::cast<intptr_t>(Item["Y1"sv]),
+					py::cast<intptr_t>(Item["X2"sv]),
+					py::cast<intptr_t>(Item["Y2"sv]),
+				};
+				FarItem.History = push_back_if_not_none(Item["History"sv], StringStorage);
+				FarItem.Mask = push_back_if_not_none(Item["Mask"sv], StringStorage);
+				FarItem.Flags = py::cast<FARDIALOGITEMFLAGS>(Item["Flags"sv]);
+				FarItem.Data = push_back_if_not_none(Item["Data"sv], StringStorage);
+				if (Item.has_attribute("Selected"sv))
+					FarItem.Selected = py::cast<bool>(Item["Selected"sv]);
+				else if (Item.has_attribute("Items"sv))
+				{
+					auto PyItems = py::cast<py::list>(Item["Items"sv]);
+					if (auto PyItemsSize = PyItems.size())
+					{
+						FarItem.ListItems = FarListItemsStorage.alloc_items(PyItemsSize);
+						auto* PItem = FarItem.ListItems->Items;
+						for (auto&& PyItem : PyItems)
+						{
+							PItem->Flags = py::cast<LISTITEMFLAGS>(PyItem["Flags"sv]);
+							PItem->Text = push_back_if_not_none(PyItem["Text"sv], StringStorage);
+							++PItem;
+						}
+					}
+				}
+				FarItems.push_back(FarItem);
+			}
+			auto const* ItemsPtr = FarItems.empty() ? nullptr : &FarItems[0];
+			auto dlg = psi().DialogInit(&PluginId, &Id, X1, Y1, X2, Y2, HelpTopic.c_str(),
+										ItemsPtr, FarItems.size(), 0, Flags, nullptr, nullptr);
+			if (dlg == INVALID_HANDLE_VALUE)
+				throw MAKE_PYGIN_EXCEPTION("DialogInit failed");
+			auto result = psi().DialogRun(dlg);
+			psi().DialogFree(dlg);
+			return py::integer(result);
+		}
+	};
+
 	struct Menu
 	{
 		METHOD(Menu, "Menu")
@@ -592,6 +649,7 @@ namespace far_api_implementation
 		Define<GetMsg>(),
 		Define<Message>(),
 		Define<InputBox>(),
+		Define<DialogRun>(),
 		Define<Menu>(),
 		Define<ShowHelp>(),
 		Define<AdvControl>(),

@@ -261,6 +261,169 @@ def InputBox(PluginId: uuid, Id: uuid, Title: str, SubTitle: str, HistoryName: s
 	return __invoke_api()
 
 @unique
+class DialogItemType(IntFlag):
+	BUTTON = 7
+	CHECKBOX = 8
+	COMBOBOX = 10
+	DOUBLEBOX = 3
+	EDIT = 4
+	FIXEDIT = 6
+	LISTBOX = 11
+	PSWEDIT = 5
+	RADIOBUTTON = 9
+	SINGLELEBOX = 2
+	TEXT = 0
+	VTEXT = 1
+
+class DialogItemFlags(IntFlag):
+	BOXCOLOR              = 0x0000000000000200
+	GROUP                 = 0x0000000000000400
+	LEFTTEXT              = 0x0000000000000800
+	MOVESELECT            = 0x0000000000001000
+	SHOWAMPERSAND         = 0x0000000000002000
+	CENTERGROUP           = 0x0000000000004000
+	NOBRACKETS            = 0x0000000000008000
+	MANUALADDHISTORY      = 0x0000000000008000
+	SEPARATOR             = 0x0000000000010000
+	SEPARATOR2            = 0x0000000000020000
+	EDITOR                = 0x0000000000020000
+	LISTNOAMPERSAND       = 0x0000000000020000
+	LISTNOBOX             = 0x0000000000040000
+	HISTORY               = 0x0000000000040000
+	BTNNOCLOSE            = 0x0000000000040000
+	CENTERTEXT            = 0x0000000000040000
+	SEPARATORUSER         = 0x0000000000080000
+	SETSHIELD             = 0x0000000000080000
+	EDITEXPAND            = 0x0000000000080000
+	DROPDOWNLIST          = 0x0000000000100000
+	USELASTHISTORY        = 0x0000000000200000
+	MASKEDIT              = 0x0000000000400000
+	LISTTRACKMOUSE        = 0x0000000000400000
+	LISTTRACKMOUSEINFOCUS = 0x0000000000800000
+	SELECTONENTRY         = 0x0000000000800000
+	THREESTATE            = 0x0000000000800000
+	EDITPATH              = 0x0000000001000000
+	LISTWRAPMODE          = 0x0000000001000000
+	NOAUTOCOMPLETE        = 0x0000000002000000
+	LISTAUTOHIGHLIGHT     = 0x0000000002000000
+	LISTNOCLOSE           = 0x0000000004000000
+	EDITPATHEXEC          = 0x0000000004000000
+	HIDDEN                = 0x0000000010000000
+	READONLY              = 0x0000000020000000
+	NOFOCUS               = 0x0000000040000000
+	DISABLE               = 0x0000000080000000
+	DEFAULTBUTTON         = 0x0000000100000000
+	FOCUS                 = 0x0000000200000000
+	RIGHTTEXT             = 0x0000000400000000
+	WORDWRAP              = 0x0000000800000000
+
+@dataclass
+class DialogItem:
+	Type: DialogItemType
+	X1: int = -1
+	Y1: int = -1 
+	X2: int = 0
+	Y2: int = 0
+	History: str = ""
+	Mask: str = ""
+	Flags: DialogItemFlags = 0
+	Data: str = ""
+
+@unique
+class ListItemFlags(IntFlag):
+	SELECTED           = 0x0000000000010000
+	CHECKED            = 0x0000000000020000
+	SEPARATOR          = 0x0000000000040000
+	DISABLE            = 0x0000000000080000
+	GRAYED             = 0x0000000000100000
+	HIDDEN             = 0x0000000000200000
+	DELETEUSERDATA     = 0x0000000080000000
+
+class DialogText(DialogItem):
+	def __init__(self, x1, y, x2, text):
+		super().__init__(DialogItemType.TEXT, x1, y, x2, y, Data=text)
+
+class DialogVerticalText(DialogItem):
+	def __init__(self, x, y1, y2, text):
+		super().__init__(DialogItemType.VTEXT, x, y1, x, y2, Data=text)
+
+class DialogEdit(DialogItem):
+	def __init__(self, x1, y, x2, text, history=None, flags=0):
+		super().__init__(DialogItemType.EDIT, 
+						 x1, y, x2, y, History=history, Data=text, Flags=flags)
+
+class DialogFixEdit(DialogItem):
+	def __init__(self, x1, y, x2, text, history=None, flags=0):
+		super().__init__(DialogItemType.FIXEDIT, 
+						 x1, y, x2, y, History=history, Data=text, Flags=flags)
+
+class DialogPasswordEdit(DialogItem):
+	def __init__(self, x1, y, x2, text, flags=0):
+		super().__init__(DialogItemType.PSWEDIT, 
+						 x1, y, x2, y, Data=text, Flags=flags)
+
+class DialogButton(DialogItem):
+	def __init__(self, x, y, text, flags=0):
+		super().__init__(
+			DialogItemType.BUTTON, x, y, 0, y, Data=text, Flags=flags)
+
+class DialogSingleBox(DialogItem):
+	def __init__(self, x1, y1, x2, y2, text=None):
+		super().__init__(DialogItemType.SINGLELEBOX, x1, y1, x2, y2, Data=text)
+
+class DialogDoubleBox(DialogItem):
+	def __init__(self, x1, y1, x2, y2, text=None):
+		super().__init__(DialogItemType.DOUBLEBOX, x1, y1, x2, y2, Data=text)
+
+@dataclass
+class _SelectableDialogItem(DialogItem):
+	Selected: bool = False
+
+class DialogCheckbox(_SelectableDialogItem):
+	def __init__(self, x, y, text, selected=False):
+		super().__init__(DialogItemType.CHECKBOX,
+						 x, y, 0, y, Data=text, Selected=selected)
+
+class DialogRadiobutton(_SelectableDialogItem):
+	def __init__(self, x, y, text, selected=False, flags=0):
+		super().__init__(DialogItemType.RADIOBUTTON, 
+						 x, y, 0, y, Data=text, Selected=selected, Flags=flags)
+
+@dataclass
+class ListItem:
+	Text: str = ""
+	Flags: ListItemFlags = 0
+
+@dataclass
+class _ItemsDialogItem(DialogItem):
+	Items: List[ListItem] = field(default_factory=list)
+
+class DialogComboBox(_ItemsDialogItem):
+	def __init__(self, x1, y, x2, items: List[ListItem], text=None, flags=0):
+		super().__init__(DialogItemType.COMBOBOX, 
+						 x1, y, x2, y, Data=text, Items=items, Flags=flags)
+
+class DialogListBox(_ItemsDialogItem):
+	def __init__(self, x1, y1, x2, y2, items: List[ListItem], text=None, flags=0):
+		super().__init__(DialogItemType.LISTBOX, 
+						 x1, y1, x2, y2, Data=text, Items=items, Flags=flags)
+
+@unique
+class DialogFlags(IntFlag):
+	Warning				= bit(0)
+	SmallDialog			= bit(1)
+	NoDrawShadow		= bit(2)
+	NoDrawPanel			= bit(3)
+	KeepConsoleTitle	= bit(4)
+
+def DialogRun(PluginId: uuid, Id: uuid,
+			  X1: int, Y1: int, X2: int, Y2: int,
+			  HelpTopic: str,
+			  Items: List[DialogItem],
+			  Flags: DialogFlags) -> int:
+	return __invoke_api()
+
+@unique
 class MenuItemFlags(IntFlag):
 	Default                                         = 0
 	Selected                                        = bit(16)
