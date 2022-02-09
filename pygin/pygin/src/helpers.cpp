@@ -58,7 +58,7 @@ FarList* far_list_storage::alloc_items(size_t size)
 	auto& result = items.m_descriptor;
 	result.StructSize = sizeof(FarList);
 	result.ItemsNumber = size;
-	result.Items = m_storage.empty() ? nullptr : &items.m_items[0];
+	result.Items = items.m_items.data();
 	return &result;
 }
 

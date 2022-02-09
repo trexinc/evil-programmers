@@ -197,42 +197,76 @@ class HelloWorldPlugin(pygin.Plugin):
 			return Panel()
 
 		elif ItemId == 6:
-			self.DialogRun(
+			check_box1 = far.DialogCheckbox(3, 3, "unchecked", False)
+			check_box2 = far.DialogCheckbox(30, 3, "checked", True)
+			radio1_1 = far.DialogRadiobutton(4, 5, "unchecked", False, flags=far.DialogItemFlags.GROUP)
+			radio1_2 = far.DialogRadiobutton(4, 6, "checked", True)
+			radio2_1 = far.DialogRadiobutton(32, 5, "checked", True, flags=far.DialogItemFlags.GROUP)
+			radio2_2 = far.DialogRadiobutton(32, 6, "unchecked", False)
+			combo_box1 = far.DialogComboBox(
+				3, 8, 28, 
+				[far.ListItem(x) for x in ["item 1", "item 2", "item 3"]],
+				"test combo box")
+			combo_box2 = far.DialogComboBox(
+				31, 8, 54, [
+					far.ListItem("item 1"),
+					far.ListItem("item 2 (pre-selected)", far.ListItemFlags.SELECTED),
+					far.ListItem("item 3")
+					])
+			edit_text = far.DialogEdit(3, 10, 29, "edit text")
+			fixed_edit = far.DialogFixEdit(31, 10, 54, "fixed edit text")
+			password = far.DialogPasswordEdit(31, 12, 54, "password")
+			list_box_items = [
+				far.ListItem("item 1"),
+				far.ListItem("item 2 (pre-selected)",
+							 far.ListItemFlags.SELECTED),
+				far.ListItem("item 3")]
+			result = self.DialogRun(
 				uuid.UUID("{63FB716A-1568-4B6B-8FDC-0E5B5B73E090}"),
 				-1, -1, 60, 22,
 				"",
 				[far.DialogDoubleBox(2, 1, 57, 20, "Test Dialog"),
 				 far.DialogText(3, 2, 30, "test text"),
 				 far.DialogVerticalText(56, 2, 19, "test vertical text"),
-				 far.DialogCheckbox(3, 3, "unchecked", False),
-				 far.DialogCheckbox(30, 3, "checked", True),
+				 check_box1,
+				 check_box2,
 				 far.DialogSingleBox(3, 4, 30, 7, "Group 1"),
-				 far.DialogRadiobutton(4, 5, "unchecked", False, flags=far.DialogItemFlags.GROUP),
-				 far.DialogRadiobutton(4, 6, "checked", True),
+				 radio1_1, radio1_2,
 				 far.DialogSingleBox(31, 4, 55, 7, "Group 2"),
-				 far.DialogRadiobutton(32, 5, "checked", True, flags=far.DialogItemFlags.GROUP),
-				 far.DialogRadiobutton(32, 6, "unchecked", False),
-				 far.DialogComboBox(3, 8, 28, 
-				 		[far.ListItem(x) for x in ["item 1", "item 2", "item 3"]],
-						"test combo box"),
-				 far.DialogComboBox(31, 8, 54, [
-						far.ListItem("item 1"),
-						far.ListItem("item 2 (pre-selected)", far.ListItemFlags.SELECTED),
-						far.ListItem("item 3")]),
-				 far.DialogEdit(3, 10, 29, "edit text"),
-				 far.DialogFixEdit(31, 10, 54, "fixed edit text"),
-				 far.DialogListBox(3, 11, 28, 14, [
-						far.ListItem("item 1"),
-						far.ListItem("item 2 (pre-selected)", far.ListItemFlags.SELECTED),
-						far.ListItem("item 3")],
-						"test list box"),
-				 far.DialogPasswordEdit(31, 12, 54, "password"),
+				 radio2_1, radio2_2,
+				 combo_box1, combo_box2,
+				 edit_text, fixed_edit,
+				 far.DialogListBox(3, 11, 28, 14, list_box_items,
+								   "test list box"),
+				 password,
 				 far.DialogButton(3, 15, "default button",
 				 				  far.DialogItemFlags.DEFAULTBUTTON),
 				 far.DialogButton(30, 15, "test button")
 				],
 				0
 			)
+
+			self.Message(
+				uuid.UUID("{49A144B8-C0BB-4EDF-B8AD-8F3590BA9C64}"),
+				far.MessageFlags(0),
+				HelpTopic="",
+				Title="dialog result",
+				Items=[f"{result}",
+					   f"check box1: {check_box1.Selected}",
+					   f"check box2: {check_box2.Selected}",
+					   f"group1 radio 1: {radio1_1.Selected}",
+					   f"group1 radio 2: {radio1_2.Selected}",
+					   f"group2 radio 1: {radio2_1.Selected}",
+					   f"group2 radio 2: {radio2_2.Selected}",
+					   f"combo box1: {combo_box1.Data}",
+					   f"combo box2: {combo_box2.Data}",
+					   f"edit text: {edit_text.Data}",
+					   f"fixed edit: {fixed_edit.Data}",
+					   f"password: {password.Data}",
+					   f"list box items: {[item.Flags for item in list_box_items]}",
+					   ],
+				Buttons=["OK"])
+
 
 		else:
 			pass

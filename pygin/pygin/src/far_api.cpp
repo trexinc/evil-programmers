@@ -228,10 +228,31 @@ namespace far_api_implementation
 							 const py::list& Items,
 							 FARDIALOGFLAGS Flags)
 		{
-			std::vector<FarDialogItem> FarItems;
-			FarItems.reserve(Items.size());
 			helpers::py_string_storage StringStorage;
 			helpers::far_list_storage FarListItemsStorage;
+			auto FarItems = make_far_items(Items, StringStorage, FarListItemsStorage);
+			auto dlg = psi().DialogInit(
+				&PluginId, &Id,
+				X1, Y1, X2, Y2, HelpTopic.c_str(),
+				FarItems.data(), FarItems.size(),
+				0, Flags, nullptr, nullptr);
+			if (dlg == INVALID_HANDLE_VALUE)
+				throw MAKE_PYGIN_EXCEPTION("DialogInit failed");
+			auto dialog_free = psi().DialogFree;
+			std::unique_ptr<std::remove_pointer_t<HANDLE>, decltype(dialog_free)> scoped_dlg(dlg, dialog_free);
+			auto result = psi().DialogRun(dlg);
+			get_data(dlg, FarItems);
+			return py::integer(result);
+		}
+
+	private:
+		static std::vector<FarDialogItem> make_far_items(
+			py::list const& Items,
+			helpers::py_string_storage& StringStorage,
+			helpers::far_list_storage& FarListItemsStorage)
+		{
+			std::vector<FarDialogItem> FarItems;
+			FarItems.reserve(Items.size());
 			for (auto&& Item : Items)
 			{
 				FarDialogItem FarItem = {
@@ -248,30 +269,87 @@ namespace far_api_implementation
 				if (Item.has_attribute("Selected"sv))
 					FarItem.Selected = py::cast<bool>(Item["Selected"sv]);
 				else if (Item.has_attribute("Items"sv))
-				{
-					auto PyItems = py::cast<py::list>(Item["Items"sv]);
-					if (auto PyItemsSize = PyItems.size())
-					{
-						FarItem.ListItems = FarListItemsStorage.alloc_items(PyItemsSize);
-						auto* PItem = FarItem.ListItems->Items;
-						for (auto&& PyItem : PyItems)
-						{
-							PItem->Flags = py::cast<LISTITEMFLAGS>(PyItem["Flags"sv]);
-							PItem->Text = push_back_if_not_none(PyItem["Text"sv], StringStorage);
-							++PItem;
-						}
-					}
-				}
+					set_list_items(py::cast<py::list>(Item["Items"sv]), StringStorage, FarListItemsStorage, FarItem);
+				FarItem.UserData = reinterpret_cast<intptr_t>(Item.get());
 				FarItems.push_back(FarItem);
 			}
-			auto const* ItemsPtr = FarItems.empty() ? nullptr : &FarItems[0];
-			auto dlg = psi().DialogInit(&PluginId, &Id, X1, Y1, X2, Y2, HelpTopic.c_str(),
-										ItemsPtr, FarItems.size(), 0, Flags, nullptr, nullptr);
-			if (dlg == INVALID_HANDLE_VALUE)
-				throw MAKE_PYGIN_EXCEPTION("DialogInit failed");
-			auto result = psi().DialogRun(dlg);
-			psi().DialogFree(dlg);
-			return py::integer(result);
+			return FarItems;
+		}
+
+		static void set_list_items(py::list const& PyItems, 
+								   helpers::py_string_storage& StringStorage,
+								   helpers::far_list_storage& FarListItemsStorage,
+								   FarDialogItem& FarItem)
+		{
+			auto PyItemsSize = PyItems.size();
+			if (!PyItemsSize)
+				return;
+
+			FarItem.ListItems = FarListItemsStorage.alloc_items(PyItemsSize);
+			auto* PItem = FarItem.ListItems->Items;
+			for (auto const& PyItem : PyItems)
+			{
+				PItem->Flags = py::cast<LISTITEMFLAGS>(PyItem["Flags"sv]);
+				PItem->Text = push_back_if_not_none(PyItem["Text"sv], StringStorage);
+				++PItem;
+			}
+		}
+
+		static void get_data(HANDLE Dlg, std::vector<FarDialogItem> const& FarItems)
+		{
+			for (int id = 0; id < FarItems.size(); ++id)
+			{
+				auto const& FarItem = FarItems[id];
+				switch (FarItem.Type)
+				{
+				case DI_CHECKBOX:
+				case DI_RADIOBUTTON:
+					get_check(Dlg, FarItem, id);
+					break;
+				case DI_LISTBOX:
+					get_list_items(Dlg, FarItem, id);
+					break;
+				case DI_COMBOBOX:
+					get_list_items(Dlg, FarItem, id);
+					[[fallthrough]];
+				case DI_EDIT:
+				case DI_FIXEDIT:
+				case DI_PSWEDIT:
+					get_text(Dlg, FarItem, id);
+					break;
+				default:
+					break;
+				}
+			}
+		}
+
+		static void get_check(HANDLE Dlg, FarDialogItem const& FarItem, int Id)
+		{
+			auto check = static_cast<FARCHECKEDSTATE>(psi().SendDlgMessage(Dlg, DM_GETCHECK, Id, nullptr));
+			auto PyItem = py::object::from_borrowed(reinterpret_cast<PyObject*>(FarItem.UserData));
+			PyItem.set_attribute("Selected"sv, py::integer(check));
+		}
+
+		static void get_text(HANDLE Dlg, FarDialogItem const& FarItem, int Id)
+		{
+			auto size = static_cast<size_t>(psi().SendDlgMessage(Dlg, DM_GETTEXT, Id, nullptr));
+			std::unique_ptr<wchar_t[]> buffer(new wchar_t[size + 1]);
+			FarDialogItemData data = { sizeof(FarDialogItemData), size, buffer.get() };
+			psi().SendDlgMessage(Dlg, DM_GETTEXT, Id, &data);
+			auto PyItem = py::object::from_borrowed(reinterpret_cast<PyObject*>(FarItem.UserData));
+			PyItem.set_attribute("Data"sv, py::string({data.PtrData, data.PtrLength}));
+		}
+
+		static void get_list_items(HANDLE Dlg, FarDialogItem const& FarItem, int Id)
+		{
+			auto PyItem = py::object::from_borrowed(reinterpret_cast<PyObject*>(FarItem.UserData));
+			auto PyListItems = py::cast<py::list>(PyItem["Items"sv]);
+			for (int i = 0; i < FarItem.ListItems->ItemsNumber; ++i)
+			{
+				FarListGetItem item = { sizeof(FarListGetItem), i };
+				psi().SendDlgMessage(Dlg, DM_LISTGETITEM, Id, &item);
+				PyListItems.get_at(i).set_attribute("Flags"sv, py::integer(item.Item.Flags));
+			}
 		}
 	};
 
