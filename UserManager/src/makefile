@@ -10,7 +10,7 @@ OBJDIR=o$(DIRSURF)
 BINDIR=bin$(DIRSURF)
 BOOTSTRAPDIR=bootstrap$(DIRSURF)
 
-WFLAGS=-ffor-scope -Wall -W -Wno-unused -Wpointer-arith -Winline
+WFLAGS=-Wall -W -Wno-unused -Wpointer-arith -Winline
 #-Wbad-function-cast
 CFLAGS=-c -mtune=core2 -Os $(WFLAGS) -fomit-frame-pointer -fstrict-aliasing -fno-exceptions -fno-rtti -fno-threadsafe-statics $(CCWIDE) -I $(COMINC)
 LFLAGS=-s

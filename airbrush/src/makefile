@@ -25,7 +25,7 @@ BOOTSTRAPDIR=bootstrap$(DIRSURF)
 
 DEF=airbrush$(DIRSURF).def
 
-WFLAGS=-ffor-scope -Wall -Wextra -Werror -Wno-empty-body -Wno-unused -Wno-parentheses -Wpointer-arith -Wno-int-in-bool-context -Wold-style-cast
+WFLAGS=-Wall -Wextra -Werror -Wno-empty-body -Wno-unused -Wno-parentheses -Wpointer-arith -Wno-int-in-bool-context -Wold-style-cast
 CFLAGSBASE=-c -mtune=core2 -Os $(WFLAGS) -fomit-frame-pointer -fstrict-aliasing -fno-exceptions -fno-rtti -fno-threadsafe-statics $(CCWIDE)
 CFLAGS=$(CFLAGSBASE) -I $(COMINC) -I ./$(BOOTSTRAPDIR)
 LFLAGS=-mdll -s -nostartfiles

@@ -20,7 +20,7 @@ DOCTARGET=../file_id.diz ../$(BINDIR)/farmine.lng ../$(BINDIR)/farmine.hlf
 
 all: dirs $(TARGET) $(DOCTARGET)
 
-WFLAGS=-ffor-scope -Wall -W -Werror -Wpointer-arith -Wcast-qual -Wconversion -Winline
+WFLAGS=-Wall -W -Werror -Wpointer-arith -Wcast-qual -Wconversion -Winline
 CFLAGS=-c -mtune=core2 -Os $(WFLAGS) -fno-rtti -fno-exceptions -fomit-frame-pointer -fstrict-aliasing $(CCWIDE) -I $(COMINC)
 LFLAGS=-mdll -s -nostartfiles
 

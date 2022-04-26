@@ -277,6 +277,7 @@ bool GetFileOwner(UserManager *panel,PSID *sid,wchar_t **owner)
     {
       SD=(PSECURITY_DESCRIPTOR)malloc(needed);
       if(SD)
+      {
         if(GetFileSecurityW(panel->hostfile,OWNER_SECURITY_INFORMATION,SD,needed,&needed))
         {
           BOOL flag;
@@ -287,6 +288,7 @@ bool GetFileOwner(UserManager *panel,PSID *sid,wchar_t **owner)
           }
         }
         free(SD); SD=NULL; //FIXME: SD:sid used later
+      }
     }
   return res;
 }
