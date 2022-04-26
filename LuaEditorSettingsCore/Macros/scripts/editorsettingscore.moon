@@ -100,8 +100,9 @@ FixSchemes=(Sch)->
   default=far.AdvControl F.ACTL_GETCOLOR,K.COL_EDITORTEXT
   color=(fg,bg)->
     flag=(c,f)->c and (c<0x10 and f or 0) or bit64.bor default.Flags,f
+    cnorm=(c,d)->c and (bit64.bor c,0xff000000) or d
     flags=bit64.bor (flag fg,F.FCF_FG_4BIT),(flag bg,F.FCF_BG_4BIT)
-    (fg or bg) and {Flags:flags,ForegroundColor:fg or default.ForegroundColor,BackgroundColor:bg or default.BackgroundColor}
+    (fg or bg) and {Flags:flags,ForegroundColor:(cnorm fg,default.ForegroundColor),BackgroundColor:(cnorm bg,default.BackgroundColor)}
   invert=(c)->
     if c
       fix=(v1,v2)->(v1==bit64.band c.Flags,v1) and v2 or 0

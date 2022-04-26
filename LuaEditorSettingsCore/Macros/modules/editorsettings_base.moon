@@ -8,8 +8,8 @@ MFourMask="*.m4"
 FarFolder=(Compare,Mask,FileName)->if FileName\match[[\far\FarManager\]] then Compare Mask,FileName else false
 WhiteSpaceColor=
   Flags: bit64.bor far.Flags.FCF_FG_4BIT,far.Flags.FCF_BG_4BIT
-  ForegroundColor: 0x8
-  BackgroundColor: 0x1
+  ForegroundColor: 0xff000008
+  BackgroundColor: 0xff000001
 class CFarSources extends Sources
   Title: "Far C/C++ Sources"
   Type: (Compare,FileName)->FarFolder Compare,CMask,FileName
