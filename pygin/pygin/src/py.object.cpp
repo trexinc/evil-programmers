@@ -202,12 +202,12 @@ namespace py
 
 	iterator object::begin() const
 	{
-		return iterator(*this, false);
+		return iterator(*this);
 	}
 
 	iterator object::end() const
 	{
-		return iterator(*this, true);
+		return {};
 	}
 
 	iterator object::cbegin() const
@@ -245,13 +245,11 @@ namespace py
 		}
 	}
 
-	iterator::iterator(const object& Container, bool const IsEnd):
+	iterator::iterator(const object& Container):
 		m_Container(Container.get()),
-		m_Iterable(IsEnd? nullptr : py::invoke(PyObject_GetIter, m_Container)),
-		m_Value(IsEnd? nullptr : py::invoke(PyIter_Next, m_Iterable.get()))
+		m_Iterable(py::invoke(PyObject_GetIter, m_Container))
 	{
-		if (m_Iterable && !m_Value) // empty list
-			m_Iterable = nullptr;
+		this->operator++();
 	}
 
 	object iterator::operator*() const
@@ -269,9 +267,14 @@ namespace py
 		m_Value = py::invoke(PyIter_Next, m_Iterable.get());
 		if (!m_Value)
 		{
-			m_Iterable = nullptr;
+			*this = iterator();
 		}
 		return *this;
+	}
+
+	void iterator::operator++(int)
+	{
+		this->operator++();
 	}
 
 	bool iterator::operator==(const iterator& rhs) const

@@ -245,17 +245,19 @@ namespace py
 		using value_type = object;
 		using pointer = value_type*;
 
-		explicit iterator(const object& Container, bool IsEnd);
+		iterator() = default; // end, also support default_initializable concept for input_iterator
+		explicit iterator(const object& Container);
 
 		[[nodiscard]] object operator*() const;
 		[[nodiscard]] const object* operator->() const;
 
 		iterator& operator++();
+		void operator++(int); // post increment is required for an input iterator though it can return void
 		[[nodiscard]] bool operator==(const iterator& rhs) const;
 		[[nodiscard]] bool operator!=(const iterator& rhs) const;
 
 	private:
-		PyObject* m_Container;
+		PyObject* m_Container = nullptr;
 		object m_Iterable;
 		object m_Value;
 	};

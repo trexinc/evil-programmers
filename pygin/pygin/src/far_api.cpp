@@ -98,10 +98,28 @@ namespace
 	{
 	};
 
-	template<typename type, size_t... Indexes>
-	auto apply_py_tuple(const py::tuple& Args, std::index_sequence<Indexes...>)
+	template <typename T>
+	struct cast_arg_if_needed
 	{
-		return type::Do(Args[Indexes]...);
+		static T cast(py::object const& o) 
+		{
+			if constexpr (std::is_same_v<T, py::object>)
+				return o;
+			else
+				return py::cast<T>(o); 
+		}
+	};
+
+	template <std::size_t... I, typename R, typename... Args>
+	auto apply_cast_tuple(const py::tuple& t, std::index_sequence<I...>, R (*f)(Args...))
+	{
+		return f(cast_arg_if_needed<std::remove_const_t<std::remove_reference_t<Args>>>::cast(t[I])...);
+	}
+
+	template<typename type, size_t... Indexes>
+	auto apply_py_tuple(const py::tuple& Args)
+	{
+		return apply_cast_tuple(Args, std::make_index_sequence<get_arity<type>::value>{}, &type::Do);
 	}
 
 	template<typename type>
@@ -110,7 +128,7 @@ namespace
 		try
 		{
 			const auto Args = get_args(type::HrName, RawArgs, get_arity<type>::value);
-			return apply_py_tuple<type>(Args, std::make_index_sequence<get_arity<type>::value>{}).release();
+			return apply_py_tuple<type>(Args).release();
 		}
 		catch(const py::exception& e)
 		{
@@ -155,11 +173,8 @@ namespace far_api_implementation
 	{
 		METHOD(GetMsg, "Get localised message by Id")
 
-		static py::object Do(const py::object& PyPluginId, const py::object& PyMsgId)
+		static py::object Do(const UUID& PluginId, intptr_t MsgId)
 		{
-			const auto PluginId = py::cast<UUID>(PyPluginId);
-			const auto MsgId = py::cast<intptr_t>(PyMsgId);
-
 			return py::string(psi().GetMsg(&PluginId, MsgId));
 		}
 	};
@@ -168,15 +183,10 @@ namespace far_api_implementation
 	{
 		METHOD(Message, "Show message")
 
-		static py::object Do(const py::object& PyPluginId, const py::object& PyId, const py::object& PyFlags, const py::object& PyHelpTopic, const py::object& PyTitle, const py::object& PyItems, const py::object& PyButtons)
+		static py::object Do(const UUID& PluginId, const UUID& Id, FARMESSAGEFLAGS Flags, const std::wstring& HelpTopic, const std::wstring& Title, const py::list& PyItems, const py::list& PyButtons)
 		{
-			const auto PluginId = py::cast<UUID>(PyPluginId);
-			const auto Id = py::cast<UUID>(PyId);
-			const auto Flags = py::cast<FARMESSAGEFLAGS>(PyFlags);
-			const auto HelpTopic = py::cast<std::wstring>(PyHelpTopic);
-			const auto Title = py::cast<std::wstring>(PyTitle);
-			const auto Items = list_to_vector<std::wstring>(py::cast<py::list>(PyItems));
-			const auto Buttons = list_to_vector<std::wstring>(py::cast<py::list>(PyButtons));
+			const auto Items = list_to_vector<std::wstring>(PyItems);
+			const auto Buttons = list_to_vector<std::wstring>(PyButtons);
 
 			std::vector<const wchar_t*> AllItems;
 			AllItems.reserve(1 + Items.size() + Buttons.size());
@@ -196,17 +206,8 @@ namespace far_api_implementation
 	{
 		METHOD(InputBox, "Input box")
 
-		static py::object Do(const py::object& PyPluginId, const py::object& PyId, const py::object& PyTitle, const py::object& PySubTitle, const py::object& PyHistoryName, const py::object& PySrcText, const py::object& PyDestSize, const py::object& PyHelpTopic, const py::object& PyFlags)
+		static py::object Do(const UUID& PluginId, const UUID& Id, const std::wstring& Title, const std::wstring& SubTitle, const std::wstring& HistoryName, const std::wstring& SrcText, size_t DestSize, const std::wstring& HelpTopic, INPUTBOXFLAGS Flags)
 		{
-			const auto PluginId = py::cast<UUID>(PyPluginId);
-			const auto Id = py::cast<UUID>(PyId);
-			const auto Title = py::cast<std::wstring>(PyTitle);
-			const auto SubTitle = py::cast<std::wstring>(PySubTitle);
-			const auto HistoryName = py::cast<std::wstring>(PyHistoryName);
-			const auto SrcText = py::cast<std::wstring>(PySrcText);
-			const auto DestSize = py::cast<size_t>(PyDestSize);
-			const auto HelpTopic = py::cast<std::wstring>(PyHelpTopic);
-			const auto Flags = py::cast<INPUTBOXFLAGS>(PyFlags);
 			std::vector<wchar_t> Buffer(DestSize);
 
 			const auto Result = psi().InputBox(&PluginId, &Id, Title.c_str(), SubTitle.c_str(), HistoryName.c_str(), SrcText.c_str(), Buffer.data(), Buffer.size(), HelpTopic.c_str(), Flags);
@@ -217,22 +218,147 @@ namespace far_api_implementation
 		}
 	};
 
+	struct DialogRun
+	{
+		METHOD(DialogRun, "Run dialog")
+
+		static py::object Do(const UUID& PluginId, const UUID& Id,
+							 int X1, int Y1, int X2, int Y2,
+							 const std::wstring& HelpTopic,
+							 const py::list& Items,
+							 FARDIALOGFLAGS Flags)
+		{
+			helpers::py_string_storage StringStorage;
+			helpers::far_list_storage FarListItemsStorage;
+			auto FarItems = make_far_items(Items, StringStorage, FarListItemsStorage);
+			auto dlg = psi().DialogInit(
+				&PluginId, &Id,
+				X1, Y1, X2, Y2, HelpTopic.c_str(),
+				FarItems.data(), FarItems.size(),
+				0, Flags, nullptr, nullptr);
+			if (dlg == INVALID_HANDLE_VALUE)
+				throw MAKE_PYGIN_EXCEPTION("DialogInit failed");
+			auto dialog_free = psi().DialogFree;
+			std::unique_ptr<std::remove_pointer_t<HANDLE>, decltype(dialog_free)> scoped_dlg(dlg, dialog_free);
+			auto result = psi().DialogRun(dlg);
+			get_data(dlg, FarItems);
+			return py::integer(result);
+		}
+
+	private:
+		static std::vector<FarDialogItem> make_far_items(
+			py::list const& Items,
+			helpers::py_string_storage& StringStorage,
+			helpers::far_list_storage& FarListItemsStorage)
+		{
+			std::vector<FarDialogItem> FarItems;
+			FarItems.reserve(Items.size());
+			for (auto&& Item : Items)
+			{
+				FarDialogItem FarItem = {
+					py::cast<FARDIALOGITEMTYPES>(Item["Type"sv]),
+					py::cast<intptr_t>(Item["X1"sv]),
+					py::cast<intptr_t>(Item["Y1"sv]),
+					py::cast<intptr_t>(Item["X2"sv]),
+					py::cast<intptr_t>(Item["Y2"sv]),
+				};
+				FarItem.History = push_back_if_not_none(Item["History"sv], StringStorage);
+				FarItem.Mask = push_back_if_not_none(Item["Mask"sv], StringStorage);
+				FarItem.Flags = py::cast<FARDIALOGITEMFLAGS>(Item["Flags"sv]);
+				FarItem.Data = push_back_if_not_none(Item["Data"sv], StringStorage);
+				if (Item.has_attribute("Selected"sv))
+					FarItem.Selected = py::cast<bool>(Item["Selected"sv]);
+				else if (Item.has_attribute("Items"sv))
+					set_list_items(py::cast<py::list>(Item["Items"sv]), StringStorage, FarListItemsStorage, FarItem);
+				FarItem.UserData = reinterpret_cast<intptr_t>(Item.get());
+				FarItems.push_back(FarItem);
+			}
+			return FarItems;
+		}
+
+		static void set_list_items(py::list const& PyItems, 
+								   helpers::py_string_storage& StringStorage,
+								   helpers::far_list_storage& FarListItemsStorage,
+								   FarDialogItem& FarItem)
+		{
+			auto PyItemsSize = PyItems.size();
+			if (!PyItemsSize)
+				return;
+
+			FarItem.ListItems = FarListItemsStorage.alloc_items(PyItemsSize);
+			auto* PItem = FarItem.ListItems->Items;
+			for (auto const& PyItem : PyItems)
+			{
+				PItem->Flags = py::cast<LISTITEMFLAGS>(PyItem["Flags"sv]);
+				PItem->Text = push_back_if_not_none(PyItem["Text"sv], StringStorage);
+				++PItem;
+			}
+		}
+
+		static void get_data(HANDLE Dlg, std::vector<FarDialogItem> const& FarItems)
+		{
+			for (int id = 0; id < FarItems.size(); ++id)
+			{
+				auto const& FarItem = FarItems[id];
+				switch (FarItem.Type)
+				{
+				case DI_CHECKBOX:
+				case DI_RADIOBUTTON:
+					get_check(Dlg, FarItem, id);
+					break;
+				case DI_LISTBOX:
+					get_list_items(Dlg, FarItem, id);
+					break;
+				case DI_COMBOBOX:
+					get_list_items(Dlg, FarItem, id);
+					[[fallthrough]];
+				case DI_EDIT:
+				case DI_FIXEDIT:
+				case DI_PSWEDIT:
+					get_text(Dlg, FarItem, id);
+					break;
+				default:
+					break;
+				}
+			}
+		}
+
+		static void get_check(HANDLE Dlg, FarDialogItem const& FarItem, int Id)
+		{
+			auto check = static_cast<FARCHECKEDSTATE>(psi().SendDlgMessage(Dlg, DM_GETCHECK, Id, nullptr));
+			auto PyItem = py::object::from_borrowed(reinterpret_cast<PyObject*>(FarItem.UserData));
+			PyItem.set_attribute("Selected"sv, py::integer(check));
+		}
+
+		static void get_text(HANDLE Dlg, FarDialogItem const& FarItem, int Id)
+		{
+			auto size = static_cast<size_t>(psi().SendDlgMessage(Dlg, DM_GETTEXT, Id, nullptr));
+			std::unique_ptr<wchar_t[]> buffer(new wchar_t[size + 1]);
+			FarDialogItemData data = { sizeof(FarDialogItemData), size, buffer.get() };
+			psi().SendDlgMessage(Dlg, DM_GETTEXT, Id, &data);
+			auto PyItem = py::object::from_borrowed(reinterpret_cast<PyObject*>(FarItem.UserData));
+			PyItem.set_attribute("Data"sv, py::string({data.PtrData, data.PtrLength}));
+		}
+
+		static void get_list_items(HANDLE Dlg, FarDialogItem const& FarItem, int Id)
+		{
+			auto PyItem = py::object::from_borrowed(reinterpret_cast<PyObject*>(FarItem.UserData));
+			auto PyListItems = py::cast<py::list>(PyItem["Items"sv]);
+			for (int i = 0; i < FarItem.ListItems->ItemsNumber; ++i)
+			{
+				FarListGetItem item = { sizeof(FarListGetItem), i };
+				psi().SendDlgMessage(Dlg, DM_LISTGETITEM, Id, &item);
+				PyListItems.get_at(i).set_attribute("Flags"sv, py::integer(item.Item.Flags));
+			}
+		}
+	};
+
 	struct Menu
 	{
 		METHOD(Menu, "Menu")
 
-		static py::object Do(const py::object& PyPluginId, const py::object& PyId, const py::object& PyX, const py::object& PyY, const py::object& PyMaxHeight, const py::object& PyFlags, const py::object& PyTitle, const py::object& PyBottom, const py::object& PyHelpTopic, const py::object& PyBreakKeys, const py::object& PyBreakCode, const py::object& PyItems)
+		static py::object Do(const UUID& PluginId, const UUID& Id, intptr_t X, intptr_t Y, intptr_t MaxHeight, FARMENUFLAGS Flags, const std::wstring& Title, const std::wstring& Bottom, const std::wstring& HelpTopic, const py::object& PyBreakKeys, const py::object& PyBreakCode, const py::list& Items)
 		{
-			const auto PluginId = py::cast<UUID>(PyPluginId);
-			const auto Id = py::cast<UUID>(PyId);
-			const auto X = py::cast<intptr_t>(PyX);
-			const auto Y = py::cast<intptr_t>(PyY);
-			const auto MaxHeight = py::cast<intptr_t>(PyMaxHeight);
-			const auto Flags = py::cast<FARMENUFLAGS>(PyFlags);
-			const auto Title = py::cast<std::wstring>(PyTitle);
-			const auto Bottom = py::cast<std::wstring>(PyBottom);
-			const auto HelpTopic = py::cast<std::wstring>(PyHelpTopic);
-
 			std::vector<FarKey> OptionalBreakKeys;
 			FarKey* BreakKeys = nullptr;
 
@@ -242,7 +368,6 @@ namespace far_api_implementation
 				BreakKeys = OptionalBreakKeys.data();
 			}
 
-			const auto Items = py::cast<py::list>(PyItems);
 			const auto ItemsSize = Items.size();
 			std::vector<FarMenuItem> MenuItems;
 			MenuItems.reserve(ItemsSize);
@@ -282,11 +407,8 @@ namespace far_api_implementation
 	{
 		METHOD(ShowHelp, "Show help")
 
-		static py::object Do(const py::object& PyGuid, const py::object& PyHelpTopic, const py::object& PyFlags)
+		static py::object Do(const py::object& PyGuid, const std::wstring& HelpTopic, FARHELPFLAGS Flags)
 		{
-
-			const auto HelpTopic = py::cast<std::wstring>(PyHelpTopic);
-			const auto Flags = py::cast<FARHELPFLAGS>(PyFlags);
 
 			std::wstring ModuleStr;
 			GUID ModuleGuid;
@@ -311,12 +433,8 @@ namespace far_api_implementation
 	{
 		METHOD(AdvControl, "Advanced Control Commands")
 
-		static py::object Do(const py::object& PyPluginId, const py::object& PyCommand, const py::object& PyParam1, const py::object& PyParam2)
+		static py::object Do(const UUID& PluginId, ADVANCED_CONTROL_COMMANDS Command, intptr_t Param1, const py::object& PyParam2)
 		{
-			const auto PluginId = py::cast<UUID>(PyPluginId);
-			const auto Command = py::cast<ADVANCED_CONTROL_COMMANDS>(PyCommand);
-			const auto Param1 = py::cast<intptr_t>(PyParam1);
-
 			const auto& DefaultCall = [&]
 			{
 				return psi().AdvControl(&PluginId, Command, Param1, nullptr);
@@ -415,12 +533,8 @@ namespace far_api_implementation
 	{
 		METHOD(PanelControl, "Panel Control Commands")
 
-		static py::object Do(const py::object& PyPanel, const py::object& PyCommand, const py::object& PyParam1, const py::object& PyParam2)
+		static py::object Do(HANDLE Panel, FILE_CONTROL_COMMANDS Command, intptr_t Param1, const py::object& PyParam2)
 		{
-			const auto Panel = py::cast<HANDLE>(PyPanel);
-			const auto Command = py::cast<FILE_CONTROL_COMMANDS>(PyCommand);
-			const auto Param1 = py::cast<intptr_t>(PyParam1);
-
 			const auto& DefaultCall = [&]
 			{
 				return psi().PanelControl(Panel, Command, Param1, nullptr);
@@ -613,6 +727,7 @@ namespace far_api_implementation
 		Define<GetMsg>(),
 		Define<Message>(),
 		Define<InputBox>(),
+		Define<DialogRun>(),
 		Define<Menu>(),
 		Define<ShowHelp>(),
 		Define<AdvControl>(),
