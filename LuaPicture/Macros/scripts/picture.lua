@@ -120,6 +120,7 @@ GpStatus GdipGetImageGraphicsContext(void* GpImage,void** GpGraphics);
 GpStatus GdipGetPropertyItemSize(void* GpImage,unsigned long,unsigned int*);
 GpStatus GdipGetPropertyItem(void* GpImage,unsigned long,unsigned int,PropertyItem*);
 GpStatus GdipImageRotateFlip(void* GpImage,RotateFlipType);
+GpStatus GdipBitmapGetPixel(void* bitmap, int x, int y, unsigned int* color);
 ]]
 safe_cdef([[
 typedef struct _COORD {
@@ -301,6 +302,25 @@ unsigned long GetCurrentProcessId(void);
 ]]
 local ntdll=ffi.load("ntdll")
 local pid=C.GetCurrentProcessId()
+
+configguid='6B6CA451-58D1-46B6-94A9-FF1157393926'
+local function ReadSettings()
+  local s=far.CreateSettings()
+  local sk=s:CreateSubkey(F.FSSF_ROOT,configguid,'Picture')
+  local cr=s:Get(sk,'console_renderer',F.FST_QWORD) or 0
+  s:Free()
+  return cr
+end
+local function WriteSettings(cr)
+  local s=far.CreateSettings()
+  local sk=s:CreateSubkey(F.FSSF_ROOT,configguid,'Picture')
+  s:Set(sk,'console_renderer',F.FST_QWORD,cr)
+  s:Free()
+end
+local console_renderer=ReadSettings()
+
+local function Rect(left,top,right,bottom) return {left=left;top=top;right=right;bottom=bottom;unpack=function(t) return t.left,t.top,t.right,t.bottom end} end
+local function Size(width,height) return {width=width;height=height;unpack=function(t) return t.width,t.height end} end
 
 local function GetProcessesAndThreads()
   local size=512*1024
@@ -559,35 +579,64 @@ local function InitArea(params)
   return DCRect
 end
 
-local function RangingPic(params)
-  local asp_dst=(params.DCRect.right-params.DCRect.left)/(params.DCRect.bottom-params.DCRect.top)
+local function RangingPic(params,InRect)
+  local asp_dst=(InRect.right-InRect.left)/(InRect.bottom-InRect.top)
   local asp_src=params.image.width/params.image.height
 
   local dst_w,dst_h
 
   if asp_dst<asp_src then
-    dst_w=math.min(params.DCRect.right-params.DCRect.left,params.image.width)
+    dst_w=math.min(InRect.right-InRect.left,params.image.width)
     dst_h=math.floor(dst_w/asp_src)
   else
-    dst_h=math.min(params.DCRect.bottom-params.DCRect.top,params.image.height)
+    dst_h=math.min(InRect.bottom-InRect.top,params.image.height)
     dst_w=math.floor(asp_src*dst_h)
   end
 
-  local left=params.DCRect.left+math.floor((params.DCRect.right-params.DCRect.left-dst_w)/2)
-  local top=params.DCRect.top+math.floor((params.DCRect.bottom-params.DCRect.top-dst_h)/2)
+  local left=InRect.left+math.floor((InRect.right-InRect.left-dst_w)/2)
+  local top=InRect.top+math.floor((InRect.bottom-InRect.top-dst_h)/2)
 
-  return {left=left,top=top,right=dst_w,bottom=dst_h}
+  return Rect(left,top,dst_w,dst_h)
 end
 
-local function UpdateImage(params)
-  gdiplus.GdipFillRectangleI(params.image.memory.graphics[0],params.image.brush[0],0,0,params.image.width,params.image.height)
-  --GdipDrawImageI fails on some images
-  --FIXME: какая-то ересь, на некоторых картинках первый вызов GdipDrawImageRectI завершается с ошибкой.
-  for _=0,1 do
-    if C.Win32Error~=gdiplus.GdipDrawImageRectI(params.image.memory.graphics[0],params.image.image[0],0,0,params.image.width,params.image.height) then break end
+local function UpdateImage(params,dlg)
+  local update=function(graphics,size,rect)
+    gdiplus.GdipFillRectangleI(graphics,params.image.brush[0],0,0,size:unpack())
+    --GdipDrawImageI fails on some images
+    --FIXME: какая-то ересь, на некоторых картинках первый вызов GdipDrawImageRectI завершается с ошибкой.
+    for _=0,1 do
+      if C.Win32Error~=gdiplus.GdipDrawImageRectI(graphics,params.image.image[0],rect:unpack()) then break end
+    end
   end
-  while IsWorking() do end
-  gdiplus.GdipDrawImageRectI(params.image.graphics[0],params.image.memory.image[0],params.RangedRect.left,params.RangedRect.top,params.RangedRect.right,params.RangedRect.bottom)
+
+  if 0==console_renderer then
+    local size=Size(params.image.width,params.image.height)
+    update(params.image.memory.graphics[0],size,Rect(0,0,size:unpack()))
+    while IsWorking() do end
+    gdiplus.GdipDrawImageRectI(params.image.graphics[0],params.image.memory.image[0],params.RangedRect.left,params.RangedRect.top,params.RangedRect.right,params.RangedRect.bottom)
+  else
+    local bitmap=ffi.new("void*[1]")
+    gdiplus.GdipCreateBitmapFromScan0(params.cr.width,params.cr.height,0,0x26200a,ffi.NULL,bitmap)
+    local graphics=ffi.new("void*[1]")
+    gdiplus.GdipGetImageGraphicsContext(bitmap[0],graphics)
+    update(graphics[0],params.cr,params.RangedCRRect)
+
+    local color0=ffi.new("unsigned int[1]")
+    local color1=ffi.new("unsigned int[1]")
+
+    for iy=0,(params.cr.height-1),2 do
+      for ix=0,params.cr.width-1 do
+        gdiplus.GdipBitmapGetPixel(bitmap[0],ix,iy+0,color0)
+        gdiplus.GdipBitmapGetPixel(bitmap[0],ix,iy+1,color1)
+        local textel={Char='▀',Attributes={Flags=0,ForegroundColor=BGR2RGB(color0[0]),BackgroundColor=BGR2RGB(color1[0])}}
+        params.cr.buffer[iy/2*params.cr.width+ix+1]=textel
+      end
+    end
+
+    gdiplus.GdipDeleteGraphics(graphics[0])
+    gdiplus.GdipDisposeImage(bitmap[0])
+    dlg:send(F.DM_REDRAW)
+  end
   if params.timer and not params.timer.Closed then
     params.timer.Interval=params.image.delay and params.image.delay[params.image.frame+1]*10 or 500
     if not params.timer.Enabled then params.timer.Enabled=true end
@@ -606,11 +655,13 @@ local function ShowImage(xpanel)
     params.image=InitImage(viewer.GetFileName())
     if params.image then
       local width,height=pinfo.PanelRect.right-pinfo.PanelRect.left-1,pinfo.PanelRect.bottom-pinfo.PanelRect.top-1
-      local buffer=far.CreateUserControl(width,height)
+      params.cr=Size(width,height*2)
+      params.cr.buffer=far.CreateUserControl(width,height)
       local function FillBuffer()
         local color=far.AdvControl(F.ACTL_GETCOLOR,K.COL_PANELTEXT)
         local textel={Char=bit64.bor(bit64.band(Symbol,0xf),0x30),Attributes={Flags=(bit64.band(color.Flags,F.FCF_BG_4BIT)==0) and 0
                      or bit64.bor(F.FCF_FG_4BIT,F.FCF_BG_4BIT),ForegroundColor=color.BackgroundColor,BackgroundColor=color.BackgroundColor}}
+        local buffer=params.cr.buffer
         Symbol=Symbol+1
         for ii=1,#buffer do
           buffer[ii]=textel
@@ -626,7 +677,7 @@ local function ShowImage(xpanel)
       local items={
         {'DI_DOUBLEBOX',0,0,width+1,height+1,0,0,0,0,
           params.image.width..' x '..params.image.height..' * '..params.image.frames..orientMarker},
-        {"DI_USERCONTROL",1,1,width,height,buffer,0,0,0,""}
+        {"DI_USERCONTROL",1,1,width,height,params.cr.buffer,0,0,0,""}
       }
       local function DlgProc(dlg,msg,param1,param2)
         local function CloseCommonTimer(timer) if timer then timer:Close() end end
@@ -649,7 +700,7 @@ local function ShowImage(xpanel)
           if params.image.frames>1 then
             local function ShowAnimation()
               if params.timer and not params.timer.Closed then params.timer.Enabled=false end
-              UpdateImage(params)
+              UpdateImage(params,dlg)
             end
             params.timer=far.Timer(1000000,ShowAnimation)
             params.timer.Enabled=false
@@ -666,26 +717,36 @@ local function ShowImage(xpanel)
             return colors
           end
         elseif msg==F.DN_DRAWDLGITEM then
-          params.Redraw=true
+          if 0==console_renderer then
+            params.Redraw=true
+          else
+            UpdateImage(params,dlg)
+          end
         elseif msg==F.DN_DRAWDIALOGDONE then
-          if params.Redraw then
-            params.Redraw=false
-            CloseDelayTimer()
-            params.DelayTimer=far.Timer(0,function(timer)
-              timer:Close()
-              far.Text(0,0,0,nil)
-              UpdateImage(params)
-            end)
+          if 0==console_renderer then
+            if params.Redraw then
+              params.Redraw=false
+              CloseDelayTimer()
+              params.DelayTimer=far.Timer(0,function(timer)
+                timer:Close()
+                far.Text(0,0,0,nil)
+                UpdateImage(params,dlg)
+              end)
+            end
           end
         elseif msg==F.DN_INPUT then
           if param2.EventType==F.FOCUS_EVENT and param2.SetFocus then
-            UpdateImage(params)
+            UpdateImage(params,dlg)
           elseif param2.EventType==F.MOUSE_EVENT then
             return not CloseDialog(function(key) return Mouse2[key] or Mouse3[key] and not PointInRect(param2,params.PanelRect) end)
           end
         elseif msg==F.DN_CONTROLINPUT then
-          if param1==-1 then return true end
-          return CloseDialog(function(key) return ((param2.EventType==F.KEY_EVENT or param2.EventType==F.FARMACRO_KEY_EVENT) and param2.KeyDown or param2.EventType==F.MOUSE_EVENT and Mouse1[key]) end)
+          if "F3"==far.InputRecordToName(param2) then
+            console_renderer=0==console_renderer and 1 or 0
+            FillBuffer()
+            dlg:send(F.DM_REDRAW)
+          elseif param1~=-1 then return CloseDialog(function(key) return ((param2.EventType==F.KEY_EVENT or param2.EventType==F.FARMACRO_KEY_EVENT) and param2.KeyDown or param2.EventType==F.MOUSE_EVENT and Mouse1[key]) end) end
+          return true
         elseif msg==F.DN_RESIZECONSOLE then
           CloseDialog(nil,"CtrlR")
         elseif msg==F.DN_DRAGGED then
@@ -701,8 +762,9 @@ local function ShowImage(xpanel)
       params.DrawRect.right=pinfo.PanelRect.right-1
       params.DrawRect.bottom=pinfo.PanelRect.bottom-1
       params.DCRect=InitArea(params)
-      params.RangedRect=RangingPic(params)
+      params.RangedRect=RangingPic(params,params.DCRect)
       params.PanelRect=pinfo.PanelRect
+      params.RangedCRRect=RangingPic(params,{left=0;right=width;top=0;bottom=height*2})
       local dialog=far.DialogInit(win.Uuid("BFC62A3A-1ED5-4590-AF86-A582F6237E6F"),pinfo.PanelRect.left,pinfo.PanelRect.top,pinfo.PanelRect.right,pinfo.PanelRect.bottom,nil,items,F.FDLG_NODRAWSHADOW,DlgProc)
       far.DialogRun(dialog)
       far.DialogFree(dialog)
@@ -736,5 +798,30 @@ Event
   group="ExitFAR";
   action=function()
     gdiplus.GdiplusShutdown(handle[0])
+  end
+}
+
+MenuItem
+{
+  menu='Config';
+  guid='A1514770-1F60-4734-A3B2-E2E66CB9D661';
+  text='Picture';
+  action=function()
+    KCheck=2
+    console_renderer=ReadSettings()
+    local function DlgProc(dlg,msg)
+      if msg==F.DN_INITDIALOG then
+      elseif msg==F.DN_ENTERIDLE then
+      elseif msg==F.DN_CLOSE then
+      end
+    end
+    local items={
+      {'DI_DOUBLEBOX', 3,1,26,3,0,               0,0,0,'Picture'},
+      {'DI_CHECKBOX',  5,2, 0,0,console_renderer,0,0,0,'&Console renderer'}
+    }
+    local dialog=far.DialogInit(win.Uuid("9399CDDC-47B0-481D-985B-580E1CE0C8CB"),-1,-1,30,5,nil,items,0,DlgProc)
+    if 0<far.DialogRun(dialog) then WriteSettings(dialog:send(F.DM_GETCHECK,KCheck)) end
+    far.DialogFree(dialog)
+    console_renderer=ReadSettings()
   end
 }
