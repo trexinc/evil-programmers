@@ -576,12 +576,12 @@ local function InitArea(params)
   DCRect.right=math.floor(dx*(params.DrawRect.right+1-info.srWindow.Left))
   DCRect.top=math.floor(dy*(params.DrawRect.top))
   DCRect.bottom=math.floor(dy*(params.DrawRect.bottom+1))
-  return DCRect
+  return DCRect,Size(dx,dy)
 end
 
-local function RangingPic(params,InRect)
+local function RangingPic(params,InRect,fix)
   local asp_dst=(InRect.right-InRect.left)/(InRect.bottom-InRect.top)
-  local asp_src=params.image.width/params.image.height
+  local asp_src=params.image.width/(params.image.height*(fix and fix.width*2/fix.height or 1))
 
   local dst_w,dst_h
 
@@ -741,7 +741,7 @@ local function ShowImage(xpanel)
             return not CloseDialog(function(key) return Mouse2[key] or Mouse3[key] and not PointInRect(param2,params.PanelRect) end)
           end
         elseif msg==F.DN_CONTROLINPUT then
-          if "F3"==far.InputRecordToName(param2) then
+          if "F4"==far.InputRecordToName(param2) then
             console_renderer=0==console_renderer and 1 or 0
             FillBuffer()
             dlg:send(F.DM_REDRAW)
@@ -761,10 +761,10 @@ local function ShowImage(xpanel)
       params.DrawRect.top=pinfo.PanelRect.top+1
       params.DrawRect.right=pinfo.PanelRect.right-1
       params.DrawRect.bottom=pinfo.PanelRect.bottom-1
-      params.DCRect=InitArea(params)
+      params.DCRect,params.FontSize=InitArea(params)
       params.RangedRect=RangingPic(params,params.DCRect)
       params.PanelRect=pinfo.PanelRect
-      params.RangedCRRect=RangingPic(params,{left=0;right=width;top=0;bottom=height*2})
+      params.RangedCRRect=RangingPic(params,{left=0;right=params.cr.width;top=0;bottom=params.cr.height},params.FontSize)
       local dialog=far.DialogInit(win.Uuid("BFC62A3A-1ED5-4590-AF86-A582F6237E6F"),pinfo.PanelRect.left,pinfo.PanelRect.top,pinfo.PanelRect.right,pinfo.PanelRect.bottom,nil,items,F.FDLG_NODRAWSHADOW,DlgProc)
       far.DialogRun(dialog)
       far.DialogFree(dialog)
