@@ -179,7 +179,6 @@ local handle=ffi.new("void*[1]")
 local startup=ffi.new("GdiplusStartupInput")
 startup.GdiplusVersion=1
 gdiplus.GdiplusStartup(handle,startup,ffi.NULL)
-local Symbol=0
 
 safe_cdef([[
 typedef enum _SYSTEM_INFORMATION_CLASS {
@@ -569,14 +568,15 @@ local function InitArea(params)
   C.GetConsoleScreenBufferInfo(handle,info)
   local crect=ffi.new("RECT")
   C.GetClientRect(params.image.wnd,crect)
-  local dx=math.floor((crect.right-crect.left)/(info.srWindow.Right-info.srWindow.Left+1)+0.5)
-  local dy=math.floor((crect.bottom-crect.top)/(info.srWindow.Bottom-info.srWindow.Top+1)+0.5)
+  local gui=crect.bottom~=0;
+  local dx=gui and math.floor((crect.right-crect.left)/(info.srWindow.Right-info.srWindow.Left+1)+0.5) or 8
+  local dy=gui and math.floor((crect.bottom-crect.top)/(info.srWindow.Bottom-info.srWindow.Top+1)+0.5) or 16
   local DCRect={}
   DCRect.left=math.floor(dx*(params.DrawRect.left-info.srWindow.Left))
   DCRect.right=math.floor(dx*(params.DrawRect.right+1-info.srWindow.Left))
   DCRect.top=math.floor(dy*(params.DrawRect.top))
   DCRect.bottom=math.floor(dy*(params.DrawRect.bottom+1))
-  return DCRect,Size(dx,dy)
+  return DCRect,Size(dx,dy),gui
 end
 
 local function RangingPic(params,InRect,fix)
@@ -651,7 +651,7 @@ end
 local function ShowImage(xpanel)
   local vinfo,pinfo=viewer.GetInfo(),panel.GetPanelInfo(nil,xpanel)
   if pinfo and vinfo and vinfo.WindowSizeX==(pinfo.PanelRect.right-pinfo.PanelRect.left-1) and pinfo.PanelType==F.PTYPE_QVIEWPANEL then
-    local params={CurPanel=bit64.band(pinfo.Flags,F.PFLAGS_FOCUS)~=0,Redraw=false,Key=false,Exit=false}
+    local params={CurPanel=bit64.band(pinfo.Flags,F.PFLAGS_FOCUS)~=0,Redraw=false,Gui=true,Key=false,Exit=false}
     params.image=InitImage(viewer.GetFileName())
     if params.image then
       local width,height=pinfo.PanelRect.right-pinfo.PanelRect.left-1,pinfo.PanelRect.bottom-pinfo.PanelRect.top-1
@@ -659,10 +659,9 @@ local function ShowImage(xpanel)
       params.cr.buffer=far.CreateUserControl(width,height)
       local function FillBuffer()
         local color=far.AdvControl(F.ACTL_GETCOLOR,K.COL_PANELTEXT)
-        local textel={Char=bit64.bor(bit64.band(Symbol,0xf),0x30),Attributes={Flags=(bit64.band(color.Flags,F.FCF_BG_4BIT)==0) and 0
+        local textel={Char='▀',Attributes={Flags=(bit64.band(color.Flags,F.FCF_BG_4BIT)==0) and 0
                      or bit64.bor(F.FCF_FG_4BIT,F.FCF_BG_4BIT),ForegroundColor=color.BackgroundColor,BackgroundColor=color.BackgroundColor}}
         local buffer=params.cr.buffer
-        Symbol=Symbol+1
         for ii=1,#buffer do
           buffer[ii]=textel
         end
@@ -761,7 +760,8 @@ local function ShowImage(xpanel)
       params.DrawRect.top=pinfo.PanelRect.top+1
       params.DrawRect.right=pinfo.PanelRect.right-1
       params.DrawRect.bottom=pinfo.PanelRect.bottom-1
-      params.DCRect,params.FontSize=InitArea(params)
+      params.DCRect,params.FontSize,params.Gui=InitArea(params)
+      if not params.Gui then console_renderer=true end
       params.RangedRect=RangingPic(params,params.DCRect)
       params.PanelRect=pinfo.PanelRect
       params.RangedCRRect=RangingPic(params,{left=0;right=params.cr.width;top=0;bottom=params.cr.height},params.FontSize)
