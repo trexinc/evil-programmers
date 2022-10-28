@@ -487,7 +487,7 @@ Editor=->
     check=(c)->c.__name==tt.o.__name
     hotkeys="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     gethotkey=->(if hotkeys\len!>0 then "&"..(hotkeys\sub 1,1)..". " else "   "),do hotkeys=hotkeys\sub 2
-    result=far.Menu{Id:win.Uuid"34BB1EE6-E7E1-44F4-A8DC-D51CF1B85E4C"},[{text:gethotkey!..scheme.Title,checked:check(scheme),selected:check(scheme),value:InitType scheme} for scheme in *Schemes]
+    result=far.Menu {Id:win.Uuid"34BB1EE6-E7E1-44F4-A8DC-D51CF1B85E4C"},[{text:gethotkey!..scheme.Title,checked:check(scheme),selected:check(scheme),value:InitType scheme} for scheme in *Schemes]
     if result
       editors[id]=result.value
       ApplyType id,result.value
@@ -510,7 +510,7 @@ Config=->
       when F.DN_BTNCLICK
         if param1==KCheck
           update param2
-          true
+          return true
     nil
   dialog=far.DialogInit (win.Uuid'2E2C46E6-9248-4AB2-BFA7-7A8B0FECDD64'),-1,-1,40,6,nil,items,0,DlgProc
   if 0<far.DialogRun dialog then WriteSettings (dialog\send F.DM_GETCHECK,KCheck),(tonumber dialog\send F.DM_GETTEXT,KEdit)

@@ -36,4 +36,4 @@ parse=(line)->
       insert lines,(get id,ii,3)
   for line in *lines
     result=parse line
-    if result return result
+    if result then return result

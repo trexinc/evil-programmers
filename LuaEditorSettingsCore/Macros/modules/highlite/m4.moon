@@ -15,7 +15,6 @@ word=(R'az'+R'AZ'+R'09'+S'_')^1
     {P'm4_'^-1*(P'dnl'+P'__file__'+P'__line__'),Color:13}
     {
       (s,str,init)->
-        nil
         Param=(name)->(V'Space'^0*P'`'*(Cg V'Value'^0,name)*P"'"*V'Space'^0)^-1
         cq=C Ct P{P'changequote'*V'Space'^0*P'('*V'Param1'*P','*V'Param2'*P')',Space:S' \t',Value:1-P"'",Param1:Param'param1',Param2:Param'param2'}
         res,quotes=cq\match str,init.B
