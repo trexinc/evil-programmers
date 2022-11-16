@@ -31,6 +31,8 @@ enum {
   mConfigMenu4,
   mConfigDialogActive,
   mConfigDialogMaxLines,
+  mConfigDialogPriority,
+  mConfigDialogBrPriority,
   mConfigSave,
   mConfigCancel,
   mStopQuestion,
@@ -142,6 +144,8 @@ struct Options
 {
   bool Active;
   __int64 MaxLines;
+  __int64 Priority;
+  __int64 BrPriority;
 };
 
 extern struct Options Opt;

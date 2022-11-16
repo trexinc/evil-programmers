@@ -55,10 +55,10 @@ static void WINAPI addcolor(struct ColorizeParams* params,intptr_t lno,intptr_t 
       switch(priority)
       {
         case EPriorityNormal:
-          ec.Priority=0;
+          ec.Priority=Opt.Priority;
           break;
         case EPriorityBrackets:
-          ec.Priority=100;
+          ec.Priority=Opt.BrPriority;
           break;
       }
       ec.Flags=ECF_AUTODELETE;

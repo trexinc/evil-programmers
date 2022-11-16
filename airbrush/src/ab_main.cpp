@@ -52,7 +52,7 @@ DEFINE_GUID(Config7MenuGuid, 0x83992d56, 0xb22b, 0x417a, 0xa3, 0x92, 0xa1, 0x7f,
 PluginStartupInfo Info;
 FARSTANDARDFUNCTIONS FSF;
 
-struct Options Opt={true,50000};
+struct Options Opt={true,50000,0,100};
 
 #define GetCheck(i) static_cast<int>(Info.SendDlgMessage(hDlg,DM_GETCHECK,i,0))
 #define GetDataPtr(i) reinterpret_cast<const TCHAR*>(Info.SendDlgMessage(hDlg,DM_GETCONSTTEXTPTR,i,0))
@@ -98,8 +98,6 @@ void ConvertColor(const ABColor& Color,FarColor& NewColor)
   NewColor.Flags=Color.Flags;
   NewColor.ForegroundColor=Color.ForegroundColor;
   NewColor.BackgroundColor=Color.BackgroundColor;
-  MAKE_OPAQUE(NewColor.ForegroundColor);
-  MAKE_OPAQUE(NewColor.BackgroundColor);
   NewColor.Reserved=Color.Reserved;
   if(Color.ForegroundDefault)
   {
@@ -136,6 +134,8 @@ void WINAPI SetStartupInfoW(const struct PluginStartupInfo *Info)
     CFarSettings settings(MainGuid);
     Opt.Active=settings.Get(_T("Active"),Opt.Active);
     Opt.MaxLines=settings.Get(_T("MaxLines"),Opt.MaxLines);
+    Opt.Priority=settings.Get(_T("Priority"),Opt.Priority);
+    Opt.BrPriority=settings.Get(_T("BrPriority"),Opt.BrPriority);
   }
   LoadPlugs(Info->ModuleName);
   OnLoad();
@@ -387,7 +387,7 @@ intptr_t WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
       break;
     else if(MenuCode==0)
     {
-      enum {IBox,IActive,IMaxLinesLabel,IMaxLines,IDummy,ISave,ICancel};
+      enum {IBox,IActive,IMaxLinesLabel,IMaxLines,IPriorityLabel,IPriority,IBrPriorityLabel,IBrPriority,IDummy,ISave,ICancel};
       /*
         0000000000111111111122222222223333333333444444444455555555556666666666777777
         0123456789012345678901234567890123456789012345678901234567890123456789012345
@@ -403,32 +403,46 @@ intptr_t WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
         0123456789012345678901234567890123456789012345678901234567890123456789012345
       */
       struct FarDialogItem DialogItems[]={
-      /*0*/  {DI_DOUBLEBOX,3 ,1,72,6,{0},NULL,NULL,0,                                GetMsg(mName)                   ,0,0,{0,0}},
-      /*1*/  {DI_CHECKBOX ,5 ,2,0 ,0,{0},NULL,NULL,DIF_FOCUS,                        GetMsg(mConfigDialogActive)     ,0,0,{0,0}},
-      /*2*/  {DI_TEXT     ,5 ,3,0 ,0,{0},NULL,NULL,0,                                GetMsg(mConfigDialogMaxLines)   ,0,0,{0,0}},
-      /*3*/  {DI_FIXEDIT  ,62,3,70,0,{0},NULL,NULL,DIF_MASKEDIT,                     _T("")                          ,0,0,{0,0}},
-      /*4*/  {DI_TEXT     ,-1,4,0 ,0,{0},NULL,NULL,DIF_SEPARATOR,                    _T("")                          ,0,0,{0,0}},
-      /*5*/  {DI_BUTTON   ,0 ,5,0 ,0,{0},NULL,NULL,DIF_CENTERGROUP|DIF_DEFAULTBUTTON,GetMsg(mConfigSave)             ,0,0,{0,0}},
-      /*6*/  {DI_BUTTON   ,0 ,5,0 ,0,{0},NULL,NULL,DIF_CENTERGROUP,                  GetMsg(mConfigCancel)           ,0,0,{0,0}}
+      /* 0*/  {DI_DOUBLEBOX,3 ,1,72,8,{0},NULL,NULL,0,                                GetMsg(mName)                   ,0,0,{0,0}},
+      /* 1*/  {DI_CHECKBOX ,5 ,2,0 ,0,{0},NULL,NULL,DIF_FOCUS,                        GetMsg(mConfigDialogActive)     ,0,0,{0,0}},
+      /* 2*/  {DI_TEXT     ,5 ,3,0 ,0,{0},NULL,NULL,0,                                GetMsg(mConfigDialogMaxLines)   ,0,0,{0,0}},
+      /* 3*/  {DI_FIXEDIT  ,62,3,70,0,{0},NULL,NULL,DIF_MASKEDIT,                     _T("")                          ,0,0,{0,0}},
+      /* 4*/  {DI_TEXT     ,5 ,4,0 ,0,{0},NULL,NULL,0,                                GetMsg(mConfigDialogPriority)   ,0,0,{0,0}},
+      /* 5*/  {DI_FIXEDIT  ,62,4,70,0,{0},NULL,NULL,DIF_MASKEDIT,                     _T("")                          ,0,0,{0,0}},
+      /* 6*/  {DI_TEXT     ,5 ,5,0 ,0,{0},NULL,NULL,0,                                GetMsg(mConfigDialogBrPriority) ,0,0,{0,0}},
+      /* 7*/  {DI_FIXEDIT  ,62,5,70,0,{0},NULL,NULL,DIF_MASKEDIT,                     _T("")                          ,0,0,{0,0}},
+      /* 8*/  {DI_TEXT     ,-1,6,0 ,0,{0},NULL,NULL,DIF_SEPARATOR,                    _T("")                          ,0,0,{0,0}},
+      /* 9*/  {DI_BUTTON   ,0 ,7,0 ,0,{0},NULL,NULL,DIF_CENTERGROUP|DIF_DEFAULTBUTTON,GetMsg(mConfigSave)             ,0,0,{0,0}},
+      /*10*/  {DI_BUTTON   ,0 ,7,0 ,0,{0},NULL,NULL,DIF_CENTERGROUP,                  GetMsg(mConfigCancel)           ,0,0,{0,0}}
       };
       DialogItems[IActive].Selected=Opt.Active;
-      DialogItems[IMaxLines].Mask=_T("########9");
+      DialogItems[IMaxLines].Mask=DialogItems[IPriority].Mask=DialogItems[IBrPriority].Mask=_T("########9");
 
-      TCHAR lines[32];
-      DialogItems[IMaxLines].Data=lines;
-      wsprintf(lines,_T("%d"),Opt.MaxLines);
+      const size_t count=3;
+      TCHAR lines[count][32];
+      const size_t edits[count]={IMaxLines,IPriority,IBrPriority};
+      __int64 opts[count]={Opt.MaxLines,Opt.Priority,Opt.BrPriority};
+      for(size_t ii=0;ii<count;++ii)
+      {
+        DialogItems[edits[ii]].Data=lines[ii];
+        wsprintf(lines[ii],_T("%d"),opts[ii]);
+      }
       int DlgCode=-1;
-      HANDLE hDlg=Info.DialogInit(&MainGuid,&Config1Guid,-1,-1,76,8,_T("Config1"),DialogItems,(sizeof(DialogItems)/sizeof(DialogItems[0])),0,0,Config1DialogProc,0);
+      HANDLE hDlg=Info.DialogInit(&MainGuid,&Config1Guid,-1,-1,76,10,_T("Config1"),DialogItems,(sizeof(DialogItems)/sizeof(DialogItems[0])),0,0,Config1DialogProc,0);
       if(hDlg!=INVALID_HANDLE_VALUE) DlgCode=Info.DialogRun(hDlg);
       if(DlgCode==ISave)
       {
         Opt.Active=GetCheck(IActive);
         Opt.MaxLines=FSF.atoi(GetDataPtr(IMaxLines));
+        Opt.Priority=FSF.atoi(GetDataPtr(IPriority));
+        Opt.BrPriority=FSF.atoi(GetDataPtr(IBrPriority));
 
         {
           CFarSettings settings(MainGuid);
           settings.Set(_T("Active"),Opt.Active);
           settings.Set(_T("MaxLines"),Opt.MaxLines);
+          settings.Set(_T("Priority"),Opt.Priority);
+          settings.Set(_T("BrPriority"),Opt.BrPriority);
         }
       }
       if(hDlg!=INVALID_HANDLE_VALUE) Info.DialogFree(hDlg);

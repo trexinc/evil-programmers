@@ -12,6 +12,8 @@
 //config dialog
 "Turn &on plugin module"
 "Don't highlite files with line &count greater then"
+"&Priority"
+"&Brackets' priority"
 "Save"
 "Cancel"
 //Stop dialog
