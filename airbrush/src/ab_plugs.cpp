@@ -20,6 +20,7 @@
 #include "far_settings.h"
 #include "farcolor.hpp"
 #include "memory.h"
+#define AB_MAIN
 #include "abplugin.h"
 #include "ab_main.h"
 #include "abversion.h"
@@ -37,9 +38,8 @@ size_t PluginsCount=0;
 
 static TCHAR UnknownPluginName[20];
 
-static void WINAPI addcolor(struct ColorizeParams* params,intptr_t lno,intptr_t start,intptr_t len,const struct ABColor* color,enum ColorizePriority priority)
+static void WINAPI addcolor(struct ColorizeParams* params,intptr_t lno,intptr_t start,intptr_t len,const struct FarColor* color,enum ColorizePriority priority)
 {
-  if((color->ForegroundDefault)&&(color->BackgroundDefault)) return;
   if(len==0) return;
   if(lno>=params->topmargin&&lno<params->bottommargin)
   {
@@ -50,7 +50,7 @@ static void WINAPI addcolor(struct ColorizeParams* params,intptr_t lno,intptr_t 
       ec.StringNumber=lno;
       ec.StartPos=start;
       ec.EndPos=start+len-1;
-      ConvertColor(*color,ec.Color);
+      ec.Color=*color;
       ec.Owner=MainGuid;
       switch(priority)
       {
@@ -341,7 +341,7 @@ void LoadPlugs(const TCHAR* ModuleName)
               lstrcpy(CurPlugin.Start,buff_start);
             if(CurPlugin.pGetParams)
             { //load colors
-              int ColorCount; ABColor* Colors;
+              int ColorCount; FarColor* Colors;
               if((CurPlugin.Params&PAR_COLORS_STORE)&&CurPlugin.pGetParams(CurPlugin.Index,PAR_GET_COLOR_COUNT,reinterpret_cast<const char**>(&ColorCount))&&CurPlugin.pGetParams(CurPlugin.Index,PAR_GET_COLOR,const_cast<const char**>(reinterpret_cast<char**>(&Colors))))
               {
                 LoadColors(settings,CurPlugin.IdStr,Colors,ColorCount);

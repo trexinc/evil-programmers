@@ -19,7 +19,6 @@
 #include <algorithm>
 #include <stdio.h>
 #include "far_settings.h"
-#include "abplugin.h"
 #include "ab_main.h"
 #include "guid.h"
 
@@ -37,8 +36,6 @@ class CColors
         _(L"Flags%d",Colors[ii].Flags);
         _(L"ForegroundColor%d",Colors[ii].ForegroundColor);
         _(L"BackgroundColor%d",Colors[ii].BackgroundColor);
-        _(L"ForegroundDefault%d",Colors[ii].ForegroundDefault);
-        _(L"BackgroundDefault%d",Colors[ii].BackgroundDefault);
       }
     }
   private:
@@ -70,13 +67,13 @@ class CColors
 };
 
 
-void SaveColors(const wchar_t* Name,const ABColor* Colors,const size_t Count)
+void SaveColors(const wchar_t* Name,const FarColor* Colors,const size_t Count)
 {
   CFarSettings settings(MainGuid);
   CColors colors(settings,Name,Colors,Count);
 }
 
-void LoadColors(CFarSettings& Settings,const wchar_t* Name,ABColor* Colors,size_t Count)
+void LoadColors(CFarSettings& Settings,const wchar_t* Name,FarColor* Colors,size_t Count)
 {
   CColors colors(Settings,Name,Colors,Count);
 }

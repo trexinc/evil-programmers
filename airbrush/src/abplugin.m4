@@ -56,19 +56,42 @@ enum ColorizePriority
 };
 
 #define AB_OPAQUE(x) ((x)|0xff000000)
-#define ABCF_4BIT (0x0000000000000003ULL)
 
-struct ABColor
+#ifndef AB_MAIN
+typedef unsigned long long FARCOLORFLAGS;
+
+static const FARCOLORFLAGS
+  FCF_FG_4BIT       = 0x0000000000000001ULL,
+  FCF_BG_4BIT       = 0x0000000000000002ULL;
+
+struct rgba { unsigned char r, g, b, a; };
+
+struct FarColor
 {
-  __int64 Flags;
-  COLORREF ForegroundColor;
-  COLORREF BackgroundColor;
+  FARCOLORFLAGS Flags;
+  union
+  {
+    COLORREF ForegroundColor;
+    struct rgba ForegroundRGBA;
+  }
+#ifndef __cplusplus
+  Foreground
+#endif
+  ;
+  union
+  {
+    COLORREF BackgroundColor;
+    struct rgba BackgroundRGBA;
+  }
+#ifndef __cplusplus
+  Background
+#endif
+  ;
   void* Reserved;
-  bool ForegroundDefault;
-  bool BackgroundDefault;
 };
+#endif
 
-typedef void (WINAPI* PLUGINADDCOLOR)(struct ColorizeParams* params,intptr_t lno,intptr_t start,intptr_t len,const struct ABColor* color,enum ColorizePriority priority);
+typedef void (WINAPI* PLUGINADDCOLOR)(struct ColorizeParams* params,intptr_t lno,intptr_t start,intptr_t len,const struct FarColor* color,enum ColorizePriority priority);
 typedef const wchar_t* (WINAPI *PLUGINGETLINE)(intptr_t eid,intptr_t lno,intptr_t* len);
 typedef bool (WINAPI* PLUGINADDSTATE)(intptr_t eid,intptr_t pos,size_t size,unsigned char* data);
 typedef void (WINAPI* PLUGINGETCURSOR)(intptr_t eid,intptr_t* row,intptr_t* col);

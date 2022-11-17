@@ -19,6 +19,7 @@
 #include <tchar.h>
 #include "far_settings.h"
 #include "memory.h"
+#define AB_MAIN
 #include "abplugin.h"
 #include "ab_main.h"
 #include "guid.h"

@@ -29,5 +29,5 @@
 #define PARSER_COMMENT  1
 #define PARSER_STRING   2
 
-extern ABColor colors[];
+extern FarColor colors[];
 extern struct ColorizeInfo Info;

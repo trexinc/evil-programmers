@@ -24,18 +24,18 @@
 #include "guid.h"
 
 ColorizeInfo Info;
-ABColor colors[]=
+FarColor colors[]=
 {
-  {ABCF_4BIT,AB_OPAQUE(0x03),AB_OPAQUE(0x00),NULL,false,true },
-  {ABCF_4BIT,AB_OPAQUE(0x0F),AB_OPAQUE(0x00),NULL,false,true },
-  {ABCF_4BIT,AB_OPAQUE(0x0D),AB_OPAQUE(0x00),NULL,false,true },
-  {ABCF_4BIT,AB_OPAQUE(0x09),AB_OPAQUE(0x00),NULL,false,true },
-  {ABCF_4BIT,AB_OPAQUE(0x0E),AB_OPAQUE(0x00),NULL,false,true },
-  {ABCF_4BIT,AB_OPAQUE(0x0A),AB_OPAQUE(0x00),NULL,false,true },
-  {ABCF_4BIT,AB_OPAQUE(0x04),AB_OPAQUE(0x00),NULL,false,true },
-  {ABCF_4BIT,AB_OPAQUE(0x00),AB_OPAQUE(0x0A),NULL,false,false},
-  {ABCF_4BIT,AB_OPAQUE(0x0C),AB_OPAQUE(0x00),NULL,false,true },
-  {ABCF_4BIT,AB_OPAQUE(0x01),AB_OPAQUE(0x0C),NULL,false,false}
+  {FCF_FG_4BIT            ,AB_OPAQUE(0x03),              0,NULL},
+  {FCF_FG_4BIT            ,AB_OPAQUE(0x0F),              0,NULL},
+  {FCF_FG_4BIT            ,AB_OPAQUE(0x0D),              0,NULL},
+  {FCF_FG_4BIT            ,AB_OPAQUE(0x09),              0,NULL},
+  {FCF_FG_4BIT            ,AB_OPAQUE(0x0E),              0,NULL},
+  {FCF_FG_4BIT            ,AB_OPAQUE(0x0A),              0,NULL},
+  {FCF_FG_4BIT            ,AB_OPAQUE(0x04),              0,NULL},
+  {FCF_FG_4BIT|FCF_BG_4BIT,AB_OPAQUE(0x00),AB_OPAQUE(0x0A),NULL},
+  {FCF_FG_4BIT            ,AB_OPAQUE(0x0C),              0,NULL},
+  {FCF_FG_4BIT|FCF_BG_4BIT,AB_OPAQUE(0x01),AB_OPAQUE(0x0C),NULL}
 };
 const wchar_t* colornames[]={L"Comment",L"Keyword",L"Modifier",L"Macro",L"String",L"Number",L"Attribute",L"//FIXME",L"Pair",L"Wrong Pair"};
 
@@ -61,10 +61,10 @@ int WINAPI GetParams(intptr_t index,intptr_t command,const char **param)
       *param=reinterpret_cast<const char*>(L"*.rs");
       return true;
     case PAR_GET_COLOR_COUNT:
-      *reinterpret_cast<int*>(param)=sizeof(colornames)/sizeof(colornames[0]);
+      *reinterpret_cast<size_t*>(param)=sizeof(colornames)/sizeof(colornames[0]);
       return true;
     case PAR_GET_COLOR:
-      *reinterpret_cast<const ABColor**>(param)=colors;
+      *reinterpret_cast<const FarColor**>(param)=colors;
       return true;
     case PAR_GET_COLOR_NAME:
       *param=reinterpret_cast<const char*>(colornames);

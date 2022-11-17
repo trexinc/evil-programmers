@@ -30,4 +30,4 @@
 #define PARSER_STRING    3
 #define PARSER_SET       4
 
-extern ABColor colors[];
+extern FarColor colors[];

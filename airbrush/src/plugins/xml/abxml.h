@@ -43,5 +43,5 @@
 #define PARSER_STRING2  0x0a
 #define PARSER_CDATA    0x0b
 
-extern ABColor colors[];
+extern FarColor colors[];
 extern struct ColorizeInfo Info;

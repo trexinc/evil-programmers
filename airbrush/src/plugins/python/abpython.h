@@ -43,5 +43,5 @@
 #define PAIR_SQ_BRACKETS             10
 #define PAIR_BRACES                  11
 
-extern ABColor colors[];
+extern FarColor colors[];
 extern struct ColorizeInfo Info;

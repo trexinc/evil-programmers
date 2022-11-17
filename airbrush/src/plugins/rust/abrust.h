@@ -48,5 +48,5 @@ struct RustState
   int Level;
 };
 
-extern ABColor colors[];
+extern FarColor colors[];
 extern struct ColorizeInfo Info;

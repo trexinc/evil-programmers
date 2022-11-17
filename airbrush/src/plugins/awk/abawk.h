@@ -35,5 +35,5 @@
 #define PARSER_STRING   1
 #define PARSER_REGEXP   2
 
-extern ABColor colors[];
+extern FarColor colors[];
 extern struct ColorizeInfo Info;

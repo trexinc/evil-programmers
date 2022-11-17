@@ -58,5 +58,5 @@
 #define PAIR_BRACES      2
 #define PAIR_STRING      3
 
-extern ABColor colors[];
+extern FarColor colors[];
 extern struct ColorizeInfo Info;

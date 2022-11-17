@@ -136,9 +136,8 @@ extern FARSTANDARDFUNCTIONS FSF;
 extern void LoadPlugs(const TCHAR* ModuleName);
 extern void UnloadPlugs(void);
 
-extern void ConvertColor(const ABColor& Color,FarColor& NewColor);
-extern void SaveColors(const wchar_t* Name,const ABColor* Colors,const size_t Count);
-extern void LoadColors(CFarSettings& Settings,const wchar_t* Name,ABColor* Colors,size_t Count);
+extern void SaveColors(const wchar_t* Name,const FarColor* Colors,const size_t Count);
+extern void LoadColors(CFarSettings& Settings,const wchar_t* Name,FarColor* Colors,size_t Count);
 
 struct Options
 {

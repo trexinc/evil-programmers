@@ -22,6 +22,7 @@
 #include "far_settings.h"
 #include "farcolor.hpp"
 #include "memory.h"
+#define AB_MAIN
 #include "abplugin.h"
 #include "ab_main.h"
 #include "abversion.h"
@@ -89,26 +90,6 @@ TCHAR* GetCommaWord(TCHAR* Src,TCHAR* Word)
   }
   Word[WordPos]=0;
   return(Src);
-}
-
-void ConvertColor(const ABColor& Color,FarColor& NewColor)
-{
-  FarColor DefColor;
-  Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_EDITORTEXT,&DefColor);
-  NewColor.Flags=Color.Flags;
-  NewColor.ForegroundColor=Color.ForegroundColor;
-  NewColor.BackgroundColor=Color.BackgroundColor;
-  NewColor.Reserved=Color.Reserved;
-  if(Color.ForegroundDefault)
-  {
-    NewColor.ForegroundColor=DefColor.ForegroundColor;
-    NewColor.Flags=(NewColor.Flags&BG_MASK)|(DefColor.Flags&FG_MASK);
-  }
-  if(Color.BackgroundDefault)
-  {
-    NewColor.BackgroundColor=DefColor.BackgroundColor;
-    NewColor.Flags=(NewColor.Flags&FG_MASK)|(DefColor.Flags&BG_MASK);
-  }
 }
 
 void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
@@ -643,7 +624,7 @@ intptr_t WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
 
               MenuCode=Info.Menu(&MainGuid,&Config6MenuGuid,-1,-1,0,FMENU_AUTOHIGHLIGHT|FMENU_WRAPMODE,_T(""),NULL,_T("Config6"),NULL,NULL,SyntaxTypes,ConfCount);
               if(MenuCode==-1) break;
-              size_t ColorCount; char **ColorNames; ABColor* Colors;
+              size_t ColorCount; char **ColorNames; FarColor* Colors;
               if(PluginsData[ids[MenuCode]].pGetParams&&PluginsData[ids[MenuCode]].pGetParams(PluginsData[ids[MenuCode]].Index,PAR_GET_COLOR_COUNT,reinterpret_cast<const char**>(&ColorCount))&&PluginsData[ids[MenuCode]].pGetParams(PluginsData[ids[MenuCode]].Index,PAR_GET_COLOR_NAME,const_cast<const char**>(reinterpret_cast<char**>(&ColorNames)))&&PluginsData[ids[MenuCode]].pGetParams(PluginsData[ids[MenuCode]].Index,PAR_GET_COLOR,const_cast<const char**>(reinterpret_cast<char**>(&Colors))))
               {
                 FarMenuItem *ColorTypes=NULL;
@@ -669,20 +650,8 @@ intptr_t WINAPI ConfigureW(const struct ConfigureInfo *anInfo)
                     ColorTypes[ColorCode].Flags|=MIF_SELECTED;
                     ColorCode=Info.Menu(&MainGuid,&Config7MenuGuid,-1,-1,0,FMENU_AUTOHIGHLIGHT|FMENU_WRAPMODE,PluginsData[ids[MenuCode]].Name,NULL,_T("Config7"),NULL,NULL,ColorTypes,ColorCount);
                     if(ColorCode==-1) break;
-                    FarColor color;
-                    ConvertColor(Colors[ColorCode],color);
-                    if(Info.ColorDialog(&MainGuid,CDF_NONE,&color))
+                    if(Info.ColorDialog(&MainGuid,CDF_NONE,Colors+ColorCode))
                     {
-                      FarColor defColor;
-                      Info.AdvControl(&MainGuid,ACTL_GETCOLOR,COL_EDITORTEXT,&defColor);
-                      //Colors[ColorCode].FourBits=(color.Flags&(FCF_FG_4BIT|FCF_BG_4BIT))?true:false;
-                      Colors[ColorCode].Flags=color.Flags;
-                      Colors[ColorCode].ForegroundColor=color.ForegroundColor;
-                      Colors[ColorCode].BackgroundColor=color.BackgroundColor;
-                      Colors[ColorCode].Reserved=color.Reserved;
-
-                      Colors[ColorCode].ForegroundDefault=(Colors[ColorCode].ForegroundColor==defColor.ForegroundColor&&(Colors[ColorCode].Flags&FG_MASK)==(defColor.Flags&FG_MASK));
-                      Colors[ColorCode].BackgroundDefault=(Colors[ColorCode].BackgroundColor==defColor.BackgroundColor&&(Colors[ColorCode].Flags&FG_MASK)==(defColor.Flags&FG_MASK));
                       SaveColors(PluginsData[ids[MenuCode]].IdStr,Colors,ColorCount);
                     }
                   }

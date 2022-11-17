@@ -24,19 +24,19 @@
 #include "guid.h"
 
 ColorizeInfo Info;
-ABColor colors[]=
+FarColor colors[]=
 {
-  {ABCF_4BIT,AB_OPAQUE(0x03),AB_OPAQUE(0x00),NULL,false,true },
-  {ABCF_4BIT,AB_OPAQUE(0x0F),AB_OPAQUE(0x00),NULL,false,true },
-  {ABCF_4BIT,AB_OPAQUE(0x0C),AB_OPAQUE(0x00),NULL,false,true },
-  {ABCF_4BIT,AB_OPAQUE(0x0D),AB_OPAQUE(0x00),NULL,false,true },
-  {ABCF_4BIT,AB_OPAQUE(0x0E),AB_OPAQUE(0x00),NULL,false,true },
-  {ABCF_4BIT,AB_OPAQUE(0x0A),AB_OPAQUE(0x00),NULL,false,true },
-  {ABCF_4BIT,AB_OPAQUE(0x0A),AB_OPAQUE(0x00),NULL,false,true },
-  {ABCF_4BIT,AB_OPAQUE(0x00),AB_OPAQUE(0x0A),NULL,false,false},
-  {ABCF_4BIT,AB_OPAQUE(0x0C),AB_OPAQUE(0x00),NULL,false,true },
-  {ABCF_4BIT,AB_OPAQUE(0x01),AB_OPAQUE(0x0C),NULL,false,false},
-  {ABCF_4BIT,AB_OPAQUE(0x06),AB_OPAQUE(0x00),NULL,false,true }
+  {FCF_FG_4BIT            ,AB_OPAQUE(0x03),              0,NULL},
+  {FCF_FG_4BIT            ,AB_OPAQUE(0x0F),              0,NULL},
+  {FCF_FG_4BIT            ,AB_OPAQUE(0x0C),              0,NULL},
+  {FCF_FG_4BIT            ,AB_OPAQUE(0x0D),              0,NULL},
+  {FCF_FG_4BIT            ,AB_OPAQUE(0x0E),              0,NULL},
+  {FCF_FG_4BIT            ,AB_OPAQUE(0x0A),              0,NULL},
+  {FCF_FG_4BIT            ,AB_OPAQUE(0x0A),              0,NULL},
+  {FCF_FG_4BIT|FCF_BG_4BIT,AB_OPAQUE(0x00),AB_OPAQUE(0x0A),NULL},
+  {FCF_FG_4BIT            ,AB_OPAQUE(0x0C),              0,NULL},
+  {FCF_FG_4BIT|FCF_BG_4BIT,AB_OPAQUE(0x01),AB_OPAQUE(0x0C),NULL},
+  {FCF_FG_4BIT            ,AB_OPAQUE(0x06),              0,NULL}
 };
 const TCHAR* colornames[]={_T("Comment"),_T("Keyword"),_T("Field"),_T("Class"),_T("String"),_T("Number"),_T("Hex Number"),_T("--FIXME"),_T("Pair"),_T("Wrong Pair"),_T("Interpolation")};
 
@@ -59,13 +59,13 @@ int WINAPI GetParams(intptr_t index,intptr_t command,const char **param)
     case PAR_GET_PARAMS:
       return PAR_MASK_STORE|PAR_MASK_CACHE|PAR_COLORS_STORE|PAR_SHOW_IN_LIST|PAR_BRACKETS;
     case PAR_GET_MASK:
-      *param=(const char*)_T("*.moon");
+      *param=(const char*)_T("*.moon,*.yue");
       return true;
     case PAR_GET_COLOR_COUNT:
-      *reinterpret_cast<int*>(param)=sizeof(colornames)/sizeof(colornames[0]);
+      *reinterpret_cast<size_t*>(param)=sizeof(colornames)/sizeof(colornames[0]);
       return true;
     case PAR_GET_COLOR:
-      *reinterpret_cast<const ABColor**>(param)=colors;
+      *reinterpret_cast<const FarColor**>(param)=colors;
       return true;
     case PAR_GET_COLOR_NAME:
       *param=reinterpret_cast<const char*>(colornames);

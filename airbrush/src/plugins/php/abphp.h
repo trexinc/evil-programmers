@@ -32,5 +32,5 @@
 
 #define PARSER_PHP     0xf0
 
-extern ABColor colors[];
+extern FarColor colors[];
 extern struct ColorizeInfo Info;
