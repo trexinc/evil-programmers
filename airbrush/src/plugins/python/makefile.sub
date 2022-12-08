@@ -7,11 +7,7 @@ LIBS=
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
-	$(CC) $(LFLAGS) -o $@ -Xlinker --base-file -Xlinker $(TARGET).base $(OBJS) $(LIBS)
-	$(DLLTOOL) --dllname $(TARGET) --base-file $(TARGET).base --output-exp $(TARGET).exp --def $(DEF)
-	$(CC) $(LFLAGS) -o $@ $(OBJS) $(TARGET).exp $(LIBS)
-	$(RM) $(TARGET).base
-	$(RM) $(TARGET).exp
+	$(CC) -o $@ $(DEF) $(OBJS) $(LIBS) $(LFLAGS) -Wl,--kill-at -shared
 
 ../../../$(OBJDIR)/$(SYNNAME).o: $(SYNNAME).cpp ab$(SYNNAME).h ../../$(BOOTSTRAPDIR)/abplugin.h guid.h
 	$(CC) $(CFLAGS) $< -o $@

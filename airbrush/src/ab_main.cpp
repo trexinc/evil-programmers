@@ -111,6 +111,7 @@ void WINAPI SetStartupInfoW(const struct PluginStartupInfo *Info)
   ::FSF=*Info->FSF;
   ::Info.FSF=&::FSF;
 
+  OnLoad();
   {
     CFarSettings settings(MainGuid);
     Opt.Active=settings.Get(_T("Active"),Opt.Active);
@@ -119,7 +120,6 @@ void WINAPI SetStartupInfoW(const struct PluginStartupInfo *Info)
     Opt.BrPriority=settings.Get(_T("BrPriority"),Opt.BrPriority);
   }
   LoadPlugs(Info->ModuleName);
-  OnLoad();
 }
 
 void WINAPI GetPluginInfoW(struct PluginInfo *Info)

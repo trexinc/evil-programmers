@@ -28,7 +28,7 @@ DEF=airbrush$(DIRSURF).def
 WFLAGS=-Wall -Wextra -Werror -Wno-empty-body -Wno-unused -Wno-parentheses -Wpointer-arith -Wno-int-in-bool-context -Wold-style-cast
 CFLAGSBASE=-c -mtune=core2 -Os $(WFLAGS) -fomit-frame-pointer -fstrict-aliasing -fno-exceptions -fno-rtti -fno-threadsafe-statics $(CCWIDE)
 CFLAGS=$(CFLAGSBASE) -I $(COMINC) -I ./$(BOOTSTRAPDIR)
-LFLAGS=-mdll -s -nostartfiles
+LFLAGS=-s -nostartfiles
 RCFLAGS=-I ./$(BOOTSTRAPDIR)
 
 TARGET=../$(BINDIR)/airbrush.dll
@@ -48,11 +48,7 @@ dirs:
 	@$(MKDIR) ./$(BOOTSTRAPDIR)
 
 $(TARGET): $(OBJS)
-	$(CC) $(LFLAGS) -o $@ -Xlinker --base-file -Xlinker $(TARGET).base $(OBJS) $(LIBS)
-	$(DLLTOOL) --dllname $(TARGET) --base-file $(TARGET).base --output-exp $(TARGET).exp --def $(DEF)
-	$(CC) $(LFLAGS) -o $@ $(OBJS) $(TARGET).exp $(LIBS) -Xlinker -Map -Xlinker $(MAP)
-	$(RM) $(TARGET).base
-	$(RM) $(TARGET).exp
+	$(CC) -o $@ $(DEF) $(OBJS) $(LIBS) $(LFLAGS) -Wl,--kill-at -shared -Xlinker -Map -Xlinker $(MAP)
 
 clean:
 	$(RM) ../$(OBJDIR)/*
