@@ -49,6 +49,7 @@ void DoReplace(HANDLE aDlg)
         set.Get(_T("CaseSensitive"),c);
         set.Get(_T("SearchFromCurPos"),p);
       }
+      enum {IBox,ISearchLabel,ISearch,IReplaceLabel,IReplace,IDummy1,ICase,ICurrentPosition,IDummy2,ISave,ICancel};
       FarDialogItem DialogItems[]=
       {//       Type            X1 Y1 X2 Y2 Se Fl                                     Data */
        /*00*/ { DI_DOUBLEBOX,   3, 1,55,11, {0},          NULL,                       NULL, DIF_BOXCOLOR,                          GetMsg(mReplaceCaption)  ,0,0},
@@ -65,10 +66,15 @@ void DoReplace(HANDLE aDlg)
       };
       CFarDialog dialog;
       int n=dialog.Execute(MainGuid,ReplaceDialogGuid,-1,-1,59,13,NULL,DialogItems,ArraySize(DialogItems),0,0,ReplaceDialogProc,NULL);
-      if (n==9)
+      if (n==ISave)
       {
-        c=(dialog.Check(6)==TRUE)?1:0;
-        p=(dialog.Check(7)==TRUE)?1:0;
+        c=dialog.Check(ICase)?1:0;
+        p=dialog.Check(ICurrentPosition)?1:0;
+        const wchar_t* search_str=dialog.Str(ISearch);
+        size_t search_str_len=_tcslen(search_str);
+        size_t search_str_skip=search_str_len?search_str_len:1;
+        const wchar_t* replace_str=dialog.Str(IReplace);
+        size_t replace_str_len=_tcslen(replace_str);
         CFarSettings set(MainGuid);
         set.Set(_T("CaseSensitive"),c);
         set.Set(_T("SearchFromCurPos"),p);
@@ -77,38 +83,40 @@ void DoReplace(HANDLE aDlg)
           buffer_temp+=Pos.X;
         else
           Pos.X=0;
-        unsigned n=0;
-        unsigned l=_tcslen(buffer_temp);
-        for (unsigned i=0;i<l;)
+        size_t n=0;
+        size_t l=_tcslen(buffer_temp);
+        for (size_t i=0;i<l;)
         {
-          int r=(c==1)?_tcsncmp(buffer_temp+i,dialog.Str(2),(int)_tcslen(dialog.Str(2))):FSF.LStrnicmp(buffer_temp+i,dialog.Str(2),(int)_tcslen(dialog.Str(2)));
+          int r=(c==1)?_tcsncmp(buffer_temp+i,search_str,search_str_len):FSF.LStrnicmp(buffer_temp+i,search_str,search_str_len);
           if (r==0)
           {
             n++;
-            i+=(int)_tcslen(dialog.Str(2));
+            i+=search_str_skip;
           }
           else
             i++;
         }
-        unsigned newlength=_tcslen(buffer)-n*_tcslen(dialog.Str(2))+n*_tcslen(dialog.Str(4))+1;
+        size_t newlength=_tcslen(buffer)-n*search_str_len+n*replace_str_len+1;
         TCHAR *newbuffer=(TCHAR *)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,newlength*sizeof(TCHAR));
-        for (int i=0;i<Pos.X;i++)
+        for (size_t i=0;i<static_cast<size_t>(Pos.X);i++)
           newbuffer[i]=buffer[i];
-        unsigned j=Pos.X;
-        for (unsigned i=0;i<l;)
+        size_t j=Pos.X;
+        for (size_t i=0;i<l;)
         {
-          int r=(c==1)?_tcsncmp(buffer_temp+i,dialog.Str(2),(int)_tcslen(dialog.Str(2))):FSF.LStrnicmp(buffer_temp+i,dialog.Str(2),(int)_tcslen(dialog.Str(2)));
+          int r=(c==1)?_tcsncmp(buffer_temp+i,search_str,search_str_len):FSF.LStrnicmp(buffer_temp+i,search_str,search_str_len);
           if (r==0)
           {
-            for (unsigned k=0;k<_tcslen(dialog.Str(4));k++)
-              newbuffer[j++]=dialog.Str(4)[k];
-            i+=(int)_tcslen(dialog.Str(2));
+            for (size_t k=0;k<replace_str_len;k++)
+              newbuffer[j++]=replace_str[k];
+            if (!search_str_len)
+            {
+              newbuffer[j++]=buffer_temp[i++];
+            }
+            i+=search_str_len;
           }
           else
           {
-            newbuffer[j]=buffer_temp[i];
-            i++;
-            j++;
+            newbuffer[j++]=buffer_temp[i++];
           }
         }
         newbuffer[j]='\0';

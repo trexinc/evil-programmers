@@ -18,11 +18,12 @@ OBJS=$(patsubst %.cpp,../$(OBJDIR)/%.o,$(filter %.cpp,$(SRCS)))
 DEPS=$(patsubst %.cpp,../$(OBJDIR)/%.d,$(filter %.cpp,$(SRCS)))
 LIBS=-lmsvcrt
 DOCTARGET=../$(BINDIR)/dtEng.lng ../$(BINDIR)/dtRus.lng ../$(BINDIR)/Dialog_DialogTools.lua
+MAP = $(patsubst %.dll,%.map,$(TARGET))
 
 all: dirs $(TARGET) $(DOCTARGET)
 
 CFLAGS=-c -Os -Wall -Werror -fno-rtti -fno-exceptions -fno-threadsafe-statics -fno-builtin -fomit-frame-pointer -fstrict-aliasing $(CCWIDE) -I $(COMINC)
-LFLAGS=-mdll -s -nostartfiles
+LFLAGS=-s -nostartfiles
 
 AS=as
 RM=rm -f
@@ -46,11 +47,7 @@ dirs:
 -include $(DEPS)
 
 $(TARGET): $(OBJS)
-	$(CC) $(LFLAGS) -o $@ -Xlinker --base-file -Xlinker $(TARGET).base $(OBJS) $(LIBS)
-	$(DLLTOOL) --dllname $(TARGET) --base-file $(TARGET).base --output-exp $(TARGET).exp --def $(DEF)
-	$(CC) $(LFLAGS) -o $@ $(OBJS) $(TARGET).exp $(LIBS)
-	$(RM) $(TARGET).base
-	$(RM) $(TARGET).exp
+	$(CC) -o $@ $(DEF) $(OBJS) $(LIBS) $(LFLAGS) -Wl,--kill-at -shared -Xlinker -Map -Xlinker $(MAP)
 
 ../$(BINDIR)/%.lng: %.lng
 	$(CP) $< $@
