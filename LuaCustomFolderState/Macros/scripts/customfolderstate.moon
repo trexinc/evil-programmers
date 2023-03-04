@@ -17,16 +17,51 @@ class Panel
   __eq: (a,b)->
     cmp=(a,b)->('\\*'==a.Name\sub -2,-1) and (a.Name\sub 1,-3)==b.Name\sub 1,a.Name\len!-2
     (a.Name==b.Name or (cmp a,b) or (cmp b,a)) and a.Param==b.Param and a.PluginId==b.PluginId and a.File==b.File
-panels=()->(Panel panel.GetPanelDirectory nil,1),Panel panel.GetPanelDirectory nil,0
-last,active,passive={},1,0
-last[active],last[passive]=panels!
+active,passive=1,0
+empty={Name:'',File:''}
+panels=()->{[active]:(Panel panel.GetPanelDirectory nil,active),[passive]:Panel panel.GetPanelDirectory nil,passive}
+last=
+  [active]:Panel empty
+  [passive]:Panel empty
 folders={}
+setpanelstate=(idx,sort,order)->
+  info=panel.GetPanelInfo nil,idx
+  top=info and info.TopPanelItem
+  panel.SetSortMode nil,idx,sort
+  panel.SetSortOrder nil,idx,order
+  if top
+    info=panel.GetPanelInfo nil,idx
+    if info and info.CurrentItem
+      panel.RedrawPanel nil,idx,{CurrentItem:info.CurrentItem,TopPanelItem:top}
+process=(idx,current)->
+  found=false
+  for folder in *folders
+    if current==folder
+      found=folder
+      break
+  if last[idx].Special
+    current.Sort=last[idx].Sort
+    current.Order=last[idx].Order
+  else
+    info=panel.GetPanelInfo nil,idx
+    if info
+      current.Sort=info.SortMode
+      current.Order=(bit64.band info.Flags,F.PFLAGS_REVERSESORTORDER)==F.PFLAGS_REVERSESORTORDER
+  sort,order=current.Sort,current.Order
+  if found and found.Sort
+    with found
+      sort=.Sort
+      order=.Order
+    current.Special=true
+  setpanelstate idx,sort,order
+  last[idx]=current
+  if found and 'function'==type found.Action then found.Action idx,{Name:current.Name,Param:current.Param,PluginId:current.PluginId,File:current.File}
 for folder in *init
   switch type folder
     when 'string'
       folder=
         Name:folder
-        PluginId:string.rep('\0',16)
+        PluginId:string.rep '\0',16
     when 'table'
       nil
     else
@@ -41,44 +76,21 @@ for folder in *init
       .Sort=isset .Sort,init.Sort
       .Order=isset .Order,init.Order
       insert folders,Panel folder
+main=()->
+  current=panels!
+  if current[active]==last[passive] and current[passive]==last[active]
+    last[active],last[passive]=last[passive],last[active]
+  else
+    for ii in *{active,passive}
+      if last[ii]!=current[ii]
+        process ii,current[ii]
+main!
 Event
   group:"FolderChanged"
+  action:main
+Event
+  group:"ExitFAR"
   action:()->
-    current={}
-    current[active],current[passive]=panels!
-    process=(idx)->
-      found=false
-      for folder in *folders
-        if current[idx]==folder
-          found=folder
-          break
-      if last[idx].Special
-        current[idx].Sort=last[idx].Sort
-        current[idx].Order=last[idx].Order
-      else
-        info=panel.GetPanelInfo nil,idx
-        if info
-          current[idx].Sort=info.SortMode
-          current[idx].Order=(bit64.band info.Flags,F.PFLAGS_REVERSESORTORDER)==F.PFLAGS_REVERSESORTORDER
-      sort,order=current[idx].Sort,current[idx].Order
-      if found and found.Sort
-        with found
-          sort=.Sort
-          order=.Order
-        current[idx].Special=true
-      info=panel.GetPanelInfo nil,idx
-      top=info and info.TopPanelItem
-      panel.SetSortMode nil,idx,sort
-      panel.SetSortOrder nil,idx,order
-      if top
-        info=panel.GetPanelInfo nil,idx
-        if info and info.CurrentItem
-          panel.RedrawPanel nil,idx,{CurrentItem:info.CurrentItem,TopPanelItem:top}
-      last[idx]=current[idx]
-      if found and 'function'==type found.Action then found.Action idx,{Name:current[idx].Name,Param:current[idx].Param,PluginId:current[idx].PluginId,File:current[idx].File}
-    if current[active]==last[passive] and current[passive]==last[active]
-      last[active],last[passive]=last[passive],last[active]
-    else
-      for ii in *{active,passive}
-        if last[ii]!=current[ii]
-          process ii
+    for ii in *{active,passive}
+      if last[ii].Special
+        setpanelstate ii,last[ii].Sort,last[ii].Order
