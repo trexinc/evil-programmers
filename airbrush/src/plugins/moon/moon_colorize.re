@@ -171,6 +171,11 @@ colorize_clear:
     Info.pAddColor(params,lno,yytok-line,1,colors+HC_KEYWORD1,EPriorityNormal);
     goto colorize_clear;
   }
+  "]"[ \t]*":"
+  {
+    Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_KEYWORD1,EPriorityNormal);
+    goto colorize_clear;
+  }
   "and"|"break"|"class"|"continue"|"do"|"else"|"elseif"|"export"|"extends"|
   "false"|"for"|"from"|"if"|"import"|"in"|"local"|"not"|"or"|"nil"|"return"|
   "self"|"super"|"switch"|"then"|"true"|"unless"|"using"|"when"|"while"|"with"
