@@ -26,6 +26,16 @@ languages={
     name:"MoonCakeMacro"
     load:(m)->load m.loadstring
   }
+  --https://erde-lang.github.io/
+  {
+    module:"erde"
+    mask:"*.erde"
+    name:"ErdeMacro"
+    init:(m)->m.load!
+    load:(m)->load (text,fname)->
+      compiled=m.compile text
+      loadstring compiled,fname
+  }
   --https://github.com/teal-language/tl
   {
     module:"tl"
@@ -61,6 +71,7 @@ for lang in *languages
 Event
   group:"ExitFAR"
   action:()->
+    if erde=package.loaded['erde.init'] then erde.unload!
     package.loaders={}
     for loader in *old_loaders
       table.insert package.loaders,loader
