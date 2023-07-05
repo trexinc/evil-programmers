@@ -24,12 +24,11 @@
 #include "../plugins/re2c/abre2c.h"
 #include <initguid.h>
 #include "../plugins/c/guid.h"
-
-typedef unsigned short UTCHAR;
+#include "../plugins/c/abc.h"
 
 struct CacheParam
 {
-  int c_state;
+  CState c_state;
   int re2c_state;
   char diff;
   int recurse;
@@ -109,7 +108,7 @@ static void CallParser(ColorizeParams *params,CallbackParam *data)
     params->startline=data->row;
     params->startcolumn=data->col;
     data->cache->re2c_state=PARSER_RE2C;
-    data->cache->c_state=INVALID_C_STATE;
+    data->cache->c_state.State=INVALID_C_STATE;
   }
 }
 
@@ -138,7 +137,7 @@ void WINAPI Colorize(intptr_t index,struct ColorizeParams *params)
   intptr_t linelen;
   int startcol;
   CallbackParam callback_data;
-  CacheParam state_data={PARSER_CLEAR,PARSER_RE2C,1,0};
+  CacheParam state_data={{PARSER_CLEAR,{},0},PARSER_RE2C,1,0};
   CacheParam *state=&state_data;
   int state_size=sizeof(state_data);
   const UTCHAR *yycur,*yyend,*yytmp,*yytok;
@@ -155,7 +154,7 @@ void WINAPI Colorize(intptr_t index,struct ColorizeParams *params)
   }
   callback_data.cache=state;
   callback_data.params=params;
-  if(state[0].c_state>INVALID_C_STATE)
+  if(state[0].c_state.State>INVALID_C_STATE)
   {
     callback_data.row=params->startline;
     callback_data.col=params->startcolumn;
@@ -180,7 +179,7 @@ colorize_clear:
   {
     callback_data.row=lno;
     callback_data.col=yytok-line;
-    state[0].c_state=PARSER_CLEAR;
+    state[0].c_state.State=PARSER_CLEAR;
     state[0].diff=2;
     state[0].recurse=0;
     CallParser(params,&callback_data);
@@ -194,7 +193,7 @@ colorize_clear:
     Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_RE2C,EPriorityNormal);
     callback_data.row=lno;
     callback_data.col=yycur-line;
-    state[0].c_state=PARSER_CLEAR;
+    state[0].c_state.State=PARSER_CLEAR;
     state[0].diff=1;
     CallParser(params,&callback_data);
     if(!callback_data.ok) goto colorize_exit;
@@ -215,7 +214,7 @@ colorize_clear:
     Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_KEYWORD,EPriorityNormal);
     goto colorize_clear;
   }
-  letter (letter|digit)*
+  (letter|"@") (letter|digit)*
   {
     Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_RE2C,EPriorityNormal);
     goto colorize_clear;

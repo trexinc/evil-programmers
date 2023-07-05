@@ -23,8 +23,6 @@
 #include "../abpairs.h"
 #include "../plugins/c/abc.h"
 
-typedef unsigned short UTCHAR;
-
 #define YYCTYPE unsigned long
 #define YYCURSOR yycur
 #define YYLIMIT yyend
@@ -32,6 +30,7 @@ typedef unsigned short UTCHAR;
 #define YYFILL(n)
 
 /*!re2c
+re2c:tags=1;
 any=[\U00000001-\U0000ffff];
 B=[0-1];
 O=[0-7];
@@ -45,6 +44,7 @@ FLOAT=[fFlL];
 INT=[uUlL]*;
 ESC=[\\] ([abfnrtv?'"\\] | "x" H+ | O+);
 STR=("L"|"u8"|"u"|"U");
+DCHAR=[!"#$%&'()*+,.0-9:;<=>?@A-Z_`a-z{|}~]|"-"|"["|"]"|"\\"|"^";
 */
 
 void WINAPI Colorize(intptr_t index,struct ColorizeParams *params)
@@ -54,15 +54,17 @@ void WINAPI Colorize(intptr_t index,struct ColorizeParams *params)
   const UTCHAR *line;
   intptr_t linelen;
   int startcol;
-  int state_data=PARSER_CLEAR;
-  int *state=&state_data;
+  CState state_data={PARSER_CLEAR,{},0};
+  CState *state=&state_data;
   int state_size=sizeof(state_data);
   const UTCHAR *yycur,*yyend,*yytmp=NULL,*yytok=NULL;
   struct PairStack *hl_state=NULL;
   intptr_t hl_row; intptr_t hl_col;
+  const UTCHAR *t1, *t2;
+  /*!stags:re2c format = 'const UTCHAR *@@;\n'; */
   if(params->data_size>=sizeof(state_data))
   {
-    state=reinterpret_cast<int*>(params->data);
+    state=reinterpret_cast<CState*>(params->data);
     state_size=params->data_size;
   }
   Info.pGetCursor(params->eid,&hl_row,&hl_col);
@@ -80,11 +82,12 @@ colorize_clear:
     if(yytok) if(params->callback) if(params->callback(0,lno,yytok-line,params->param)) goto colorize_exit;
     yytok=yycur;
     if(params->callback) if(params->callback(1,lno,yytok-line,params->param)) goto colorize_exit;
-    if(state[0]==PARSER_COMMENT1) goto colorize_comment1;
-    if(state[0]==PARSER_STRING) goto colorize_string;
+    if(state[0].State==PARSER_COMMENT1) goto colorize_comment1;
+    if(state[0].State==PARSER_STRING) goto colorize_string;
+    if(state[0].State==PARSER_RAWSTRING) goto colorize_rawstring;
 /*!re2c
   "/*"
-  { state[0]=PARSER_COMMENT1; commentstart=yytok; goto colorize_comment1; }
+  { state[0].State=PARSER_COMMENT1; commentstart=yytok; goto colorize_comment1; }
   "//"
   { commentstart=yytok; goto colorize_comment2; }
   "alignas"|"alignof"|"and"|"and_eq"|"asm"|"auto"|
@@ -110,7 +113,9 @@ colorize_clear:
   ((DD+|("0x" SEP*(H("_"*))+)|("0" SEP*(O(SEP*))+)|("0b" SEP*(B(SEP*))+)) INT?)|((DD+(("." DD*EXP?)|EXP)) FLOAT?)|(DD+ FLOAT)
   { Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_NUMBER1,EPriorityNormal); goto colorize_clear; }
   STR?["]
-  { PUSH_PAIR_S(3); state[0]=PARSER_STRING; commentstart=yytok; goto colorize_string; }
+  { PUSH_PAIR_S(3); state[0].State=PARSER_STRING; commentstart=yytok; goto colorize_string; }
+  STR?"R"["] @t1 DCHAR{0,16} @t2 "("
+  { PUSH_PAIR_S(4); state[0].State=PARSER_RAWSTRING; state[0].Len=t2-t1; memcpy(state[0].Raw,t1,state[0].Len*sizeof(UTCHAR)); commentstart=yytok; goto colorize_rawstring; }
   (STR?['] (ESC|any\[\\'])* ['])
   { Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_STRING1,EPriorityNormal); goto colorize_clear; }
   "..."|">>="|"<<="|"+="|"-="|"*="|"/="|"%="|"&="|"^="|"|="|">>"|"<<"|"++"|"--"|"->"|"&&"|"||"|
@@ -150,8 +155,8 @@ colorize_comment1:
 /*!re2c
   "*/"
   {
-    Info.pAddColor(params,lno,commentstart-line,yycur-commentstart,colors+HC_COMMENT,EPriorityNormal);
-    state[0]=PARSER_CLEAR;
+    Info.pAddColor(params,lno,commentstart-line,yycur-commentstart,colors+HC_COMMENT1,EPriorityNormal);
+    state[0].State=PARSER_CLEAR;
     goto colorize_clear;
   }
   [\000]
@@ -166,14 +171,14 @@ colorize_comment2:
   {
     if(yytok==yyend)
     {
-      Info.pAddColor(params,lno,commentstart-line,yycur-commentstart-1,colors+HC_COMMENT,EPriorityNormal);
+      Info.pAddColor(params,lno,commentstart-line,yycur-commentstart-1,colors+HC_COMMENT1,EPriorityNormal);
       goto colorize_end;
     }
     goto colorize_comment2;
   }
   [Ff][Ii][Xx][Mm][Ee]
   {
-    Info.pAddColor(params,lno,commentstart-line,yytok-commentstart,colors+HC_COMMENT,EPriorityNormal);
+    Info.pAddColor(params,lno,commentstart-line,yytok-commentstart,colors+HC_COMMENT1,EPriorityNormal);
     Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_FIXME,EPriorityNormal);
     commentstart=yycur;
     goto colorize_comment2;
@@ -189,7 +194,7 @@ colorize_string:
   ["]
   {
     Info.pAddColor(params,lno,commentstart-line,yycur-commentstart,colors+HC_STRING1,EPriorityNormal);
-    state[0]=PARSER_CLEAR;
+    state[0].State=PARSER_CLEAR;
     POP_PAIR_S(3);
     goto colorize_clear;
   }
@@ -198,10 +203,32 @@ colorize_string:
   any
   { goto colorize_string; }
 */
+colorize_rawstring:
+    yytok=yycur;
+/*!re2c
+  ")" @t1 DCHAR{0,16} @t2 ["]
+  {
+    if((t2-t1)==state[0].Len&&0==memcmp(t1,state[0].Raw,(t2-t1)*sizeof(UTCHAR)))
+    {
+      Info.pAddColor(params,lno,commentstart-line,yycur-commentstart,colors+HC_STRING1,EPriorityNormal);
+      state[0].State=PARSER_CLEAR;
+      POP_PAIR_S(4);
+      goto colorize_clear;
+    }
+    yycur=yytok+1;
+    goto colorize_rawstring;
+  }
+  [\000]
+  { if(yytok==yyend) goto colorize_end; goto colorize_rawstring; }
+  any
+  { goto colorize_rawstring; }
+*/
 colorize_end:
-    if(state[0]==PARSER_COMMENT1)
-      Info.pAddColor(params,lno,commentstart-line,yyend-commentstart,colors+HC_COMMENT,EPriorityNormal);
-    if(state[0]==PARSER_STRING)
+    if(state[0].State==PARSER_COMMENT1)
+      Info.pAddColor(params,lno,commentstart-line,yyend-commentstart,colors+HC_COMMENT1,EPriorityNormal);
+    if(state[0].State==PARSER_STRING)
+      Info.pAddColor(params,lno,commentstart-line,yyend-commentstart,colors+HC_STRING1,EPriorityNormal);
+    if(state[0].State==PARSER_RAWSTRING)
       Info.pAddColor(params,lno,commentstart-line,yyend-commentstart,colors+HC_STRING1,EPriorityNormal);
   }
 colorize_exit:
