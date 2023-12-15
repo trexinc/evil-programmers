@@ -1,7 +1,10 @@
 #define WIN32_LEAN_AND_MEAN     // Exclude rarely-used stuff from Windows headers
 
-#ifdef UNICODE
-#include "plugin.hpp"
+#if defined FAR3
+#include <windows.h>
+#include "plugin.v3.hpp"
+#elif defined UNICODE
+#include "plugin.v2.hpp"
 #else
 #include "plugin_ansi.hpp"
 #endif
@@ -13,7 +16,9 @@
 #endif
 #include <malloc.h>
 
-#ifdef UNICODE
+#if defined FAR3
+#define EXP_NAME(p) p ## W
+#elif defined UNICODE
 #define EXP_NAME(p) _export p ## W
 #else
 #define EXP_NAME(p) _export p
@@ -38,6 +43,10 @@ enum
 
 static CONST TCHAR szUsingThePlugin[] = TEXT("Use");
 static CONST TCHAR szLnk           [] = TEXT(".lnk");
+
+// {fa871763-7379-4cb4-bdb0-e4ef6fb0b524}
+static const GUID ClipCopyGuid = 
+{ 0xfa871763, 0x7379, 0x4cb4, { 0xbd, 0xb0, 0xe4, 0xef, 0x6f, 0xb0, 0xb5, 0x24 } };
 
 struct PluginStartupInfo Info;
 FARSTANDARDFUNCTIONS FSF;
@@ -67,8 +76,13 @@ static VOID ShowErrorMsg(INT ErrorNumber, INT ErrorCode)
       if (wsprintf(buf, MsgText, ErrorCode) >= MsgTextLength)
       {
         LPCTSTR MsgItems[] = {MsgCaption, buf, MsgButtons};
-        Info.Message(Info.ModuleNumber, FMSG_WARNING, szUsingThePlugin, MsgItems,
-          LENGTH_OF_ARRAY(MsgItems), 1);
+        Info.Message(
+#ifdef FAR3
+	        &ClipCopyGuid, &ClipCopyGuid,
+#else
+            Info.ModuleNumber,
+#endif
+            FMSG_WARNING, szUsingThePlugin, MsgItems, LENGTH_OF_ARRAY(MsgItems), 1);
       }
     }
   }
@@ -125,7 +139,11 @@ static inline HRESULT CreateLink(LPCTSTR lpszPathObj, LPCTSTR lpszPathLink)
 
 static inline VOID PanelsRedraw(VOID)
 {
-#ifdef UNICODE
+#if defined FAR3
+  Info.AdvControl(&ClipCopyGuid, ACTL_SYNCHRO, NULL, NULL);
+      struct PanelInfo PInfo;
+      Info.PanelControl(INVALID_HANDLE_VALUE, FCTL_GETPANELINFO, 0, &PInfo);
+#elif defined UNICODE
   Info.AdvControl(Info.ModuleNumber, ACTL_SYNCHRO, NULL);
 #else
   SetFileApisToOEM();
@@ -135,12 +153,24 @@ static inline VOID PanelsRedraw(VOID)
 }
 
 #ifdef UNICODE
+#ifdef FAR3
+intptr_t WINAPI EXP_NAME(ProcessSynchroEvent)(const struct ProcessSynchroEventInfo *OInfo)
+#else
 INT WINAPI ProcessSynchroEventW(INT Event, VOID *Param)
+#endif
 {
+#ifdef FAR3
+    INT Event = OInfo->Event;
+#endif
   if (Event == SE_COMMONSYNCHRO)
   {
+#ifdef FAR3
+    Info.PanelControl(INVALID_HANDLE_VALUE, FCTL_UPDATEPANEL, 0, NULL);
+    Info.PanelControl(INVALID_HANDLE_VALUE, FCTL_REDRAWPANEL, 0, NULL);
+#else
     Info.Control(INVALID_HANDLE_VALUE, FCTL_UPDATEPANEL, 0, NULL);
     Info.Control(INVALID_HANDLE_VALUE, FCTL_REDRAWPANEL, 0, NULL);
+#endif
   }
 
   return 0;
@@ -179,7 +209,13 @@ static DWORD _stdcall CopyThread(LPVOID pci)
 
 static LPCTSTR GetMsg(INT MsgId)
 {
-  return (Info.GetMsg(Info.ModuleNumber, MsgId));
+    return (Info.GetMsg(
+#ifdef FAR3
+        &ClipCopyGuid, (intptr_t)MsgId
+#else
+   	    Info.ModuleNumber, MsgId
+#endif
+    ));
 }
 
 #define NULCHAR    TEXT('\0')
@@ -270,7 +306,33 @@ static VOID parse_cmdline(LPTSTR cmdstart, LPTSTR *argv, LPTSTR args, LPUINT num
   }
 }
 
+DWORD GetCurrDir(DWORD nBufLen, LPTSTR lpBuf)
+{
+    DWORD size;
+#if defined FAR3
+    int Size=Info.PanelControl(PANEL_ACTIVE,FCTL_GETPANELDIRECTORY,0,NULL);
+    FarPanelDirectory* dirInfo = (FarPanelDirectory*)new char[Size];
+    dirInfo->StructSize = sizeof(FarPanelDirectory);
+    Info.PanelControl(PANEL_ACTIVE,FCTL_GETPANELDIRECTORY,Size,dirInfo);
+    size = lstrlen(dirInfo->Name);
+    if (size <= nBufLen)
+        wcscpy(lpBuf,dirInfo->Name);
+    else
+        size = 0;
+    delete[](char *)dirInfo;
+#elif defined UNICODE
+    size = Info.Control(PANEL_ACTIVE, FCTL_GETCURRENTDIRECTORY, nBufLen, (LONG_PTR)lpBuf) - 1;
+#else
+    size = GetCurrentDirectory(nBufLen, lpBuf);
+#endif
+    return size;
+}
+
+#ifdef FAR3
+HANDLE WINAPI EXP_NAME(Open)(const struct OpenInfo *OInfo)
+#else
 HANDLE WINAPI EXP_NAME(OpenPlugin)(INT OpenFrom, INT_PTR Item)
+#endif
 {
   static UINT CF_PREFERREDDROPEFFECT = RegisterClipboardFormat(CFSTR_PREFERREDDROPEFFECT);
   IDataObject *pData;
@@ -284,12 +346,20 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(INT OpenFrom, INT_PTR Item)
   LPMALLOC pMalloc = NULL;
   LPITEMIDLIST *ppidl;
   LPVOID p;
+#ifdef FAR3
+  PanelInfo PInfo = {sizeof(PanelInfo)};
+#else
   struct PanelInfo PInfo;
-  DWORD effect;
+#endif
+DWORD effect;
 
   INT ExitCode = DoNothing;
   LPTSTR *SelectedFiles;
   INT SelectedFilesCount;
+#ifdef FAR3
+  INT OpenFrom = OInfo->OpenFrom;
+  INT_PTR Item = OInfo->Data;
+#endif
 
 #ifdef UNICODE
 #define MY_MAX_PATH (32767)
@@ -329,7 +399,11 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(INT OpenFrom, INT_PTR Item)
 
     OpenFrom = OPEN_PLUGINSMENU;
     ZeroMemory(&MenuItems, sizeof(MenuItems));
+#ifdef FAR3
+    MenuItems[DoNothing].Flags = MIF_SEPARATOR;
+#else
     MenuItems[DoNothing].Separator = 1;
+#endif
     for (i = 0; i < DoCount; i++)
     {
 #ifdef UNICODE
@@ -339,9 +413,17 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(INT OpenFrom, INT_PTR Item)
 #endif
     }
 
-    ExitCode = Info.Menu(Info.ModuleNumber, -1, -1, 0, FMENU_WRAPMODE,
-      GetMsg(MTitle), NULL, szUsingThePlugin, NULL, NULL, MenuItems, 5);
-#ifdef UNICODE
+    ExitCode = Info.Menu(
+#ifdef FAR3
+        &ClipCopyGuid, &ClipCopyGuid,
+#else
+   	    Info.ModuleNumber,
+#endif
+        -1, -1, 0, FMENU_WRAPMODE,
+    GetMsg(MTitle), NULL, szUsingThePlugin, NULL, NULL, MenuItems, 5);
+#if defined FAR3
+    Info.PanelControl(INVALID_HANDLE_VALUE, FCTL_GETPANELINFO, 0, &PInfo);
+#elif defined UNICODE
     Info.Control(INVALID_HANDLE_VALUE, FCTL_GETPANELINFO, 0, (LONG_PTR)&PInfo);
 #else
     Info.Control(INVALID_HANDLE_VALUE, FCTL_GETPANELINFO, &PInfo);
@@ -370,7 +452,11 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(INT OpenFrom, INT_PTR Item)
 #ifdef UNICODE
         for (i = 0; (INT)i < SelectedFilesCount; i++)
         {
+#ifdef FAR3
+          int size = Info.PanelControl(PANEL_ACTIVE, FCTL_GETSELECTEDPANELITEM, i, 0);
+#else
           int size = Info.Control(INVALID_HANDLE_VALUE, FCTL_GETSELECTEDPANELITEM, i, 0);
+#endif
           if (size > MaxSize)
           {
             MaxSize = size;
@@ -389,7 +475,11 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(INT OpenFrom, INT_PTR Item)
           }
           else
           {
-#ifdef UNICODE
+#if defined FAR3
+            FarGetPluginPanelItem FGPPI={sizeof(FarGetPluginPanelItem), MaxSize, PPI};
+            size = Info.PanelControl(PANEL_ACTIVE, FCTL_GETSELECTEDPANELITEM, (int)i, &FGPPI);
+            filename = (LPTSTR)PPI->FileName;
+#elif defined UNICODE
             Info.Control(INVALID_HANDLE_VALUE, FCTL_GETSELECTEDPANELITEM, i, (LONG_PTR)PPI);
             filename = PPI->FindData.lpwszFileName;
 #else
@@ -546,19 +636,20 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(INT OpenFrom, INT_PTR Item)
         if SUCCEEDED(hres)
         {
           LPDWORD ci;
+          TCHAR tgtPath[MY_MAX_PATH];
 
-          size = 0;
           count = DragQueryFile((HDROP)medium.hGlobal, 0xFFFFFFFF, NULL, 0);
           if (ExitCode == DoPaste)
           {
+            //*ci: (DWORD)struct_size (TCHAR[MY_MAX_PATH])to (TCHAR)0 (wchar_t?DWORD:0)0 (TCHAR[MY_MAX_PATH][count])from (TCHAR)0
             ci = (DWORD*)HeapAlloc(hHeap, HEAP_GENERATE_EXCEPTIONS | HEAP_ZERO_MEMORY,
-              (count + 1) * (MY_MAX_PATH + 1) + sizeof(DWORD) + 2);
-#ifdef UNICODE
-            size += Info.Control(PANEL_ACTIVE, FCTL_GETCURRENTDIRECTORY,
-              MY_MAX_PATH, (LONG_PTR)&ci[1]) + sizeof(DWORD) + 2 - 1;
-#else
-            size += GetCurrentDirectory(MY_MAX_PATH, (LPTSTR)&ci[1]) + sizeof(DWORD) + 2;
-#endif
+              (count + 1) * MY_MAX_PATH + sizeof(DWORD) + 2);
+            size = GetCurrDir(MY_MAX_PATH, (LPTSTR)&ci[1]) + sizeof(DWORD) + 2;
+          }
+          else
+          {
+              size = GetCurrDir(MY_MAX_PATH, (LPTSTR)&tgtPath);
+              tgtPath[size++] = '\\';
           }
 
           for (i = 0; i < count; i++)
@@ -572,6 +663,8 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(INT OpenFrom, INT_PTR Item)
               DragQueryFile((HDROP)medium.hGlobal, i, szName, MY_MAX_PATH);
               if (GetFullPathName(szName, MY_MAX_PATH, szPath, &pf) != 0)
               {
+                lstrcpy((LPTSTR)&tgtPath[size],pf);
+                pf = (LPTSTR)&tgtPath[size];
                 int j, cnt = 1;
 
                 for (j = lstrlen(pf) - 1; j >= 0 && pf[j] != '.'; j--)
@@ -585,12 +678,12 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(INT OpenFrom, INT_PTR Item)
                 lstrcpy(&pf[j], szLnk);
                 WIN32_FIND_DATA fd;
                 HANDLE hFind;
-                while (hFind = FindFirstFile(pf, &fd), hFind != INVALID_HANDLE_VALUE)
+                while (hFind = FindFirstFile((LPTSTR)&tgtPath, &fd), hFind != INVALID_HANDLE_VALUE)
                 {
                   FindClose(hFind);
                   wsprintf(&pf[j], TEXT(" (%d)%s"), ++cnt, szLnk);
                 }
-                hres = CreateLink(szName, pf);
+                hres = CreateLink(szName, (LPTSTR)&tgtPath);
               }
               if FAILED(hres)
               {
@@ -636,20 +729,35 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(INT OpenFrom, INT_PTR Item)
   HeapFree(hHeap, 0, szName);
 #endif
 
+#ifdef FAR3
+  return NULL;
+#else
   return INVALID_HANDLE_VALUE;
+#endif
 }
 
 VOID WINAPI EXP_NAME(GetPluginInfo)(struct PluginInfo *Info)
 {
   static LPCTSTR PluginMenuStrings[1];
   PluginMenuStrings[0] = GetMsg(MTitle);
-  Info->PluginMenuStrings = PluginMenuStrings;
   Info->StructSize = sizeof(*Info);
-  Info->PluginMenuStringsNumber = LENGTH_OF_ARRAY(PluginMenuStrings);
   Info->CommandPrefix = TEXT("fclip");
+#ifdef FAR3
+  Info->PluginMenu.Guids = &ClipCopyGuid;
+  Info->PluginMenu.Strings = PluginMenuStrings;
+  Info->PluginMenu.Count = _countof(PluginMenuStrings);
+  Info->PluginConfig.Guids = &ClipCopyGuid;
+  Info->PluginConfig.Strings = PluginMenuStrings;
+  Info->PluginConfig.Count = _countof(PluginMenuStrings);
+#else
+  Info->PluginMenuStrings = PluginMenuStrings;
+  Info->PluginMenuStringsNumber = _countof(PluginMenuStrings);
+  Info->PluginConfigStrings = PluginMenuStrings;
+  Info->PluginConfigStringsNumber = _countof(PluginMenuStrings);
+#endif
 }
 
-VOID WINAPI EXP_NAME(SetStartupInfo)(CONST struct PluginStartupInfo *pInfo)
+VOID WINAPI EXP_NAME(SetStartupInfo)(const struct PluginStartupInfo *pInfo)
 {
   Info = *pInfo;
   FSF = *pInfo->FSF;
@@ -657,12 +765,22 @@ VOID WINAPI EXP_NAME(SetStartupInfo)(CONST struct PluginStartupInfo *pInfo)
   hHeap = GetProcessHeap();
 }
 
-#ifdef UNICODE
+#ifndef FAR3
 INT WINAPI EXP_NAME(GetMinFarVersion)(VOID)
 {
-#ifdef UNICODE
   return MAKEFARVERSION(2, 0, 1148);
+}
 #endif
+
+#ifdef FAR3
+VOID WINAPI EXP_NAME(GetGlobalInfo)(struct GlobalInfo *Info) {
+  Info->StructSize = sizeof(struct GlobalInfo);
+  Info->MinFarVersion = FARMANAGERVERSION;
+  Info->Version = MAKEFARVERSION(3,0,1,0,VS_RELEASE);
+  Info->Guid = ClipCopyGuid;
+  Info->Title = L"Clipboard";
+  Info->Description = L"Explorer like copy using clipboard";
+  Info->Author = L"Andrey Budko, Stanislav Mekhanoshin";
 }
 #endif
 
