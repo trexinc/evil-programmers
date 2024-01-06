@@ -267,14 +267,16 @@ HexDlg=(hDlg,Msg,Param1,Param2)->
               if .offset==0 or .edit then .cursor=(.cursor-1)%16+1
               else Update -16*.height
             when 'PgDn'
+              fixcursor=->
+                rest=.filesize-.offset
+                .cursor=tonumber rest-((15-(.cursor-1)%16)+rest%16)%16
               if .offset+.height*16<.filesize
                 if .edit
                   .cursor=(.height-1)*16+(.cursor-1)%16+1
                 else
                   Update 16*.height
-              else
-                rest=.filesize-.offset
-                .cursor=tonumber rest-((15-(.cursor-1)%16)+rest%16)%16
+                  if .cursor+.offset>.filesize then fixcursor!
+              else fixcursor!
             when 'CtrlHome','RCtrlHome'
               Update -.filesize
               .cursor=1
