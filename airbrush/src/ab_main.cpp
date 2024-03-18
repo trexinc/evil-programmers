@@ -236,7 +236,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *Info)
   }
   else if(Info->OpenFrom==OPEN_FROMMACRO)
   {
-    const long long max53=0x1FFFFFFFFFFFFFLL;
+    const long long max52=(1LL<<52)-1;
     OpenMacroInfo* mi=reinterpret_cast<OpenMacroInfo*>(Info->Data);
     if(mi->Count)
     {
@@ -321,7 +321,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *Info)
                   fmc->CallbackData=fmc;
                   fmc->Values[0]=true;
                   fmc->Values[1]=(fl->type>=0)?PluginsData[fl->type].Id:FarGuid;
-                  fmc->Values[2]=(fl->apitopline<max53)?fl->apitopline+1:max53;
+                  fmc->Values[2]=(fl->apitopline<max52)?fl->apitopline+1:max52;
                   return fmc;
                 }
               }
