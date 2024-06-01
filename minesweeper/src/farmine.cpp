@@ -102,6 +102,7 @@ struct BoardParams
   bool paused;
   int finished;
   int curr_mines;
+  bool modal;
   FAR_CHAR_INFO* vbuffer;
 };
 
@@ -578,7 +579,7 @@ static intptr_t WINAPI MainDialogProc(HANDLE hDlg,intptr_t Msg,intptr_t Param1,v
         DlgParams->start_time=GetTickCount();
         break;
       case DN_CLOSE:
-        FreeBoardParams(DlgParams);
+        if(!DlgParams->modal) FreeBoardParams(DlgParams);
         Info.SendDlgMessage(hDlg,DM_SETDLGDATA,0,NULL);
         break;
     }
@@ -693,7 +694,9 @@ HANDLE WINAPI OpenW(const struct OpenInfo* Info)
           DialogItems[k].Y2=bp->height+4;
           DialogItems[k].Data=GetMsg(mName);
         }
+        bp->modal=true;
         dlg=::Info.DialogInit(&MainGuid,&MainDialogGuid,-1,-1,bp->width*3+2,bp->height+5,L"Contents",DialogItems,bp->width*bp->height+4,0,FDLG_NONMODAL,MainDialogProc,bp);
+        if(dlg!=INVALID_HANDLE_VALUE) bp->modal=false;
       }
       if(DialogItems) HeapFree(GetProcessHeap(),0,DialogItems);
       if(Separator) HeapFree(GetProcessHeap(),0,Separator);
