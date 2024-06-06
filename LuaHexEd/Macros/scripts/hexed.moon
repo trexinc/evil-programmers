@@ -3,7 +3,6 @@ F=far.Flags
 K=far.Colors
 ffi=require'ffi'
 C=ffi.C
-dialogs={}
 id=win.Uuid'02FFA2B9-98F8-4A73-B311-B3431340E272'
 idPos=win.Uuid'4FEA7612-507B-453F-A83D-53837CAD86ED'
 ffi.cdef[[
@@ -130,12 +129,12 @@ UpdateDlg=(hDlg,data)->
   HexDraw hDlg,data
   hDlg\send F.DM_REDRAW
 
-HexDlg=(hDlg,Msg,Param1,Param2)->
-  data=dialogs[hDlg\rawhandle!]
+HexDlg=(hDlg,Msg,Param1,Param2,data)->
   if data
-    if Msg==F.DN_CLOSE
+    if Msg==F.DN_INITDIALOG
+      UpdateDlg hDlg,data if data.modal
+    elseif Msg==F.DN_CLOSE
       C.CloseHandle data.file
-      dialogs[hDlg\rawhandle!]=nil
     elseif Msg==F.DN_CTLCOLORDIALOG
       return far.AdvControl F.ACTL_GETCOLOR,K.COL_VIEWERSTATUS
     elseif Msg==F.DN_CTLCOLORDLGITEM
@@ -325,10 +324,11 @@ DoHex=->
         {F.DI_USERCONTROL,0,1,ww-1,hh-1,buffer,0,0,0,''}
         {F.DI_FIXEDIT,0,0,0,0,0,0,0,F.DIF_HIDDEN+F.DIF_READONLY,''}
       }
-      hDlg=far.DialogInit id,-1,-1,ww,hh,nil,items,F.FDLG_NONMODAL+F.FDLG_NODRAWSHADOW,HexDlg
+      data=:buffer,width:ww,height:hh-1,:file,:filenameW,codepage:info.CurMode.CodePage,ViewerID:info.ViewerID,:offset,cursor:1,filesize:filesize[0],:textel,:textel_sel,:textel_changed,edit:false,editpos:0,editchanged:false,editascii:false,modal:true
+      hDlg=far.DialogInit id,-1,-1,ww,hh,nil,items,F.FDLG_NONMODAL+F.FDLG_NODRAWSHADOW,(hDlg,Msg,Param1,Param2)->HexDlg hDlg,Msg,Param1,Param2,data
       if hDlg
-        dialogs[hDlg\rawhandle!]=:buffer,width:ww,height:hh-1,:file,:filenameW,codepage:info.CurMode.CodePage,ViewerID:info.ViewerID,:offset,cursor:1,filesize:filesize[0],:textel,:textel_sel,:textel_changed,edit:false,editpos:0,editchanged:false,editascii:false
-        UpdateDlg hDlg,dialogs[hDlg\rawhandle!]
+        data.modal=false
+        UpdateDlg hDlg,data
     else
       C.CloseHandle file
 
