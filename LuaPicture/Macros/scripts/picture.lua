@@ -302,7 +302,7 @@ unsigned long GetCurrentProcessId(void);
 local ntdll=ffi.load("ntdll")
 local pid=C.GetCurrentProcessId()
 
-configguid='6B6CA451-58D1-46B6-94A9-FF1157393926'
+local configguid='6B6CA451-58D1-46B6-94A9-FF1157393926'
 local function ReadSettings()
   local s=far.CreateSettings()
   local sk=s:CreateSubkey(F.FSSF_ROOT,configguid,'Picture')
@@ -318,8 +318,12 @@ local function WriteSettings(cr)
 end
 local console_renderer=ReadSettings()
 
-local function Rect(left,top,right,bottom) return {left=left;top=top;right=right;bottom=bottom;unpack=function(t) return t.left,t.top,t.right,t.bottom end} end
+local function Rect(left,top,right,bottom)
+  return {left=left;top=top;right=right;bottom=bottom;unpack=function(t) return t.left,t.top,t.right,t.bottom end}
+end
 local function Size(width,height) return {width=width;height=height;unpack=function(t) return t.width,t.height end} end
+local function RectSize(rect) return Size(rect.right-rect.left,rect.bottom-rect.top) end -- TODO check for off-by-1 err
+local function Round(n) return math.floor(n+.5) end -- simplest, for positive numbers
 
 local function GetProcessesAndThreads()
   local size=512*1024
@@ -342,7 +346,8 @@ local function IsWorking()
     local ptr1=ptr
     while true do
       local process=ffi.cast("SYSTEM_PROCESS_INFORMATION*",ptr1)
-      if pid==process.InheritedFromUniqueProcessId and 'conhost.exe'==win.Utf16ToUtf8(ffi.string(process.ImageName.Buffer,process.ImageName.Length)):lower() then
+      if pid==process.InheritedFromUniqueProcessId and
+         'conhost.exe'==win.Utf16ToUtf8(ffi.string(process.ImageName.Buffer,process.ImageName.Length)):lower() then
         local thread=ffi.cast("SYSTEM_THREADS*",ptr1+ffi.sizeof"SYSTEM_PROCESS_INFORMATION")
         for ii=1,process.NumberOfThreads do
           if thread[ii-1].State~=C.StateWait or thread[ii-1].WaitReason==C.DelayExecution then return true end
@@ -368,11 +373,13 @@ local function LongPath(path)
 end
 
 local function BGR2RGB(color)
-  return bit64.bor(bit64.band(bit64.rshift(color,16),0xff),bit64.band(color,0xff00ff00),bit64.band(bit64.lshift(color,16),0xff0000))
+  return bit64.bor(bit64.band(bit64.rshift(color,16),0x000000ff),bit64.band(color,0xff00ff00),
+                   bit64.band(bit64.lshift(color,16),0x00ff0000))
 end
 
 local function PointInRect(point,rect)
-  return point.MousePositionX>=rect.left and point.MousePositionX<=rect.right and point.MousePositionY>=rect.top and point.MousePositionY<=rect.bottom
+  return point.MousePositionX>=rect.left and point.MousePositionX<=rect.right and
+         point.MousePositionY>=rect.top and point.MousePositionY<=rect.bottom
 end
 
 local function getDNG(filename)
@@ -384,7 +391,8 @@ local function getDNG(filename)
     end
     return result
   end
-  local result,thumbs,int,fix=false,{},function(b) return (b[1] or 0)+(b[2] or 0)*256+(b[3] or 0)*65536+(b[4] or 0)*16777216 end,function(a) return a end
+  local result,thumbs,fix=false,{},function(a) return a end
+  local int=function(b) return (b[1] or 0)+(b[2] or 0)*256+(b[3] or 0)*65536+(b[4] or 0)*16777216 end
   local function get(file,bytes) return int({string.byte(file:read(bytes),1,bytes)}) end
   local function get2(file) return get(file,2) end
   local function get4(file) return get(file,4) end
@@ -392,7 +400,8 @@ local function getDNG(filename)
     local entries,index=get2(file),#thumbs+1
     thumbs[index]={size=0,compression=6}
     for _=1,entries do
-      local d={f=file,process=process,value=thumbs[index],base=base,tag=get2(file),type=get2(file),count=get4(file),offset=get4(file)}
+      local d={f=file,process=process,value=thumbs[index],base=base,
+               tag=get2(file),type=get2(file),count=get4(file),offset=get4(file)}
       process(d)
     end
   end
@@ -438,7 +447,9 @@ local function getDNG(filename)
                     if d.tag==8224 then
                       local pos=d.f:seek()
                       d.f:seek('set',d.base+d.offset)
-                      parse_ifd(d.f,d.base,function(d) if d.tag==257 then d.value.data=d.base+d.offset elseif d.tag==258 then d.value.size=d.offset end end)
+                      parse_ifd(d.f,d.base,function(d) if d.tag==257 then d.value.data=d.base+d.offset
+                                                       elseif d.tag==258 then d.value.size=d.offset
+                                                       end end)
                       d.f:seek('set',pos)
                     end
                   end)
@@ -498,7 +509,8 @@ local function CanReorient(image)
 end
 
 local function InitImage(filename)
-  local delete=far.ProcessName(F.PN_CMPNAMELIST,"*.dng,*.pef,*.nef,*.cr2,*.sr2,*.arw,*.orf,*.rw2,*.srw",filename,F.PN_SKIPPATH) and getDNG(filename)
+  local cameraRawMasks="*.dng,*.pef,*.nef,*.cr2,*.sr2,*.arw,*.orf,*.rw2,*.srw"
+  local delete=far.ProcessName(F.PN_CMPNAMELIST,cameraRawMasks,filename,F.PN_SKIPPATH) and getDNG(filename)
   local wnd=far.AdvControl(F.ACTL_GETFARHWND)
   local dc=C.GetDC(wnd)
   local image=ffi.new("void*[1]")
@@ -569,8 +581,8 @@ local function InitArea(params)
   local crect=ffi.new("RECT")
   C.GetClientRect(params.image.wnd,crect)
   local gui=crect.bottom~=0;
-  local dx=gui and math.floor((crect.right-crect.left)/(info.srWindow.Right-info.srWindow.Left+1)+0.5) or 8
-  local dy=gui and math.floor((crect.bottom-crect.top)/(info.srWindow.Bottom-info.srWindow.Top+1)+0.5) or 16
+  local dx=gui and Round((crect.right-crect.left)/(info.srWindow.Right-info.srWindow.Left+1)) or 8
+  local dy=gui and Round((crect.bottom-crect.top)/(info.srWindow.Bottom-info.srWindow.Top+1)) or 16
   local DCRect={}
   DCRect.left=math.floor(dx*(params.DrawRect.left-info.srWindow.Left))
   DCRect.right=math.floor(dx*(params.DrawRect.right+1-info.srWindow.Left))
@@ -613,7 +625,8 @@ local function UpdateImage(params,dlg)
     local size=Size(params.image.width,params.image.height)
     update(params.image.memory.graphics[0],size,Rect(0,0,size:unpack()))
     while IsWorking() do end
-    gdiplus.GdipDrawImageRectI(params.image.graphics[0],params.image.memory.image[0],params.RangedRect.left,params.RangedRect.top,params.RangedRect.right,params.RangedRect.bottom)
+    gdiplus.GdipDrawImageRectI(params.image.graphics[0],params.image.memory.image[0],params.RangedRect.left,
+                               params.RangedRect.top,params.RangedRect.right,params.RangedRect.bottom)
   else
     local bitmap=ffi.new("void*[1]")
     gdiplus.GdipCreateBitmapFromScan0(params.cr.width,params.cr.height,0,0x26200a,ffi.NULL,bitmap)
@@ -650,7 +663,8 @@ end
 
 local function ShowImage(xpanel)
   local vinfo,pinfo=viewer.GetInfo(),panel.GetPanelInfo(nil,xpanel)
-  if pinfo and vinfo and vinfo.WindowSizeX==(pinfo.PanelRect.right-pinfo.PanelRect.left-1) and pinfo.PanelType==F.PTYPE_QVIEWPANEL then
+  if pinfo and vinfo and vinfo.WindowSizeX==(pinfo.PanelRect.right-pinfo.PanelRect.left-1) and
+                         pinfo.PanelType==F.PTYPE_QVIEWPANEL then
     local params={CurPanel=bit64.band(pinfo.Flags,F.PFLAGS_FOCUS)~=0,Redraw=false,Gui=true,Key=false,Exit=false}
     params.image=InitImage(viewer.GetFileName())
     if params.image then
@@ -660,7 +674,8 @@ local function ShowImage(xpanel)
       local function FillBuffer()
         local color=far.AdvControl(F.ACTL_GETCOLOR,K.COL_PANELTEXT)
         local textel={Char='▀',Attributes={Flags=(bit64.band(color.Flags,F.FCF_BG_4BIT)==0) and 0
-                     or bit64.bor(F.FCF_FG_4BIT,F.FCF_BG_4BIT),ForegroundColor=color.BackgroundColor,BackgroundColor=color.BackgroundColor}}
+                                                 or bit64.bor(F.FCF_FG_4BIT,F.FCF_BG_4BIT),
+                                           ForegroundColor=color.BackgroundColor,BackgroundColor=color.BackgroundColor}}
         local buffer=params.cr.buffer
         for ii=1,#buffer do
           buffer[ii]=textel
@@ -673,9 +688,27 @@ local function ShowImage(xpanel)
       end
       local orientMarker=rotFlip and ' '..rotFlip.mn or ''
       if not CanReorient(params.image) then orientMarker=orientMarker:lower() end
+      params.DrawRect={}
+      params.DrawRect.left=pinfo.PanelRect.left+1
+      params.DrawRect.top=pinfo.PanelRect.top+1
+      params.DrawRect.right=pinfo.PanelRect.right-1
+      params.DrawRect.bottom=pinfo.PanelRect.bottom-1
+      params.DCRect,params.FontSize,params.Gui=InitArea(params)
+      if not params.Gui then console_renderer=true end
+      params.RangedRect=RangingPic(params,params.DCRect)
+      params.PanelRect=pinfo.PanelRect
+      params.RangedCRRect=RangingPic(params,{left=0;right=params.cr.width;top=0;bottom=params.cr.height},params.FontSize)
+      local function PercentScale(canvasSize,imageSize)
+        local scaleX=canvasSize.width /imageSize.width
+        local scaleY=canvasSize.height/imageSize.height
+        return Round(100*math.min(scaleX,scaleY,1.)) -- duplicates the logic of image scaling
+      end
+      local cr=console_renderer~=0
+      local scaleMark=cr and ' ~ ' or ' @ '
+      local scaleStr=scaleMark..PercentScale(cr and params.cr or RectSize(params.DCRect),params.image)..'%'
       local items={
         {'DI_DOUBLEBOX',0,0,width+1,height+1,0,0,0,0,
-          params.image.width..' x '..params.image.height..' * '..params.image.frames..orientMarker},
+          params.image.width..' x '..params.image.height..' * '..params.image.frames..orientMarker..scaleStr},
         {"DI_USERCONTROL",1,1,width,height,params.cr.buffer,0,0,0,""}
       }
       local function DlgProc(dlg,msg,param1,param2)
@@ -689,7 +722,7 @@ local function ShowImage(xpanel)
               params.Exit=true
               CloseTimer()
               if Refresh[key] then key=key.." CtrlR" end
-              far.MacroPost([[Keys("Esc ]]..key..[[")]])
+              far.MacroPost("Keys'Esc "..key.."'")
               return true
             end
           end
@@ -737,14 +770,20 @@ local function ShowImage(xpanel)
           if param2.EventType==F.FOCUS_EVENT and param2.SetFocus then
             UpdateImage(params,dlg)
           elseif param2.EventType==F.MOUSE_EVENT then
-            return not CloseDialog(function(key) return Mouse2[key] or Mouse3[key] and not PointInRect(param2,params.PanelRect) end)
+            return not CloseDialog(
+              function(key) return Mouse2[key] or Mouse3[key] and not PointInRect(param2,params.PanelRect) end)
           end
         elseif msg==F.DN_CONTROLINPUT then
-          if "F4"==far.InputRecordToName(param2) then
+          if "F4"==far.InputRecordToName(param2) then -- TODO update dialog title (scale)
             console_renderer=0==console_renderer and 1 or 0
             FillBuffer()
             dlg:send(F.DM_REDRAW)
-          elseif param1~=-1 then return CloseDialog(function(key) return ((param2.EventType==F.KEY_EVENT or param2.EventType==F.FARMACRO_KEY_EVENT) and param2.KeyDown or param2.EventType==F.MOUSE_EVENT and Mouse1[key]) end) end
+          elseif param1~=-1 then
+            return CloseDialog(function(key)
+                return (param2.EventType==F.KEY_EVENT or param2.EventType==F.FARMACRO_KEY_EVENT) and param2.KeyDown or
+                        param2.EventType==F.MOUSE_EVENT and Mouse1[key]
+              end)
+          end
           return true
         elseif msg==F.DN_RESIZECONSOLE then
           CloseDialog(nil,"CtrlR")
@@ -755,17 +794,9 @@ local function ShowImage(xpanel)
           CloseDelayTimer()
         end
       end
-      params.DrawRect={}
-      params.DrawRect.left=pinfo.PanelRect.left+1
-      params.DrawRect.top=pinfo.PanelRect.top+1
-      params.DrawRect.right=pinfo.PanelRect.right-1
-      params.DrawRect.bottom=pinfo.PanelRect.bottom-1
-      params.DCRect,params.FontSize,params.Gui=InitArea(params)
-      if not params.Gui then console_renderer=true end
-      params.RangedRect=RangingPic(params,params.DCRect)
-      params.PanelRect=pinfo.PanelRect
-      params.RangedCRRect=RangingPic(params,{left=0;right=params.cr.width;top=0;bottom=params.cr.height},params.FontSize)
-      local dialog=far.DialogInit(win.Uuid("BFC62A3A-1ED5-4590-AF86-A582F6237E6F"),pinfo.PanelRect.left,pinfo.PanelRect.top,pinfo.PanelRect.right,pinfo.PanelRect.bottom,nil,items,F.FDLG_NODRAWSHADOW,DlgProc)
+      local dialog=far.DialogInit(win.Uuid'BFC62A3A-1ED5-4590-AF86-A582F6237E6F',
+                                  pinfo.PanelRect.left,pinfo.PanelRect.top,pinfo.PanelRect.right,pinfo.PanelRect.bottom,
+                                  nil,items,F.FDLG_NODRAWSHADOW,DlgProc)
       far.DialogRun(dialog)
       far.DialogFree(dialog)
       DeleteImage(params)
@@ -807,7 +838,7 @@ MenuItem
   guid='A1514770-1F60-4734-A3B2-E2E66CB9D661';
   text='Picture';
   action=function()
-    KCheck=2
+    local KCheck=2
     console_renderer=ReadSettings()
     local function DlgProc(dlg,msg)
       if msg==F.DN_INITDIALOG then
@@ -816,10 +847,10 @@ MenuItem
       end
     end
     local items={
-      {'DI_DOUBLEBOX', 3,1,26,3,0,               0,0,0,'Picture'},
-      {'DI_CHECKBOX',  5,2, 0,0,console_renderer,0,0,0,'&Console renderer'}
+      {'DI_DOUBLEBOX', 3,1,71,3,0,               0,0,0,'Picture'},
+      {'DI_CHECKBOX',  5,2, 0,0,console_renderer,0,0,0,'&Console renderer (F4 in the viewer overrides for the session)'}
     }
-    local dialog=far.DialogInit(win.Uuid("9399CDDC-47B0-481D-985B-580E1CE0C8CB"),-1,-1,30,5,nil,items,0,DlgProc)
+    local dialog=far.DialogInit(win.Uuid("9399CDDC-47B0-481D-985B-580E1CE0C8CB"),-1,-1,75,5,nil,items,0,DlgProc)
     if 0<far.DialogRun(dialog) then WriteSettings(dialog:send(F.DM_GETCHECK,KCheck)) end
     far.DialogFree(dialog)
     console_renderer=ReadSettings()
