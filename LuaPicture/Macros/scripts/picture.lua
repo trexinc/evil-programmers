@@ -11,13 +11,13 @@ local Mouse3=Set{"MsLClick"}
 local BGColor=function() return 0xff000000 end
 local F=far.Flags
 local K=far.Colors
-local ffi=require("ffi")
+local ffi=require'ffi'
 local C=ffi.C
 ffi.cdef[[
 int SetProcessDpiAwareness(int);
 ]]
 local function setdpi()
-  local shcore=ffi.load("shcore")
+  local shcore=ffi.load'shcore'
   shcore.SetProcessDpiAwareness(2)
 end
 pcall(setdpi)
@@ -174,9 +174,9 @@ int32_t GetConsoleScreenBufferInfoEx(void* hConsoleOutput,CONSOLE_SCREEN_BUFFER_
 void* GetStdHandle(uint32_t nStdHandle);
 int32_t GetClientRect(void*,RECT*);
 ]]
-local gdiplus=ffi.load("gdiplus")
-local handle=ffi.new("void*[1]")
-local startup=ffi.new("GdiplusStartupInput")
+local gdiplus=ffi.load'gdiplus'
+local handle=ffi.new'void*[1]'
+local startup=ffi.new'GdiplusStartupInput'
 startup.GdiplusVersion=1
 gdiplus.GdiplusStartup(handle,startup,ffi.NULL)
 
@@ -299,7 +299,7 @@ ffi.cdef[[
 unsigned long ZwQuerySystemInformation(SYSTEM_INFORMATION_CLASS,void*,unsigned long,unsigned long*);
 unsigned long GetCurrentProcessId(void);
 ]]
-local ntdll=ffi.load("ntdll")
+local ntdll=ffi.load'ntdll'
 local pid=C.GetCurrentProcessId()
 
 local configguid='6B6CA451-58D1-46B6-94A9-FF1157393926'
@@ -484,7 +484,7 @@ local function InitBGColor()
   local color=far.AdvControl(F.ACTL_GETCOLOR,K.COL_PANELTEXT)
   local bgcolor
   if bit64.band(color.Flags,F.FCF_BG_4BIT)~=0 then
-    local info=ffi.new("CONSOLE_SCREEN_BUFFER_INFOEX")
+    local info=ffi.new'CONSOLE_SCREEN_BUFFER_INFOEX'
     info.cbSize=ffi.sizeof(info)
     C.GetConsoleScreenBufferInfoEx(C.GetStdHandle(-11),info)
     bgcolor=bit64.bor(BGR2RGB(info.ColorTable[bit64.band(color.BackgroundColor,0xf)]),0xff000000)
@@ -507,29 +507,49 @@ local RotFlipByOrient={                            -- From exiftool documentatio
 local function CanReorient(image)
   return image.frames==1 --TODO support reorienting animations (e.g. multipage TIFFs)
 end
+local function ExifOrient(image)
+  local exifOrient = 0
+  local exifOrientSize = ffi.new'unsigned int[1]'
+  gdiplus.GdipGetPropertyItemSize(image[0],0x112,exifOrientSize)
+  if exifOrientSize[0]>0 then
+    local exifOrientRaw_buffer = ffi.new('char[?]',exifOrientSize[0])
+    local exifOrientRaw = ffi.cast('PropertyItem*',exifOrientRaw_buffer)
+    gdiplus.GdipGetPropertyItem(image[0],0x112,exifOrientSize[0],exifOrientRaw)
+    exifOrient = ffi.cast('unsigned short*',exifOrientRaw.value)[0]
+  end
+  return exifOrient
+end
 
 local function InitImage(filename)
-  local cameraRawMasks="*.dng,*.pef,*.nef,*.cr2,*.sr2,*.arw,*.orf,*.rw2,*.srw"
-  local delete=far.ProcessName(F.PN_CMPNAMELIST,cameraRawMasks,filename,F.PN_SKIPPATH) and getDNG(filename)
+  local cameraRawMasks = '*.dng,*.pef,*.nef,*.cr2,*.sr2,*.arw,*.orf,*.rw2,*.srw'
+  local isCamRaw = far.ProcessName(F.PN_CMPNAMELIST,cameraRawMasks,filename,F.PN_SKIPPATH)
+  local camRaw, exifTool
+  if isCamRaw then
+    -- Use ExifTool as GDI+ fails to load raw images and I'm too lazy for WIC machinery.
+    -- Running ExifTool in parallel with image extraction by 'getDNG()' for a slight speed-up..
+    -- Not using 'LongPath()' because ExifTool (at least v12.63) rejects the "\\?\" prefix.
+    exifTool = io.popen(('ExifTool.exe -s3 -n -Orientation "%s" 2>NUL'):format(filename)) -- code injection possible :(
+    camRaw = getDNG(filename)
+  end
   local wnd=far.AdvControl(F.ACTL_GETFARHWND)
   local dc=C.GetDC(wnd)
-  local image=ffi.new("void*[1]")
-  local status=gdiplus.GdipLoadImageFromFile(ToWChar(LongPath(delete or filename)),image)
+  local image=ffi.new'void*[1]'
+  local status=gdiplus.GdipLoadImageFromFile(ToWChar(LongPath(camRaw or filename)),image)
   if status==0 then
-    local graphics=ffi.new("void*[1]")
+    local graphics=ffi.new'void*[1]'
     gdiplus.GdipCreateFromHDC(dc,graphics)
-    local width=ffi.new("unsigned int[1]")
+    local width=ffi.new'unsigned int[1]'
     gdiplus.GdipGetImageWidth(image[0],width)
-    local height=ffi.new("unsigned int[1]")
+    local height=ffi.new'unsigned int[1]'
     gdiplus.GdipGetImageHeight(image[0],height)
-    local count=ffi.new("unsigned int[1]")
+    local count=ffi.new'unsigned int[1]'
     gdiplus.GdipImageGetFrameDimensionsCount(image[0],count)
     local dimensionIDs=ffi.new("GUID[?]",count[0])
     gdiplus.GdipImageGetFrameDimensionsList(image[0],dimensionIDs,count[0])
-    local frames=ffi.new("unsigned int[1]")
+    local frames=ffi.new'unsigned int[1]'
     gdiplus.GdipImageGetFrameCount(image[0],dimensionIDs,frames)
     local delay
-    local delaysize=ffi.new("unsigned int[1]")
+    local delaysize=ffi.new'unsigned int[1]'
     gdiplus.GdipGetPropertyItemSize(image[0],0x5100,delaysize)
     if delaysize[0]>0 then
       delay={}
@@ -541,25 +561,20 @@ local function InitImage(filename)
         table.insert(delay,value>0 and value or 1)
       end
     end
-    local exifOrient=0
-    local exifOrientSize=ffi.new("unsigned int[1]")
-    gdiplus.GdipGetPropertyItemSize(image[0],0x112,exifOrientSize)
-    if exifOrientSize[0]>0 then
-      local exifOrientRaw_buffer=ffi.new("char[?]",exifOrientSize[0])
-      local exifOrientRaw=ffi.cast("PropertyItem*",exifOrientRaw_buffer)
-      gdiplus.GdipGetPropertyItem(image[0],0x112,exifOrientSize[0],exifOrientRaw)
-      exifOrient=ffi.cast("unsigned short*",exifOrientRaw.value)[0]
+    local exifOrient = ExifOrient(image)
+    if exifOrient==0 and exifTool then
+      exifOrient = tonumber(exifTool:read()) or 0
     end
-    local brush=ffi.new("void*[1]")
+    local brush=ffi.new'void*[1]'
     gdiplus.GdipCreateSolidFill(BGColor(),brush)
-    local memimage=ffi.new("void*[1]")
+    local memimage=ffi.new'void*[1]'
     local tr=RotFlipByOrient[exifOrient] and RotFlipByOrient[exifOrient].tr and CanReorient{frames=frames[0]}
     local wh,hw=tr and height[0] or width[0],tr and width[0] or height[0]
     gdiplus.GdipCreateBitmapFromScan0(wh,hw,0,0x26200a,ffi.NULL,memimage)
-    local memgraphics=ffi.new("void*[1]")
+    local memgraphics=ffi.new'void*[1]'
     gdiplus.GdipGetImageGraphicsContext(memimage[0],memgraphics)
     return {wnd=wnd,dc=dc,image=image,graphics=graphics,brush=brush,width=wh,height=hw,orient=exifOrient,
-            frames=frames[0],delay=delay,guid=dimensionIDs,delete=delete,memory={image=memimage,graphics=memgraphics}}
+            frames=frames[0],delay=delay,guid=dimensionIDs,delete=camRaw,memory={image=memimage,graphics=memgraphics}}
   end
   return false
 end
@@ -575,10 +590,10 @@ local function DeleteImage(params)
 end
 
 local function InitArea(params)
-  local info=ffi.new("CONSOLE_SCREEN_BUFFER_INFO")
+  local info=ffi.new'CONSOLE_SCREEN_BUFFER_INFO'
   local handle=C.GetStdHandle(-11)
   C.GetConsoleScreenBufferInfo(handle,info)
-  local crect=ffi.new("RECT")
+  local crect=ffi.new'RECT'
   C.GetClientRect(params.image.wnd,crect)
   local gui=crect.bottom~=0;
   local dx=gui and Round((crect.right-crect.left)/(info.srWindow.Right-info.srWindow.Left+1)) or 8
@@ -628,14 +643,14 @@ local function UpdateImage(params,dlg)
     gdiplus.GdipDrawImageRectI(params.image.graphics[0],params.image.memory.image[0],params.RangedRect.left,
                                params.RangedRect.top,params.RangedRect.right,params.RangedRect.bottom)
   else
-    local bitmap=ffi.new("void*[1]")
+    local bitmap=ffi.new'void*[1]'
     gdiplus.GdipCreateBitmapFromScan0(params.cr.width,params.cr.height,0,0x26200a,ffi.NULL,bitmap)
-    local graphics=ffi.new("void*[1]")
+    local graphics=ffi.new'void*[1]'
     gdiplus.GdipGetImageGraphicsContext(bitmap[0],graphics)
     update(graphics[0],params.cr,params.RangedCRRect)
 
-    local color0=ffi.new("unsigned int[1]")
-    local color1=ffi.new("unsigned int[1]")
+    local color0=ffi.new'unsigned int[1]'
+    local color1=ffi.new'unsigned int[1]'
 
     for iy=0,(params.cr.height-1),2 do
       for ix=0,params.cr.width-1 do
@@ -662,11 +677,13 @@ local function UpdateImage(params,dlg)
 end
 
 local function ShowImage(xpanel)
+  local time0 = Far.UpTime
   local vinfo,pinfo=viewer.GetInfo(),panel.GetPanelInfo(nil,xpanel)
   if pinfo and vinfo and vinfo.WindowSizeX==(pinfo.PanelRect.right-pinfo.PanelRect.left-1) and
                          pinfo.PanelType==F.PTYPE_QVIEWPANEL then
     local params={CurPanel=bit64.band(pinfo.Flags,F.PFLAGS_FOCUS)~=0,Redraw=false,Gui=true,Key=false,Exit=false}
     params.image=InitImage(viewer.GetFileName())
+    local time1 = Far.UpTime
     if params.image then
       local width,height=pinfo.PanelRect.right-pinfo.PanelRect.left-1,pinfo.PanelRect.bottom-pinfo.PanelRect.top-1
       params.cr=Size(width,height*2)
@@ -686,6 +703,7 @@ local function ShowImage(xpanel)
       if rotFlip and rotFlip.mn~='R0F0' and CanReorient(params.image) then
         gdiplus.GdipImageRotateFlip(params.image.image[0],rotFlip.op)
       end
+      local time2 = Far.UpTime
       local orientMarker=rotFlip and ' '..rotFlip.mn or ''
       if not CanReorient(params.image) then orientMarker=orientMarker:lower() end
       params.DrawRect={}
@@ -706,9 +724,10 @@ local function ShowImage(xpanel)
       local cr=console_renderer~=0
       local scaleMark=cr and ' ~ ' or ' @ '
       local scaleStr=scaleMark..PercentScale(cr and params.cr or RectSize(params.DCRect),params.image)..'%'
+      local timeStr = ' / '..tostring(time1-time0)..'+'..tostring(time2-time1)..'ms'
       local items={
         {'DI_DOUBLEBOX',0,0,width+1,height+1,0,0,0,0,
-          params.image.width..' x '..params.image.height..' * '..params.image.frames..orientMarker..scaleStr},
+          params.image.width..' x '..params.image.height..' * '..params.image.frames..orientMarker..scaleStr..timeStr},
         {"DI_USERCONTROL",1,1,width,height,params.cr.buffer,0,0,0,""}
       }
       local function DlgProc(dlg,msg,param1,param2)
@@ -808,6 +827,7 @@ Event
 {
   group="ViewerEvent";
   action=function(id,event,param)
+    local _,_=id,param
     if event==F.VE_READ then
       local xpanel=0
       local winType=far.AdvControl(F.ACTL_GETWINDOWTYPE)
@@ -840,17 +860,11 @@ MenuItem
   action=function()
     local KCheck=2
     console_renderer=ReadSettings()
-    local function DlgProc(dlg,msg)
-      if msg==F.DN_INITDIALOG then
-      elseif msg==F.DN_ENTERIDLE then
-      elseif msg==F.DN_CLOSE then
-      end
-    end
     local items={
       {'DI_DOUBLEBOX', 3,1,71,3,0,               0,0,0,'Picture'},
       {'DI_CHECKBOX',  5,2, 0,0,console_renderer,0,0,0,'&Console renderer (F4 in the viewer overrides for the session)'}
     }
-    local dialog=far.DialogInit(win.Uuid("9399CDDC-47B0-481D-985B-580E1CE0C8CB"),-1,-1,75,5,nil,items,0,DlgProc)
+    local dialog=far.DialogInit(win.Uuid'9399CDDC-47B0-481D-985B-580E1CE0C8CB',-1,-1,75,5,nil,items,0)
     if 0<far.DialogRun(dialog) then WriteSettings(dialog:send(F.DM_GETCHECK,KCheck)) end
     far.DialogFree(dialog)
     console_renderer=ReadSettings()
