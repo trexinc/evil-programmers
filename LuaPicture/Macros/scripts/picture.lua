@@ -22,7 +22,7 @@ local function setdpi()
 end
 pcall(setdpi)
 local function safe_cdef(def) pcall(ffi.cdef,def) end
-safe_cdef([[
+safe_cdef[[
 typedef enum GpStatus {
   Ok = 0,
   GenericError = 1,
@@ -47,38 +47,38 @@ typedef enum GpStatus {
   PropertyNotSupported = 20,
   ProfileNotFound = 21
 } GpStatus;
-]])
-safe_cdef([[
+]]
+safe_cdef[[
 typedef struct GdiplusStartupInput {
   uint32_t GdiplusVersion;
   void* DebugEventCallback;
   int SuppressBackgroundThread;
   int SuppressExternalCodecs;
 } GdiplusStartupInput;
-]])
-safe_cdef([[
+]]
+safe_cdef[[
 typedef struct GdiplusStartupOutput {
   void* NotificationHook;
   void* NotificationUnhook;
 } GdiplusStartupOutput;
-]])
-safe_cdef([[
+]]
+safe_cdef[[
 typedef struct {
   unsigned long Data1;
   unsigned short Data2;
   unsigned short Data3;
   unsigned char Data4[8];
 } GUID;
-]])
-safe_cdef([[
+]]
+safe_cdef[[
 typedef struct PropertyItem {
   unsigned long id;
   unsigned long length;
   unsigned short type;
   void* value;
 } PropertyItem;
-]])
-safe_cdef([[
+]]
+safe_cdef[[
 typedef enum RotateFlipType {
   RotateNoneFlipNone,
   Rotate90FlipNone,
@@ -97,7 +97,7 @@ typedef enum RotateFlipType {
   Rotate180FlipXY,
   Rotate270FlipXY
 } RotateFlipType;
-]])
+]]
 ffi.cdef[[
 GpStatus GdiplusStartup(void**,const GdiplusStartupInput*,GdiplusStartupOutput*);
 void GdiplusShutdown(void*);
@@ -122,29 +122,29 @@ GpStatus GdipGetPropertyItem(void* GpImage,unsigned long,unsigned int,PropertyIt
 GpStatus GdipImageRotateFlip(void* GpImage,RotateFlipType);
 GpStatus GdipBitmapGetPixel(void* bitmap, int x, int y, unsigned int* color);
 ]]
-safe_cdef([[
+safe_cdef[[
 typedef struct _COORD {
   short X;
   short Y;
 } COORD;
-]])
-safe_cdef([[
+]]
+safe_cdef[[
 typedef struct _SMALL_RECT {
   short Left;
   short Top;
   short Right;
   short Bottom;
 } SMALL_RECT;
-]])
-safe_cdef([[
+]]
+safe_cdef[[
 typedef struct _RECT {
   long left;
   long top;
   long right;
   long bottom;
 } RECT;
-]])
-safe_cdef([[
+]]
+safe_cdef[[
 typedef struct _CONSOLE_SCREEN_BUFFER_INFO {
   COORD dwSize;
   COORD dwCursorPosition;
@@ -152,8 +152,8 @@ typedef struct _CONSOLE_SCREEN_BUFFER_INFO {
   SMALL_RECT srWindow;
   COORD dwMaximumWindowSize;
 } CONSOLE_SCREEN_BUFFER_INFO;
-]])
-safe_cdef([[
+]]
+safe_cdef[[
 typedef struct _CONSOLE_SCREEN_BUFFER_INFOEX {
   unsigned long cbSize;
   COORD dwSize;
@@ -165,7 +165,7 @@ typedef struct _CONSOLE_SCREEN_BUFFER_INFOEX {
   int bFullscreenSupported;
   unsigned long ColorTable[16];
 } CONSOLE_SCREEN_BUFFER_INFOEX;
-]])
+]]
 ffi.cdef[[
 void* GetDC(void* HWND);
 int ReleaseDC(void* HWND,void* HDC);
@@ -180,7 +180,7 @@ local startup=ffi.new'GdiplusStartupInput'
 startup.GdiplusVersion=1
 gdiplus.GdiplusStartup(handle,startup,ffi.NULL)
 
-safe_cdef([[
+safe_cdef[[
 typedef enum _SYSTEM_INFORMATION_CLASS {
   SystemBasicInformation = 0,
   SystemProcessorInformation = 1,
@@ -195,16 +195,16 @@ typedef enum _SYSTEM_INFORMATION_CLASS {
   SystemRegistryQuotaInformation = 37,
   SystemLookasideInformation = 45
 } SYSTEM_INFORMATION_CLASS;
-]])
-safe_cdef([[
+]]
+safe_cdef[[
 typedef enum _THREAD_STATE {
   StateInitialized = 0,
   StateReady, StateRunning, StateStandby, StateTerminated,
   StateWait, StateTransition,
   StateUnknown
 } THREAD_STATE;
-]])
-safe_cdef([[
+]]
+safe_cdef[[
 typedef enum _KWAIT_REASON {
   Executive = 0,
   FreePage, PageIn, PoolAllocation, DelayExecution,
@@ -215,20 +215,20 @@ typedef enum _KWAIT_REASON {
   Spare2, Spare3, Spare4, Spare5, Spare6, WrKernel,
   MaximumWaitReason
 } KWAIT_REASON;
-]])
-safe_cdef([[
+]]
+safe_cdef[[
 typedef struct _LARGE_INTEGER {
   long long QuadPart;
 } LARGE_INTEGER;
-]])
-safe_cdef([[
+]]
+safe_cdef[[
 typedef struct _UNICODE_STRING {
   unsigned short Length;
   unsigned short MaximumLength;
   wchar* Buffer;
 } UNICODE_STRING;
-]])
-safe_cdef([[
+]]
+safe_cdef[[
 typedef struct _VM_COUNTERS {
   size_t PeakVirtualSize;
   size_t VirtualSize;
@@ -242,8 +242,8 @@ typedef struct _VM_COUNTERS {
   size_t PagefileUsage;
   size_t PeakPagefileUsage;
 } VM_COUNTERS;
-]])
-safe_cdef([[
+]]
+safe_cdef[[
 typedef struct _IO_COUNTERS {
   unsigned long long ReadOperationCount;
   unsigned long long WriteOperationCount;
@@ -252,8 +252,8 @@ typedef struct _IO_COUNTERS {
   unsigned long long WriteTransferCount;
   unsigned long long OtherTransferCount;
 } IO_COUNTERS;
-]])
-safe_cdef([[
+]]
+safe_cdef[[
 typedef struct _SYSTEM_PROCESS_INFORMATION {
   unsigned long NextEntryOffset;
   unsigned long NumberOfThreads;
@@ -272,14 +272,14 @@ typedef struct _SYSTEM_PROCESS_INFORMATION {
   size_t PrivatePageCount;
   IO_COUNTERS IoCounters;
 } SYSTEM_PROCESS_INFORMATION;
-]])
-safe_cdef([[
+]]
+safe_cdef[[
 typedef struct _CLIENT_ID {
   uintptr_t UniqueProcess;
   uintptr_t UniqueThread;
 } CLIENT_ID;
-]])
-safe_cdef([[
+]]
+safe_cdef[[
 typedef struct _SYSTEM_THREADS
 {
   LARGE_INTEGER KernelTime;
@@ -294,7 +294,7 @@ typedef struct _SYSTEM_THREADS
   THREAD_STATE State;
   KWAIT_REASON WaitReason;
 } SYSTEM_THREADS, *PSYSTEM_THREADS;
-]])
+]]
 ffi.cdef[[
 unsigned long ZwQuerySystemInformation(SYSTEM_INFORMATION_CLASS,void*,unsigned long,unsigned long*);
 unsigned long GetCurrentProcessId(void);
@@ -368,7 +368,7 @@ local function ToWChar(str)
 end
 
 local function LongPath(path)
-  local type=path:match([[^\\(.?.?)]])
+  local type = path:match[[^\\(.?.?)]]
   return type and (([[?\]]==type or [[.\]]==type) and path or [[\\?\UNC]]..path:sub(2)) or [[\\?\]]..path
 end
 
@@ -393,7 +393,7 @@ local function getDNG(filename)
   end
   local result,thumbs,fix=false,{},function(a) return a end
   local int=function(b) return (b[1] or 0)+(b[2] or 0)*256+(b[3] or 0)*65536+(b[4] or 0)*16777216 end
-  local function get(file,bytes) return int({string.byte(file:read(bytes),1,bytes)}) end
+  local function get(file,bytes) return int{string.byte(file:read(bytes),1,bytes)} end
   local function get2(file) return get(file,2) end
   local function get4(file) return get(file,4) end
   local function parse_ifd(file,base,process)
@@ -405,7 +405,7 @@ local function getDNG(filename)
       process(d)
     end
   end
-  local f=io.open(filename,"rb")
+  local orient,f = 0,io.open(filename,'rb')
   if f then
     local tag=f:read(2)
     if tag=="II" or tag=="MM" then
@@ -422,6 +422,7 @@ local function getDNG(filename)
           if d.tag==46 then d.value.data,d.value.size=(d.base+d.offset),d.count
           elseif d.tag==259 then d.value.compression=fix(d.offset)
           elseif (d.tag==273 or d.tag==513) and d.offset~=0xffffffff then d.value.data=d.base+d.offset
+          elseif d.tag==274 then d.value.orient =fix(d.offset)
           elseif d.tag==277 then d.value.samples=fix(d.offset)
           elseif (d.tag==279 or d.tag==514) and d.offset>0 then d.value.size=d.offset
           elseif d.tag==330 then
@@ -471,13 +472,18 @@ local function getDNG(filename)
           f:seek('set',v.data)
           w:write(f:read(v.size))
           w:close()
+          orient = v.orient or 0
         end
         break
       end
     end
+    for _,v in ipairs(thumbs) do
+      if orient~=0 then break end
+      orient = v.orient or 0
+    end
     f:close()
   end
-  return result
+  return result,orient
 end
 
 local function InitBGColor()
@@ -523,18 +529,12 @@ end
 local function InitImage(filename)
   local cameraRawMasks = '*.dng,*.pef,*.nef,*.cr2,*.sr2,*.arw,*.orf,*.rw2,*.srw'
   local isCamRaw = far.ProcessName(F.PN_CMPNAMELIST,cameraRawMasks,filename,F.PN_SKIPPATH)
-  local camRaw, exifTool
-  if isCamRaw then
-    -- Use ExifTool as GDI+ fails to load raw images and I'm too lazy for WIC machinery.
-    -- Running ExifTool in parallel with image extraction by 'getDNG()' for a slight speed-up..
-    -- Not using 'LongPath()' because ExifTool (at least v12.63) rejects the "\\?\" prefix.
-    exifTool = io.popen(('ExifTool.exe -s3 -n -Orientation "%s" 2>NUL'):format(filename)) -- code injection possible :(
-    camRaw = getDNG(filename)
-  end
+  local camRawPath,exifOrient = nil,0
+  if isCamRaw then camRawPath,exifOrient = getDNG(filename) end
   local wnd=far.AdvControl(F.ACTL_GETFARHWND)
   local dc=C.GetDC(wnd)
   local image=ffi.new'void*[1]'
-  local status=gdiplus.GdipLoadImageFromFile(ToWChar(LongPath(camRaw or filename)),image)
+  local status=gdiplus.GdipLoadImageFromFile(ToWChar(LongPath(camRawPath or filename)),image)
   if status==0 then
     local graphics=ffi.new'void*[1]'
     gdiplus.GdipCreateFromHDC(dc,graphics)
@@ -561,9 +561,12 @@ local function InitImage(filename)
         table.insert(delay,value>0 and value or 1)
       end
     end
-    local exifOrient = ExifOrient(image)
-    if exifOrient==0 and exifTool then
-      exifOrient = tonumber(exifTool:read()) or 0
+    if exifOrient==0 then exifOrient = ExifOrient(image) end
+    if exifOrient==0 and isCamRaw then -- slow fallback
+      -- Use ExifTool as GDI+ fails to load raw images and I'm too lazy for WIC machinery.
+      -- Not using 'LongPath()' because ExifTool (at least v12.63) rejects the "\\?\" prefix.
+      local h = io.popen(('ExifTool.exe -s3 -n -Orientation "%s" 2>NUL'):format(filename)) -- code injection possible :(
+      exifOrient = h and tonumber(h:read()) or 0
     end
     local brush=ffi.new'void*[1]'
     gdiplus.GdipCreateSolidFill(BGColor(),brush)
@@ -573,9 +576,10 @@ local function InitImage(filename)
     gdiplus.GdipCreateBitmapFromScan0(wh,hw,0,0x26200a,ffi.NULL,memimage)
     local memgraphics=ffi.new'void*[1]'
     gdiplus.GdipGetImageGraphicsContext(memimage[0],memgraphics)
-    return {wnd=wnd,dc=dc,image=image,graphics=graphics,brush=brush,width=wh,height=hw,orient=exifOrient,
-            frames=frames[0],delay=delay,guid=dimensionIDs,delete=camRaw,memory={image=memimage,graphics=memgraphics}}
+    return {wnd=wnd,dc=dc,image=image,graphics=graphics,brush=brush,width=wh,height=hw,orient=exifOrient,delay=delay,
+            frames=frames[0],guid=dimensionIDs,delete=camRawPath,memory={image=memimage,graphics=memgraphics}}
   end
+  if camRawPath then win.DeleteFile(camRawPath) end -- extracted but failed to load
   return false
 end
 
