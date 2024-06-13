@@ -173,134 +173,14 @@ int32_t GetConsoleScreenBufferInfo(void* hConsoleOutput,CONSOLE_SCREEN_BUFFER_IN
 int32_t GetConsoleScreenBufferInfoEx(void* hConsoleOutput,CONSOLE_SCREEN_BUFFER_INFOEX* lpConsoleScreenBufferInfoEx);
 void* GetStdHandle(uint32_t nStdHandle);
 int32_t GetClientRect(void*,RECT*);
+DWORD GetPixel(void* HDC,int x,int y);
+DWORD SetPixel(void* HDC,int x,int y,DWORD color);
 ]]
 local gdiplus=ffi.load'gdiplus'
-local handle=ffi.new'void*[1]'
+local gdip_handle=ffi.new'void*[1]'
 local startup=ffi.new'GdiplusStartupInput'
 startup.GdiplusVersion=1
-gdiplus.GdiplusStartup(handle,startup,ffi.NULL)
-
-safe_cdef[[
-typedef enum _SYSTEM_INFORMATION_CLASS {
-  SystemBasicInformation = 0,
-  SystemProcessorInformation = 1,
-  SystemPerformanceInformation = 2,
-  SystemTimeOfDayInformation = 3,
-  SystemProcessInformation = 5,
-  SystemProcessorPerformanceInformation = 8,
-  SystemHandleInformation = 16,
-  SystemPagefileInformation = 18,
-  SystemInterruptInformation = 23,
-  SystemExceptionInformation = 33,
-  SystemRegistryQuotaInformation = 37,
-  SystemLookasideInformation = 45
-} SYSTEM_INFORMATION_CLASS;
-]]
-safe_cdef[[
-typedef enum _THREAD_STATE {
-  StateInitialized = 0,
-  StateReady, StateRunning, StateStandby, StateTerminated,
-  StateWait, StateTransition,
-  StateUnknown
-} THREAD_STATE;
-]]
-safe_cdef[[
-typedef enum _KWAIT_REASON {
-  Executive = 0,
-  FreePage, PageIn, PoolAllocation, DelayExecution,
-  Suspended, UserRequest, WrExecutive, WrFreePage, WrPageIn,
-  WrPoolAllocation, WrDelayExecution, WrSuspended,
-  WrUserRequest, WrEventPair, WrQueue, WrLpcReceive,
-  WrLpcReply, WrVirtualMemory, WrPageOut, WrRendezvous,
-  Spare2, Spare3, Spare4, Spare5, Spare6, WrKernel,
-  MaximumWaitReason
-} KWAIT_REASON;
-]]
-safe_cdef[[
-typedef struct _LARGE_INTEGER {
-  long long QuadPart;
-} LARGE_INTEGER;
-]]
-safe_cdef[[
-typedef struct _UNICODE_STRING {
-  unsigned short Length;
-  unsigned short MaximumLength;
-  wchar* Buffer;
-} UNICODE_STRING;
-]]
-safe_cdef[[
-typedef struct _VM_COUNTERS {
-  size_t PeakVirtualSize;
-  size_t VirtualSize;
-  unsigned long PageFaultCount;
-  size_t PeakWorkingSetSize;
-  size_t WorkingSetSize;
-  size_t QuotaPeakPagedPoolUsage;
-  size_t QuotaPagedPoolUsage;
-  size_t QuotaPeakNonPagedPoolUsage;
-  size_t QuotaNonPagedPoolUsage;
-  size_t PagefileUsage;
-  size_t PeakPagefileUsage;
-} VM_COUNTERS;
-]]
-safe_cdef[[
-typedef struct _IO_COUNTERS {
-  unsigned long long ReadOperationCount;
-  unsigned long long WriteOperationCount;
-  unsigned long long OtherOperationCount;
-  unsigned long long ReadTransferCount;
-  unsigned long long WriteTransferCount;
-  unsigned long long OtherTransferCount;
-} IO_COUNTERS;
-]]
-safe_cdef[[
-typedef struct _SYSTEM_PROCESS_INFORMATION {
-  unsigned long NextEntryOffset;
-  unsigned long NumberOfThreads;
-  LARGE_INTEGER Reserved[3];
-  LARGE_INTEGER CreateTime;
-  LARGE_INTEGER UserTime;
-  LARGE_INTEGER KernelTime;
-  UNICODE_STRING ImageName;
-  long BasePriority;
-  uintptr_t UniqueProcessId;
-  uintptr_t InheritedFromUniqueProcessId;
-  unsigned long HandleCount;
-  unsigned long SessionId;
-  unsigned long PageDirectoryBase;
-  VM_COUNTERS VirtualMemoryCounters;
-  size_t PrivatePageCount;
-  IO_COUNTERS IoCounters;
-} SYSTEM_PROCESS_INFORMATION;
-]]
-safe_cdef[[
-typedef struct _CLIENT_ID {
-  uintptr_t UniqueProcess;
-  uintptr_t UniqueThread;
-} CLIENT_ID;
-]]
-safe_cdef[[
-typedef struct _SYSTEM_THREADS
-{
-  LARGE_INTEGER KernelTime;
-  LARGE_INTEGER UserTime;
-  LARGE_INTEGER CreateTime;
-  unsigned long WaitTime;
-  void* StartAddress;
-  CLIENT_ID ClientId;
-  long Priority;
-  long BasePriority;
-  unsigned long ContextSwitchCount;
-  THREAD_STATE State;
-  KWAIT_REASON WaitReason;
-} SYSTEM_THREADS, *PSYSTEM_THREADS;
-]]
-ffi.cdef[[
-unsigned long ZwQuerySystemInformation(SYSTEM_INFORMATION_CLASS,void*,unsigned long,unsigned long*);
-unsigned long GetCurrentProcessId(void);
-]]
-local ntdll=ffi.load'ntdll'
-local pid=C.GetCurrentProcessId()
+gdiplus.GdiplusStartup(gdip_handle,startup,ffi.NULL)
 
 local configguid='6B6CA451-58D1-46B6-94A9-FF1157393926'
 local function ReadSettings()
@@ -324,41 +204,6 @@ end
 local function Size(width,height) return {width=width;height=height;unpack=function(t) return t.width,t.height end} end
 local function RectSize(rect) return Size(rect.right-rect.left,rect.bottom-rect.top) end -- TODO check for off-by-1 err
 local function Round(n) return math.floor(n+.5) end -- simplest, for positive numbers
-
-local function GetProcessesAndThreads()
-  local size=512*1024
-  while true do
-    local buffer=ffi.new("char[?]",size)
-    local status=ntdll.ZwQuerySystemInformation(C.SystemProcessInformation,buffer,size,ffi.NULL)
-    if 0xC0000004==status then
-      size=size*2
-    elseif 0==status then
-      return buffer
-    else
-      break
-    end
-  end
-end
-
-local function IsWorking()
-  local ptr=GetProcessesAndThreads()
-  if ptr then
-    local ptr1=ptr
-    while true do
-      local process=ffi.cast("SYSTEM_PROCESS_INFORMATION*",ptr1)
-      if pid==process.InheritedFromUniqueProcessId and
-         'conhost.exe'==win.Utf16ToUtf8(ffi.string(process.ImageName.Buffer,process.ImageName.Length)):lower() then
-        local thread=ffi.cast("SYSTEM_THREADS*",ptr1+ffi.sizeof"SYSTEM_PROCESS_INFORMATION")
-        for ii=1,process.NumberOfThreads do
-          if thread[ii-1].State~=C.StateWait or thread[ii-1].WaitReason==C.DelayExecution then return true end
-        end
-        break
-      end
-      if process.NextEntryOffset==0 then break end
-      ptr1=ptr1+process.NextEntryOffset
-    end
-  end
-end
 
 local function ToWChar(str)
   str=win.Utf8ToUtf16(str)
@@ -418,48 +263,48 @@ local function getDNG(filename)
         local offset=get4(f)
         if offset==0 then break end
         f:seek('set',offset)
-        parse_ifd(f,0,function(d)
-          if d.tag==46 then d.value.data,d.value.size=(d.base+d.offset),d.count
-          elseif d.tag==259 then d.value.compression=fix(d.offset)
-          elseif (d.tag==273 or d.tag==513) and d.offset~=0xffffffff then d.value.data=d.base+d.offset
-          elseif d.tag==274 then d.value.orient =fix(d.offset)
-          elseif d.tag==277 then d.value.samples=fix(d.offset)
-          elseif (d.tag==279 or d.tag==514) and d.offset>0 then d.value.size=d.offset
-          elseif d.tag==330 then
-            local size,pos=4*d.count,d.f:seek()
-            for ii=1,d.count do
-              d.f:seek('set',d.base+d.offset+(ii-1)*4)
-              if size>4 then d.f:seek('set',get4(d.f)) end
-              parse_ifd(d.f,d.base,d.process)
+        parse_ifd(f,0,function(d1)
+          if d1.tag==46 then d1.value.data,d1.value.size=(d1.base+d1.offset),d1.count
+          elseif d1.tag==259 then d1.value.compression=fix(d1.offset)
+          elseif (d1.tag==273 or d1.tag==513) and d1.offset~=0xffffffff then d1.value.data=d1.base+d1.offset
+          elseif d1.tag==274 then d1.value.orient =fix(d1.offset)
+          elseif d1.tag==277 then d1.value.samples=fix(d1.offset)
+          elseif (d1.tag==279 or d1.tag==514) and d1.offset>0 then d1.value.size=d1.offset
+          elseif d1.tag==330 then
+            local size,pos1=4*d1.count,d1.f:seek()
+            for ii=1,d1.count do
+              d1.f:seek('set',d1.base+d1.offset+(ii-1)*4)
+              if size>4 then d1.f:seek('set',get4(d1.f)) end
+              parse_ifd(d1.f,d1.base,d1.process)
             end
-            d.f:seek('set',pos)
-          elseif d.tag==34665 then
-            local pos=d.f:seek()
-            d.f:seek('set',d.base+d.offset)
-            parse_ifd(d.f,d.base,function(d)
-              if d.tag==37500 then
-                local pos=d.f:seek()
-                d.f:seek('set',d.base+d.offset)
-                local new_base=d.f:seek()
-                local maker=d.f:read(10)
+            d1.f:seek('set',pos1)
+          elseif d1.tag==34665 then
+            local pos2=d1.f:seek()
+            d1.f:seek('set',d1.base+d1.offset)
+            parse_ifd(d1.f,d1.base,function(d2)
+              if d2.tag==37500 then
+                local pos3=d2.f:seek()
+                d2.f:seek('set',d2.base+d2.offset)
+                local new_base=d2.f:seek()
+                local maker=d2.f:read(10)
                 if maker=="OLYMPUS\0II" then
-                  get2(d.f)
-                  parse_ifd(d.f,new_base,function(d)
-                    if d.tag==8224 then
-                      local pos=d.f:seek()
-                      d.f:seek('set',d.base+d.offset)
-                      parse_ifd(d.f,d.base,function(d) if d.tag==257 then d.value.data=d.base+d.offset
-                                                       elseif d.tag==258 then d.value.size=d.offset
+                  get2(d2.f)
+                  parse_ifd(d2.f,new_base,function(d3)
+                    if d3.tag==8224 then
+                      local pos4=d3.f:seek()
+                      d3.f:seek('set',d3.base+d3.offset)
+                      parse_ifd(d3.f,d3.base,function(d4) if d4.tag==257 then d4.value.data=d4.base+d4.offset
+                                                       elseif d4.tag==258 then d4.value.size=d4.offset
                                                        end end)
-                      d.f:seek('set',pos)
+                      d3.f:seek('set',pos4)
                     end
                   end)
                 end
-                d.f:seek('set',pos)
+                d2.f:seek('set',pos3)
               end
             end)
-            d.f:seek('set',pos)
-          elseif d.tag==50752 then d.value.raw=true end
+            d1.f:seek('set',pos2)
+          elseif d1.tag==50752 then d1.value.raw=true end
         end)
       end
     end
@@ -641,11 +486,13 @@ local function UpdateImage(params,dlg)
   end
 
   if 0==console_renderer then
-    local size=Size(params.image.width,params.image.height)
-    update(params.image.memory.graphics[0],size,Rect(0,0,size:unpack()))
-    while IsWorking() do end
-    gdiplus.GdipDrawImageRectI(params.image.graphics[0],params.image.memory.image[0],params.RangedRect.left,
-                               params.RangedRect.top,params.RangedRect.right,params.RangedRect.bottom)
+    if params.image.frames>1 or C.GetPixel(params.image.dc,0,0)~=params.CheckColor then
+      local size=Size(params.image.width,params.image.height)
+      update(params.image.memory.graphics[0],size,Rect(0,0,size:unpack()))
+      gdiplus.GdipDrawImageRectI(params.image.graphics[0],params.image.memory.image[0],params.RangedRect.left,
+                                 params.RangedRect.top,params.RangedRect.right,params.RangedRect.bottom)
+      params.CheckColor=C.SetPixel(params.image.dc,0,0,C.GetPixel(params.image.dc,0,0)+1)
+    end
   else
     local bitmap=ffi.new'void*[1]'
     gdiplus.GdipCreateBitmapFromScan0(params.cr.width,params.cr.height,0,0x26200a,ffi.NULL,bitmap)
@@ -670,7 +517,7 @@ local function UpdateImage(params,dlg)
     dlg:send(F.DM_REDRAW)
   end
   if params.timer and not params.timer.Closed then
-    params.timer.Interval=params.image.delay and params.image.delay[params.image.frame+1]*10 or 500
+    params.timer.Interval=params.image.delay and params.image.delay[params.image.frame+1]*10 or (params.image.frames>1 and 500 or 50)
     if not params.timer.Enabled then params.timer.Enabled=true end
     params.image.frame=params.image.frame+1
     if params.image.frame==params.image.frames then
@@ -685,7 +532,7 @@ local function ShowImage(xpanel)
   local vinfo,pinfo=viewer.GetInfo(),panel.GetPanelInfo(nil,xpanel)
   if pinfo and vinfo and vinfo.WindowSizeX==(pinfo.PanelRect.right-pinfo.PanelRect.left-1) and
                          pinfo.PanelType==F.PTYPE_QVIEWPANEL then
-    local params={CurPanel=bit64.band(pinfo.Flags,F.PFLAGS_FOCUS)~=0,Redraw=false,Gui=true,Key=false,Exit=false}
+    local params={CurPanel=bit64.band(pinfo.Flags,F.PFLAGS_FOCUS)~=0,Redraw=false,Gui=true,Key=false,Exit=false,CheckColor=-1}
     params.image=InitImage(viewer.GetFileName())
     local time1 = Far.UpTime
     if params.image then
@@ -752,15 +599,13 @@ local function ShowImage(xpanel)
         end
         if msg==F.DN_INITDIALOG then
           far.SendDlgMessage(dlg,F.DM_SETMOUSEEVENTNOTIFY,1)
-          if params.image.frames>1 then
-            local function ShowAnimation()
-              if params.timer and not params.timer.Closed then params.timer.Enabled=false end
-              UpdateImage(params,dlg)
-            end
-            params.timer=far.Timer(1000000,ShowAnimation)
-            params.timer.Enabled=false
-            params.image.frame=0
+          local function ShowAnimation()
+            if params.timer and not params.timer.Closed then params.timer.Enabled=false end
+            UpdateImage(params,dlg)
           end
+          params.timer=far.Timer(1000000,ShowAnimation)
+          params.timer.Enabled=false
+          params.image.frame=0
         elseif msg==F.DN_CTLCOLORDLGITEM then
           if param1==1 then
             local colors=
@@ -852,7 +697,7 @@ Event
 {
   group="ExitFAR";
   action=function()
-    gdiplus.GdiplusShutdown(handle[0])
+    gdiplus.GdiplusShutdown(gdip_handle[0])
   end
 }
 
