@@ -486,35 +486,39 @@ local function UpdateImage(params,dlg)
   end
 
   if 0==console_renderer then
-    if params.image.frames>1 or C.GetPixel(params.image.dc,0,0)~=params.CheckColor then
+    local x,y=params.RangedRect.left,params.RangedRect.top
+    if params.image.frames>1 or C.GetPixel(params.image.dc,x,y)~=params.CheckColor then
       local size=Size(params.image.width,params.image.height)
       update(params.image.memory.graphics[0],size,Rect(0,0,size:unpack()))
-      gdiplus.GdipDrawImageRectI(params.image.graphics[0],params.image.memory.image[0],params.RangedRect.left,
-                                 params.RangedRect.top,params.RangedRect.right,params.RangedRect.bottom)
-      params.CheckColor=C.SetPixel(params.image.dc,0,0,C.GetPixel(params.image.dc,0,0)+1)
+      gdiplus.GdipDrawImageRectI(params.image.graphics[0],params.image.memory.image[0],x,y,
+                                 params.RangedRect.right,params.RangedRect.bottom)
+      params.CheckColor=C.SetPixel(params.image.dc,x,y,C.GetPixel(params.image.dc,x,y)+1)
     end
   else
-    local bitmap=ffi.new'void*[1]'
-    gdiplus.GdipCreateBitmapFromScan0(params.cr.width,params.cr.height,0,0x26200a,ffi.NULL,bitmap)
-    local graphics=ffi.new'void*[1]'
-    gdiplus.GdipGetImageGraphicsContext(bitmap[0],graphics)
-    update(graphics[0],params.cr,params.RangedCRRect)
+    if params.image.frames>1 or not params.Drawn then
+      local bitmap=ffi.new'void*[1]'
+      gdiplus.GdipCreateBitmapFromScan0(params.cr.width,params.cr.height,0,0x26200a,ffi.NULL,bitmap)
+      local graphics=ffi.new'void*[1]'
+      gdiplus.GdipGetImageGraphicsContext(bitmap[0],graphics)
+      update(graphics[0],params.cr,params.RangedCRRect)
 
-    local color0=ffi.new'unsigned int[1]'
-    local color1=ffi.new'unsigned int[1]'
+      local color0=ffi.new'unsigned int[1]'
+      local color1=ffi.new'unsigned int[1]'
 
-    for iy=0,(params.cr.height-1),2 do
-      for ix=0,params.cr.width-1 do
-        gdiplus.GdipBitmapGetPixel(bitmap[0],ix,iy+0,color0)
-        gdiplus.GdipBitmapGetPixel(bitmap[0],ix,iy+1,color1)
-        local textel={Char='▀',Attributes={Flags=0,ForegroundColor=BGR2RGB(color0[0]),BackgroundColor=BGR2RGB(color1[0])}}
-        params.cr.buffer[iy/2*params.cr.width+ix+1]=textel
+      for iy=0,(params.cr.height-1),2 do
+        for ix=0,params.cr.width-1 do
+          gdiplus.GdipBitmapGetPixel(bitmap[0],ix,iy+0,color0)
+          gdiplus.GdipBitmapGetPixel(bitmap[0],ix,iy+1,color1)
+          local textel={Char='▀',Attributes={Flags=0,ForegroundColor=BGR2RGB(color0[0]),BackgroundColor=BGR2RGB(color1[0])}}
+          params.cr.buffer[iy/2*params.cr.width+ix+1]=textel
+        end
       end
-    end
 
-    gdiplus.GdipDeleteGraphics(graphics[0])
-    gdiplus.GdipDisposeImage(bitmap[0])
-    dlg:send(F.DM_REDRAW)
+      gdiplus.GdipDeleteGraphics(graphics[0])
+      gdiplus.GdipDisposeImage(bitmap[0])
+      params.Drawn=true
+      dlg:send(F.DM_REDRAW)
+    end
   end
   if params.timer and not params.timer.Closed then
     params.timer.Interval=params.image.delay and params.image.delay[params.image.frame+1]*10 or (params.image.frames>1 and 500 or 50)
@@ -532,7 +536,7 @@ local function ShowImage(xpanel)
   local vinfo,pinfo=viewer.GetInfo(),panel.GetPanelInfo(nil,xpanel)
   if pinfo and vinfo and vinfo.WindowSizeX==(pinfo.PanelRect.right-pinfo.PanelRect.left-1) and
                          pinfo.PanelType==F.PTYPE_QVIEWPANEL then
-    local params={CurPanel=bit64.band(pinfo.Flags,F.PFLAGS_FOCUS)~=0,Redraw=false,Gui=true,Key=false,Exit=false,CheckColor=-1}
+    local params={CurPanel=bit64.band(pinfo.Flags,F.PFLAGS_FOCUS)~=0,Redraw=false,Gui=true,Key=false,Exit=false,CheckColor=-1,Drawn=false}
     params.image=InitImage(viewer.GetFileName())
     local time1 = Far.UpTime
     if params.image then
@@ -548,6 +552,8 @@ local function ShowImage(xpanel)
         for ii=1,#buffer do
           buffer[ii]=textel
         end
+        params.CheckColor=-1
+        params.Drawn=false
       end
       FillBuffer()
       local rotFlip=RotFlipByOrient[params.image.orient]
