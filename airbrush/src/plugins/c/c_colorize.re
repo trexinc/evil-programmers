@@ -42,7 +42,7 @@ DD=D(SEP*);
 EXP=[eE][+-]?(SEP*)DD+;
 FLOAT=[fFlL];
 INT=[uUlL]*;
-ESC=[\\] ([abfnrtv?'"\\] | "x" H+ | O+);
+ESC=[\\] ([abfnrtv?'"\\] | "x" H+ | O+ | "u" H H H H );
 STR=("L"|"u8"|"u"|"U");
 DCHAR=[!"#$%&'()*+,.0-9:;<=>?@A-Z_`a-z{|}~]|"-"|"["|"]"|"\\"|"^";
 */
