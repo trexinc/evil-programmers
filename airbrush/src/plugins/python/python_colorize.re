@@ -117,7 +117,7 @@ colorize_clear:
   "as"|"elif"|"if"|"or"|"yield"|
   "assert"|"else"|"import"|"pass"|
   "break"|"except"|"in"|"raise"|
-  [+-*/%@<>=!,:.]
+  [+*/%@<>=!,:.-]
   { Info.pAddColor(params,lno,yytok-line,yycur-yytok,colors+HC_KEYWORD1,EPriorityNormal); goto colorize_clear; }
   L(L|D)*
   { goto colorize_clear; }
