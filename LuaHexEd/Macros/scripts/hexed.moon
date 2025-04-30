@@ -93,10 +93,11 @@ GetOffset=->
 _title,_view,_edit=1,2,3
 
 HexDraw=(hDlg,data)->
-  DrawStr=(pos,str,textel=data.textel)->
-    for ii=1,str\len!
+  DrawStr=(xx,yy,str,textel=data.textel)->
+    last=math.min str\len!,data.width-xx+1
+    for ii=1,last
       textel.Char=str\byte ii
-      data.buffer[pos+ii-1]=textel
+      data.buffer[yy*data.width+xx+ii-1]=textel
   GetChar=(pos)->
     char=string.format '%02X',string.byte data.data,pos
     char,data.edit and (string.format '%02X',string.byte data.olddata,pos) or char
@@ -106,7 +107,7 @@ HexDraw=(hDlg,data)->
   len=string.len data.data
   for ii=0,data.height-1
     if ii*16<len
-      DrawStr ii*data.width+1,string.format '%010X:',tonumber data.offset+ii*16
+      DrawStr 1,ii,string.format '%010X:',tonumber data.offset+ii*16
       data.textel.Char=0x2502
       data.buffer[ii*data.width+24+1+12]=data.textel
     for jj=1,16
@@ -114,8 +115,8 @@ HexDraw=(hDlg,data)->
       if pos<=len
         char,oldchar=GetChar pos
         txtl=pos==data.cursor and not data.edit and data.textel_sel or (char==oldchar and data.textel or data.textel_changed)
-        DrawStr ii*data.width+(jj-1)*3+1+12+(jj>8 and 2 or 0),char,txtl
-        DrawStr ii*data.width+16*3+2+1+12+jj,(data.displaydata\sub pos,pos),txtl
+        DrawStr (jj-1)*3+1+12+(jj>8 and 2 or 0),ii,char,txtl
+        DrawStr 16*3+2+1+12+jj,ii,(data.displaydata\sub pos,pos),txtl
   if data.edit
     xx,yy=data.editascii and 63+(data.cursor-1)%16 or (data.cursor-1)%16,1+math.floor (data.cursor-1)/16
     xx=12+xx*3+(xx>7 and 2 or 0)+data.editpos if not data.editascii
