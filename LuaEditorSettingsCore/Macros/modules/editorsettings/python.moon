@@ -12,7 +12,7 @@ class Python extends UnixSources
   TabSize: 4
   ExpandTabs: true
   SmartHome: true
-  SetBOM: false
+  SetBOM: true
 {
   :Python
 }

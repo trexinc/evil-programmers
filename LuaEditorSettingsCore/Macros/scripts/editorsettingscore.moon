@@ -422,7 +422,7 @@ Event
           ab,guid,top=Plugin.SyncCall(abguid,2,id)
           guid,top={farguid},math.huge if not ab
           if 1==highlite or (2==highlite and (editor.GetInfo id).TotalLines<=maxlines)
-            Highlite id,tt,top if guid[1]==farguid
+            Highlite id,tt,top if guid['__binary']==farguid
           if tt.o.WhiteSpaceColor
             ei=editor.GetInfo id
             if 0~=bit64.band ei.Options,F.EOPT_SHOWWHITESPACE
