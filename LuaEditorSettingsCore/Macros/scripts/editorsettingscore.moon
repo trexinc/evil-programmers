@@ -352,6 +352,7 @@ ApplyType=(id,tt,startup,fn)->
     {F.ESPT_SETWORDDIV      ,"WordDiv"}
     {F.ESPT_SHOWWHITESPACE  ,"ShowWhiteSpace"}
     {F.ESPT_SETBOM          ,"SetBOM",true}
+    {F.ESPT_SHOWLINENUMBERS ,"ShowLineNumbers"}
   }
   for param in *params do if type(tt.o[param[2]])~='nil' and (not param[3] or (startup and not mf.fexist fn)) then editor.SetParam id,param[1],tt.o[param[2]]
 
