@@ -62,7 +62,7 @@ pointfloat=digitpart?fraction|digitpart".";
 exponentfloat=(digitpart|pointfloat)exponent;
 floatnumber=pointfloat|exponentfloat;
 
-imagnumber=(floatnumber|digitpart)'j';
+imagnumber=((floatnumber|digitpart)[-+])?(floatnumber|digitpart)'j';
 */
 
 void WINAPI Colorize(intptr_t index,struct ColorizeParams *params)
