@@ -63,7 +63,7 @@ void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
 {
   Info->StructSize=sizeof(GlobalInfo);
   Info->MinFarVersion=FARMANAGERVERSION;
-  Info->Version=MAKEFARVERSION(4,0,0,3,VS_ALPHA);
+  Info->Version=MAKEFARVERSION(4,0,0,4,VS_ALPHA);
   Info->Guid=MainGuid;
   Info->Title=L"Word Completion";
   Info->Description=L"Complete/autocomplete words in editor";

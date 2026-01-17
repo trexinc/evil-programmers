@@ -18,12 +18,12 @@
 
 #include <windows.h>
 
-void * operator new(size_t size)
+void * operator new(std::size_t size)
 {
   return HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,size);
 }
 
-void operator delete(void *block)
+void operator delete(void* block,std::size_t size) noexcept
 {
   if(block)
     HeapFree(GetProcessHeap(),0,block);

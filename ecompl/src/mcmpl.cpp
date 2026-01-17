@@ -214,30 +214,34 @@ bool TMenuCompletion::ShowMenu(string &Selected)
     EditorInfo ei={sizeof(ei)};
     Info.EditorControl(-1,ECTL_GETINFO,0,&ei);
 
+    int EdWidth=ei.ClientArea.right-ei.ClientArea.left+1,EdHeight=ei.ClientArea.bottom-ei.ClientArea.top+1;
     size_t MenuWidth=MAX(WordList.get_max_len()+2,_tcslen(GetMsg(MChooseWord))+1);
     MenuWidth=MAX(MenuWidth,_tcslen(BottomMsg));
     size_t MenuHeight=1;
     int CoorX=ei.CurTabPos-ei.LeftPos;
     int CoorY=ei.CurLine-ei.TopScreenLine;
     int MenuX=MAX(0,CoorX+1-((signed)(Word.length()))-(signed)MenuWidth-MENU_OVERHEAD_WIDTH);
-    MenuX=(ei.WindowSizeX-CoorX)>(CoorX+2-((signed)(Word.length())))?CoorX+1:MenuX; //меню права или слева от слова?
+    MenuX=(EdWidth-CoorX)>(CoorX+2-((signed)(Word.length())))?CoorX+1:MenuX; //меню справа или слева от слова?
     int MenuY=0;
-    if((ei.WindowSizeY-CoorY-1)>CoorY+1) //меню сверху или снизу?
+    if((EdHeight-CoorY-1)>CoorY+1) //меню сверху или снизу?
     { //снизу
-      MenuY=CoorY+2;
-      MenuHeight=ei.WindowSizeY-MenuY+1-MENU_OVERHEAD_HEIGHT;
+      MenuY=CoorY+1;
+      MenuHeight=EdHeight-MenuY+1-MENU_OVERHEAD_HEIGHT;
       if((signed)MenuHeight>WordList.count()) MenuHeight=WordList.count();
     }
     else
     { //сверху
-      MenuY=CoorY-WordList.count()-1;
+      MenuY=CoorY-WordList.count()-2;
       if(MenuY<1) MenuY=1;
-      MenuHeight=CoorY-MenuY-1;
+      MenuHeight=CoorY-MenuY-2;
     }
 
     //fix menu width
-    if((MenuX+MenuWidth+MENU_OVERHEAD_WIDTH)>(unsigned int)ei.WindowSizeX)
-      MenuWidth=ei.WindowSizeX-MenuX-MENU_OVERHEAD_WIDTH;
+    if((MenuX+MenuWidth+MENU_OVERHEAD_WIDTH)>(unsigned int)EdWidth)
+      MenuWidth=EdWidth-MenuX-MENU_OVERHEAD_WIDTH;
+
+    MenuX+=ei.ClientArea.left;
+    MenuY+=ei.ClientArea.top;
 
     DialogItems[0].X1=0; DialogItems[0].X2=MenuWidth+3; DialogItems[0].Y1=0; DialogItems[0].Y2=MenuHeight+1;
     INIT_DLG_DATA(DialogItems[0],GetMsg(MChooseWord));
@@ -250,7 +254,7 @@ bool TMenuCompletion::ShowMenu(string &Selected)
       DialogItems[2].VBuf=VirtualBuffer;
       ListMenuData params={WordList.count(),menudata,/*(TCHAR *)GetMsg(MChooseWord),BottomMsg,*/ShortCuts,ShortCutsLen,AcceptChars,0,0,-1};
       CFarDialog dialog;
-      intptr_t DlgCode=dialog.Execute(MainGuid,MCmplGuid,MenuX,MenuY,MenuX+MenuWidth+3,MenuY+MenuHeight+1,_T("List"),DialogItems,sizeofa(DialogItems),0,0,ListMenuProc,&params);
+      intptr_t DlgCode=dialog.Execute(MainGuid,MCmplGuid,MenuX,MenuY,MenuX+MenuWidth+3,MenuY+MenuHeight+1,_T("List"),DialogItems,sizeofa(DialogItems),0,FDLG_SMALLDIALOG,ListMenuProc,&params);
       if(DlgCode==2)
       {
         int MenuCode=params.CursorPos;

@@ -56,7 +56,7 @@ TAutoCompletion::TAutoCompletion()
   HighliteColor.Flags=FCF_FG_4BIT|FCF_BG_4BIT;
   HighliteColor.ForegroundColor=0xf;
   HighliteColor.BackgroundColor=0x2;
-  HighliteColor.Reserved=NULL;
+  HighliteColor.Reserved=0;
   AcceptChars[0]=0;
   _tcscpy(ConfigHelpTopic,_T("ConfigAuto"));
   GetOptions();

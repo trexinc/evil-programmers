@@ -161,7 +161,7 @@ intptr_t WINAPI ListBoxExDialogProc(HANDLE hDlg,intptr_t Msg,intptr_t Param1,voi
 {
   if(DM_LISTBOXEX_ISLBE==Msg) return 0;
   bool return_flag=false; long return_result=FALSE,old_curpos=0L;
-  const ListBoxExColor default_colors[LISTBOXEX_COLORS_COUNT]={{{0,0,0,NULL},LISTBOXEX_COLOR_ITEM,true},{{0,0,0,NULL},LISTBOXEX_COLOR_SELECTEDITEM,true},{{0,0,0,NULL},LISTBOXEX_COLOR_DISABLED,true}};
+  const ListBoxExColor default_colors[LISTBOXEX_COLORS_COUNT]={{{0,0,0,0},LISTBOXEX_COLOR_ITEM,true},{{0,0,0,0},LISTBOXEX_COLOR_SELECTEDITEM,true},{{0,0,0,0},LISTBOXEX_COLOR_DISABLED,true}};
   ListBoxExData *data=NULL;
   if(Info.SendDlgMessage(hDlg,DM_LISTBOXEX_ISLBE,Param1,0L))
   {
