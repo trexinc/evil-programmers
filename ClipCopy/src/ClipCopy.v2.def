@@ -1,4 +1,4 @@
-LIBRARY        ClipCopy
+LIBRARY        ClipCopyW
 EXPORTS
 	SetStartupInfoW
 	OpenPluginW
